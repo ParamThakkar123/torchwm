@@ -5,11 +5,21 @@ from torch.distributions import Normal
 from world_models.vision.encoder import CNNEncoder
 from world_models.vision.decoder import CNNDecoder
 
+
 class RecurrentStateSpaceModel(nn.Module):
     """
     A Recurrent State Space Model (RSSM) for modeling latent dynamics in sequential data.
     """
-    def __init__(self, action_size, state_size=200, latent_size=30, hidden_size=200, embed_size=1024, activation_function='relu'):
+
+    def __init__(
+        self,
+        action_size,
+        state_size=200,
+        latent_size=30,
+        hidden_size=200,
+        embed_size=1024,
+        activation_function="relu",
+    ):
         super().__init__()
         self.state_size = state_size
         self.action_size = action_size
@@ -41,14 +51,46 @@ class RecurrentStateSpaceModel(nn.Module):
         else:
             s_tp1, _ = self.state_posterior(h_t, enc)
         return h_tp1, s_tp1
-    
+
     def deterministic_state_fwd(self, h_t, s_t, a_t):
-        """Returns the deterministic state given the previous states and actions"""
-        h = torch.cat([s_t, a_t], dim=1)
-        h = self.act_fn(self.lat_act_layer(h))
-        h_tp1 = self.grucell(h, h_t)
-        return h_tp1
-    
+        """
+        Deterministic transition update that accepts:
+          - a_t shaped [B, action_size]
+          - a_t shaped [action_size] (unbatched) -> expanded to [B, action_size]
+          - a_t shaped [B] or scalar -> reshaped appropriately
+        Ensures a_t is 2D and matches batch dimension of h_t before concatenation.
+        """
+        # ensure torch tensor
+        if not isinstance(a_t, torch.Tensor):
+            a_t = torch.tensor(a_t, dtype=h_t.dtype, device=h_t.device)
+
+        # Fix dims: make a_t [B, action_size]
+        if a_t.dim() == 0:
+            a_t = a_t.view(1, 1)
+        if a_t.dim() == 1:
+            # If length equals batch size -> treat as per-batch scalar action -> make [B,1]
+            if a_t.numel() == h_t.size(0):
+                a_t = a_t.view(-1, 1).to(h_t.device).to(h_t.dtype)
+            else:
+                # treat as single action vector -> expand to batch
+                a_t = (
+                    a_t.view(1, -1).expand(h_t.size(0), -1).to(h_t.device).to(h_t.dtype)
+                )
+        elif a_t.dim() == 2 and a_t.size(0) != h_t.size(0):
+            # if batch dim mismatches but first dim is 1, expand
+            if a_t.size(0) == 1:
+                a_t = a_t.expand(h_t.size(0), -1)
+            else:
+                raise ValueError(
+                    f"Action batch size {a_t.size(0)} != state batch size {h_t.size(0)}"
+                )
+
+        # concatenate stochastic state and action, then pass through latent->state
+        inp = torch.cat([s_t, a_t], dim=1)
+        h = self.act_fn(self.lat_act_layer(inp))
+        h = self.grucell(h, h_t)
+        return h
+
     def state_prior(self, h_t, sample=False):
         """Returns the prior distribution over the latent state given the deterministic state"""
         z = self.act_fn(self.fc_prior_1(h_t))
@@ -57,7 +99,7 @@ class RecurrentStateSpaceModel(nn.Module):
         if sample:
             return m + torch.rand_like(m) * s
         return m, s
-    
+
     def state_posterior(self, h_t, e_t, sample=False):
         """Returns the state prior given the deterministic state and obs"""
         z = torch.cat([h_t, e_t], dim=1)
@@ -67,13 +109,13 @@ class RecurrentStateSpaceModel(nn.Module):
         if sample:
             return m + torch.rand_like(m) * s
         return m, s
-    
+
     def pred_reward(self, h_t, s_t):
         r = self.act_fn(self.fc_reward_1(torch.cat([h_t, s_t], dim=-1)))
         r = self.act_fn(self.fc_reward_2(r))
         r = self.fc_reward_3(r)
         return r.squeeze()
-    
+
     def rollout_prior(self, act, h_t, s_t):
         states, latents = [], []
         for a_t in torch.unbind(act, dim=0):
@@ -83,3 +125,41 @@ class RecurrentStateSpaceModel(nn.Module):
             latents.append(s_t)
             Normal(*map(torch.stack, zip(*s_t)))
         return torch.stack(states), torch.stack(latents)
+
+    def forward(self, x, u):
+        """
+        Forward through the RSSM for a batch of sequences.
+        Inputs:
+            x: Tensor [B, T+1, C, H, W]  (observations including initial frame)
+            u: Tensor [B, T, action_size] (actions for T steps)
+        Returns:
+            states: list[T] of tensors [B, state_size]
+            priors: list[T] of tuples (mean, std) each [B, latent_size]
+            posteriors: list[T] of tuples (mean, std) each [B, latent_size]
+        """
+        B = x.size(0)
+        T = u.size(1)
+        device = x.device
+
+        # encode all frames at once: [B*(T+1), C, H, W] -> [B, T+1, embed_size]
+        x_flat = x.view(B * (T + 1), *x.shape[2:])
+        e_flat = self.encoder(x_flat)
+        e = e_flat.view(B, T + 1, -1)
+
+        h = torch.zeros(B, self.state_size, device=device)
+        s = torch.zeros(B, self.latent_size, device=device)
+
+        states, priors, posteriors = [], [], []
+        for t in range(T):
+            a_t = u[:, t]
+            h = self.deterministic_state_fwd(h, s, a_t)
+            prior = self.state_prior(h)  # (m, s)
+            posterior = self.state_posterior(h, e[:, t + 1])  # (m, s)
+
+            states.append(h)
+            priors.append(prior)
+            posteriors.append(posterior)
+
+            s = posterior[0]
+
+        return states, priors, posteriors

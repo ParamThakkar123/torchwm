@@ -1,9 +1,11 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class CNNEncoder(nn.Module):
     """A Convolutional Neural Network (CNN) encoder for processing image inputs."""
-    def __init__(self, embedding_size, activation_function='relu'):
+
+    def __init__(self, embedding_size, activation_function="relu"):
         super().__init__()
         self.act_fn = getattr(F, activation_function)
         self.embedding_size = embedding_size

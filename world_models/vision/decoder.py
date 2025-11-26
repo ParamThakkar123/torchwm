@@ -2,9 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class CNNDecoder(nn.Module):
     """A Convolutional Neural Network (CNN) decoder for reconstructing image outputs."""
-    def __init__(self, state_size, latent_size, embedding_size, activation_function='relu'):
+
+    def __init__(
+        self, state_size, latent_size, embedding_size, activation_function="relu"
+    ):
         super().__init__()
         self.act_fn = getattr(F, activation_function)
         self.embedding_size = embedding_size

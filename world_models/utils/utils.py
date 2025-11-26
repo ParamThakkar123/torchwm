@@ -87,6 +87,64 @@ def save_video(frames, path, name):
     writer.release()
 
 
+def combine_videos(
+    video_dir, output_name="combined.mp4", pattern="vid_*.mp4", fps=25, resize=True
+):
+    """
+    Combine all videos matching `pattern` in `video_dir` into a single MP4 file.
+    Returns the output filepath (string).
+
+    Example:
+      combine_videos("results/planet", output_name="all_training.mp4")
+    """
+    import glob
+
+    files = sorted(glob.glob(os.path.join(video_dir, pattern)))
+    if len(files) == 0:
+        raise FileNotFoundError(f"No videos found in {video_dir} matching {pattern}")
+
+    # probe first video for size
+    cap0 = cv2.VideoCapture(files[0])
+    if not cap0.isOpened():
+        cap0.release()
+        raise RuntimeError(f"Failed to open video {files[0]}")
+    width = int(cap0.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap0.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap0.release()
+
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out_path = str(pathlib.Path(video_dir) / output_name)
+    writer = cv2.VideoWriter(out_path, fourcc, float(fps), (width, height), True)
+
+    try:
+        for f in files:
+            cap = cv2.VideoCapture(f)
+            if not cap.isOpened():
+                cap.release()
+                continue
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                # frame is BGR height x width x channels
+                if resize and (frame.shape[1] != width or frame.shape[0] != height):
+                    frame = cv2.resize(frame, (width, height))
+                writer.write(frame)
+            cap.release()
+    finally:
+        writer.release()
+    return out_path
+
+
+def ensure_results_dir_exists(results_dir):
+    """
+    Simple helper to validate a results directory exists.
+    Raises FileNotFoundError if not present.
+    """
+    if not os.path.isdir(results_dir):
+        raise FileNotFoundError(f"Results directory does not exist: {results_dir}")
+
+
 def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     """
     Save side-by-side comparisons of target / prior / posterior predictions.

@@ -3,6 +3,7 @@ import os
 import torch
 import numpy as np
 
+from world_models.utils.utils import to_tensor_obs, preprocess_img
 from world_models.models.rssm import RecurrentStateSpaceModel
 from world_models.controller.rssm_policy import RSSMPolicy
 from world_models.controller.rollout_generator import RolloutGenerator
@@ -41,7 +42,6 @@ class Planet:
         action_repeats=1,
         results_dir=None,
     ):
-        # allow running without opening windows (useful on servers/CI)
         if headless:
             os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
@@ -50,21 +50,18 @@ class Planet:
         )
         self.bit_depth = bit_depth
 
-        # if env is a string id, wrap it to the TorchImageEnvWrapper, otherwise assume it's already env-like
         if isinstance(env, str):
-            # pass action_repeats into the wrapper (4th positional param in wrapper)
             self.env = TorchImageEnvWrapper(env, bit_depth, None, action_repeats)
-        else:
+        elif hasattr(env, "action_size"):
             self.env = env
+        else:
+            self.env = self._wrap_raw_env(env, bit_depth, action_repeats)
 
-        # model / optimizer
-        # RecurrentStateSpaceModel signatures vary in this repo; using common constructor:
         self.rssm = RecurrentStateSpaceModel(
             self.env.action_size, state_size, latent_size, embedding_size
         ).to(self.device)
-        self.optimizer = torch.optim.Adam(self.rssm.parameters(), lr=1e-3, eps=1e-4)
+        self.optimizer = torch.optim.Adam(self.rssm.parameters(), lr=1e-4, eps=1e-4)
 
-        # policy
         policy_cfg = policy_cfg or {}
         self.policy = RSSMPolicy(
             model=self.rssm,
@@ -86,11 +83,96 @@ class Planet:
             max_episode_steps=env_max_steps,
         )
 
-        # memory / logging
         self.memory = Memory(memory_size)
         self.summary = None
-        # allow user to set results directory at construction time
         self.results_dir = results_dir or "results/planet"
+
+    def _wrap_raw_env(self, env, bit_depth, action_repeats):
+        class SimpleEnvWrapper:
+            def __init__(self, env, bit_depth, action_repeats):
+                self.env = env
+                self.bit_depth = bit_depth
+                self.action_repeats = action_repeats
+
+            @property
+            def action_size(self):
+                if hasattr(self.env.action_space, "n"):
+                    return 1
+                else:
+                    return self.env.action_space.shape[0]
+
+            @property
+            def observation_size(self):
+                return (3, 64, 64)
+
+            @property
+            def max_episode_steps(self):
+                if (
+                    hasattr(self.env, "_max_episode_steps")
+                    and self.env._max_episode_steps is not None
+                ):
+                    return self.env._max_episode_steps
+                if hasattr(self.env, "spec") and hasattr(
+                    self.env.spec, "max_episode_steps"
+                ):
+                    return self.env.spec.max_episode_steps
+                return 1000
+
+            def sample_random_action(self):
+                return torch.tensor(self.env.action_space.sample(), dtype=torch.float32)
+
+            def reset(self):
+                obs = self.env.reset()
+                if isinstance(obs, tuple):
+                    obs = obs[0]
+                frame = self._get_frame(obs)
+                if frame is None or frame.size == 0:
+                    raise RuntimeError("Environment returned invalid frame on reset")
+                x = to_tensor_obs(frame)
+                if torch.isnan(x).any() or torch.isinf(x).any():
+                    print(
+                        f"Invalid tensor before preprocessing: min={x.min()}, max={x.max()}"
+                    )
+                    raise ValueError("NaN/Inf in observation tensor")
+                preprocess_img(x, self.bit_depth)
+                if torch.isnan(x).any() or torch.isinf(x).any():
+                    print(
+                        f"Invalid tensor after preprocessing: min={x.min()}, max={x.max()}"
+                    )
+                    raise ValueError("NaN/Inf after preprocessing")
+                return x
+
+            def step(self, action):
+                if isinstance(action, torch.Tensor):
+                    action = action.cpu().numpy()
+                if hasattr(self.env.action_space, "n"):
+                    action = int(np.clip(action, 0, self.env.action_space.n - 1))
+                obs, reward, term, trunc, info = self.env.step(action)
+                done = term or trunc
+                frame = self._get_frame(obs)
+                x = to_tensor_obs(frame)
+                preprocess_img(x, self.bit_depth)
+                return x, reward, done, info
+
+            def _get_frame(self, obs):
+                frame = self.env.render()
+                if isinstance(frame, tuple):
+                    frame = frame[0]
+                if isinstance(frame, np.ndarray) and frame.ndim == 3:
+                    return frame
+                if isinstance(obs, np.ndarray) and obs.ndim == 1:
+                    vals = (obs - obs.min()) / (obs.max() - obs.min() + 1e-8)
+                    canvas = np.zeros((64, 64, 3), dtype=np.uint8)
+                    for i, v in enumerate(vals[:8]):
+                        band = int(255 * v)
+                        canvas[:, i * 8 : (i + 1) * 8, :] = band
+                    return canvas
+                return np.zeros((64, 64, 3), dtype=np.uint8)
+
+            def __getattr__(self, name):
+                return getattr(self.env, name)
+
+        return SimpleEnvWrapper(env, bit_depth, action_repeats)
 
     def warmup(self, n_episodes=1, random_policy=True):
         """Collect n_episodes of rollouts into memory (used as warmup)."""

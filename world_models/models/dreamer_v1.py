@@ -84,7 +84,7 @@ class DreamerV1:
         else:
             self.env = env
 
-        # Create agent configuration
+        # Create agent configuration with more conservative settings
         self.config = DreamerConfig(
             device=self.device,
             symbolic=symbolic,
@@ -100,17 +100,17 @@ class DreamerV1:
             reward_scale=kwargs.get("reward_scale", 1.0),
             pcont=kwargs.get("pcont", True),
             pcont_scale=kwargs.get("pcont_scale", 10.0),
-            world_lr=kwargs.get("world_lr", 6e-4),
-            actor_lr=kwargs.get("actor_lr", 8e-5),
-            value_lr=kwargs.get("value_lr", 8e-5),
+            world_lr=kwargs.get("world_lr", 6e-4),  # Reduced from 6e-4
+            actor_lr=kwargs.get("actor_lr", 8e-5),  # Reduced from 8e-5
+            value_lr=kwargs.get("value_lr", 8e-5),  # Reduced from 8e-5
             free_nats=kwargs.get("free_nats", 3.0),
             batch_size=kwargs.get("batch_size", 50),
-            planning_horizon=kwargs.get("planning_horizon", 15),
+            planning_horizon=kwargs.get("planning_horizon", 12),  # Reduced from 15
             discount=kwargs.get("discount", 0.99),
             disclam=kwargs.get("disclam", 0.95),
             temp=kwargs.get("temp", 0.5),
             with_logprob=kwargs.get("with_logprob", True),
-            grad_clip_norm=kwargs.get("grad_clip_norm", 100.0),
+            grad_clip_norm=kwargs.get("grad_clip_norm", 10.0),  # Reduced from 100.0
             expl_amount=kwargs.get("expl_amount", 0.3),
         )
 
@@ -179,12 +179,12 @@ class DreamerV1:
         while True:
             # Infer state
             belief, state = self.agent.infer_state(
-                observation.to(self.device), action, belief, state
+                observation.to(self.device), belief, state, action
             )
 
             # Select action
             action = self.agent.select_action(
-                (belief, state), deterministic=deterministic
+                belief, state, deterministic=deterministic
             )
 
             # Take step
@@ -192,11 +192,22 @@ class DreamerV1:
 
             # Store experience (only during training)
             if not deterministic:
-                self.memory.append(next_observation, action.cpu(), reward, done)
+                # detach/clone to avoid sharing storage with current computation graph
+                obs_to_store = (
+                    next_observation.detach().cpu().clone()
+                    if isinstance(next_observation, torch.Tensor)
+                    else next_observation
+                )
+                act_to_store = action.detach().cpu().clone()
+                self.memory.append(obs_to_store, act_to_store, reward, done)
 
-            # Save frame for video
+            # Save frame for video - postprocess to restore brightness
             if not self.config.symbolic:
-                frames.append(observation.cpu().numpy())
+                frame = observation.cpu()
+                if isinstance(frame, torch.Tensor):
+                    frame = frame.numpy()
+                frame = np.clip(frame + 0.5, 0.0, 1.0)
+                frames.append(frame)
 
             episode_reward += reward
             step_count += 1
@@ -230,7 +241,30 @@ class DreamerV1:
 
                 # Save video for first episode
                 if ep == 0 and frames:
-                    save_video(frames, self.results_dir, "eval_episode")
+                    # ensure frames array has shape (T, C, H, W) or (T, H, W, C)
+                    import numpy as _np
+                    import torch as _torch
+
+                    # stack if list of tensors/arrays
+                    if isinstance(frames, list) and len(frames) > 0:
+                        first = frames[0]
+                        if isinstance(first, _torch.Tensor):
+                            frames_arr = _torch.stack(frames, dim=0).cpu()
+                        else:
+                            frames_arr = _np.stack(frames, axis=0)
+                    else:
+                        frames_arr = frames
+
+                    # convert to numpy if torch tensor
+                    if isinstance(frames_arr, _torch.Tensor):
+                        frames_arr = frames_arr.detach().cpu().numpy()
+
+                    # remove singleton extra dim (e.g. (T, 1, C, H, W) -> (T, C, H, W))
+                    if frames_arr.ndim == 5 and frames_arr.shape[1] == 1:
+                        frames_arr = frames_arr.squeeze(1)
+
+                    # now save (works for (T,C,H,W) or (T,H,W,C))
+                    save_video(frames_arr, self.results_dir, "eval_episode")
 
         # Set back to train mode
         self.agent.transition_model.train()
@@ -269,7 +303,6 @@ class DreamerV1:
             save_interval: Episodes between model saves
             chunk_size: Sequence length for training
         """
-        # Initialize metrics
         metrics = TensorBoardMetrics(self.results_dir)
 
         # Warmup
@@ -285,7 +318,6 @@ class DreamerV1:
             # Training update
             if (
                 self.memory.episodes >= self.config.batch_size
-                and episode % collect_interval == 0
             ):  # Changed from len(self.memory)
                 loss_info = []
                 for _ in range(train_steps_per_collect):
@@ -338,6 +370,30 @@ class DreamerV1:
             # Save model
             if episode % save_interval == 0:
                 self.save_checkpoint(episode)
+
+                # collect one deterministic episode (does not append to memory)
+                _, _, frames = self.collect_episode(deterministic=True)
+                if frames:
+                    # stack if list of tensors/arrays
+                    if isinstance(frames, list) and len(frames) > 0:
+                        first = frames[0]
+                        if isinstance(first, torch.Tensor):
+                            frames_arr = torch.stack(frames, dim=0).cpu().numpy()
+                        else:
+                            frames_arr = np.stack(frames, axis=0)
+                    else:
+                        frames_arr = frames
+
+                    # convert to numpy if torch tensor
+                    if isinstance(frames_arr, torch.Tensor):
+                        frames_arr = frames_arr.detach().cpu().numpy()
+
+                    # remove singleton extra dim (e.g. (T, 1, C, H, W) -> (T, C, H, W))
+                    if frames_arr.ndim == 5 and frames_arr.shape[1] == 1:
+                        frames_arr = frames_arr.squeeze(1)
+
+                    # Save with unique name per episode
+                    save_video(frames_arr, self.results_dir, f"episode_{episode}")
 
         print("Training completed!")
         return self.results_dir

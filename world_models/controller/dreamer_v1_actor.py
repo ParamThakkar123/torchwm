@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+from torch.distributions import Normal, TransformedDistribution, Independent
+from torch.distributions.transforms import TanhTransform
 
 
 class SampleDist:
@@ -9,37 +10,24 @@ class SampleDist:
         self._dist = dist
         self._samples = samples
 
-    @property
-    def name(self):
-        return "SampleDist"
-
     def __getattr__(self, name):
         return getattr(self._dist, name)
 
     @property
     def mean(self):
-        dist = self._dist.expand((self._samples, *self._dist.batch_shape))
-        sample = dist.rsample()
-        return torch.mean(sample, 0)
+        samples = self._dist.rsample((self._samples,))
+        return samples.mean(0)
 
     def mode(self):
-        dist = self._dist.expand((self._samples, *self._dist.batch_shape))
-        sample = dist.rsample()
-        logprob = dist.log_prob(sample)
-        batch_size = sample.size(1)
-        feature_size = sample.size(2)
-        indices = (
-            torch.argmax(logprob, dim=0)
-            .reshape(1, batch_size, 1)
-            .expand(1, batch_size, feature_size)
-        )
-        return torch.gather(sample, 0, indices).squeeze(0)
+        samples = self._dist.rsample((self._samples,))
+        logprob = self._dist.log_prob(samples)
+        idx = torch.argmax(logprob, dim=0)
+        return samples[idx, torch.arange(samples.size(1))]
 
     def entropy(self):
-        dist = self._dist.expand((self._samples, *self._dist.batch_shape))
-        sample = dist.rsample()
-        logprob = dist.log_prob(sample)
-        return -torch.mean(logprob, 0)
+        samples = self._dist.rsample((self._samples,))
+        logprob = self._dist.log_prob(samples)
+        return -logprob.mean(0)
 
 
 class ActorModel(nn.Module):
@@ -51,38 +39,42 @@ class ActorModel(nn.Module):
         hidden_size,
         mean_scale=5,
         min_std=1e-4,
-        init_std=5,
+        init_std=0.0,
         activation_function="elu",
     ):
         super().__init__()
         self.act_fn = getattr(F, activation_function)
-        self.fc1 = nn.Linear(belief_size + state_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size, hidden_size)
-        self.fc5 = nn.Linear(hidden_size, 2 * action_size)
+        self.net = nn.Sequential(
+            nn.Linear(belief_size + state_size, hidden_size),
+            nn.LayerNorm(hidden_size),
+            nn.ELU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.LayerNorm(hidden_size),
+            nn.ELU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.LayerNorm(hidden_size),
+            nn.ELU(),
+        )
+        self.mean_layer = nn.Linear(hidden_size, action_size)
+        self.std_layer = nn.Linear(hidden_size, action_size)
         self.min_std = min_std
         self.init_std = init_std
         self.mean_scale = mean_scale
 
     def forward(self, belief, state, deterministic=False, with_logprob=False):
-        raw_init_std = np.log(np.exp(self.init_std) - 1)
-        hidden = self.act_fn(self.fc1(torch.cat([belief, state], dim=-1)))
-        hidden = self.act_fn(self.fc2(hidden))
-        hidden = self.act_fn(self.fc3(hidden))
-        hidden = self.act_fn(self.fc4(hidden))
-        hidden = self.fc5(hidden)
-        mean, std = torch.chunk(hidden, 2, dim=-1)
-        mean = self.mean_scale * torch.tanh(
-            mean / self.mean_scale
-        )  # bound the action to [-5, 5] --> to avoid numerical instabilities.  For computing log-probabilities, we need to invert the tanh and this becomes difficult in highly saturated regions.
-        std = F.softplus(std + raw_init_std) + self.min_std
-        dist = torch.distributions.Normal(mean, std)
-        transform = [torch.distributions.transforms.TanhTransform()]
-        dist = torch.distributions.TransformedDistribution(dist, transform)
-        dist = torch.distributions.independent.Independent(
-            dist, 1
-        )  # Introduces dependence between actions dimension
+
+        x = torch.cat([belief, state], dim=-1)
+        x = self.net(x)
+
+        mean = self.mean_layer(x) / self.mean_scale
+
+        std_logits = self.std_layer(x)
+        std = F.softplus(std_logits + self.init_std) + self.min_std
+
+        base_dist = Normal(mean, std)
+        transform = [TanhTransform()]
+        dist = TransformedDistribution(base_dist, transform)
+        dist = Independent(dist, 1)  # Introduces dependence between actions dimension
         dist = SampleDist(
             dist
         )  # because after transform a distribution, some methods may become invalid, such as entropy, mean and mode, we need SmapleDist to approximate it.
@@ -93,8 +85,9 @@ class ActorModel(nn.Module):
             action = dist.rsample()
 
         if with_logprob:
-            logp_pi = dist.log_prob(action)
-        else:
-            logp_pi = None
+            log_prob = base_dist.log_prob(action).sum(-1)
+            correction = torch.log(1 - action.pow(2) + 1e-6).sum(-1)
+            log_prob = log_prob - correction
+            return action, log_prob
 
-        return action, logp_pi
+        return action, None

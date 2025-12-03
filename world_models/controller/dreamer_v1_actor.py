@@ -85,9 +85,7 @@ class ActorModel(nn.Module):
             action = dist.rsample()
 
         if with_logprob:
-            log_prob = base_dist.log_prob(action).sum(-1)
-            correction = torch.log(1 - action.pow(2) + 1e-6).sum(-1)
-            log_prob = log_prob - correction
+            log_prob = dist.log_prob(action)
             return action, log_prob
 
         return action, None

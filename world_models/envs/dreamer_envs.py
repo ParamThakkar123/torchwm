@@ -3,6 +3,7 @@ import numpy as np
 import gymnasium as gym
 from world_models.utils.utils import preprocess_img, to_tensor_obs
 from world_models.envs.ale_atari_env import list_available_atari_envs
+import cv2
 
 try:
     from dm_control import suite
@@ -109,6 +110,10 @@ def _get_action_repeat(env_id):
 
 def _images_to_observation(image, bit_depth):
     """Convert image to tensor observation using existing utils."""
+    # Ensure image is 64x64
+    if image.shape[0] != 64 or image.shape[1] != 64:
+        image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
+
     image_tensor = to_tensor_obs(image)
 
     # Preprocess using existing function
@@ -120,69 +125,65 @@ class DMCEnv:
     def __init__(
         self, env, symbolic, seed, max_episode_length, action_repeat, bit_depth
     ):
-        if not DM_CONTROL_AVAILABLE:
-            raise ImportError(
-                "dm_control not available. Please install with `pip install dm_control`"
-            )
+        assert isinstance(env, tuple), "dm_control env must be ('domain', 'task')"
+        domain, task = env
 
-        domain_name, task_name = env
         self.symbolic = symbolic
+        self.max_episode_length = max_episode_length
+        self.action_repeat = action_repeat
+        self.bit_depth = bit_depth
+
         self._env = suite.load(
-            domain_name=domain_name,
-            task_name=task_name,
-            task_kwargs={"random": seed},
+            domain_name=domain, task_name=task, task_kwargs={"random": seed}
         )
 
         if not symbolic:
+            # always use official pixel wrapper
             self._env = pixels.Wrapper(
                 self._env,
                 pixels_only=True,
                 render_kwargs={"height": 64, "width": 64, "camera_id": 0},
             )
 
-        self.max_episode_length = max_episode_length
-        self.action_repeat = action_repeat or _get_action_repeat(domain_name)
-        self.bit_depth = bit_depth
-        self.env_id = f"{domain_name}-{task_name}"
-
     def reset(self):
         self.t = 0
-        time_step = self._env.reset()
+        ts = self._env.reset()
+
         if self.symbolic:
-            observation = torch.tensor(
-                np.concatenate([v.flatten() for v in time_step.observation.values()]),
-                dtype=torch.float32,
-            ).unsqueeze(0)
-        else:
-            observation = _images_to_observation(
-                time_step.observation["pixels"], self.bit_depth
-            )
-        return observation
+            obs = np.concatenate([v.ravel() for v in ts.observation.values()])
+            return torch.tensor(obs, dtype=torch.float32).unsqueeze(0)
+
+        # pixel obs
+        img = ts.observation["pixels"]
+        img = to_tensor_obs(img)
+        preprocess_img(img, self.bit_depth)
+        return img.unsqueeze(0)
 
     def step(self, action):
         if isinstance(action, torch.Tensor):
-            action = action.detach().cpu().numpy()
+            action = action.detach().numpy()
 
         reward = 0
+        done = False
+
         for _ in range(self.action_repeat):
-            time_step = self._env.step(action)
-            reward += time_step.reward
+            ts = self._env.step(action)
+            reward += ts.reward
             self.t += 1
-            done = time_step.last() or self.t >= self.max_episode_length
+            done = ts.last() or self.t >= self.max_episode_length
             if done:
                 break
 
         if self.symbolic:
-            observation = torch.tensor(
-                np.concatenate([v.flatten() for v in time_step.observation.values()]),
-                dtype=torch.float32,
-            ).unsqueeze(0)
+            obs = np.concatenate([v.ravel() for v in ts.observation.values()])
+            obs = torch.tensor(obs, dtype=torch.float32).unsqueeze(0)
         else:
-            observation = _images_to_observation(
-                time_step.observation["pixels"], self.bit_depth
-            )
+            img = ts.observation["pixels"]
+            img = to_tensor_obs(img)
+            preprocess_img(img, self.bit_depth)
+            obs = img.unsqueeze(0)
 
-        return observation, reward, done
+        return obs, reward, done
 
     def close(self):
         self._env.close()
@@ -242,8 +243,8 @@ class UniversalGymEnv:
 
         # Handle different gym return formats
         reset_result = self._env.reset()
-        if isinstance(reset_result, tuple):
-            state, info = reset_result
+        if isinstance(reset_result, tuple) and len(reset_result) == 2:
+            state, _ = reset_result
         else:
             state = reset_result
 
@@ -286,15 +287,9 @@ class UniversalGymEnv:
         else:
             # Continuous action space
             action = np.array(action).flatten()
-            if (
-                len(action) == 1
-                and hasattr(self._env.action_space, "shape")
-                and len(self._env.action_space.shape) > 0
-            ):
-                action = np.repeat(action, self._env.action_space.shape[0])
 
         reward = 0
-        for k in range(self.action_repeat):
+        for _ in range(self.action_repeat):
             step_result = self._env.step(action)
 
             # Handle different gym return formats
@@ -330,7 +325,6 @@ class UniversalGymEnv:
                 except Exception:
                     observation = self._state_to_image(state)
             else:
-                observation = self._state_to_image(state)
                 observation = self._state_to_image(state)
 
         return observation, reward, done

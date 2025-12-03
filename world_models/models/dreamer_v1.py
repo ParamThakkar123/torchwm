@@ -38,6 +38,7 @@ DreamerConfig = namedtuple(
         "with_logprob",
         "grad_clip_norm",
         "expl_amount",
+        "action_noise",
     ],
 )
 
@@ -112,6 +113,7 @@ class DreamerV1:
             with_logprob=kwargs.get("with_logprob", True),
             grad_clip_norm=kwargs.get("grad_clip_norm", 10.0),  # Reduced from 100.0
             expl_amount=kwargs.get("expl_amount", 0.3),
+            action_noise=kwargs.get("action_noise", 0.3),
         )
 
         # Create agent
@@ -213,7 +215,7 @@ class DreamerV1:
             step_count += 1
             observation = next_observation
 
-            if done or step_count >= 1000:
+            if done or step_count >= self.env.max_episode_length:
                 break
 
         return episode_reward, step_count, frames
@@ -311,15 +313,17 @@ class DreamerV1:
 
         print(f"Starting training for {episodes} episodes...")
 
+        total_steps = 0
         for episode in range(1, episodes + 1):
             # Collect episode
             train_reward, train_length, _ = self.collect_episode(deterministic=False)
+            total_steps += train_length
 
             # Training update
             if (
-                episode % collect_interval == 0
+                total_steps >= collect_interval
                 and self.memory.episodes >= self.config.batch_size
-            ):  # Changed from len(self.memory)
+            ):
                 loss_info = []
                 for _ in range(train_steps_per_collect):
                     # Sample batch
@@ -328,6 +332,8 @@ class DreamerV1:
                     # Update agent
                     losses = self.agent.update_parameters(batch, 1)
                     loss_info.extend(losses)
+
+                total_steps %= collect_interval  # Reset step counter
 
                 # Log training losses
                 if loss_info:
@@ -440,21 +446,3 @@ class DreamerV1:
     def close(self):
         """Clean up resources."""
         self.env.close()
-
-
-# Simple usage example
-if __name__ == "__main__":
-    # Create and train DreamerV1 on HalfCheetah
-    dreamer = DreamerV1(
-        env="HalfCheetah-v4",
-        symbolic=False,  # Use image observations
-        bit_depth=5,
-        max_episode_length=1000,
-        action_repeat=2,
-    )
-
-    # Train the model
-    dreamer.train(episodes=1000, warmup_episodes=5, eval_interval=50, save_interval=100)
-
-    # Clean up
-    dreamer.close()

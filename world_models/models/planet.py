@@ -146,7 +146,7 @@ class Planet:
 
             def step(self, action):
                 if isinstance(action, torch.Tensor):
-                    action = action.cpu().numpy()
+                    action = action.detach().numpy()
                 if hasattr(self.env.action_space, "n"):
                     action = int(np.clip(action, 0, self.env.action_space.n - 1))
                 obs, reward, term, trunc, info = self.env.step(action)

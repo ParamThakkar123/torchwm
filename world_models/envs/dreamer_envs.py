@@ -1,170 +1,299 @@
-import cv2
+import gym
 import numpy as np
-import torch
-from world_models.utils.dreamer_utils import _images_to_observation
-
-CONTROL_SUITE_ENVS = [
-    "cartpole-balance",
-    "cartpole-swingup",
-    "reacher-easy",
-    "finger-spin",
-    "cheetah-run",
-    "ball_in_cup-catch",
-    "walker-walk",
-    "reacher-hard",
-    "walker-run",
-    "humanoid-stand",
-    "humanoid-walk",
-    "fish-swim",
-    "acrobot-swingup",
-]
-CONTROL_SUITE_ACTION_REPEATS = {
-    "cartpole": 8,
-    "reacher": 4,
-    "finger": 2,
-    "cheetah": 4,
-    "ball_in_cup": 6,
-    "walker": 2,
-    "humanoid": 2,
-    "fish": 2,
-    "acrobot": 4,
-}
 
 
-class ControlSuiteEnv:
-    def __init__(
-        self, env, symbolic, seed, max_episode_length, action_repeat, bit_depth
-    ):
-        from dm_control import suite
-        from dm_control.suite.wrappers import pixels
+class DeepMindControl:
 
-        domain, task = env.split("-")
-        self.symbolic = symbolic
-        self._env = suite.load(
-            domain_name=domain, task_name=task, task_kwargs={"random": seed}
-        )
-        if not symbolic:
-            self._env = pixels.Wrapper(self._env)
-        self.max_episode_length = max_episode_length
-        self.action_repeat = action_repeat
-        if action_repeat != CONTROL_SUITE_ACTION_REPEATS[domain]:
-            print(
-                "Using action repeat %d; recommended action repeat for domain is %d"
-                % (action_repeat, CONTROL_SUITE_ACTION_REPEATS[domain])
-            )
-        self.bit_depth = bit_depth
+    def __init__(self, name, seed, size=(64, 64), camera=None):
 
-    def reset(self):
-        self.t = 0  # Reset internal timer
-        state = self._env.reset()
-        if self.symbolic:
-            return torch.tensor(
-                np.concatenate(
-                    [
-                        np.asarray([obs]) if isinstance(obs, float) else obs
-                        for obs in state.observation.values()
-                    ],
-                    axis=0,
-                ),
-                dtype=torch.float32,
-            ).unsqueeze(dim=0)
+        domain, task = name.split("-", 1)
+        if domain == "cup":  # Only domain with multiple words.
+            domain = "ball_in_cup"
+        if isinstance(domain, str):
+            from dm_control import suite
+
+            self._env = suite.load(domain, task, task_kwargs={"random": seed})
         else:
-            return _images_to_observation(
-                self._env.physics.render(camera_id=0), self.bit_depth
-            )
+            assert task is None
+            self._env = domain()
+        self._size = size
+        if camera is None:
+            camera = dict(quadruped=2).get(domain, 0)
+        self._camera = camera
+
+    @property
+    def observation_space(self):
+        spaces = {}
+        for key, value in self._env.observation_spec().items():
+            spaces[key] = gym.spaces.Box(-np.inf, np.inf, value.shape, dtype=np.float32)
+        spaces["image"] = gym.spaces.Box(0, 255, (3,) + self._size, dtype=np.uint8)
+        return gym.spaces.Dict(spaces)
+
+    @property
+    def action_space(self):
+        spec = self._env.action_spec()
+        return gym.spaces.Box(spec.minimum, spec.maximum, dtype=np.float32)
 
     def step(self, action):
-        action = action.detach().numpy()
-        reward = 0
-        for k in range(self.action_repeat):
-            state = self._env.step(action)
-            reward += state.reward
-            self.t += 1  # Increment internal timer
-            done = state.last() or self.t == self.max_episode_length
-            if done:
-                break
-        if self.symbolic:
-            observation = torch.tensor(
-                np.concatenate(
-                    [
-                        np.asarray([obs]) if isinstance(obs, float) else obs
-                        for obs in state.observation.values()
-                    ],
-                    axis=0,
-                ),
-                dtype=torch.float32,
-            ).unsqueeze(dim=0)
-        else:
-            observation = _images_to_observation(
-                self._env.physics.render(camera_id=0), self.bit_depth
-            )
-        return observation, reward, done
+        time_step = self._env.step(action)
+        obs = dict(time_step.observation)
+        obs["image"] = self.render().transpose(2, 0, 1).copy()
+        reward = time_step.reward or 0
+        done = time_step.last()
+        info = {"discount": np.array(time_step.discount, np.float32)}
+        return obs, reward, done, info
 
-    def render(self):
-        cv2.imshow("screen", self._env.physics.render(camera_id=0)[:, :, ::-1])
-        cv2.waitKey(1)
-
-    def close(self):
-        cv2.destroyAllWindows()
-        self._env.close()
-
-    @property
-    def observation_size(self):
-        return (
-            sum(
-                [
-                    (1 if len(obs.shape) == 0 else obs.shape[0])
-                    for obs in self._env.observation_spec().values()
-                ]
-            )
-            if self.symbolic
-            else (3, 64, 64)
-        )
-
-    @property
-    def action_size(self):
-        return self._env.action_spec().shape[0]
-
-    # Sample an action randomly from a uniform distribution over all valid actions
-    def sample_random_action(self):
-        spec = self._env.action_spec()
-        return torch.from_numpy(
-            np.random.uniform(spec.minimum, spec.maximum, spec.shape)
-        )
-
-
-class EnvBatcher:
-    def __init__(self, env_class, env_args, env_kwargs, n):
-        self.n = n
-        self.envs = [env_class(*env_args, **env_kwargs) for _ in range(n)]
-        self.dones = [True] * n
-
-    # Resets every environment and returns observation
     def reset(self):
-        observations = [env.reset() for env in self.envs]
-        self.dones = [False] * self.n
-        return torch.cat(observations)
+        time_step = self._env.reset()
+        obs = dict(time_step.observation)
+        obs["image"] = self.render().transpose(2, 0, 1).copy()
+        return obs
 
-    # Steps/resets every environment and returns (observation, reward, done)
-    def step(self, actions):
-        done_mask = torch.nonzero(torch.tensor(self.dones), as_tuple=False)[
-            :, 0
-        ]  # Done mask to blank out observations and zero rewards for previously terminated environments
-        observations, rewards, dones = zip(
-            *[env.step(action) for env, action in zip(self.envs, actions)]
-        )
-        dones = [
-            d or prev_d for d, prev_d in zip(dones, self.dones)
-        ]  # Env should remain terminated if previously terminated
-        self.dones = dones
-        observations, rewards, dones = (
-            torch.cat(observations),
-            torch.tensor(rewards, dtype=torch.float32),
-            torch.tensor(dones, dtype=torch.uint8),
-        )
-        observations[done_mask] = 0
-        rewards[done_mask] = 0
-        return observations, rewards, dones
+    def render(self, *args, **kwargs):
+        if kwargs.get("mode", "rgb_array") != "rgb_array":
+            raise ValueError("Only render mode 'rgb_array' is supported.")
+        return self._env.physics.render(*self._size, camera_id=self._camera)
 
-    def close(self):
-        [env.close() for env in self.envs]
+
+class TimeLimit:
+
+    def __init__(self, env, duration):
+        self._env = env
+        self._duration = duration
+        self._step = None
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    def step(self, action):
+        assert self._step is not None, "Must reset environment."
+        obs, reward, done, info = self._env.step(action)
+        self._step += 1
+        if self._step >= self._duration:
+            done = True
+            if "discount" not in info:
+                info["discount"] = np.array(1.0).astype(np.float32)
+            self._step = None
+        return obs, reward, done, info
+
+    def reset(self):
+        self._step = 0
+        return self._env.reset()
+
+
+class ActionRepeat:
+
+    def __init__(self, env, amount):
+        self._env = env
+        self._amount = amount
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    def step(self, action):
+        done = False
+        total_reward = 0
+        current_step = 0
+        while current_step < self._amount and not done:
+            obs, reward, done, info = self._env.step(action)
+            total_reward += reward
+            current_step += 1
+        return obs, total_reward, done, info
+
+
+class NormalizeActions:
+
+    def __init__(self, env):
+        self._env = env
+        self._mask = np.logical_and(
+            np.isfinite(env.action_space.low), np.isfinite(env.action_space.high)
+        )
+        self._low = np.where(self._mask, env.action_space.low, -1)
+        self._high = np.where(self._mask, env.action_space.high, 1)
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    @property
+    def action_space(self):
+        low = np.where(self._mask, -np.ones_like(self._low), self._low)
+        high = np.where(self._mask, np.ones_like(self._low), self._high)
+        return gym.spaces.Box(low, high, dtype=np.float32)
+
+    def step(self, action):
+        original = (action + 1) / 2 * (self._high - self._low) + self._low
+        original = np.where(self._mask, original, action)
+        return self._env.step(original)
+
+
+class ObsDict:
+
+    def __init__(self, env, key="obs"):
+        self._env = env
+        self._key = key
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    @property
+    def observation_space(self):
+        spaces = {self._key: self._env.observation_space}
+        return gym.spaces.Dict(spaces)
+
+    @property
+    def action_space(self):
+        return self._env.action_space
+
+    def step(self, action):
+        obs, reward, done, info = self._env.step(action)
+        obs = {self._key: np.array(obs)}
+        return obs, reward, done, info
+
+    def reset(self):
+        obs = self._env.reset()
+        obs = {self._key: np.array(obs)}
+        return obs
+
+
+class OneHotAction:
+
+    def __init__(self, env):
+        assert isinstance(env.action_space, gym.spaces.Discrete)
+        self._env = env
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    @property
+    def action_space(self):
+        shape = (self._env.action_space.n,)
+        space = gym.spaces.Box(low=0, high=1, shape=shape, dtype=np.float32)
+        space.sample = self._sample_action
+        return space
+
+    def step(self, action):
+        index = np.argmax(action).astype(int)
+        reference = np.zeros_like(action)
+        reference[index] = 1
+        if not np.allclose(reference, action):
+            raise ValueError(f"Invalid one-hot action:\n{action}")
+        return self._env.step(index)
+
+    def reset(self):
+        return self._env.reset()
+
+    def _sample_action(self):
+        actions = self._env.action_space.n
+        index = self._random.randint(0, actions)
+        reference = np.zeros(actions, dtype=np.float32)
+        reference[index] = 1.0
+        return reference
+
+
+class RewardObs:
+
+    def __init__(self, env):
+        self._env = env
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    @property
+    def observation_space(self):
+        spaces = self._env.observation_space.spaces
+        assert "reward" not in spaces
+        spaces["reward"] = gym.spaces.Box(-np.inf, np.inf, dtype=np.float32)
+        return gym.spaces.Dict(spaces)
+
+    def step(self, action):
+        obs, reward, done, info = self._env.step(action)
+        obs["reward"] = reward
+        return obs, reward, done, info
+
+    def reset(self):
+        obs = self._env.reset()
+        obs["reward"] = 0.0
+        return obs
+
+
+class ResizeImage:
+
+    def __init__(self, env, size=(64, 64)):
+        self._env = env
+        self._size = size
+        self._keys = [
+            k
+            for k, v in env.obs_space.items()
+            if len(v.shape) > 1 and v.shape[:2] != size
+        ]
+        print(f'Resizing keys {",".join(self._keys)} to {self._size}.')
+        if self._keys:
+            from PIL import Image
+
+            self._Image = Image
+
+    def __getattr__(self, name):
+        if name.startswith("__"):
+            raise AttributeError(name)
+        try:
+            return getattr(self._env, name)
+        except AttributeError:
+            raise ValueError(name)
+
+    @property
+    def obs_space(self):
+        spaces = self._env.obs_space
+        for key in self._keys:
+            shape = self._size + spaces[key].shape[2:]
+            spaces[key] = gym.spaces.Box(0, 255, shape, np.uint8)
+        return spaces
+
+    def step(self, action):
+        obs = self._env.step(action)
+        for key in self._keys:
+            obs[key] = self._resize(obs[key])
+        return obs
+
+    def reset(self):
+        obs = self._env.reset()
+        for key in self._keys:
+            obs[key] = self._resize(obs[key])
+        return obs
+
+    def _resize(self, image):
+        image = self._Image.fromarray(image)
+        image = image.resize(self._size, self._Image.NEAREST)
+        image = np.array(image)
+        return image
+
+
+class RenderImage:
+
+    def __init__(self, env, key="image"):
+        self._env = env
+        self._key = key
+        self._shape = self._env.render().shape
+
+    def __getattr__(self, name):
+        if name.startswith("__"):
+            raise AttributeError(name)
+        try:
+            return getattr(self._env, name)
+        except AttributeError:
+            raise ValueError(name)
+
+    @property
+    def obs_space(self):
+        spaces = self._env.obs_space
+        spaces[self._key] = gym.spaces.Box(0, 255, self._shape, np.uint8)
+        return spaces
+
+    def step(self, action):
+        obs = self._env.step(action)
+        obs[self._key] = self._env.render("rgb_array")
+        return obs
+
+    def reset(self):
+        obs = self._env.reset()
+        obs[self._key] = self._env.render("rgb_array")
+        return obs

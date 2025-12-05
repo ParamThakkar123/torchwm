@@ -16,6 +16,7 @@ from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
 from world_models.vision.dreamer_encoder import ConvEncoder
 from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
+from world_models.configs.dreamer_config import DreamerConfig
 
 os.environ["MUJOCO_GL"] = "egl"
 
@@ -457,108 +458,71 @@ class Dreamer:
         self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
 
-class DreamerConfig:
-    def __init__(self):
-        self.env = "walker-walk"
-        self.algo = "Dreamerv1"
-        self.exp_name = "lr1e-3"
-        self.train = True
-        self.evaluate = False
-        self.seed = 1
-        self.no_gpu = False
-        self.max_episode_length = 1000
-        self.buffer_size = 800000
-        self.time_limit = 1000
-        self.cnn_activation_function = "relu"
-        self.dense_activation_function = "elu"
-        self.obs_embed_size = 1024
-        self.num_units = 400
-        self.deter_size = 200
-        self.stoch_size = 30
-        self.action_repeat = 2
-        self.action_noise = 0.3
-        self.total_steps = int(5e6)
-        self.seed_steps = 5000
-        self.update_steps = 100
-        self.collect_steps = 1000
-        self.batch_size = 50
-        self.train_seq_len = 50
-        self.imagine_horizon = 15
-        self.use_disc_model = False
-        self.free_nats = 3.0
-        self.discount = 0.99
-        self.td_lambda = 0.95
-        self.kl_loss_coeff = 1.0
-        self.kl_alpha = 0.8
-        self.disc_loss_coeff = 10.0
-        self.model_learning_rate = 6e-4
-        self.actor_learning_rate = 8e-5
-        self.value_learning_rate = 8e-5
-        self.adam_epsilon = 1e-7
-        self.grad_clip_norm = 100.0
-        self.test = False
-        self.test_interval = 10000
-        self.test_episodes = 10
-        self.scalar_freq = int(1e3)
-        self.log_video_freq = -1
-        self.max_videos_to_save = 2
-        self.checkpoint_interval = 10000
-        self.checkpoint_path = ""
-        self.restore = False
-        self.experience_replay = ""
-        self.render = False
+class DreamerAgent:
+    def __init__(self, config=None, **kwargs):
+        if config is None:
+            self.args = DreamerConfig()
+        else:
+            self.args = config
 
+        for key, value in kwargs.items():
+            if hasattr(self.args, key):
+                setattr(self.args, key, value)
+            elif key == "logdir":
+                setattr(self.args, key, value)
+            else:
+                raise ValueError(f"Invalid argument: {key}")
 
-def run_dreamer(config=None):
+        data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/")
 
-    if config is None:
-        args = DreamerConfig()
-    else:
-        args = config
+        if not (os.path.exists(data_path)):
+            os.makedirs(data_path)
 
-    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/")
+        if hasattr(self.args, "logdir") and self.args.logdir is not None:
+            self.logdir = self.args.logdir
+        else:
+            self.logdir = (
+                self.args.env
+                + "_"
+                + self.args.algo
+                + "_"
+                + self.args.exp_name
+                + "_"
+                + time.strftime("%d-%m-%Y-%H-%M-%S")
+            )
+        self.logdir = os.path.join(data_path, self.logdir)
+        if not (os.path.exists(self.logdir)):
+            os.makedirs(self.logdir)
 
-    if not (os.path.exists(data_path)):
-        os.makedirs(data_path)
+        random.seed(self.args.seed)
+        np.random.seed(self.args.seed)
+        torch.manual_seed(self.args.seed)
+        if torch.cuda.is_available() and not self.args.no_gpu:
+            device = torch.device("cuda")
+            torch.cuda.manual_seed(self.args.seed)
+        else:
+            device = torch.device("cpu")
 
-    logdir = (
-        args.env
-        + "_"
-        + args.algo
-        + "_"
-        + args.exp_name
-        + "_"
-        + time.strftime("%d-%m-%Y-%H-%M-%S")
-    )
-    logdir = os.path.join(data_path, logdir)
-    if not (os.path.exists(logdir)):
-        os.makedirs(logdir)
+        self.train_env = make_env(self.args)
+        self.test_env = make_env(self.args)
 
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-
-    if torch.cuda.is_available() and not args.no_gpu:
-        device = torch.device("cuda")
-        torch.cuda.manual_seed(args.seed)
-    else:
-        device = torch.device("cpu")
-
-    train_env = make_env(args)
-    test_env = make_env(args)
-    obs_shape = train_env.observation_space["image"].shape
-    action_size = train_env.action_space.shape[0]
-    dreamer = Dreamer(args, obs_shape, action_size, device, args.restore)
-
-    logger = Logger(logdir)
-
-    if args.train:
-        initial_logs = OrderedDict()
-        seed_episode_rews = dreamer.collect_random_episodes(
-            train_env, args.seed_steps // args.action_repeat
+        obs_shape = self.train_env.observation_space["image"].shape
+        action_size = self.train_env.action_space.shape[0]
+        self.dreamer = Dreamer(
+            self.args, obs_shape, action_size, device, self.args.restore
         )
-        global_step = dreamer.data_buffer.steps * args.action_repeat
 
+        self.logger = Logger(self.logdir)
+
+    def train(self, total_steps=None):
+        if total_steps is None:
+            total_steps = self.args.total_steps
+
+        initial_logs = OrderedDict()
+        seed_episode_rews = self.dreamer.collect_random_episodes(
+            self.train_env, self.args.seed_steps // self.args.action_repeat
+        )
+        global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
         # without loss of generality intial rews for both train and eval are assumed same
         initial_logs.update(
             {
@@ -572,22 +536,21 @@ def run_dreamer(config=None):
                 "eval_std_reward": np.std(seed_episode_rews),
             }
         )
+        self.logger.log_scalars(initial_logs, step=0)
+        self.logger.flush()
 
-        logger.log_scalars(initial_logs, step=0)
-        logger.flush()
-
-        while global_step <= args.total_steps:
+        while global_step <= total_steps:
 
             print("##################################")
             print(f"At global step {global_step}")
 
             logs = OrderedDict()
 
-            for _ in range(args.update_steps):
-                model_loss, actor_loss, value_loss = dreamer.train_one_batch()
+            for _ in range(self.args.update_steps):
+                model_loss, actor_loss, value_loss = self.dreamer.train_one_batch()
 
-            train_rews = dreamer.act_and_collect_data(
-                train_env, args.collect_steps // args.action_repeat
+            train_rews = self.dreamer.act_and_collect_data(
+                self.train_env, self.args.collect_steps // self.args.action_repeat
             )
 
             logs.update(
@@ -602,9 +565,9 @@ def run_dreamer(config=None):
                 }
             )
 
-            if global_step % args.test_interval == 0:
-                episode_rews, video_images = dreamer.evaluate(
-                    test_env, args.test_episodes
+            if global_step % self.args.test_interval == 0:
+                episode_rews, video_images = self.dreamer.evaluate(
+                    self.test_env, self.args.test_episodes
                 )
 
                 logs.update(
@@ -616,30 +579,30 @@ def run_dreamer(config=None):
                     }
                 )
 
-            logger.log_scalars(logs, global_step)
+            self.logger.log_scalars(logs, global_step)
 
             if (
-                global_step % args.log_video_freq == 0
-                and args.log_video_freq != -1
+                global_step % self.args.log_video_freq == 0
+                and self.args.log_video_freq != -1
                 and len(video_images[0]) != 0
             ):
-                logger.log_video(video_images, global_step, args.max_videos_to_save)
-
-            if global_step % args.checkpoint_interval == 0:
-                ckpt_dir = os.path.join(logdir, "ckpts/")
+                self.logger.log_video(
+                    video_images, global_step, self.args.max_videos_to_save
+                )
+            if global_step % self.args.checkpoint_interval == 0:
+                ckpt_dir = os.path.join(self.logdir, "ckpts/")
                 if not (os.path.exists(ckpt_dir)):
                     os.makedirs(ckpt_dir)
-                dreamer.save(os.path.join(ckpt_dir, f"{global_step}_ckpt.pt"))
+                self.dreamer.save(os.path.join(ckpt_dir, f"{global_step}_ckpt.pt"))
 
-            global_step = dreamer.data_buffer.steps * args.action_repeat
-            logger.flush()
+            global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
+            self.logger.flush()
 
-    elif args.evaluate:
+    def evaluate(self):
         logs = OrderedDict()
-        episode_rews, video_images = dreamer.evaluate(
-            test_env, args.test_episodes, render=True
+        episode_rews, video_images = self.dreamer.evaluate(
+            self.test_env, self.args.test_episodes, render=True
         )
-
         logs.update(
             {
                 "test_avg_reward": np.mean(episode_rews),
@@ -648,10 +611,7 @@ def run_dreamer(config=None):
                 "test_std_reward": np.std(episode_rews),
             }
         )
-
-        logger.dump_scalars_to_pickle(logs, 0, log_title="test_scalars.pkl")
-        logger.log_videos(video_images, 0, max_videos_to_save=args.max_videos_to_save)
-
-
-if __name__ == "__main__":
-    run_dreamer()
+        self.logger.dump_scalars_to_pickle(logs, 0, log_title="test_scalars.pkl")
+        self.logger.log_videos(
+            video_images, 0, max_videos_to_save=self.args.max_videos_to_save
+        )

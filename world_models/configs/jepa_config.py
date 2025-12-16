@@ -19,6 +19,10 @@ class JEPAConfig:
         self.pred_emb_dim: int = 384
 
         # data
+        self.dataset: str = "imagenet"  # "imagenet" or "imagefolder"
+        self.val_split: float | None = (
+            None  # optional fraction for val split when using imagefolder
+        )
         self.use_gaussian_blur: bool = True
         self.use_horizontal_flip: bool = True
         self.use_color_distortion: bool = True
@@ -30,6 +34,7 @@ class JEPAConfig:
         self.image_folder: str = "train"
         self.crop_size: int = 224
         self.crop_scale: Tuple[float, float] = (0.67, 1.0)
+        self.download: bool = False  # allow CIFAR10 download if missing
 
         # mask
         self.allow_overlap: bool = False
@@ -68,6 +73,8 @@ class JEPAConfig:
                 "pred_emb_dim": self.pred_emb_dim,
             },
             "data": {
+                "dataset": self.dataset,
+                "val_split": self.val_split,
                 "use_gaussian_blur": self.use_gaussian_blur,
                 "use_horizontal_flip": self.use_horizontal_flip,
                 "use_color_distortion": self.use_color_distortion,
@@ -79,6 +86,7 @@ class JEPAConfig:
                 "image_folder": self.image_folder,
                 "crop_size": self.crop_size,
                 "crop_scale": self.crop_scale,
+                "download": self.download,  # new
             },
             "mask": {
                 "allow_overlap": self.allow_overlap,

@@ -695,6 +695,6 @@ class TorchImageEnvWrapper:
 def apply_masks(x, masks):
     all_x = []
     for m in masks:
-        mask_keep = m.unsqueeze(-1).repeat(1, 1, x.shape(-1))
-        all_x += [torch.gather(x, 1, mask_keep)]
+        mask_keep = m.unsqueeze(-1).repeat(1, 1, x.shape[-1])
+        all_x.append(torch.gather(x, 1, mask_keep))
     return torch.cat(all_x, dim=0)

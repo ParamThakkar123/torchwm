@@ -27,7 +27,8 @@ from world_models.utils.jepa_utils import (
     AverageMeter,
 )
 from world_models.utils.jepa_utils import repeat_interleave_batch
-from world_models.datasets.imagenet1k import make_imagenet1k
+from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
+from world_models.datasets.cifar10 import make_cifar10
 from world_models.helpers.jepa_helper import load_checkpoint, init_model, init_opt
 from world_models.transforms.transforms import make_transforms
 from world_models.configs.jepa_config import JEPAConfig
@@ -181,20 +182,52 @@ def main(args, resume_preempt=False):
     )
 
     # -- init data-loaders/samplers
-    _, unsupervised_loader, unsupervised_sampler = make_imagenet1k(
-        transform=transform,
-        batch_size=batch_size,
-        collator=mask_collator,
-        pin_mem=pin_mem,
-        training=True,
-        num_workers=num_workers,
-        world_size=world_size,
-        rank=rank,
-        root_path=root_path,
-        image_folder=image_folder,
-        copy_data=copy_data,
-        drop_last=True,
-    )
+    dataset_type = args["data"]["dataset"]
+    val_split = args["data"]["val_split"]
+    download = args["data"].get("download", False)
+    if dataset_type.lower() == "imagenet":
+        _, unsupervised_loader, unsupervised_sampler = make_imagenet1k(
+            transform=transform,
+            batch_size=batch_size,
+            collator=mask_collator,
+            pin_mem=pin_mem,
+            training=True,
+            num_workers=num_workers,
+            world_size=world_size,
+            rank=rank,
+            root_path=root_path,
+            image_folder=image_folder,
+            copy_data=copy_data,
+            drop_last=True,
+        )
+    elif dataset_type.lower() == "cifar10":
+        _, unsupervised_loader, unsupervised_sampler = make_cifar10(
+            transform=transform,
+            batch_size=batch_size,
+            collator=mask_collator,
+            pin_mem=pin_mem,
+            num_workers=num_workers,
+            world_size=world_size,
+            rank=rank,
+            root_path=root_path,
+            drop_last=True,
+            train=True,
+            download=download,  # pass through
+        )
+    else:
+        _, unsupervised_loader, unsupervised_sampler = make_imagefolder(
+            transform=transform,
+            batch_size=batch_size,
+            collator=mask_collator,
+            pin_mem=pin_mem,
+            num_workers=num_workers,
+            world_size=world_size,
+            rank=rank,
+            root_path=root_path,
+            image_folder=image_folder,
+            drop_last=True,
+            val_split=val_split,
+        )
     ipe = len(unsupervised_loader)
 
     # -- init optimizer and scheduler
@@ -212,9 +245,17 @@ def main(args, resume_preempt=False):
         ipe_scale=ipe_scale,
         use_bfloat16=use_bfloat16,
     )
-    encoder = DistributedDataParallel(encoder, static_graph=True)
-    predictor = DistributedDataParallel(predictor, static_graph=True)
-    target_encoder = DistributedDataParallel(target_encoder)
+
+    is_distributed = (
+        torch.distributed.is_available()
+        and torch.distributed.is_initialized()
+        and world_size > 1
+    )
+    if is_distributed:
+        encoder = DistributedDataParallel(encoder, static_graph=True)
+        predictor = DistributedDataParallel(predictor, static_graph=True)
+        target_encoder = DistributedDataParallel(target_encoder)
+    # keep modules unwrapped when not distributed
     for p in target_encoder.parameters():
         p.requires_grad = False
 
@@ -328,7 +369,8 @@ def main(args, resume_preempt=False):
                 else:
                     loss.backward()
                     optimizer.step()
-                grad_stats = grad_logger(encoder.named_parameters())
+                enc_for_log = encoder.module if is_distributed else encoder
+                grad_stats = grad_logger(enc_for_log.named_parameters())
                 optimizer.zero_grad()
 
                 # Step 3. momentum update of target encoder

@@ -8,6 +8,7 @@ from logging import getLogger
 
 import torch
 import torchvision
+from torch.utils.data import random_split
 
 _GLOBAL_SEED = 0
 logger = getLogger()
@@ -212,3 +213,41 @@ def copy_imgnt_locally(
                 logger.info(f"{local_rank}: Checking {tmp_sgnl_file}")
 
     return data_path
+
+
+def make_imagefolder(
+    transform,
+    batch_size,
+    collator=None,
+    pin_mem=True,
+    num_workers=8,
+    world_size=1,
+    rank=0,
+    root_path=None,
+    image_folder=None,
+    drop_last=True,
+    val_split: float | None = None,
+):
+    dataset = torchvision.datasets.ImageFolder(
+        root=os.path.join(root_path, image_folder) if image_folder else root_path,
+        transform=transform,
+    )
+    if val_split:
+        val_size = int(len(dataset) * val_split)
+        train_size = len(dataset) - val_size
+        dataset, _ = random_split(dataset, [train_size, val_size])
+    dist_sampler = torch.utils.data.distributed.DistributedSampler(
+        dataset=dataset, num_replicas=world_size, rank=rank
+    )
+    data_loader = torch.utils.data.DataLoader(
+        dataset,
+        collate_fn=collator,
+        sampler=dist_sampler,
+        batch_size=batch_size,
+        drop_last=drop_last,
+        pin_memory=pin_mem,
+        num_workers=num_workers,
+        persistent_workers=False,
+    )
+    logger.info("ImageFolder data loader created")
+    return dataset, data_loader, dist_sampler

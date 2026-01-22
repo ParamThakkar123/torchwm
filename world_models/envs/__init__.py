@@ -12,7 +12,7 @@ from .wrappers import (
     RenderImage,
     SelectAction,
 )
-from .dmc import DeepMindControl
+from .dmc import DeepMindControlEnv
 
 __all__ = [
     "make_atari_env",
@@ -20,7 +20,7 @@ __all__ = [
     "make_atari_vector_env",
     "make_humanoid_env",
     "make_half_cheetah_env",
-    "DeepMindControl",
+    "DeepMindControlEnv",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

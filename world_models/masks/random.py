@@ -4,7 +4,6 @@ from logging import getLogger
 
 import torch
 
-_GLOBAL_SEED = 0
 logger = getLogger()
 
 

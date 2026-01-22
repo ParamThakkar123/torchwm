@@ -2,7 +2,7 @@ import gym
 import numpy as np
 
 
-class DeepMindControl:
+class DeepMindControlEnv:
 
     def __init__(self, name, seed, size=(64, 64), camera=None):
 

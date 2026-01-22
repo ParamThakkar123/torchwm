@@ -10,7 +10,6 @@ import torch
 import torchvision
 from torch.utils.data import random_split
 
-_GLOBAL_SEED = 0
 logger = getLogger()
 
 

@@ -5,7 +5,6 @@ from PIL import ImageFilter
 import torch
 import torchvision.transforms as transforms
 
-_GLOBAL_SEED = 0
 logger = getLogger()
 
 

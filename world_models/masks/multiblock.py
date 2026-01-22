@@ -6,7 +6,6 @@ from logging import getLogger
 
 import torch
 
-_GLOBAL_SEED = 0
 logger = getLogger()
 
 
@@ -56,31 +55,35 @@ class MaskCollator(object):
         aspect_ratio = min_ar + _rand * (max_ar - min_ar)
         h = int(round(math.sqrt(max_keep * aspect_ratio)))
         w = int(round(math.sqrt(max_keep / aspect_ratio)))
-        while h >= self.height:
-            h -= 1
-        while w >= self.width:
-            w -= 1
+        # ensure at least 1 and not larger than grid
+        h = max(1, min(h, self.height))
+        w = max(1, min(w, self.width))
 
         return (h, w)
 
     def _sample_block_mask(self, b_size, acceptable_regions=None):
         h, w = b_size
 
-        def constrain_mask(mask, tries=0):
-            N = max(int(len(acceptable_regions) - tries), 0)
-            for k in range(N):
-                mask *= acceptable_regions[k]
-
+        def constrain_mask(mask_bool):
+            # If acceptable_regions provided, mask out invalid positions (in-place)
+            if acceptable_regions is None:
+                return
+            try:
+                # acceptable_regions expected as same HxW boolean mask
+                mask_bool &= acceptable_regions.bool()
+            except Exception:
+                pass
         tries = 0
         timeout = og_timeout = 20
         valid_mask = False
         while not valid_mask:
-            top = torch.randint(0, self.height - h, (1,))
-            left = torch.randint(0, self.width - w, (1,))
+            # allow placement anywhere such that top+h <= height
+            top = int(torch.randint(0, max(1, self.height - h + 1), (1,)).item())
+            left = int(torch.randint(0, max(1, self.width - w + 1), (1,)).item())
             mask = torch.zeros((self.height, self.width), dtype=torch.int32)
             mask[top : top + h, left : left + w] = 1
             if acceptable_regions is not None:
-                constrain_mask(mask, tries)
+                constrain_mask(mask)
 
             mask = torch.nonzero(mask.flatten())
             valid_mask = len(mask) > self.min_keep

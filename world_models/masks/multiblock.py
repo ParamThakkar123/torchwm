@@ -73,6 +73,7 @@ class MaskCollator(object):
                 mask_bool &= acceptable_regions.bool()
             except Exception:
                 pass
+
         tries = 0
         timeout = og_timeout = 20
         valid_mask = False

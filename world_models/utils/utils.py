@@ -363,16 +363,24 @@ def load_memory(path, device):
 
 
 def flatten_dict(data, sep=".", prefix=""):
-    """Flattens a nested dict into a dict.
-    eg. {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
+    """Flattens a nested dict into a single-level dict.
+
+    Example:
+      {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
     """
-    x = {}
+
+    def build_key(parent, child):
+        return f"{parent}{sep}{child}" if parent else str(child)
+
+    flattened = {}
+
     for key, val in data.items():
+        flat_key = build_key(prefix, key)
         if isinstance(val, dict):
-            x.update(flatten_dict(val, sep=sep, prefix=key))
+            flattened.update(flatten_dict(val, sep=sep, prefix=key))
         else:
-            x[f"{prefix}{sep}{key}"] = val
-    return x
+            flattened[flat_key] = val
+    return flattened
 
 
 def normalize_frames_for_saving(frames):

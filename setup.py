@@ -22,6 +22,7 @@ setup(
     python_requires=">=3.13",
     install_requires=[
         "ale-py>=0.11.2",
+        "fastapi>=0.116.0",
         "gym>=0.26.2",
         "gymnasium>=1.2.2",
         "mlagents-envs>=0.28.0",
@@ -35,6 +36,7 @@ setup(
         "tqdm>=4.67.1",
         "torch>=1.13.0",
         "torchvision>=0.14.0",
+        "uvicorn>=0.35.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

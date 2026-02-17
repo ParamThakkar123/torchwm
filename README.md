@@ -72,6 +72,28 @@ model = WorldModel(obs_dim=env.obs_dim, act_dim=env.act_dim)
 # Train or load model...
 ```
 
+## React Training UI
+
+This repository now includes a React UI + FastAPI backend for interactive training:
+
+1. Start backend (repo root):
+```bash
+uvicorn world_models.ui.server:app --reload
+```
+2. Start frontend:
+```bash
+cd torchwm_ui
+npm install
+npm run dev
+```
+
+UI features:
+- Load TorchWM models (`Dreamer`, `Planet`)
+- Load compatible environments per model
+- Start/stop training from browser
+- Monitor scalar curves on a TensorBoard-like dashboard
+- View live environment rollout previews
+
 ## Project Structure
 
 - `world_models/`: Core library modules (encoders, decoders, agents)

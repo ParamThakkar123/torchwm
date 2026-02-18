@@ -20,6 +20,31 @@ from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
 
+import yaml
+
+import collections
+import collections.abc
+for type_name in collections.abc.__all__:
+    setattr(collections, type_name, getattr(collections.abc, type_name))
+
+from attrdict import AttrDict
+
+
+def load_yml_config(path):
+    with open(path) as fileStream:
+        loaded = yaml.safe_load(fileStream)
+        keys = list(loaded.keys())
+
+        dictionary = None
+
+        for i,key in enumerate(keys):
+
+            if i == 0:
+                dictionary = AttrDict({key: loaded[key]})
+            else:
+                dictionary += AttrDict({key: loaded[key]})
+
+        return dictionary
 
 def to_tensor_obs(image):
     """

@@ -12,6 +12,8 @@ from collections import OrderedDict
 
 import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
+from world_models.envs.gym_env import GymImageEnv
+from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
@@ -22,13 +24,64 @@ from world_models.configs.dreamer_config import DreamerConfig
 os.environ["MUJOCO_GL"] = "egl"
 
 
-def make_env(args):
+def _resolve_image_size(args):
+    size = getattr(args, "image_size", (64, 64))
+    if isinstance(size, int):
+        return (size, size)
+    if isinstance(size, (tuple, list)) and len(size) == 2:
+        return (int(size[0]), int(size[1]))
+    raise ValueError(f"Invalid image_size={size}. Expected int or (H, W).")
 
-    env = DeepMindControlEnv(args.env, args.seed)
-    env = env_wrapper.ActionRepeat(env, args.action_repeat)
+
+def make_env(args):
+    size = _resolve_image_size(args)
+    backend = str(getattr(args, "env_backend", "dmc")).lower()
+
+    env_instance = getattr(args, "env_instance", None)
+    if env_instance is not None:
+        env = GymImageEnv(
+            env_instance,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend == "dmc":
+        env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"gym", "gymnasium", "generic"}:
+        env = GymImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"unity", "unity_mlagents", "mlagents"}:
+        unity_file_name = getattr(args, "unity_file_name", None)
+        if not unity_file_name:
+            raise ValueError(
+                "unity_file_name must be provided when env_backend='unity_mlagents'."
+            )
+        env = UnityMLAgentsEnv(
+            file_name=unity_file_name,
+            behavior_name=getattr(args, "unity_behavior_name", None),
+            seed=args.seed,
+            size=size,
+            worker_id=int(getattr(args, "unity_worker_id", 0)),
+            base_port=int(getattr(args, "unity_base_port", 5005)),
+            no_graphics=bool(getattr(args, "unity_no_graphics", True)),
+            time_scale=float(getattr(args, "unity_time_scale", 20.0)),
+            quality_level=int(getattr(args, "unity_quality_level", 1)),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
+    else:
+        raise ValueError(
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, unity_mlagents."
+        )
+
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
     env = env_wrapper.NormalizeActions(env)
-    env = env_wrapper.TimeLimit(env, args.time_limit / args.action_repeat)
-    # env = env_wrapper.RewardObs(env)
+    repeat = max(1, int(args.action_repeat))
+    duration = max(1, int(args.time_limit) // repeat)
+    env = env_wrapper.TimeLimit(env, duration)
     return env
 
 
@@ -344,8 +397,13 @@ class Dreamer:
                     obs, prev_state, prev_action, explore=True
                 )
             action = action[0].cpu().numpy()
-            next_obs, rew, done, _ = env.step(action)
-            self.data_buffer.add(obs, action, rew, done)
+            next_obs, rew, done, info = env.step(action)
+            executed_action = (
+                info["action"]
+                if isinstance(info, dict) and ("action" in info)
+                else action
+            )
+            self.data_buffer.add(obs, executed_action, rew, done)
 
             episode_rewards[-1] += rew
 
@@ -360,7 +418,7 @@ class Dreamer:
                 obs = next_obs
                 prev_state = posterior
                 prev_action = (
-                    torch.tensor(action, dtype=torch.float32)
+                    torch.tensor(executed_action, dtype=torch.float32)
                     .to(self.device)
                     .unsqueeze(0)
                 )
@@ -385,10 +443,15 @@ class Dreamer:
                         obs, prev_state, prev_action
                     )
                 action = action[0].cpu().numpy()
-                next_obs, rew, done, _ = env.step(action)
+                next_obs, rew, done, info = env.step(action)
+                executed_action = (
+                    info["action"]
+                    if isinstance(info, dict) and ("action" in info)
+                    else action
+                )
                 prev_state = posterior
                 prev_action = (
-                    torch.tensor(action, dtype=torch.float32)
+                    torch.tensor(executed_action, dtype=torch.float32)
                     .to(self.device)
                     .unsqueeze(0)
                 )
@@ -408,9 +471,14 @@ class Dreamer:
 
         for i in range(seed_steps):
             action = env.action_space.sample()
-            next_obs, rew, done, _ = env.step(action)
+            next_obs, rew, done, info = env.step(action)
+            executed_action = (
+                info["action"]
+                if isinstance(info, dict) and ("action" in info)
+                else action
+            )
 
-            self.data_buffer.add(obs, action, rew, done)
+            self.data_buffer.add(obs, executed_action, rew, done)
             seed_episode_rews[-1] += rew
             if done:
                 obs = env.reset()

@@ -1,6 +1,24 @@
 class DreamerConfig:
     def __init__(self):
+        # Environment selection.
+        # dmc: DeepMind Control Suite
+        # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
+        # unity_mlagents: Unity ML-Agents executable
+        self.env_backend = "dmc"
         self.env = "walker-walk"
+        self.env_instance = None
+        self.image_size = (64, 64)
+        self.gym_render_mode = "rgb_array"
+
+        # Unity ML-Agents options.
+        self.unity_file_name = None
+        self.unity_behavior_name = None
+        self.unity_worker_id = 0
+        self.unity_base_port = 5005
+        self.unity_no_graphics = True
+        self.unity_time_scale = 20.0
+        self.unity_quality_level = 1
+
         self.algo = "Dreamerv1"
         self.exp_name = "lr1e-3"
         self.train = True

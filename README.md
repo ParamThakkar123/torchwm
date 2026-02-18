@@ -9,7 +9,7 @@ A modular PyTorch library for learning, training, and deploying world models acr
   - Dreamer (v1 and v2 variants)
   - PlaNet
   - World Model-based agents for custom environments
-- **Integration**: Compatible with MuJoCo, Atari, and custom gym environments.
+- **Integration**: Compatible with DMC, MuJoCo, Atari, Gym/Gymnasium, and Unity ML-Agents environments.
 - **Evaluation Tools**: Built-in scripts for training, evaluation, and visualization.
 - **PyTorch Native**: Leverages PyTorch's dynamic computation graphs for efficient training.
 
@@ -42,12 +42,47 @@ pip install -e ".[dev]"
 
 ### Training a Dreamer Agent
 ```python
-from world_models.dreamer import DreamerAgent
-import gym
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
 
-env = gym.make('Pendulum-v1')
-agent = DreamerAgent(env.observation_space, env.action_space)
-agent.train(env, num_episodes=1000)
+cfg = DreamerConfig()
+cfg.env_backend = "gym"   # "dmc", "gym", or "unity_mlagents"
+cfg.env = "Pendulum-v1"
+cfg.total_steps = 10000
+
+agent = DreamerAgent(cfg)
+agent.train()
+```
+
+### Training Dreamer on Unity ML-Agents
+```python
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env_backend = "unity_mlagents"
+cfg.unity_file_name = r"E:\UnityBuilds\MyEnv.exe"
+cfg.unity_behavior_name = "MyBehavior"
+cfg.unity_no_graphics = True
+cfg.unity_time_scale = 20.0
+
+agent = DreamerAgent(cfg)
+agent.train()
+```
+
+### Training PlaNet/RSSM with Unity ML-Agents
+```python
+from world_models.models import Planet
+from world_models.envs import UnityMLAgentsEnv
+
+unity_env = UnityMLAgentsEnv(
+    file_name=r"E:\UnityBuilds\MyEnv.exe",
+    behavior_name="MyBehavior",
+    no_graphics=True,
+)
+
+planet = Planet(env=unity_env, bit_depth=5)
+planet.train(epochs=10)
 ```
 
 ### Evaluating a Trained Model

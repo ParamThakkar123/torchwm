@@ -514,12 +514,16 @@ class TorchImageEnvWrapper:
     """
 
     def __init__(self, env, bit_depth, observation_shape=None, act_rep=2):
-        try:
-            self.env = gym.make(env, render_mode="rgb_array")
+        if isinstance(env, str):
+            try:
+                self.env = gym.make(env, render_mode="rgb_array")
+                self._render_mode_supported = True
+            except TypeError:
+                self.env = gym.make(env)
+                self._render_mode_supported = False
+        else:
+            self.env = env
             self._render_mode_supported = True
-        except TypeError:
-            self.env = gym.make(env)
-            self._render_mode_supported = False
         self.bit_depth = bit_depth
         self.action_repeats = act_rep
 
@@ -581,15 +585,62 @@ class TorchImageEnvWrapper:
         return frame
 
     def _obs_to_frame(self, obs):
-        """If obs already looks like an image (H,W,3) return it, else None."""
-        if isinstance(obs, np.ndarray) and obs.ndim == 3 and obs.shape[2] in (1, 3, 4):
-            return obs
+        """Convert common observation formats to an HWC image when possible."""
+        if isinstance(obs, tuple):
+            obs = obs[0]
+
+        if isinstance(obs, dict):
+            for key in ("image", "pixels", "rgb", "observation"):
+                if key in obs:
+                    frame = self._obs_to_frame(obs[key])
+                    if frame is not None:
+                        return frame
+            for value in obs.values():
+                frame = self._obs_to_frame(value)
+                if frame is not None:
+                    return frame
+            return None
+
+        if not isinstance(obs, np.ndarray):
+            try:
+                obs = np.asarray(obs)
+            except Exception:
+                return None
+
+        if obs.ndim == 3:
+            frame = obs
+            if frame.shape[-1] not in (1, 3, 4) and frame.shape[0] in (1, 3, 4):
+                frame = frame.transpose(1, 2, 0)
+            if frame.shape[-1] == 1:
+                frame = np.repeat(frame, 3, axis=-1)
+            elif frame.shape[-1] == 4:
+                frame = frame[..., :3]
+            return frame
+
+        if obs.ndim == 2:
+            return np.repeat(obs[..., None], 3, axis=-1)
+
+        if obs.ndim == 1:
+            vals = obs.astype(np.float32).reshape(-1)
+            if vals.size == 0:
+                return None
+            if vals.max() != vals.min():
+                vals = (vals - vals.min()) / (vals.max() - vals.min() + 1e-8)
+            else:
+                vals = np.zeros_like(vals)
+            canvas = np.zeros((64, 64, 3), dtype=np.uint8)
+            for i, v in enumerate(vals[:8]):
+                canvas[:, i * 8 : (i + 1) * 8, :] = int(255 * float(v))
+            return canvas
+
         return None
 
     def reset(self):
         ret = self.env.reset()
         obs = ret[0] if isinstance(ret, tuple) else ret
-        frame = self._obs_to_frame(obs) or self._get_frame(last_obs=obs)
+        frame = self._obs_to_frame(obs)
+        if frame is None:
+            frame = self._get_frame(last_obs=obs)
         if frame is None:
             raise RuntimeError(
                 "Environment did not provide an RGB frame on reset. "
@@ -606,15 +657,13 @@ class TorchImageEnvWrapper:
             u_t = u
         if getattr(self.env.action_space, "n", None) is not None:
             n = int(self.env.action_space.n)
-            try:
-                val = (
-                    float(u_t.item())
-                    if isinstance(u_t, torch.Tensor)
-                    else float(np.asarray(u_t).reshape(-1)[0])
-                )
-            except Exception:
-                val = float(u_t)
-            action = int(np.clip(int(round(val)), 0, n - 1))
+            arr = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
+            arr = arr.reshape(-1)
+            if arr.size > 1:
+                action = int(np.argmax(arr))
+            else:
+                val = float(arr[0]) if arr.size else 0.0
+                action = int(np.clip(int(round(val)), 0, n - 1))
         else:
             action = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
 
@@ -635,7 +684,9 @@ class TorchImageEnvWrapper:
             last_obs = obs
         frame = self._obs_to_frame(
             last_obs if not isinstance(last_obs, tuple) else last_obs[0]
-        ) or self._get_frame(last_obs=last_obs)
+        )
+        if frame is None:
+            frame = self._get_frame(last_obs=last_obs)
         if frame is None:
             raise RuntimeError(
                 "Environment did not provide an RGB frame on step. "

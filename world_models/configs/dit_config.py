@@ -3,6 +3,13 @@ from dataclasses import dataclass, replace
 
 @dataclass
 class DiTConfig:
+    """Default configuration values for Diffusion Transformer (DiT) training.
+
+    The fields define dataset selection, model architecture, diffusion schedule,
+    optimization hyperparameters, and output paths used by the built-in
+    training entrypoints.
+    """
+
     DATASET: str = "CIFAR10"
     BATCH: int = 128
     EPOCHS: int = 3

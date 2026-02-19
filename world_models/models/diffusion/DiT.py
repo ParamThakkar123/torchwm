@@ -19,6 +19,11 @@ cfg = Config()
 
 
 def sinusoidal_time_embedding(timesteps, dim):
+    """Create sinusoidal timestep embeddings for diffusion conditioning.
+
+    Embeddings are scaled relative to configured diffusion timesteps and are
+    consumed by the DiT conditioning MLP.
+    """
     half = dim // 2
     freqs = torch.exp(
         torch.linspace(math.log(1.0), math.log(10000.0), half, device=timesteps.device)
@@ -31,6 +36,12 @@ def sinusoidal_time_embedding(timesteps, dim):
 
 
 class PatchEmbed(nn.Module):
+    """Patchify an image into a sequence of learnable patch tokens.
+
+    A strided convolution performs patch extraction and projects each patch
+    to the transformer hidden dimension with additive positional embeddings.
+    """
+
     def __init__(self, img_size, patch_size, in_channels, embed_dim):
         super().__init__()
         self.img_size = img_size
@@ -49,6 +60,12 @@ class PatchEmbed(nn.Module):
 
 
 class PatchUnEmbed(nn.Module):
+    """Reconstruct image-like tensors from patch-token sequences.
+
+    The inverse of `PatchEmbed`, this module reshapes token sequences into
+    grids and uses transposed convolution to decode spatial outputs.
+    """
+
     def __init__(self, img_size, patch_size, embed_dim, out_channels):
         super().__init__()
         self.img_size = img_size
@@ -66,6 +83,12 @@ class PatchUnEmbed(nn.Module):
 
 
 class TransformerBlock(nn.Module):
+    """Conditioned transformer block used inside the DiT backbone.
+
+    Each block applies adaptive layer-normalized self-attention and MLP
+    residual updates conditioned on timestep embeddings.
+    """
+
     def __init__(self, d_model, n_heads, mlp_ratio, drop, t_dim):
         super(TransformerBlock, self).__init__()
         self.attn = MultiHeadSelfAttention(d_model, n_heads)
@@ -90,6 +113,12 @@ class TransformerBlock(nn.Module):
 
 
 class DiT(nn.Module):
+    """Diffusion Transformer model for image denoising and generation.
+
+    The module maps noisy images and timesteps to predicted noise residuals
+    and also provides a classmethod training entrypoint for common datasets.
+    """
+
     def __init__(
         self,
         img_size,

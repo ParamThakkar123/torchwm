@@ -3,6 +3,12 @@ import torch.nn.functional as F
 
 
 class DDPM:
+    """Utility class implementing forward and reverse DDPM diffusion steps.
+
+    Precomputes diffusion schedule terms and exposes helpers for noising
+    training inputs (`q_sample`) and iterative denoising sampling (`sample`).
+    """
+
     def __init__(self, timesteps, beta_start, beta_end, device):
         self.timesteps = timesteps
         betas = torch.linspace(beta_start, beta_end, timesteps).to(device)

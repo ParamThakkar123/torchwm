@@ -3,6 +3,12 @@ import numpy as np
 
 
 class DeepMindControlEnv:
+    """Gym-style adapter for DeepMind Control Suite tasks.
+
+    The wrapper exposes DMC observations and actions through Gym spaces and
+    adds a rendered RGB image to each observation dict so image-based world
+    model pipelines can train consistently across backends.
+    """
 
     def __init__(self, name, seed, size=(64, 64), camera=None):
 

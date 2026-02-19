@@ -5,6 +5,12 @@ from world_models.training.train_jepa import main as train_jepa_main
 
 
 class JEPAAgent:
+    """Convenience interface for configuring and launching JEPA training runs.
+
+    Accepts a `JEPAConfig` plus keyword overrides, prepares output folders,
+    and delegates execution to the JEPA training entrypoint.
+    """
+
     def __init__(self, config: JEPAConfig | None = None, **kwargs):
         self.cfg = config if config is not None else JEPAConfig()
         for key, val in kwargs.items():

@@ -6,6 +6,11 @@ import uuid
 
 
 class TimeLimit:
+    """Terminate episodes after a fixed number of wrapper steps.
+
+    If the wrapped environment does not provide a discount flag at timeout,
+    the wrapper injects a default discount of `1.0` for downstream learners.
+    """
 
     def __init__(self, env, duration):
         self._env = env
@@ -32,6 +37,11 @@ class TimeLimit:
 
 
 class ActionRepeat:
+    """Repeat each action for a fixed number of environment steps.
+
+    Rewards are accumulated and the loop stops early if the environment
+    terminates, mirroring common action-repeat behavior in world model papers.
+    """
 
     def __init__(self, env, amount):
         self._env = env
@@ -52,6 +62,11 @@ class ActionRepeat:
 
 
 class NormalizeActions:
+    """Expose a normalized `[-1, 1]` action space for bounded continuous controls.
+
+    Incoming normalized actions are mapped back to the wrapped environment
+    action bounds before stepping the environment.
+    """
 
     def __init__(self, env):
         self._env = env
@@ -77,6 +92,11 @@ class NormalizeActions:
 
 
 class ObsDict:
+    """Convert scalar/array observations into a dictionary observation format.
+
+    This harmonizes outputs for code paths that expect keyed observations
+    (for example `{"image": ...}` style world model inputs).
+    """
 
     def __init__(self, env, key="obs"):
         self._env = env
@@ -106,6 +126,11 @@ class ObsDict:
 
 
 class OneHotAction:
+    """Wrap discrete-action environments to accept one-hot action vectors.
+
+    The wrapper validates one-hot inputs and converts them to integer action
+    indices before forwarding to the underlying environment.
+    """
 
     def __init__(self, env):
         assert isinstance(env.action_space, gym.spaces.Discrete)
@@ -141,6 +166,11 @@ class OneHotAction:
 
 
 class RewardObs:
+    """Augment observations with the latest scalar reward under `obs["reward"]`.
+
+    Useful for agents that consume reward as part of the observation stream
+    during model learning or recurrent policy inference.
+    """
 
     def __init__(self, env):
         self._env = env
@@ -167,6 +197,11 @@ class RewardObs:
 
 
 class ResizeImage:
+    """Resize image-like observation entries to a target spatial size.
+
+    The wrapper discovers image keys from `env.obs_space`, applies nearest
+    neighbor resizing, and updates the advertised observation space shapes.
+    """
 
     def __init__(self, env, size=(64, 64)):
         self._env = env
@@ -217,6 +252,11 @@ class ResizeImage:
 
 
 class RenderImage:
+    """Inject RGB renders from `env.render("rgb_array")` into observations.
+
+    This is useful when the base environment returns non-image observations
+    but a rendered camera view is needed for world-model training.
+    """
 
     def __init__(self, env, key="image"):
         self._env = env
@@ -249,6 +289,12 @@ class RenderImage:
 
 
 class UUID(gym.Wrapper):
+    """Gym wrapper that tracks a unique run identifier per environment reset.
+
+    The ID combines timestamp and UUID and can be used to tag episodes or
+    artifacts generated during data collection.
+    """
+
     def __init__(self, env):
         super().__init__(env)
         timestamp = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
@@ -261,6 +307,12 @@ class UUID(gym.Wrapper):
 
 
 class SelectAction(gym.Wrapper):
+    """Gym wrapper for dictionary actions that forwards a selected key only.
+
+    This enables integration with policies that emit action dicts while the
+    environment expects a single tensor/array action payload.
+    """
+
     def __init__(self, env, key):
         super().__init__(env)
         self._key = key

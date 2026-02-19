@@ -22,6 +22,12 @@ def get_parameters(modules: Iterable[Module]):
 
 
 class FreezeParameters:
+    """Context manager that temporarily disables gradients for given modules.
+
+    Useful during imagination or target-network forward passes where gradients
+    through certain components should be blocked for speed and correctness.
+    """
+
     def __init__(self, modules: Iterable[Module]):
         """
         Context manager to locally freeze gradients.
@@ -47,6 +53,11 @@ class FreezeParameters:
 
 
 class Logger:
+    """Experiment logger for scalars and GIF rollouts using TensorBoardX.
+
+    Provides helpers to write scalar metrics, dump pickle snapshots, and save
+    video previews during Dreamer training/evaluation.
+    """
 
     def __init__(self, log_dir, n_logged_samples=10, summary_writer=None):
         self._log_dir = log_dir
@@ -101,7 +112,10 @@ class Logger:
 
 
 def compute_return(rewards, values, discounts, td_lam, last_value):
+    """Compute TD(lambda) returns from imagined rewards, values, and discounts.
 
+    Implements backward recursion used by Dreamer actor/value objectives.
+    """
     next_values = torch.cat([values[1:], last_value.unsqueeze(0)], 0)
     targets = rewards + discounts * next_values * (1 - td_lam)
     rets = []

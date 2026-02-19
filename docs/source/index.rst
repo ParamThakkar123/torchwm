@@ -1,16 +1,13 @@
-.. TorchWM documentation master file, created by
-   sphinx-quickstart on Wed Jan 28 10:26:54 2026.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+TorchWM Documentation
+=====================
 
-TorchWM documentation
-===========================
-
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+TorchWM is a modular PyTorch library for world models, latent-dynamics planning,
+and representation learning workflows (Dreamer, PlaNet/RSSM, JEPA, and diffusion components).
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Documentation
+
+   getting_started
+   package_overview
+   api_reference

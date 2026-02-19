@@ -47,6 +47,11 @@ logger = logging.getLogger()
 
 
 def main(args, resume_preempt=False):
+    """Run JEPA training using a nested config dict or `JEPAConfig` instance.
+
+    This entrypoint initializes distributed context, data pipeline, masking,
+    models, optimizers/schedulers, checkpointing, and the full epoch loop.
+    """
     if isinstance(args, JEPAConfig):
         args = args.to_dict()
 

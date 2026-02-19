@@ -1,4 +1,11 @@
 class DreamerConfig:
+    """Configuration container for Dreamer training, evaluation, and environment setup.
+
+    This class centralizes environment backend selection (DMC/Gym/Unity),
+    model dimensions, replay and optimization settings, logging cadence, and
+    checkpoint options consumed by `DreamerAgent`.
+    """
+
     def __init__(self):
         # Environment selection.
         # dmc: DeepMind Control Suite

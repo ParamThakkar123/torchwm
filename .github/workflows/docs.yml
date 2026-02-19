@@ -1,8 +1,16 @@
 name: Docs
+# Requires GitHub Pages to serve from the `gh-pages` branch (root).
 
 on:
   push:
-    branches: [main]
+    branches:
+      - "main"
+    paths:
+      - "docs/**"
+      - "world_models/**"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    types: [opened, reopened, synchronize]
     paths:
       - "docs/**"
       - "world_models/**"
@@ -11,11 +19,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: docs-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -48,18 +54,61 @@ jobs:
       - name: Build HTML docs
         run: sphinx-build -b html docs/source docs/build/html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: docs-html
           path: docs/build/html
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  deploy-prod:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Skip deploy outside main pushes
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: echo "Production deploy only runs on pushes to main."
+
+      - name: Checkout
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs/build/html
+
+      - name: Deploy to GitHub Pages branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build/html
+          branch: gh-pages
+          clean-exclude: pr-preview/
+          force: false
+
+  deploy-pr-preview:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs/build/html
+
+      - name: Deploy PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: docs/build/html
+          preview-branch: gh-pages

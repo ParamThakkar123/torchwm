@@ -19,6 +19,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "myst_parser",
+    "sphinxext.opengraph",
 ]
 
 templates_path = ["_templates"]
@@ -50,3 +51,15 @@ autodoc_mock_imports = [
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
+
+# Canonical docs URL. Overridden in CI for PR previews.
+html_baseurl = os.getenv(
+    "SPHINX_HTML_BASEURL",
+    "https://paramthakkar123.github.io/torchwm/",
+)
+
+# Open Graph metadata for social sharing cards/link previews.
+ogp_site_url = html_baseurl
+ogp_site_name = "TorchWM Documentation"
+ogp_description_length = 200
+ogp_enable_meta_description = True

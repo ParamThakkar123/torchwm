@@ -24,27 +24,47 @@ import yaml
 
 import collections
 import collections.abc
+from attrdict import AttrDict
+
 for type_name in collections.abc.__all__:
     setattr(collections, type_name, getattr(collections.abc, type_name))
 
-from attrdict import AttrDict
 
+def load_yml_config(path, variable=None):
+    """
+    Load YAML config from ``path``.
 
-def load_yml_config(path):
+    Args:
+      path: YAML file path.
+      variable: Optional key to fetch from config. Supports dot-path keys
+        (e.g. ``"trainer.lr"``). If omitted, returns the full config.
+
+    Returns:
+      Full config as AttrDict when ``variable`` is None, otherwise the selected
+      value. If the selected value is a dict, it is wrapped in AttrDict.
+    """
     with open(path) as fileStream:
-        loaded = yaml.safe_load(fileStream)
-        keys = list(loaded.keys())
+        loaded = yaml.safe_load(fileStream) or {}
 
-        dictionary = None
+    if not isinstance(loaded, dict):
+        raise TypeError("YAML config must contain a mapping at the top level.")
 
-        for i,key in enumerate(keys):
+    if variable is None:
+        return AttrDict(loaded)
 
-            if i == 0:
-                dictionary = AttrDict({key: loaded[key]})
-            else:
-                dictionary += AttrDict({key: loaded[key]})
+    if not isinstance(variable, str) or not variable.strip():
+        raise ValueError("`variable` must be a non-empty string when provided.")
 
-        return dictionary
+    value = loaded
+    for key in variable.split("."):
+        if not isinstance(value, dict) or key not in value:
+            raise KeyError(f"Variable '{variable}' not found in YAML config.")
+        value = value[key]
+
+    if isinstance(value, dict):
+        return AttrDict(value)
+    return value
+
 
 def to_tensor_obs(image):
     """

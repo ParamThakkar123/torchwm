@@ -34,6 +34,11 @@ def _resolve_image_size(args):
 
 
 def make_env(args):
+    """Construct a Dreamer-compatible environment from `DreamerConfig` options.
+
+    Supports DMC, Gym/Gymnasium, and Unity ML-Agents backends and applies the
+    standard wrapper stack: action repeat, action normalization, and time limit.
+    """
     size = _resolve_image_size(args)
     backend = str(getattr(args, "env_backend", "dmc")).lower()
 
@@ -86,11 +91,21 @@ def make_env(args):
 
 
 def preprocess_obs(obs):
+    """Convert raw uint8 image observations to Dreamer float input space.
+
+    Images are scaled from `[0, 255]` to roughly `[-0.5, 0.5]`, matching the
+    normalization expected by Dreamer encoders.
+    """
     obs = obs.to(torch.float32) / 255.0 - 0.5
     return obs
 
 
 class Dreamer:
+    """Core Dreamer training system combining world model, actor, and value nets.
+
+    This class owns model construction, replay sampling, imagination rollouts,
+    loss computation, optimization steps, evaluation loops, and checkpoint I/O.
+    """
 
     def __init__(self, args, obs_shape, action_size, device, restore=False):
 
@@ -528,6 +543,12 @@ class Dreamer:
 
 
 class DreamerAgent:
+    """High-level user API for running Dreamer experiments end to end.
+
+    It builds environments from config, initializes seeds and logging,
+    instantiates `Dreamer`, and exposes simple `train()` / `evaluate()` methods.
+    """
+
     def __init__(self, config=None, **kwargs):
         if config is None:
             self.args = DreamerConfig()

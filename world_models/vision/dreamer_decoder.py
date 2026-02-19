@@ -21,6 +21,11 @@ _str_to_activation = {
 
 
 class TanhBijector(distributions.Transform):
+    """Bijective `tanh` transform used to squash Gaussian actions to `[-1, 1]`.
+
+    Provides stable inverse and log-determinant Jacobian computations for
+    transformed-action distributions.
+    """
 
     def __init__(self):
         super().__init__()
@@ -50,6 +55,11 @@ class TanhBijector(distributions.Transform):
 
 
 class ConvDecoder(nn.Module):
+    """Convolutional Dreamer decoder from latent features to image distributions.
+
+    Maps concatenated stochastic/deterministic states into transposed-conv
+    outputs and returns a factorized Normal distribution over pixels.
+    """
 
     def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
 
@@ -93,6 +103,10 @@ class ConvDecoder(nn.Module):
 
 
 class DenseDecoder(nn.Module):
+    """MLP decoder for reward/value/discount prediction from latent features.
+
+    The output distribution type is configurable (`normal`, `binary`, or raw tensor).
+    """
 
     def __init__(
         self, stoch_size, deter_size, output_shape, n_layers, units, activation, dist
@@ -134,6 +148,11 @@ class DenseDecoder(nn.Module):
 
 
 class SampleDist:
+    """Distribution wrapper that estimates statistics via Monte Carlo sampling.
+
+    Provides approximated `mean`, `mode`, and `entropy` helpers for transformed
+    distributions where analytic forms may be inconvenient.
+    """
 
     def __init__(self, dist, samples=100):
         self._dist = dist
@@ -174,6 +193,11 @@ class SampleDist:
 
 
 class ActionDecoder(nn.Module):
+    """Dreamer actor head producing squashed continuous actions from latent features.
+
+    Outputs a transformed Gaussian policy with optional deterministic mode and
+    utility for additive exploration noise.
+    """
 
     def __init__(
         self,

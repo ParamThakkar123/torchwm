@@ -28,6 +28,11 @@ def make_imagenet1k(
     drop_last=True,
     subset_file=None,
 ):
+    """Build an ImageNet-1K dataset and dataloader with distributed sampling support.
+
+    This helper optionally restricts data to a subset file and returns the
+    `(dataset, dataloader, sampler)` tuple used by training scripts.
+    """
     dataset = ImageNet(
         root=root_path,
         image_folder=image_folder,
@@ -58,6 +63,12 @@ def make_imagenet1k(
 
 
 class ImageNet(torchvision.datasets.ImageFolder):
+    """ImageNet dataset wrapper with optional local copy/extract workflow.
+
+    The class extends `torchvision.datasets.ImageFolder` and can stage data
+    from shared storage into local scratch space for faster multi-process
+    training on cluster environments.
+    """
 
     def __init__(
         self,
@@ -122,6 +133,11 @@ class ImageNet(torchvision.datasets.ImageFolder):
 
 
 class ImageNetSubset(object):
+    """View over an `ImageNet` dataset filtered by an explicit image-id list.
+
+    The subset file contains target image names; only matching samples are
+    kept while preserving transforms and label mapping from the base dataset.
+    """
 
     def __init__(self, dataset, subset_file):
         """
@@ -174,6 +190,11 @@ def copy_imgnt_locally(
     job_id=None,
     local_rank=None,
 ):
+    """Copy and extract ImageNet archives to per-job local scratch storage.
+
+    In SLURM environments this reduces network filesystem pressure by unpacking
+    once per job and synchronizing worker processes with a signal file.
+    """
     if job_id is None:
         try:
             job_id = os.environ["SLURM_JOBID"]
@@ -227,6 +248,11 @@ def make_imagefolder(
     drop_last=True,
     val_split: float | None = None,
 ):
+    """Create an ImageFolder dataset loader for custom folder-structured datasets.
+
+    Supports optional train/validation split and distributed sampling, making
+    it a drop-in replacement for ImageNet loaders in training scripts.
+    """
     dataset = torchvision.datasets.ImageFolder(
         root=os.path.join(root_path, image_folder) if image_folder else root_path,
         transform=transform,

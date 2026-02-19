@@ -3,6 +3,12 @@ import torch.nn as nn
 
 
 class RMSNorm(nn.Module):
+    """Root Mean Square Layer Normalization with a learned gain parameter.
+
+    RMSNorm rescales activations using their RMS magnitude without centering,
+    providing a lightweight normalization alternative to LayerNorm.
+    """
+
     def __init__(self, dim, eps=1e-6):
         super().__init__()
         self.eps = eps

@@ -5,6 +5,13 @@ import math
 
 
 class MultiHeadSelfAttention(nn.Module):
+    """Multi-head scaled dot-product self-attention over sequence tokens.
+
+    This module projects the input sequence into query/key/value heads, performs
+    attention independently per head, and merges the heads back into the original
+    feature dimension. It is used as a lightweight transformer attention block.
+    """
+
     def __init__(self, d, n_heads=2):
         super(MultiHeadSelfAttention, self).__init__()
         assert d % n_heads == 0, "d must be divisible by n_heads"

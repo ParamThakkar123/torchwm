@@ -3,6 +3,12 @@ from world_models.layers.RMSNorm import RMSNorm
 
 
 class AdaLNNormalization(nn.Module):
+    """Adaptive layer normalization conditioned on an external embedding.
+
+    The module applies RMS normalization and predicts per-channel scale/shift
+    from a conditioning vector (for example diffusion timestep embeddings).
+    """
+
     def __init__(self, d_model, t_dim):
         super().__init__()
         self.norm = RMSNorm(d_model)

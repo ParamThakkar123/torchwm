@@ -17,6 +17,11 @@ def make_transforms(
     gaussian_blur=False,
     normalization=((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ):
+    """Compose image augmentations and normalization for vision model training.
+
+    Supports random crops, optional flip/color distortion/blur, and returns a
+    `torchvision.transforms.Compose` pipeline.
+    """
     logger.info("making imagenet data transforms")
 
     def get_color_distortion(s=1.0):
@@ -43,6 +48,11 @@ def make_transforms(
 
 
 class GaussianBlur(object):
+    """Probabilistic Gaussian blur augmentation for PIL images.
+
+    Applies blur with random radius in a configurable range when sampled.
+    """
+
     def __init__(self, p=0.5, radius_min=0.1, radius_max=2.0):
         self.prob = p
         self.radius_min = radius_min

@@ -227,11 +227,11 @@ def ensure_results_dir_exists(results_dir):
 
 def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     """
-    Save side-by-side comparisons of target / prior / posterior predictions.
-    Accepts:
-      - target: [T+1, C, H, W] or [C, H, W] (torch.Tensor)
-      - pred_prior / pred_posterior: [T, C, H, W] or [C, H, W]
-    Produces name.png (and ensures output directory exists).
+    Save side-by-side target, prior-prediction, and posterior-prediction frames.
+
+    The function accepts tensors with optional time dimension and writes a PNG
+    grid to ``{name}.png``. Spatial sizes are aligned per timestep before
+    concatenation and values are normalized to ``[0, 1]`` when needed.
     """
 
     def ensure_time_dim(x):
@@ -299,12 +299,11 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
 
 def get_mask(tensor, lengths):
     """
-    Generates masks for batches of sequences.
+    Build a batch-first validity mask from sequence lengths.
 
-    Accepts:
-      - tensor: torch.Tensor or numpy array with shape (N, T, ...) or (N,) (no time dim)
-    Returns:
-      - mask: torch.Tensor with batch-first layout [N, T, ...] (same device/dtype as input)
+    ``tensor`` may be a tensor/array with shape ``(N, T, ...)`` or ``(N,)``.
+    The returned mask marks valid timesteps with ones up to each element in
+    ``lengths`` and preserves device/dtype conventions from the input.
     """
     # convert numpy -> torch if needed
     if not torch.is_tensor(tensor):
@@ -450,16 +449,25 @@ class TensorBoardMetrics:
 
 
 def apply_model(model, inputs, ignore_dim=None):
+    """Placeholder helper for generic model application across input structures.
+
+    Currently not implemented; kept as an extension hook for future utility code.
+    """
     pass
 
 
 def plot_metrics(metrics, path, prefix):
+    """Render and save line plots for each metric series in a dictionary."""
     os.makedirs(path, exist_ok=True)
     for key, val in metrics.items():
         lineplot(np.arange(len(val)), val, f"{prefix}{key}", path)
 
 
 def lineplot(xs, ys, title, path="", xaxis="episode"):
+    """Create a Plotly line plot for scalar, dict, or ensemble-series data.
+
+    Supports uncertainty-band plotting when `ys` is a 2D array.
+    """
     MAX_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     MIN_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     NO_LINE = Line(color="rgba(0, 0, 0, 0)")
@@ -752,6 +760,11 @@ class TorchImageEnvWrapper:
 
 
 def apply_masks(x, masks):
+    """Gather token subsets from patch sequences using index masks.
+
+    Each mask selects token positions from `x`; selected groups are concatenated
+    along the batch dimension.
+    """
     all_x = []
     for m in masks:
         mask_keep = m.unsqueeze(-1).repeat(1, 1, x.shape[-1])

@@ -1,9 +1,10 @@
 name: Docs
+# Requires GitHub Pages to serve from the `gh-pages` branch (root).
 
 on:
   push:
     branches:
-      - "**"
+      - "main"
     paths:
       - "docs/**"
       - "world_models/**"
@@ -20,7 +21,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: docs-${{ github.workflow }}-${{ github.ref }}
+  group: docs-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -54,32 +55,40 @@ jobs:
         run: sphinx-build -b html docs/source docs/build/html
 
       - name: Upload docs artifact
-        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: docs-html
           path: docs/build/html
 
-      - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/build/html
-
   deploy-prod:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: write
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Skip deploy outside main pushes
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: echo "Production deploy only runs on pushes to main."
+
+      - name: Checkout
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-html
+          path: docs/build/html
+
+      - name: Deploy to GitHub Pages branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs/build/html
+          branch: gh-pages
+          clean-exclude: pr-preview/
+          force: false
 
   deploy-pr-preview:
     if: github.event_name == 'pull_request'
@@ -102,3 +111,4 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: docs/build/html
+          preview-branch: gh-pages

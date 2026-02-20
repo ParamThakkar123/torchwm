@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>world_models.memory.planet_memory &mdash; TorchWM 0.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-21/_modules/world_models/memory/planet_memory.html" />
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=37f418d5"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            TorchWM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../package_overview.html">Package Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">TorchWM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">world_models.memory.planet_memory</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for world_models.memory.planet_memory</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">choice</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_identity</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<div class="viewcode-block" id="Episode">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Episode</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Records the agent&#39;s interaction with the environment for a single</span>
+<span class="sd">    episode. At termination, it converts all the data to Numpy arrays.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postprocess_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocess_fn</span> <span class="o">=</span> <span class="n">_identity</span> <span class="k">if</span> <span class="n">postprocess_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">postprocess_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
+
+<div class="viewcode-block" id="Episode.append">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode.append">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">act</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminal</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postprocess_fn</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">act</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terminal</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Episode.terminate">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode.terminate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postprocess_fn</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Memory">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Memory</span><span class="p">(</span><span class="n">deque</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Episode-based replay memory for PlaNet/RSSM training.</span>
+
+<span class="sd">    Episodes are stored as variable-length trajectories and sampled as</span>
+<span class="sd">    sub-sequences with optional time-major formatting for sequence models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Maintains a FIFO list of `size` number of episodes.</span>
+<span class="sd">        If size is None (e.g. during unpickling or loading legacy files),</span>
+<span class="sd">        create deques without a fixed maxlen so pickle can restore state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxlen</span> <span class="o">=</span> <span class="n">size</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating memory with len </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> episodes.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">episode</span><span class="p">:</span> <span class="n">Episode</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episode</span><span class="p">,</span> <span class="n">Episode</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">episode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">episode</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;can only append &lt;Episode&gt; or list of &lt;Episode&gt;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Memory.append">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory.append">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">episodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Episode</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episodes</span><span class="p">,</span> <span class="n">Episode</span><span class="p">):</span>
+            <span class="n">episodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">episodes</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episodes</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">episodes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;can only append &lt;Episode&gt; or list of &lt;Episode&gt;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Memory.sample">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory.sample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">tracelen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">episodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Memory is empty; cannot sample.&quot;</span><span class="p">)</span>
+
+        <span class="n">valid_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">L</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="p">)</span> <span class="k">if</span> <span class="n">L</span> <span class="o">&gt;=</span> <span class="n">tracelen</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_idxs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No episodes with length &gt;= </span><span class="si">{</span><span class="n">tracelen</span><span class="si">}</span><span class="s2"> available to sample.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Quick memory usage estimation to avoid large unexpected allocations.</span>
+        <span class="c1"># Estimate bytes required for stacked observations: N * (tracelen+1) * prod(obs_shape) * bytes_per_elem</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sample_ep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span><span class="p">[</span><span class="n">valid_idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_ep</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">obs_shape</span> <span class="o">=</span> <span class="n">sample_ep</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>  <span class="c1"># (C,H,W)</span>
+                <span class="n">obs_dtype</span> <span class="o">=</span> <span class="n">sample_ep</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sample_ep</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs0</span><span class="o">.</span><span class="n">shape</span>
+                <span class="n">obs_dtype</span> <span class="o">=</span> <span class="n">obs0</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="n">bytes_per_elem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">obs_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">itemsize</span>
+            <span class="n">est_bytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                <span class="n">batch_size</span> <span class="o">*</span> <span class="p">(</span><span class="n">tracelen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">bytes_per_elem</span>
+            <span class="p">)</span>
+            <span class="n">MAX_BYTES</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># 200 MiB threshold (tunable)</span>
+            <span class="k">if</span> <span class="n">est_bytes</span> <span class="o">&gt;</span> <span class="n">MAX_BYTES</span><span class="p">:</span>
+                <span class="n">est_mb</span> <span class="o">=</span> <span class="n">est_bytes</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">MemoryError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Sampling would allocate ~</span><span class="si">{</span><span class="n">est_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MiB for observations &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(N=</span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">, H=</span><span class="si">{</span><span class="n">tracelen</span><span class="si">}</span><span class="s2">, obs_shape=</span><span class="si">{</span><span class="n">obs_shape</span><span class="si">}</span><span class="s2">, dtype=</span><span class="si">{</span><span class="n">obs_dtype</span><span class="si">}</span><span class="s2">). &quot;</span>
+                    <span class="s2">&quot;Reduce batch_size or trace length (H) or downsample images.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># If anything goes wrong in estimation, continue and let later code raise the original error.</span>
+            <span class="k">pass</span>
+
+        <span class="n">episode_idx</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">valid_idxs</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+
+        <span class="n">init_st_idx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">episode_idx</span><span class="p">:</span>
+            <span class="n">max_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">tracelen</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">max_start</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">init_st_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">init_st_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">choice</span><span class="p">(</span><span class="n">max_start</span><span class="p">))</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">episode_idx</span><span class="p">,</span> <span class="n">init_st_idx</span><span class="p">)):</span>
+            <span class="n">ep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># ensure arrays (support episodes that weren&#39;t .terminate()&#39;d)</span>
+            <span class="n">x_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">ep</span><span class="o">.</span><span class="n">x</span>
+
+            <span class="c1"># Normalize action arrays to have shape (T, action_dim)</span>
+            <span class="n">u_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">u</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">ep</span><span class="o">.</span><span class="n">u</span>
+            <span class="n">u_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">u_arr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">u_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">u_arr</span> <span class="o">=</span> <span class="n">u_arr</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># (T,) -&gt; (T,1)</span>
+
+            <span class="c1"># Ensure rewards and terminals are 1D arrays of length T</span>
+            <span class="n">r_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">r</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">ep</span><span class="o">.</span><span class="n">r</span>
+            <span class="n">r_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">r_arr</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">t</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ep</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">ep</span><span class="o">.</span><span class="n">t</span>
+            <span class="n">t_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">t_arr</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_arr</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="n">tracelen</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">u</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u_arr</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="n">tracelen</span><span class="p">])</span>
+            <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r_arr</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="n">tracelen</span><span class="p">])</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_arr</span><span class="p">[</span><span class="n">s</span> <span class="p">:</span> <span class="n">s</span> <span class="o">+</span> <span class="n">tracelen</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tracelen</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">rets</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">i</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rets</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">shapes</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">]</span>
+
+            <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;x_shapes&quot;</span><span class="p">:</span> <span class="n">shapes</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="s2">&quot;u_shapes&quot;</span><span class="p">:</span> <span class="n">shapes</span><span class="p">(</span><span class="n">u</span><span class="p">),</span>
+                <span class="s2">&quot;r_shapes&quot;</span><span class="p">:</span> <span class="n">shapes</span><span class="p">(</span><span class="n">r</span><span class="p">),</span>
+                <span class="s2">&quot;t_shapes&quot;</span><span class="p">:</span> <span class="n">shapes</span><span class="p">(</span><span class="n">t</span><span class="p">),</span>
+                <span class="s2">&quot;episode_idx&quot;</span><span class="p">:</span> <span class="n">episode_idx</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                <span class="s2">&quot;start_idx&quot;</span><span class="p">:</span> <span class="n">init_st_idx</span><span class="p">,</span>
+                <span class="s2">&quot;eps_lengths_sampled&quot;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">episode_idx</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Failed to stack sampled segments; shapes info: </span><span class="si">{</span><span class="n">info</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">if</span> <span class="n">time_first</span><span class="p">:</span>
+            <span class="n">rets</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">rets</span><span class="p">]</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">eps_lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">episode_idx</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">rets</span><span class="p">,</span> <span class="n">lengths</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Param Thakkar.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

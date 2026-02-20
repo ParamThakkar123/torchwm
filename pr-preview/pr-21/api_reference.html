@@ -1,0 +1,1187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="API Reference" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-21/api_reference.html" />
+<meta property="og:site_name" content="TorchWM Documentation" />
+<meta property="og:description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: Diffusion: Datasets and Transforms: Memory and Controllers: Utilities:" />
+<meta name="description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: Diffusion: Datasets and Transforms: Memory and Controllers: Utilities:" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; TorchWM 0.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-21/api_reference.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=37f418d5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Package Overview" href="package_overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            TorchWM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.models">Core Public APIs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.configs.DreamerConfig"><code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.configs.JEPAConfig"><code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.JEPAConfig.to_dict"><code class="docutils literal notranslate"><span class="pre">JEPAConfig.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.configs.DiTConfig"><code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.DATASET"><code class="docutils literal notranslate"><span class="pre">DiTConfig.DATASET</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.BATCH"><code class="docutils literal notranslate"><span class="pre">DiTConfig.BATCH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.EPOCHS"><code class="docutils literal notranslate"><span class="pre">DiTConfig.EPOCHS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.LR"><code class="docutils literal notranslate"><span class="pre">DiTConfig.LR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.IMG_SIZE"><code class="docutils literal notranslate"><span class="pre">DiTConfig.IMG_SIZE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.CHANNELS"><code class="docutils literal notranslate"><span class="pre">DiTConfig.CHANNELS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.PATCH"><code class="docutils literal notranslate"><span class="pre">DiTConfig.PATCH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.WIDTH"><code class="docutils literal notranslate"><span class="pre">DiTConfig.WIDTH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.DEPTH"><code class="docutils literal notranslate"><span class="pre">DiTConfig.DEPTH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.HEADS"><code class="docutils literal notranslate"><span class="pre">DiTConfig.HEADS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.DROP"><code class="docutils literal notranslate"><span class="pre">DiTConfig.DROP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.BETA_START"><code class="docutils literal notranslate"><span class="pre">DiTConfig.BETA_START</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.BETA_END"><code class="docutils literal notranslate"><span class="pre">DiTConfig.BETA_END</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.TIMESTEPS"><code class="docutils literal notranslate"><span class="pre">DiTConfig.TIMESTEPS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.EMA"><code class="docutils literal notranslate"><span class="pre">DiTConfig.EMA</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.EMA_DECAY"><code class="docutils literal notranslate"><span class="pre">DiTConfig.EMA_DECAY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.WORKDIR"><code class="docutils literal notranslate"><span class="pre">DiTConfig.WORKDIR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.configs.DiTConfig.ROOT_PATH"><code class="docutils literal notranslate"><span class="pre">DiTConfig.ROOT_PATH</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.configs.get_dit_config"><code class="docutils literal notranslate"><span class="pre">get_dit_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.models.dreamer_rssm">Dreamer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM"><code class="docutils literal notranslate"><span class="pre">RSSM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.init_state"><code class="docutils literal notranslate"><span class="pre">RSSM.init_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.get_dist"><code class="docutils literal notranslate"><span class="pre">RSSM.get_dist()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.observe_step"><code class="docutils literal notranslate"><span class="pre">RSSM.observe_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.imagine_step"><code class="docutils literal notranslate"><span class="pre">RSSM.imagine_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.observe_rollout"><code class="docutils literal notranslate"><span class="pre">RSSM.observe_rollout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.imagine_rollout"><code class="docutils literal notranslate"><span class="pre">RSSM.imagine_rollout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.stack_states"><code class="docutils literal notranslate"><span class="pre">RSSM.stack_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.detach_state"><code class="docutils literal notranslate"><span class="pre">RSSM.detach_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.dreamer_rssm.RSSM.seq_to_batch"><code class="docutils literal notranslate"><span class="pre">RSSM.seq_to_batch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_encoder.ConvEncoder"><code class="docutils literal notranslate"><span class="pre">ConvEncoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_encoder.ConvEncoder.forward"><code class="docutils literal notranslate"><span class="pre">ConvEncoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_decoder.TanhBijector"><code class="docutils literal notranslate"><span class="pre">TanhBijector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.TanhBijector.sign"><code class="docutils literal notranslate"><span class="pre">TanhBijector.sign</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.TanhBijector.atanh"><code class="docutils literal notranslate"><span class="pre">TanhBijector.atanh()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.TanhBijector.log_abs_det_jacobian"><code class="docutils literal notranslate"><span class="pre">TanhBijector.log_abs_det_jacobian()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_decoder.ConvDecoder"><code class="docutils literal notranslate"><span class="pre">ConvDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.ConvDecoder.forward"><code class="docutils literal notranslate"><span class="pre">ConvDecoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_decoder.DenseDecoder"><code class="docutils literal notranslate"><span class="pre">DenseDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.DenseDecoder.forward"><code class="docutils literal notranslate"><span class="pre">DenseDecoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist"><code class="docutils literal notranslate"><span class="pre">SampleDist</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist.name"><code class="docutils literal notranslate"><span class="pre">SampleDist.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist.mean"><code class="docutils literal notranslate"><span class="pre">SampleDist.mean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist.mode"><code class="docutils literal notranslate"><span class="pre">SampleDist.mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist.entropy"><code class="docutils literal notranslate"><span class="pre">SampleDist.entropy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.SampleDist.sample"><code class="docutils literal notranslate"><span class="pre">SampleDist.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.vision.dreamer_decoder.ActionDecoder"><code class="docutils literal notranslate"><span class="pre">ActionDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.ActionDecoder.forward"><code class="docutils literal notranslate"><span class="pre">ActionDecoder.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.vision.dreamer_decoder.ActionDecoder.add_exploration"><code class="docutils literal notranslate"><span class="pre">ActionDecoder.add_exploration()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.masks.multiblock">JEPA and ViT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.masks.multiblock.MaskCollator"><code class="docutils literal notranslate"><span class="pre">MaskCollator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.masks.multiblock.MaskCollator.step"><code class="docutils literal notranslate"><span class="pre">MaskCollator.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.masks.random.MaskCollator"><code class="docutils literal notranslate"><span class="pre">MaskCollator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.masks.random.MaskCollator.step"><code class="docutils literal notranslate"><span class="pre">MaskCollator.step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.models.diffusion.DDPM">Diffusion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DDPM.DDPM"><code class="docutils literal notranslate"><span class="pre">DDPM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DDPM.DDPM.q_sample"><code class="docutils literal notranslate"><span class="pre">DDPM.q_sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DDPM.DDPM.p_sample"><code class="docutils literal notranslate"><span class="pre">DDPM.p_sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DDPM.DDPM.sample"><code class="docutils literal notranslate"><span class="pre">DDPM.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DiT.sinusoidal_time_embedding"><code class="docutils literal notranslate"><span class="pre">sinusoidal_time_embedding()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DiT.PatchEmbed"><code class="docutils literal notranslate"><span class="pre">PatchEmbed</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DiT.PatchEmbed.forward"><code class="docutils literal notranslate"><span class="pre">PatchEmbed.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DiT.PatchUnEmbed"><code class="docutils literal notranslate"><span class="pre">PatchUnEmbed</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DiT.PatchUnEmbed.forward"><code class="docutils literal notranslate"><span class="pre">PatchUnEmbed.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DiT.TransformerBlock"><code class="docutils literal notranslate"><span class="pre">TransformerBlock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DiT.TransformerBlock.forward"><code class="docutils literal notranslate"><span class="pre">TransformerBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.models.diffusion.DiT.DiT"><code class="docutils literal notranslate"><span class="pre">DiT</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DiT.DiT.forward"><code class="docutils literal notranslate"><span class="pre">DiT.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.models.diffusion.DiT.DiT.train"><code class="docutils literal notranslate"><span class="pre">DiT.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.datasets.cifar10">Datasets and Transforms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.cifar10.make_cifar10"><code class="docutils literal notranslate"><span class="pre">make_cifar10()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.imagenet1k.make_imagenet1k"><code class="docutils literal notranslate"><span class="pre">make_imagenet1k()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.imagenet1k.ImageNet"><code class="docutils literal notranslate"><span class="pre">ImageNet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.imagenet1k.ImageNetSubset"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.datasets.imagenet1k.ImageNetSubset.filter_dataset_"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.filter_dataset_()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.datasets.imagenet1k.ImageNetSubset.classes"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.classes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.imagenet1k.copy_imgnt_locally"><code class="docutils literal notranslate"><span class="pre">copy_imgnt_locally()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.datasets.imagenet1k.make_imagefolder"><code class="docutils literal notranslate"><span class="pre">make_imagefolder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.transforms.transforms.make_transforms"><code class="docutils literal notranslate"><span class="pre">make_transforms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.transforms.transforms.GaussianBlur"><code class="docutils literal notranslate"><span class="pre">GaussianBlur</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.memory.dreamer_memory">Memory and Controllers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.memory.dreamer_memory.ReplayBuffer"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.dreamer_memory.ReplayBuffer.add"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.dreamer_memory.ReplayBuffer.sample"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.memory.planet_memory.Episode"><code class="docutils literal notranslate"><span class="pre">Episode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Episode.size"><code class="docutils literal notranslate"><span class="pre">Episode.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Episode.append"><code class="docutils literal notranslate"><span class="pre">Episode.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Episode.terminate"><code class="docutils literal notranslate"><span class="pre">Episode.terminate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.memory.planet_memory.Memory"><code class="docutils literal notranslate"><span class="pre">Memory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Memory.size"><code class="docutils literal notranslate"><span class="pre">Memory.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Memory.append"><code class="docutils literal notranslate"><span class="pre">Memory.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.memory.planet_memory.Memory.sample"><code class="docutils literal notranslate"><span class="pre">Memory.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.controller.rssm_policy.RSSMPolicy"><code class="docutils literal notranslate"><span class="pre">RSSMPolicy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.controller.rssm_policy.RSSMPolicy.reset"><code class="docutils literal notranslate"><span class="pre">RSSMPolicy.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.controller.rssm_policy.RSSMPolicy.poll"><code class="docutils literal notranslate"><span class="pre">RSSMPolicy.poll()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-world_models.utils.dreamer_utils">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.dreamer_utils.get_parameters"><code class="docutils literal notranslate"><span class="pre">get_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.dreamer_utils.FreezeParameters"><code class="docutils literal notranslate"><span class="pre">FreezeParameters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger.log_scalar"><code class="docutils literal notranslate"><span class="pre">Logger.log_scalar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger.log_scalars"><code class="docutils literal notranslate"><span class="pre">Logger.log_scalars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger.log_videos"><code class="docutils literal notranslate"><span class="pre">Logger.log_videos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger.dump_scalars_to_pickle"><code class="docutils literal notranslate"><span class="pre">Logger.dump_scalars_to_pickle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.dreamer_utils.Logger.flush"><code class="docutils literal notranslate"><span class="pre">Logger.flush()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.dreamer_utils.compute_return"><code class="docutils literal notranslate"><span class="pre">compute_return()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.trunc_normal_"><code class="docutils literal notranslate"><span class="pre">trunc_normal_()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.repeat_interleave_batch"><code class="docutils literal notranslate"><span class="pre">repeat_interleave_batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.WarmupCosineSchedule"><code class="docutils literal notranslate"><span class="pre">WarmupCosineSchedule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.WarmupCosineSchedule.step"><code class="docutils literal notranslate"><span class="pre">WarmupCosineSchedule.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.CosineWDSchedule"><code class="docutils literal notranslate"><span class="pre">CosineWDSchedule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.CosineWDSchedule.step"><code class="docutils literal notranslate"><span class="pre">CosineWDSchedule.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.gpu_timer"><code class="docutils literal notranslate"><span class="pre">gpu_timer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.CSVLogger"><code class="docutils literal notranslate"><span class="pre">CSVLogger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.CSVLogger.log"><code class="docutils literal notranslate"><span class="pre">CSVLogger.log()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.AverageMeter"><code class="docutils literal notranslate"><span class="pre">AverageMeter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AverageMeter.reset"><code class="docutils literal notranslate"><span class="pre">AverageMeter.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AverageMeter.update"><code class="docutils literal notranslate"><span class="pre">AverageMeter.update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.grad_logger"><code class="docutils literal notranslate"><span class="pre">grad_logger()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.init_distributed"><code class="docutils literal notranslate"><span class="pre">init_distributed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.AllGather"><code class="docutils literal notranslate"><span class="pre">AllGather</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllGather.forward"><code class="docutils literal notranslate"><span class="pre">AllGather.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllGather.backward"><code class="docutils literal notranslate"><span class="pre">AllGather.backward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduceSum"><code class="docutils literal notranslate"><span class="pre">AllReduceSum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduceSum.forward"><code class="docutils literal notranslate"><span class="pre">AllReduceSum.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduceSum.backward"><code class="docutils literal notranslate"><span class="pre">AllReduceSum.backward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduce"><code class="docutils literal notranslate"><span class="pre">AllReduce</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduce.forward"><code class="docutils literal notranslate"><span class="pre">AllReduce.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#world_models.utils.jepa_utils.AllReduce.backward"><code class="docutils literal notranslate"><span class="pre">AllReduce.backward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">TorchWM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_reference.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>This reference is generated from source docstrings and grouped by subsystem.</p>
+<section id="module-world_models.models">
+<span id="core-public-apis"></span><h2>Core Public APIs<a class="headerlink" href="#module-world_models.models" title="Link to this heading"></a></h2>
+<dl class="py class" id="module-world_models.configs">
+<dt class="sig sig-object py" id="world_models.configs.DreamerConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DreamerConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
+<p>This class centralizes environment backend selection (DMC/Gym/Unity),
+model dimensions, replay and optimization settings, logging cadence, and
+checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.JEPAConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">JEPAConfig</span></span><a class="reference internal" href="_modules/world_models/configs/jepa_config.html#JEPAConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.JEPAConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Minimal configuration container for JEPA training.
+Converts to the nested dict expected by <cite>train_jepa.main</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.configs.JEPAConfig.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/jepa_config.html#JEPAConfig.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.JEPAConfig.to_dict" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Dict</em>[str, <em>Dict</em>[str, <em>Any</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DiTConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">DATASET</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CIFAR10'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BATCH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EPOCHS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">IMG_SIZE</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CHANNELS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PATCH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WIDTH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEPTH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">HEADS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DROP</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BETA_START</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BETA_END</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TIMESTEPS</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EMA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EMA_DECAY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">WORKDIR</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./dit_demo'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ROOT_PATH</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./data'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/dit_config.html#DiTConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DiTConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Default configuration values for Diffusion Transformer (DiT) training.</p>
+<p>The fields define dataset selection, model architecture, diffusion schedule,
+optimization hyperparameters, and output paths used by the built-in
+training entrypoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DATASET</strong> (<em>str</em>)</p></li>
+<li><p><strong>BATCH</strong> (<em>int</em>)</p></li>
+<li><p><strong>EPOCHS</strong> (<em>int</em>)</p></li>
+<li><p><strong>LR</strong> (<em>float</em>)</p></li>
+<li><p><strong>IMG_SIZE</strong> (<em>int</em>)</p></li>
+<li><p><strong>CHANNELS</strong> (<em>int</em>)</p></li>
+<li><p><strong>PATCH</strong> (<em>int</em>)</p></li>
+<li><p><strong>WIDTH</strong> (<em>int</em>)</p></li>
+<li><p><strong>DEPTH</strong> (<em>int</em>)</p></li>
+<li><p><strong>HEADS</strong> (<em>int</em>)</p></li>
+<li><p><strong>DROP</strong> (<em>float</em>)</p></li>
+<li><p><strong>BETA_START</strong> (<em>float</em>)</p></li>
+<li><p><strong>BETA_END</strong> (<em>float</em>)</p></li>
+<li><p><strong>TIMESTEPS</strong> (<em>int</em>)</p></li>
+<li><p><strong>EMA</strong> (<em>bool</em>)</p></li>
+<li><p><strong>EMA_DECAY</strong> (<em>float</em>)</p></li>
+<li><p><strong>WORKDIR</strong> (<em>str</em>)</p></li>
+<li><p><strong>ROOT_PATH</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.DATASET">
+<span class="sig-name descname"><span class="pre">DATASET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CIFAR10'</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.DATASET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.BATCH">
+<span class="sig-name descname"><span class="pre">BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.BATCH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.EPOCHS">
+<span class="sig-name descname"><span class="pre">EPOCHS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.EPOCHS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.LR">
+<span class="sig-name descname"><span class="pre">LR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0002</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.LR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.IMG_SIZE">
+<span class="sig-name descname"><span class="pre">IMG_SIZE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.IMG_SIZE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.CHANNELS">
+<span class="sig-name descname"><span class="pre">CHANNELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.CHANNELS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.PATCH">
+<span class="sig-name descname"><span class="pre">PATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.PATCH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.WIDTH">
+<span class="sig-name descname"><span class="pre">WIDTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">384</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.WIDTH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.DEPTH">
+<span class="sig-name descname"><span class="pre">DEPTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.DEPTH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.HEADS">
+<span class="sig-name descname"><span class="pre">HEADS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.HEADS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.DROP">
+<span class="sig-name descname"><span class="pre">DROP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.DROP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.BETA_START">
+<span class="sig-name descname"><span class="pre">BETA_START</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.BETA_START" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.BETA_END">
+<span class="sig-name descname"><span class="pre">BETA_END</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.02</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.BETA_END" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.TIMESTEPS">
+<span class="sig-name descname"><span class="pre">TIMESTEPS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.TIMESTEPS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.EMA">
+<span class="sig-name descname"><span class="pre">EMA</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.EMA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.EMA_DECAY">
+<span class="sig-name descname"><span class="pre">EMA_DECAY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.999</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.EMA_DECAY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.WORKDIR">
+<span class="sig-name descname"><span class="pre">WORKDIR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'./dit_demo'</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.WORKDIR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DiTConfig.ROOT_PATH">
+<span class="sig-name descname"><span class="pre">ROOT_PATH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'./data'</span></span><a class="headerlink" href="#world_models.configs.DiTConfig.ROOT_PATH" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.configs.get_dit_config">
+<span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">get_dit_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/dit_config.html#get_dit_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.get_dit_config" title="Link to this definition"></a></dt>
+<dd><p>Returns a DiTConfig instance with default values overridden by the provided keyword arguments.</p>
+<dl class="simple">
+<dt>Example usage:</dt><dd><p>cfg = get_dit_config(BATCH=64, EPOCHS=10, LR=1e-3)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-world_models.models.dreamer_rssm">
+<span id="dreamer"></span><h2>Dreamer<a class="headerlink" href="#module-world_models.models.dreamer_rssm" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer_rssm.</span></span><span class="sig-name descname"><span class="pre">RSSM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Recurrent State-Space Model used by Dreamer latent dynamics learning.</p>
+<p>The RSSM maintains deterministic recurrent state and stochastic latent
+state, and provides transition/posterior updates plus rollout helpers.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.init_state">
+<span class="sig-name descname"><span class="pre">init_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.init_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.init_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.get_dist">
+<span class="sig-name descname"><span class="pre">get_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.get_dist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.get_dist" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_step">
+<span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.imagine_step">
+<span class="sig-name descname"><span class="pre">imagine_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.imagine_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.imagine_step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_rollout">
+<span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_rollout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.imagine_rollout">
+<span class="sig-name descname"><span class="pre">imagine_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.imagine_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.imagine_rollout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.stack_states">
+<span class="sig-name descname"><span class="pre">stack_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.stack_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.stack_states" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.detach_state">
+<span class="sig-name descname"><span class="pre">detach_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.detach_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.detach_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.seq_to_batch">
+<span class="sig-name descname"><span class="pre">seq_to_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.seq_to_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.seq_to_batch" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.vision.dreamer_encoder">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_encoder.ConvEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_encoder.</span></span><span class="sig-name descname"><span class="pre">ConvEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_encoder.html#ConvEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_encoder.ConvEncoder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Convolutional observation encoder used by Dreamer world models.</p>
+<p>Encodes image observations into compact embeddings consumed by the RSSM
+posterior update network.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_encoder.ConvEncoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_encoder.html#ConvEncoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_encoder.ConvEncoder.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.vision.dreamer_decoder">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.TanhBijector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">TanhBijector</span></span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#TanhBijector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.TanhBijector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Transform</span></code></p>
+<p>Bijective <cite>tanh</cite> transform used to squash Gaussian actions to <cite>[-1, 1]</cite>.</p>
+<p>Provides stable inverse and log-determinant Jacobian computations for
+transformed-action distributions.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.TanhBijector.sign">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sign</span></span><a class="headerlink" href="#world_models.vision.dreamer_decoder.TanhBijector.sign" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.TanhBijector.atanh">
+<span class="sig-name descname"><span class="pre">atanh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#TanhBijector.atanh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.TanhBijector.atanh" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.TanhBijector.log_abs_det_jacobian">
+<span class="sig-name descname"><span class="pre">log_abs_det_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#TanhBijector.log_abs_det_jacobian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.TanhBijector.log_abs_det_jacobian" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.ConvDecoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">ConvDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#ConvDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.ConvDecoder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Convolutional Dreamer decoder from latent features to image distributions.</p>
+<p>Maps concatenated stochastic/deterministic states into transposed-conv
+outputs and returns a factorized Normal distribution over pixels.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.ConvDecoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#ConvDecoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.ConvDecoder.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.DenseDecoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>MLP decoder for reward/value/discount prediction from latent features.</p>
+<p>The output distribution type is configurable (<cite>normal</cite>, <cite>binary</cite>, or raw tensor).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.DenseDecoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">SampleDist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#SampleDist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Distribution wrapper that estimates statistics via Monte Carlo sampling.</p>
+<p>Provides approximated <cite>mean</cite>, <cite>mode</cite>, and <cite>entropy</cite> helpers for transformed
+distributions where analytic forms may be inconvenient.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#SampleDist.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist.mean" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#SampleDist.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist.mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#SampleDist.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist.entropy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.SampleDist.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#SampleDist.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.SampleDist.sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.ActionDecoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">ActionDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#ActionDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.ActionDecoder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Dreamer actor head producing squashed continuous actions from latent features.</p>
+<p>Outputs a transformed Gaussian policy with optional deterministic mode and
+utility for additive exploration noise.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.ActionDecoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#ActionDecoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.ActionDecoder.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.ActionDecoder.add_exploration">
+<span class="sig-name descname"><span class="pre">add_exploration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#ActionDecoder.add_exploration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.ActionDecoder.add_exploration" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-world_models.masks.multiblock">
+<span id="jepa-and-vit"></span><h2>JEPA and ViT<a class="headerlink" href="#module-world_models.masks.multiblock" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.masks.multiblock.MaskCollator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.masks.multiblock.</span></span><span class="sig-name descname"><span class="pre">MaskCollator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(224,</span> <span class="pre">224)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enc_mask_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.2,</span> <span class="pre">0.8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_mask_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aspect_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.3,</span> <span class="pre">3.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nenc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_keep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/masks/multiblock.html#MaskCollator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.masks.multiblock.MaskCollator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generate multi-block encoder and predictor masks for JEPA training.</p>
+<p>For each sample, this collator samples predictor target blocks and
+context encoder blocks (optionally non-overlapping), then returns masked
+patch indices aligned across the batch.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.masks.multiblock.MaskCollator.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/masks/multiblock.html#MaskCollator.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.masks.multiblock.MaskCollator.step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.masks.random">
+<dt class="sig sig-object py" id="world_models.masks.random.MaskCollator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.masks.random.</span></span><span class="sig-name descname"><span class="pre">MaskCollator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.4,</span> <span class="pre">0.6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(224,</span> <span class="pre">224)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/masks/random.html#MaskCollator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.masks.random.MaskCollator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generate random context/prediction patch splits for masked training.</p>
+<p>A random permutation of patch indices is sampled per image; a configurable
+fraction is assigned to context and the remainder to prediction targets.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.masks.random.MaskCollator.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/masks/random.html#MaskCollator.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.masks.random.MaskCollator.step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-world_models.models.diffusion.DDPM">
+<span id="diffusion"></span><h2>Diffusion<a class="headerlink" href="#module-world_models.models.diffusion.DDPM" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DDPM.DDPM">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DDPM.</span></span><span class="sig-name descname"><span class="pre">DDPM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DDPM.html#DDPM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DDPM.DDPM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utility class implementing forward and reverse DDPM diffusion steps.</p>
+<p>Precomputes diffusion schedule terms and exposes helpers for noising
+training inputs (<cite>q_sample</cite>) and iterative denoising sampling (<cite>sample</cite>).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DDPM.DDPM.q_sample">
+<span class="sig-name descname"><span class="pre">q_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DDPM.html#DDPM.q_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DDPM.DDPM.q_sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DDPM.DDPM.p_sample">
+<span class="sig-name descname"><span class="pre">p_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DDPM.html#DDPM.p_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DDPM.DDPM.p_sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DDPM.DDPM.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DDPM.html#DDPM.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DDPM.DDPM.sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-world_models.models.diffusion.DiT">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.sinusoidal_time_embedding">
+<span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">sinusoidal_time_embedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timesteps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#sinusoidal_time_embedding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.sinusoidal_time_embedding" title="Link to this definition"></a></dt>
+<dd><p>Create sinusoidal timestep embeddings for diffusion conditioning.</p>
+<p>Embeddings are scaled relative to configured diffusion timesteps and are
+consumed by the DiT conditioning MLP.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.PatchEmbed">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">PatchEmbed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchEmbed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.PatchEmbed" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Patchify an image into a sequence of learnable patch tokens.</p>
+<p>A strided convolution performs patch extraction and projects each patch
+to the transformer hidden dimension with additive positional embeddings.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.PatchEmbed.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchEmbed.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.PatchEmbed.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.PatchUnEmbed">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">PatchUnEmbed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchUnEmbed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.PatchUnEmbed" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Reconstruct image-like tensors from patch-token sequences.</p>
+<p>The inverse of <cite>PatchEmbed</cite>, this module reshapes token sequences into
+grids and uses transposed convolution to decode spatial outputs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.PatchUnEmbed.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchUnEmbed.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.PatchUnEmbed.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.TransformerBlock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">TransformerBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_ratio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#TransformerBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.TransformerBlock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Conditioned transformer block used inside the DiT backbone.</p>
+<p>Each block applies adaptive layer-normalized self-attention and MLP
+residual updates conditioned on timestep embeddings.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.TransformerBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_emb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#TransformerBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.TransformerBlock.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.DiT">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">DiT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#DiT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.DiT" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Diffusion Transformer model for image denoising and generation.</p>
+<p>The module maps noisy images and timesteps to predicted noise residuals
+and also provides a classmethod training entrypoint for common datasets.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.DiT.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#DiT.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.DiT.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.DiT.train">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0002</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timesteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ema_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./dit_demo'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">224</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">download</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#DiT.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.DiT.train" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-world_models.datasets.cifar10">
+<span id="datasets-and-transforms"></span><h2>Datasets and Transforms<a class="headerlink" href="#module-world_models.datasets.cifar10" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.datasets.cifar10.make_cifar10">
+<span class="sig-prename descclassname"><span class="pre">world_models.datasets.cifar10.</span></span><span class="sig-name descname"><span class="pre">make_cifar10</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">download</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/cifar10.html#make_cifar10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.cifar10.make_cifar10" title="Link to this definition"></a></dt>
+<dd><p>Create CIFAR-10 dataset objects and a distributed-capable dataloader.</p>
+<p>Returns the dataset, sampler, and loader configured with the provided
+transform/collator so callers can plug the loader directly into JEPA or
+diffusion training loops.</p>
+</dd></dl>
+
+<dl class="py function" id="module-world_models.datasets.imagenet1k">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.make_imagenet1k">
+<span class="sig-prename descclassname"><span class="pre">world_models.datasets.imagenet1k.</span></span><span class="sig-name descname"><span class="pre">make_imagenet1k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#make_imagenet1k"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.make_imagenet1k" title="Link to this definition"></a></dt>
+<dd><p>Build an ImageNet-1K dataset and dataloader with distributed sampling support.</p>
+<p>This helper optionally restricts data to a subset file and returns the
+<cite>(dataset, dataloader, sampler)</cite> tuple used by training scripts.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.ImageNet">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.datasets.imagenet1k.</span></span><span class="sig-name descname"><span class="pre">ImageNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'imagenet_full_size/061417/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tar_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'imagenet_full_size-061417.tar.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#ImageNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.ImageNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFolder</span></code></p>
+<p>ImageNet dataset wrapper with optional local copy/extract workflow.</p>
+<p>The class extends <cite>torchvision.datasets.ImageFolder</cite> and can stage data
+from shared storage into local scratch space for faster multi-process
+training on cluster environments.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.ImageNetSubset">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.datasets.imagenet1k.</span></span><span class="sig-name descname"><span class="pre">ImageNetSubset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#ImageNetSubset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.ImageNetSubset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>View over an <cite>ImageNet</cite> dataset filtered by an explicit image-id list.</p>
+<p>The subset file contains target image names; only matching samples are
+kept while preserving transforms and label mapping from the base dataset.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.ImageNetSubset.filter_dataset_">
+<span class="sig-name descname"><span class="pre">filter_dataset_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subset_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#ImageNetSubset.filter_dataset_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.ImageNetSubset.filter_dataset_" title="Link to this definition"></a></dt>
+<dd><p>Filter self.dataset to a subset</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.ImageNetSubset.classes">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">classes</span></span><a class="headerlink" href="#world_models.datasets.imagenet1k.ImageNetSubset.classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.copy_imgnt_locally">
+<span class="sig-prename descclassname"><span class="pre">world_models.datasets.imagenet1k.</span></span><span class="sig-name descname"><span class="pre">copy_imgnt_locally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'imagenet_full_size/061417/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tar_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'imagenet_full_size-061417.tar.gz'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#copy_imgnt_locally"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.copy_imgnt_locally" title="Link to this definition"></a></dt>
+<dd><p>Copy and extract ImageNet archives to per-job local scratch storage.</p>
+<p>In SLURM environments this reduces network filesystem pressure by unpacking
+once per job and synchronizing worker processes with a signal file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.datasets.imagenet1k.make_imagefolder">
+<span class="sig-prename descclassname"><span class="pre">world_models.datasets.imagenet1k.</span></span><span class="sig-name descname"><span class="pre">make_imagefolder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/imagenet1k.html#make_imagefolder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.imagenet1k.make_imagefolder" title="Link to this definition"></a></dt>
+<dd><p>Create an ImageFolder dataset loader for custom folder-structured datasets.</p>
+<p>Supports optional train/validation split and distributed sampling, making
+it a drop-in replacement for ImageNet loaders in training scripts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>val_split</strong> (<em>float</em><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-world_models.transforms.transforms">
+<dt class="sig sig-object py" id="world_models.transforms.transforms.make_transforms">
+<span class="sig-prename descclassname"><span class="pre">world_models.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">make_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">224</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.3,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_jitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_distortion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaussian_blur</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">((0.485,</span> <span class="pre">0.456,</span> <span class="pre">0.406),</span> <span class="pre">(0.229,</span> <span class="pre">0.224,</span> <span class="pre">0.225))</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/transforms/transforms.html#make_transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.transforms.transforms.make_transforms" title="Link to this definition"></a></dt>
+<dd><p>Compose image augmentations and normalization for vision model training.</p>
+<p>Supports random crops, optional flip/color distortion/blur, and returns a
+<cite>torchvision.transforms.Compose</cite> pipeline.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.transforms.transforms.GaussianBlur">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.transforms.transforms.</span></span><span class="sig-name descname"><span class="pre">GaussianBlur</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/transforms/transforms.html#GaussianBlur"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.transforms.transforms.GaussianBlur" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Probabilistic Gaussian blur augmentation for PIL images.</p>
+<p>Applies blur with random radius in a configurable range when sampled.</p>
+</dd></dl>
+
+</section>
+<section id="module-world_models.memory.dreamer_memory">
+<span id="memory-and-controllers"></span><h2>Memory and Controllers<a class="headerlink" href="#module-world_models.memory.dreamer_memory" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.ReplayBuffer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.dreamer_memory.</span></span><span class="sig-name descname"><span class="pre">ReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#ReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.ReplayBuffer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Fixed-size replay buffer for Dreamer image observations and transitions.</p>
+<p>Stores <cite>(observation image, action, reward, terminal)</cite> tuples and supports
+sampling contiguous sequences used by world-model unroll training.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.ReplayBuffer.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">done</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#ReplayBuffer.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.ReplayBuffer.add" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.ReplayBuffer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#ReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.ReplayBuffer.sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.memory.planet_memory">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Episode">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.planet_memory.</span></span><span class="sig-name descname"><span class="pre">Episode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">postprocess_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Episode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Episode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Records the agent’s interaction with the environment for a single
+episode. At termination, it converts all the data to Numpy arrays.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Episode.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><a class="headerlink" href="#world_models.memory.planet_memory.Episode.size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Episode.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Episode.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Episode.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Episode.terminate">
+<span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Episode.terminate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Episode.terminate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Memory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.planet_memory.</span></span><span class="sig-name descname"><span class="pre">Memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Memory" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">deque</span></code></p>
+<p>Episode-based replay memory for PlaNet/RSSM training.</p>
+<p>Episodes are stored as variable-length trajectories and sampled as
+sub-sequences with optional time-major formatting for sequence models.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Memory.size">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">size</span></span><a class="headerlink" href="#world_models.memory.planet_memory.Memory.size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Memory.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">episodes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Memory.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Memory.append" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>episodes</strong> (<em>list</em><em>[</em><a class="reference internal" href="#world_models.memory.planet_memory.Episode" title="world_models.memory.planet_memory.Episode"><em>Episode</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.planet_memory.Memory.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracelen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Memory.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Memory.sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.controller.rssm_policy">
+<dt class="sig sig-object py" id="world_models.controller.rssm_policy.RSSMPolicy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.controller.rssm_policy.</span></span><span class="sig-name descname"><span class="pre">RSSMPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">planning_horizon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_candidates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_iterations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_candidates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/rssm_policy.html#RSSMPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.rssm_policy.RSSMPolicy" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Model-predictive controller that plans actions with the RSSM latent model.</p>
+<p>The policy uses a Cross-Entropy Method style loop: it samples candidate
+action sequences, rolls them forward in latent space, scores predicted
+returns, and refits a Gaussian proposal to top-performing candidates.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.rssm_policy.RSSMPolicy.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/rssm_policy.html#RSSMPolicy.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.rssm_policy.RSSMPolicy.reset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.rssm_policy.RSSMPolicy.poll">
+<span class="sig-name descname"><span class="pre">poll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/rssm_policy.html#RSSMPolicy.poll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.rssm_policy.RSSMPolicy.poll" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-world_models.utils.dreamer_utils">
+<span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-world_models.utils.dreamer_utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.get_parameters">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.get_parameters" title="Link to this definition"></a></dt>
+<dd><p>Given a list of torch modules, returns a list of their parameters.
+:param modules: iterable of modules
+:returns: a list of parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>modules</strong> (<em>Iterable</em><em>[</em><em>Module</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.FreezeParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">FreezeParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#FreezeParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.FreezeParameters" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Context manager that temporarily disables gradients for given modules.</p>
+<p>Useful during imagination or target-network forward passes where gradients
+through certain components should be blocked for speed and correctness.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>modules</strong> (<em>Iterable</em><em>[</em><em>Module</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_logged_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_writer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Experiment logger for scalars and GIF rollouts using TensorBoardX.</p>
+<p>Provides helpers to write scalar metrics, dump pickle snapshots, and save
+video previews during Dreamer training/evaluation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.log_scalar">
+<span class="sig-name descname"><span class="pre">log_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.log_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.log_scalar" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.log_scalars">
+<span class="sig-name descname"><span class="pre">log_scalars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.log_scalars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.log_scalars" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.log_videos">
+<span class="sig-name descname"><span class="pre">log_videos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">videos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_videos_to_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'video'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.log_videos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.log_videos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.dump_scalars_to_pickle">
+<span class="sig-name descname"><span class="pre">dump_scalars_to_pickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.dump_scalars_to_pickle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.dump_scalars_to_pickle" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.flush" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.compute_return">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">compute_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discounts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td_lam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#compute_return"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.compute_return" title="Link to this definition"></a></dt>
+<dd><p>Compute TD(lambda) returns from imagined rewards, values, and discounts.</p>
+<p>Implements backward recursion used by Dreamer actor/value objectives.</p>
+</dd></dl>
+
+<dl class="py function" id="module-world_models.utils.jepa_utils">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.trunc_normal_">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">trunc_normal_</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#trunc_normal_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.trunc_normal_" title="Link to this definition"></a></dt>
+<dd><p>Initialize a tensor in-place from a truncated normal distribution.</p>
+<p>Values are sampled from <cite>N(mean, std)</cite> and clipped to <cite>[a, b]</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.repeat_interleave_batch">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">repeat_interleave_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#repeat_interleave_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.repeat_interleave_batch" title="Link to this definition"></a></dt>
+<dd><p>Repeat each batch chunk multiple times while preserving chunk ordering.</p>
+<p>Used in JEPA masking code to align context and target token batches.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.WarmupCosineSchedule">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">WarmupCosineSchedule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_epoch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_lr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#WarmupCosineSchedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.WarmupCosineSchedule" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Learning-rate schedule with linear warmup followed by cosine decay.</p>
+<p>Updates optimizer parameter-group LRs on each call to <cite>step()</cite>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.WarmupCosineSchedule.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#WarmupCosineSchedule.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.WarmupCosineSchedule.step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.CosineWDSchedule">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">CosineWDSchedule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_wd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_wd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#CosineWDSchedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.CosineWDSchedule" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Cosine scheduler for optimizer weight decay values.</p>
+<p>Skips parameter groups flagged with <cite>WD_exclude</cite> to keep bias/norm decay at zero.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.CosineWDSchedule.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#CosineWDSchedule.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.CosineWDSchedule.step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.gpu_timer">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">gpu_timer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">closure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_timings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#gpu_timer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.gpu_timer" title="Link to this definition"></a></dt>
+<dd><p>Measure CUDA execution time for a closure and return <cite>(result, elapsed_ms)</cite>.</p>
+<p>Falls back to <cite>-1</cite> elapsed time when CUDA timing is unavailable.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.CSVLogger">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">CSVLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">argv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#CSVLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.CSVLogger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Lightweight CSV logger with per-column printf-style formatting.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.CSVLogger.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">argv</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#CSVLogger.log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.CSVLogger.log" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AverageMeter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">AverageMeter</span></span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AverageMeter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AverageMeter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Track running statistics (<cite>val</cite>, <cite>avg</cite>, <cite>min</cite>, <cite>max</cite>, <cite>sum</cite>, <cite>count</cite>) for metrics.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AverageMeter.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AverageMeter.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AverageMeter.reset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AverageMeter.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AverageMeter.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AverageMeter.update" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.grad_logger">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">grad_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">named_params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#grad_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.grad_logger" title="Link to this definition"></a></dt>
+<dd><p>Aggregate gradient norm statistics over model parameters for logging.</p>
+<p>Also exposes first/last qkv-layer gradient norms when available.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.init_distributed">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">init_distributed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40112</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank_and_world_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(None,</span> <span class="pre">None)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#init_distributed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.init_distributed" title="Link to this definition"></a></dt>
+<dd><p>Initialize torch distributed process groups when environment supports it.</p>
+<p>Returns <cite>(world_size, rank)</cite> and gracefully falls back to single-process mode.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllGather">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">AllGather</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllGather"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllGather" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></p>
+<p>Autograd-aware all-gather operation across distributed workers.</p>
+<p>Forward concatenates worker tensors; backward reduces and slices gradients.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllGather.forward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllGather.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllGather.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllGather.backward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllGather.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllGather.backward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduceSum">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">AllReduceSum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduceSum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduceSum" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></p>
+<p>Autograd function that sums tensors across distributed workers in forward pass.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduceSum.forward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduceSum.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduceSum.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduceSum.backward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduceSum.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduceSum.backward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduce">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.jepa_utils.</span></span><span class="sig-name descname"><span class="pre">AllReduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduce" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></p>
+<p>Autograd function that all-reduces and averages tensors across workers.</p>
+<p>Used to synchronize scalar losses for consistent distributed logging/training.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduce.forward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduce.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduce.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.jepa_utils.AllReduce.backward">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/jepa_utils.html#AllReduce.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.jepa_utils.AllReduce.backward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="package_overview.html" class="btn btn-neutral float-left" title="Package Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Param Thakkar.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -10,6 +10,13 @@ logger = getLogger()
 
 
 class MaskCollator(object):
+    """Generate multi-block encoder and predictor masks for JEPA training.
+
+    For each sample, this collator samples predictor target blocks and
+    context encoder blocks (optionally non-overlapping), then returns masked
+    patch indices aligned across the batch.
+    """
+
     def __init__(
         self,
         input_size=(224, 224),

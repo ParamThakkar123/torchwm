@@ -14,6 +14,11 @@ _str_to_activation = {
 
 
 class ConvEncoder(nn.Module):
+    """Convolutional observation encoder used by Dreamer world models.
+
+    Encodes image observations into compact embeddings consumed by the RSSM
+    posterior update network.
+    """
 
     def __init__(self, input_shape, embed_size, activation, depth=32):
 

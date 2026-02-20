@@ -3,6 +3,13 @@ from torch.distributions import Normal
 
 
 class RSSMPolicy:
+    """Model-predictive controller that plans actions with the RSSM latent model.
+
+    The policy uses a Cross-Entropy Method style loop: it samples candidate
+    action sequences, rolls them forward in latent space, scores predicted
+    returns, and refits a Gaussian proposal to top-performing candidates.
+    """
+
     def __init__(
         self,
         model,

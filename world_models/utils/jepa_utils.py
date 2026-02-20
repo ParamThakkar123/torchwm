@@ -25,10 +25,18 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
 
 
 def trunc_normal_(tensor, mean=0.0, std=1.0, a=-2, b=2.0):
+    """Initialize a tensor in-place from a truncated normal distribution.
+
+    Values are sampled from `N(mean, std)` and clipped to `[a, b]`.
+    """
     return _no_grad_trunc_normal_(tensor, mean, std, a, b)
 
 
 def repeat_interleave_batch(x, B, repeat):
+    """Repeat each batch chunk multiple times while preserving chunk ordering.
+
+    Used in JEPA masking code to align context and target token batches.
+    """
     N = len(x) // B
     x = torch.cat(
         [
@@ -41,6 +49,11 @@ def repeat_interleave_batch(x, B, repeat):
 
 
 class WarmupCosineSchedule(object):
+    """Learning-rate schedule with linear warmup followed by cosine decay.
+
+    Updates optimizer parameter-group LRs on each call to `step()`.
+    """
+
     def __init__(
         self,
         optimizer,
@@ -81,6 +94,11 @@ class WarmupCosineSchedule(object):
 
 
 class CosineWDSchedule(object):
+    """Cosine scheduler for optimizer weight decay values.
+
+    Skips parameter groups flagged with `WD_exclude` to keep bias/norm decay at zero.
+    """
+
     def __init__(
         self,
         optimizer,
@@ -114,6 +132,10 @@ class CosineWDSchedule(object):
 
 
 def gpu_timer(closure, log_timings=True):
+    """Measure CUDA execution time for a closure and return `(result, elapsed_ms)`.
+
+    Falls back to `-1` elapsed time when CUDA timing is unavailable.
+    """
     log_timings = log_timings and torch.cuda.is_available()
     elapsed_time = -1.0
 
@@ -133,6 +155,8 @@ def gpu_timer(closure, log_timings=True):
 
 
 class CSVLogger(object):
+    """Lightweight CSV logger with per-column printf-style formatting."""
+
     def __init__(self, fname, *argv):
         self.fname = fname
         self.types = []
@@ -153,6 +177,8 @@ class CSVLogger(object):
 
 
 class AverageMeter(object):
+    """Track running statistics (`val`, `avg`, `min`, `max`, `sum`, `count`) for metrics."""
+
     def __init__(self):
         self.reset()
 
@@ -177,6 +203,10 @@ class AverageMeter(object):
 
 
 def grad_logger(named_params):
+    """Aggregate gradient norm statistics over model parameters for logging.
+
+    Also exposes first/last qkv-layer gradient norms when available.
+    """
     stats = AverageMeter()
     stats.first_layer = None
     stats.last_layer = None
@@ -197,6 +227,10 @@ def grad_logger(named_params):
 
 
 def init_distributed(port=40112, rank_and_world_size=(None, None)):
+    """Initialize torch distributed process groups when environment supports it.
+
+    Returns `(world_size, rank)` and gracefully falls back to single-process mode.
+    """
     if dist.is_available() and dist.is_initialized():
         return dist.get_world_size(), dist.get_rank()
 
@@ -226,6 +260,11 @@ def init_distributed(port=40112, rank_and_world_size=(None, None)):
 
 
 class AllGather(torch.autograd.Function):
+    """Autograd-aware all-gather operation across distributed workers.
+
+    Forward concatenates worker tensors; backward reduces and slices gradients.
+    """
+
     @staticmethod
     def forward(ctx, x):
         if dist.is_available() and dist.is_initialized() and dist.get_world_size() > 1:
@@ -247,6 +286,8 @@ class AllGather(torch.autograd.Function):
 
 
 class AllReduceSum(torch.autograd.Function):
+    """Autograd function that sums tensors across distributed workers in forward pass."""
+
     @staticmethod
     def forward(ctx, x):
         if dist.is_available() and dist.is_initialized() and dist.get_world_size() > 1:
@@ -260,6 +301,10 @@ class AllReduceSum(torch.autograd.Function):
 
 
 class AllReduce(torch.autograd.Function):
+    """Autograd function that all-reduces and averages tensors across workers.
+
+    Used to synchronize scalar losses for consistent distributed logging/training.
+    """
 
     @staticmethod
     def forward(ctx, x):

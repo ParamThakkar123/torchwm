@@ -16,6 +16,11 @@ _str_to_activation = {
 
 
 class RSSM(nn.Module):
+    """Recurrent State-Space Model used by Dreamer latent dynamics learning.
+
+    The RSSM maintains deterministic recurrent state and stochastic latent
+    state, and provides transition/posterior updates plus rollout helpers.
+    """
 
     def __init__(
         self,

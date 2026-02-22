@@ -33,6 +33,11 @@ EMBEDDING_SIZE = 1024
 
 
 def train_rssm(memory, model, optimizer, record_grads=True):
+    """Train an RSSM on replayed trajectories for one optimization phase.
+
+    Samples batches from memory, computes reconstruction and KL objectives
+    across rollout steps, and returns aggregated loss metrics.
+    """
     model.train()
     metrics = defaultdict(list)
     if record_grads:
@@ -83,6 +88,11 @@ def train_rssm(memory, model, optimizer, record_grads=True):
 
 
 def evaluate(memory, model, path, eps):
+    """Run one RSSM reconstruction/prediction evaluation and save visual outputs.
+
+    Decodes priors/posteriors for a sampled sequence and writes frame grids
+    for qualitative inspection.
+    """
     model.eval()
     device = next(model.parameters()).device
     # sample and convert to torch tensors on the model device
@@ -114,6 +124,11 @@ def evaluate(memory, model, path, eps):
 
 
 def main():
+    """Standalone training loop for RSSM with generated replay fallback support.
+
+    Initializes environment/policy/memory, trains over episodes, logs metrics,
+    and periodically evaluates and checkpoints the model.
+    """
     global FREE_NATS
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     FREE_NATS = torch.full((1,), FREE_NATS).to(device)

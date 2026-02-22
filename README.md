@@ -1,111 +1,129 @@
-# pytorch-world
+# TorchWM
 
-A modular PyTorch library for learning, training, and deploying world models across various environments. This package provides minimal implementations of popular world model algorithms, enabling researchers and developers to experiment with predictive modeling in reinforcement learning and beyond.
+TorchWM is a modular PyTorch library for world models and latent dynamics learning.
+It includes practical implementations of Dreamer-style agents, PlaNet/RSSM utilities,
+JEPA-style representation learning, and diffusion/transformer building blocks.
 
-## Features
+## Highlights
 
-- **Modular Design**: Easily extensible components for encoders, decoders, transition models, and reward predictors.
-- **Supported Algorithms**:
-  - Dreamer (v1 and v2 variants)
-  - PlaNet
-  - World Model-based agents for custom environments
-- **Integration**: Compatible with MuJoCo, Atari, and custom gym environments.
-- **Evaluation Tools**: Built-in scripts for training, evaluation, and visualization.
-- **PyTorch Native**: Leverages PyTorch's dynamic computation graphs for efficient training.
+- Modular components for encoders, decoders, RSSMs, reward/value heads, and policies
+- Multiple environment backends: DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents
+- Replay/memory utilities for both Dreamer and PlaNet-style training loops
+- ViT + masking utilities for JEPA workflows
+- Diffusion utilities (DDPM schedule + DiT model)
 
 ## Installation
 
-### Prerequisites
-- Python 3.8+
-- PyTorch 1.9+
-- MuJoCo (for physics simulations)
+Install from PyPI:
 
-### Install from PyPI
 ```bash
-pip install pytorch-world
+pip install torchwm
 ```
 
-### Install from Source
-Clone the repository and install in editable mode:
+Install from source:
+
 ```bash
-git clone https://github.com/ParamThakkar123/pytorch-world.git
-cd pytorch-world
+git clone https://github.com/ParamThakkar123/torchwm.git
+cd torchwm
 pip install -e .
 ```
 
-For development dependencies (testing, linting):
+Development extras:
+
 ```bash
 pip install -e ".[dev]"
 ```
 
 ## Quick Start
 
-### Training a Dreamer Agent
+### Train Dreamer on Gym
+
 ```python
-from world_models.dreamer import DreamerAgent
-import gym
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
 
-env = gym.make('Pendulum-v1')
-agent = DreamerAgent(env.observation_space, env.action_space)
-agent.train(env, num_episodes=1000)
+cfg = DreamerConfig()
+cfg.env_backend = "gym"  # dmc | gym | unity_mlagents
+cfg.env = "Pendulum-v1"
+cfg.total_steps = 10_000
+
+agent = DreamerAgent(cfg)
+agent.train()
 ```
 
-### Evaluating a Trained Model
-Use the provided evaluation script:
-```bash
-python dreamer_eval.py --model_path results/dreamer_v1_custom_env/model.pth --env Pendulum-v1
-```
+### Train Dreamer on Unity ML-Agents
 
-### Custom Environment Example
 ```python
-from world_models import WorldModel
-import torch
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
 
-# Define your custom environment
-class CustomEnv:
-    def __init__(self):
-        self.obs_dim = 10
-        self.act_dim = 2
+cfg = DreamerConfig()
+cfg.env_backend = "unity_mlagents"
+cfg.unity_file_name = r"E:\UnityBuilds\MyEnv.exe"
+cfg.unity_behavior_name = "MyBehavior"
+cfg.unity_no_graphics = True
+cfg.unity_time_scale = 20.0
 
-env = CustomEnv()
-model = WorldModel(obs_dim=env.obs_dim, act_dim=env.act_dim)
-# Train or load model...
+agent = DreamerAgent(cfg)
+agent.train()
 ```
 
-## Project Structure
+### Train JEPA
 
-- `world_models/`: Core library modules (encoders, decoders, agents)
-- `dreamer_eval.py`: Evaluation script for Dreamer agents
-- `dreamer_try.py`: Quick try-out script for Dreamer
-- `main.py`: Main entry point for training
-- `results/`: Directory for storing trained models and logs
+```python
+from world_models.models import JEPAAgent
+from world_models.configs import JEPAConfig
+
+cfg = JEPAConfig()
+cfg.dataset = "imagefolder"
+cfg.root_path = "./data"
+cfg.image_folder = "train"
+cfg.epochs = 10
+
+agent = JEPAAgent(cfg)
+agent.train()
+```
 
 ## Documentation
 
-For detailed API documentation, see the [Wiki](https://github.com/ParamThakkar123/pytorch-world/wiki) or docstrings in the source code.
+- Sphinx source: `docs/source`
+- Getting started guide: `docs/source/getting_started.md`
+- Package overview: `docs/source/package_overview.md`
+- API reference (autodoc): `docs/source/api_reference.rst`
+
+Build HTML docs locally:
+
+```bash
+sphinx-build -b html docs/source docs/build/html
+```
+
+## Package Layout
+
+- `world_models/models`: Agents and model architectures (`Dreamer`, `JEPAAgent`, `Planet`, ViT, diffusion)
+- `world_models/configs`: Config classes (`DreamerConfig`, `JEPAConfig`, `DiTConfig`)
+- `world_models/envs`: Environment adapters and wrappers
+- `world_models/training`: Script-style training entrypoints
+- `world_models/datasets`: CIFAR10/ImageNet/ImageFolder data loaders
+- `world_models/memory`: Replay and episodic memory implementations
+- `world_models/utils`: Training/logging/distributed helper utilities
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Key areas:
-- Adding new world model algorithms
-- Improving existing implementations
-- Bug fixes and performance optimizations
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT. See [LICENSE](LICENSE).
 
 ## Citation
 
-If you use this library for your research, please cite:
-
 ```bibtex
-@misc{Thakkar_GitHub_-_ParamThakkar123_pytorch-world,
+@misc{Thakkar_GitHub_-_ParamThakkar123_torchwm,
 author = {Thakkar, Param},
-title = {{GitHub - ParamThakkar123/pytorch-world: A modular PyTorch library designed for learning, training, and deploying world models across various environments.}},
+title = {{GitHub - ParamThakkar123/torchwm: A modular PyTorch library designed for learning, training, and deploying world models across various environments.}},
 year = {2025},
-url = {https://github.com/ParamThakkar123/pytorch-world}
+url = {https://github.com/ParamThakkar123/torchwm}
 }
 ```
 
-Package link: [Pytorch-World](https://pypi.org/project/pytorch-world/)
+Package: [torchwm on PyPI](https://pypi.org/project/torchwm/)

@@ -20,6 +20,11 @@ def load_checkpoint(
     opt,
     scaler,
 ):
+    """Load JEPA training state from disk into model and optimizer objects.
+
+    Restores encoder, predictor, optional target encoder, optimizer state,
+    and optional AMP scaler, returning the resumed epoch for training restart.
+    """
     try:
         checkpoint = torch.load(r_path, map_location=torch.device("cpu"))
         epoch = checkpoint["epoch"]
@@ -64,6 +69,11 @@ def init_model(
     pred_depth=6,
     pred_emb_dim=384,
 ):
+    """Initialize JEPA encoder and predictor modules with ViT backbones.
+
+    Applies truncated-normal parameter initialization, moves modules to the
+    requested device, and returns `(encoder, predictor)`.
+    """
     encoder = vit.__dict__[model_name](img_size=[crop_size], patch_size=patch_size)
     predictor = vit.__dict__["vit_predictor"](
         num_patches=encoder.patch_embed.num_patches,
@@ -108,6 +118,11 @@ def init_opt(
     use_bfloat16=False,
     ipe_scale=1.25,
 ):
+    """Build optimizer, AMP scaler, LR scheduler, and weight-decay scheduler for JEPA.
+
+    Parameters are grouped to exclude bias/norm tensors from weight decay,
+    matching typical transformer training best practices.
+    """
     param_groups = [
         {
             "params": (

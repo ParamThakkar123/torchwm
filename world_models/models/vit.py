@@ -9,6 +9,11 @@ from world_models.utils.utils import apply_masks
 
 
 def get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
+    """Generate fixed 2D sine/cosine positional embeddings on a square patch grid.
+
+    Returns NumPy embeddings used to initialize non-trainable transformer
+    position encodings, with optional prepended class-token embedding.
+    """
     grid_h = np.arange(grid_size, dtype=float)
     grid_w = np.arange(grid_size, dtype=float)
     grid = np.meshgrid(grid_w, grid_h)
@@ -22,6 +27,11 @@ def get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
 
 
 def get_2d_sincos_pos_embed_from_grid(embed_dim, grid):
+    """Build 2D sine/cosine embeddings from precomputed meshgrid coordinates.
+
+    The final embedding concatenates independent encodings for vertical and
+    horizontal coordinates.
+    """
     assert embed_dim % 2 == 0
 
     emb_h = get_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[0])  # (H*W, D/2)
@@ -32,6 +42,11 @@ def get_2d_sincos_pos_embed_from_grid(embed_dim, grid):
 
 
 def get_1d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
+    """Generate 1D sine/cosine positional embeddings for integer positions.
+
+    Useful for sequence-style positional encoding and as a building block for
+    2D embedding construction.
+    """
     grid = np.arange(grid_size, dtype=float)
     pos_embed = get_1d_sincos_pos_embed_from_grid(embed_dim, grid)
     if cls_token:
@@ -40,6 +55,11 @@ def get_1d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
 
 
 def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
+    """Generate 1D sine/cosine positional embeddings from explicit positions.
+
+    Positions are projected onto a log-frequency basis and encoded with sine
+    and cosine components.
+    """
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=float)
     omega /= embed_dim / 2.0
@@ -56,6 +76,11 @@ def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
 
 
 def drop_path(x, drop_prob: float = 0.0, training: bool = False):
+    """Apply stochastic depth (DropPath) regularization to residual branches.
+
+    Randomly drops entire residual paths per sample during training and scales
+    the surviving activations to preserve expected magnitude.
+    """
     if drop_prob == 0.0 or not training:
         return x
     keep_prob = 1 - drop_prob
@@ -67,6 +92,8 @@ def drop_path(x, drop_prob: float = 0.0, training: bool = False):
 
 
 class DropPath(nn.Module):
+    """Module wrapper around the functional `drop_path` stochastic depth utility."""
+
     def __init__(self, drop_prob=None):
         super(DropPath, self).__init__()
         self.drop_prob = drop_prob
@@ -76,6 +103,12 @@ class DropPath(nn.Module):
 
 
 class MLP(nn.Module):
+    """Two-layer feed-forward network used inside transformer blocks.
+
+    Applies linear projection, activation, dropout, and output projection in
+    the standard Vision Transformer MLP pattern.
+    """
+
     def __init__(
         self,
         in_features,
@@ -102,6 +135,12 @@ class MLP(nn.Module):
 
 
 class Attention(nn.Module):
+    """Multi-head self-attention block for token sequences.
+
+    Computes QKV projections, scaled dot-product attention, and output
+    projection with configurable dropout.
+    """
+
     def __init__(
         self,
         dim,
@@ -141,6 +180,11 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
+    """Transformer encoder block combining attention and MLP residual branches.
+
+    Each branch uses pre-normalization and optional stochastic depth.
+    """
+
     def __init__(
         self,
         dim,
@@ -503,6 +547,7 @@ class VisionTransformer(nn.Module):
 
 
 def vit_predictor(**kwargs):
+    """Factory for a JEPA predictor transformer with sensible defaults."""
     model = VisionTransformerPredictor(
         mlp_ratio=4, qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs
     )
@@ -510,6 +555,7 @@ def vit_predictor(**kwargs):
 
 
 def vit_tiny(patch_size=16, **kwargs):
+    """Factory for a tiny Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=192,
@@ -524,6 +570,7 @@ def vit_tiny(patch_size=16, **kwargs):
 
 
 def vit_small(patch_size=16, **kwargs):
+    """Factory for a small Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=384,
@@ -538,6 +585,7 @@ def vit_small(patch_size=16, **kwargs):
 
 
 def vit_base(patch_size=16, **kwargs):
+    """Factory for a base Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=768,
@@ -552,6 +600,7 @@ def vit_base(patch_size=16, **kwargs):
 
 
 def vit_large(patch_size=16, **kwargs):
+    """Factory for a large Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=1024,
@@ -566,6 +615,7 @@ def vit_large(patch_size=16, **kwargs):
 
 
 def vit_huge(patch_size=16, **kwargs):
+    """Factory for a huge Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=1280,
@@ -580,6 +630,7 @@ def vit_huge(patch_size=16, **kwargs):
 
 
 def vit_giant(patch_size=16, **kwargs):
+    """Factory for a giant Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
         embed_dim=1408,

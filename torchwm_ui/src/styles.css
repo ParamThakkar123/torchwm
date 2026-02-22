@@ -1,0 +1,368 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  --paper: #f4efe2;
+  --paper-strong: #ece2cb;
+  --ink: #1e2c24;
+  --ink-soft: #40554a;
+  --teal: #0f766e;
+  --orange: #ea580c;
+  --sun: #f6c56f;
+  --rose: #ef4444;
+  --line: #d7ccb9;
+  --card-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: linear-gradient(135deg, #f9f5eb 0%, #f5ecdb 52%, #fcebd8 100%);
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  position: relative;
+  padding: 1.4rem;
+}
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(246, 197, 111, 0.35), transparent 42%),
+    radial-gradient(circle at 78% 16%, rgba(15, 118, 110, 0.15), transparent 40%),
+    radial-gradient(circle at 82% 88%, rgba(234, 88, 12, 0.14), transparent 42%);
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+.reveal {
+  animation: rise 360ms ease both;
+}
+
+.topbar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+  letter-spacing: 0.02em;
+}
+
+.topbar p {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: var(--card-shadow);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+}
+
+.control-panel {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.control-panel h2,
+.status-card h2,
+.chart-card h2,
+.frame-card h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+select,
+textarea,
+button {
+  font-family: inherit;
+  border-radius: 10px;
+  border: 1px solid #cbbfa9;
+  padding: 0.55rem 0.65rem;
+  background: #fffaf2;
+  color: var(--ink);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.primary {
+  background: linear-gradient(110deg, #0f766e, #14b8a6);
+  color: #f8fffe;
+  border-color: transparent;
+}
+
+.danger {
+  background: linear-gradient(110deg, #e11d48, #fb7185);
+  color: #fff6f8;
+  border-color: transparent;
+}
+
+.error-message {
+  margin: 0;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.status-card,
+.chart-card,
+.frame-card,
+.traceback-card {
+  padding: 1rem;
+}
+
+.status-card p {
+  margin: 0.2rem 0;
+}
+
+.mono {
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+  font-size: 0.8rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-weight: 700;
+  padding: 0.35rem 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.74rem;
+}
+
+.status-idle {
+  background: #fff3d8;
+  color: #9a6700;
+}
+
+.status-running {
+  background: #d1fae5;
+  color: #0f766e;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-stopped {
+  background: #ffe4d6;
+  color: #c2410c;
+}
+
+.progress-shell {
+  width: 100%;
+  height: 12px;
+  background: var(--paper-strong);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+  transition: width 250ms ease;
+}
+
+.progress-label {
+  margin-top: 0.4rem;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.chart-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.main-chart {
+  height: 260px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fffef9;
+  padding: 0.2rem;
+}
+
+.frame-card img,
+.frame-placeholder {
+  width: 100%;
+  min-height: 240px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffef9;
+}
+
+.frame-card img {
+  object-fit: cover;
+}
+
+.frame-placeholder {
+  display: grid;
+  place-items: center;
+  color: #8b7355;
+}
+
+.metric-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-card {
+  background: #fffaf1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.65rem;
+}
+
+.metric-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.metric-card h4 {
+  margin: 0;
+  font-size: 0.84rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.metric-card span {
+  font-size: 0.72rem;
+  color: #7b6950;
+}
+
+.metric-chart {
+  height: 72px;
+}
+
+.traceback-card {
+  grid-column: 1 / -1;
+}
+
+.traceback-card pre {
+  background: #fff8f4;
+  border: 1px solid #f5c8b1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  overflow: auto;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  font-family: "IBM Plex Mono", "Consolas", monospace;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1) translateY(0);
+  }
+  to {
+    transform: scale(1.03) translateY(-0.4rem);
+  }
+}

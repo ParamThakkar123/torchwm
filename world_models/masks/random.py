@@ -8,6 +8,12 @@ logger = getLogger()
 
 
 class MaskCollator(object):
+    """Generate random context/prediction patch splits for masked training.
+
+    A random permutation of patch indices is sampled per image; a configurable
+    fraction is assigned to context and the remainder to prediction targets.
+    """
+
     def __init__(self, ratio=(0.4, 0.6), input_size=(224, 224), patch_size=16):
         super(MaskCollator, self).__init__()
         if not isinstance(input_size, tuple):

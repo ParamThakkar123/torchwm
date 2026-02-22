@@ -18,6 +18,12 @@ def make_cifar10(
     train=True,
     download=False,  # new
 ):
+    """Create CIFAR-10 dataset objects and a distributed-capable dataloader.
+
+    Returns the dataset, sampler, and loader configured with the provided
+    transform/collator so callers can plug the loader directly into JEPA or
+    diffusion training loops.
+    """
     dataset = CIFAR10(
         root=root_path,
         train=train,

@@ -59,9 +59,10 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "show_nav_level": 2,
-    "pygments_light_style": "github-dark",
+    "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
     "navbar_center": ["navbar-nav"],
+    "navigation_depth": 2,
 }
 html_static_path = ["_static"]
 

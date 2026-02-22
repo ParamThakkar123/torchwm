@@ -1,3 +1,9 @@
+"""Rollout generation utilities for World Models.
+
+This module provides the RolloutGenerator class for collecting episode
+experience using trained policies in environments.
+"""
+
 import numpy as np
 import torch
 from collections import defaultdict
@@ -9,17 +15,48 @@ from world_models.memory.planet_memory import Episode
 
 
 class RolloutGenerator:
-    """Rollout generator class."""
+    """Generator for collecting environment rollouts.
+
+    This class handles environment interactions and rollout collection,
+    supporting both random and policy-based action selection.
+
+    Attributes:
+        env: The environment to interact with.
+        device: Device to run computations on.
+        policy: The policy to use for action selection (optional).
+        episode_gen: Factory for creating episode objects.
+        name: Name identifier for the generator.
+        max_episode_steps: Maximum steps per episode.
+
+    Example:
+        >>> generator = RolloutGenerator(
+        ...     env=env,
+        ...     device='cuda',
+        ...     policy=policy,
+        ...     max_episode_steps=1000
+        ... )
+        >>> episode = generator.rollout_once()
+    """
 
     def __init__(
         self,
         env,
-        device,
+        device: str,
         policy=None,
-        max_episode_steps=None,
+        max_episode_steps: int = None,
         episode_gen=None,
-        name=None,
+        name: str = None,
     ):
+        """Initialize the RolloutGenerator.
+
+        Args:
+            env: The environment to interact with.
+            device: Device for tensor operations.
+            policy: Policy to use for action selection.
+            max_episode_steps: Maximum steps per episode.
+            episode_gen: Factory function for creating episodes.
+            name: Name identifier for this generator.
+        """
         self.env = env
         self.device = device
         self.policy = policy
@@ -29,9 +66,17 @@ class RolloutGenerator:
         if self.max_episode_steps is None:
             self.max_episode_steps = self.env.max_episode_steps
 
-    def rollout_once(self, random_policy=False, explore=False) -> Episode:
-        """Performs a single rollout of an environment given a policy
-        and returns and episode instance.
+    def rollout_once(
+        self, random_policy: bool = False, explore: bool = False
+    ) -> Episode:
+        """Perform a single rollout of the environment.
+
+        Args:
+            random_policy: If True, use random actions instead of policy.
+            explore: If True, add exploration noise to policy actions.
+
+        Returns:
+            Episode object containing the rollout experience.
         """
         if self.policy is None and not random_policy:
             random_policy = True
@@ -52,9 +97,15 @@ class RolloutGenerator:
         eps.terminate(nobs)
         return eps
 
-    def rollout_n(self, n=1, random_policy=False) -> list[Episode]:
-        """
-        Performs n rollouts.
+    def rollout_n(self, n: int = 1, random_policy: bool = False) -> list:
+        """Perform multiple rollouts.
+
+        Args:
+            n: Number of rollouts to perform.
+            random_policy: If True, use random actions.
+
+        Returns:
+            List of Episode objects.
         """
         if self.policy is None and not random_policy:
             random_policy = True
@@ -65,7 +116,15 @@ class RolloutGenerator:
             ret.append(self.rollout_once(random_policy=random_policy))
         return ret
 
-    def rollout_eval_n(self, n):
+    def rollout_eval_n(self, n: int):
+        """Perform multiple evaluation rollouts with metrics.
+
+        Args:
+            n: Number of evaluation rollouts.
+
+        Returns:
+            Tuple of (episodes, frames, metrics).
+        """
         metrics = defaultdict(list)
         episodes, frames = [], []
         for _ in range(n):
@@ -77,6 +136,11 @@ class RolloutGenerator:
         return episodes, frames, metrics
 
     def rollout_eval(self):
+        """Perform a single evaluation rollout with reconstruction tracking.
+
+        Returns:
+            Tuple of (episode, frames, metrics).
+        """
         assert self.policy is not None, "Policy is None!!"
         self.policy.reset()
         eps = self.episode_gen()

@@ -61,6 +61,7 @@ html_theme_options = {
     "show_nav_level": 2,
     "pygments_light_style": "github-dark",
     "pygments_dark_style": "github-dark",
+    "navbar_center": ["navbar-nav"],
 }
 html_static_path = ["_static"]
 

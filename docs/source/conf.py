@@ -53,6 +53,8 @@ autodoc_mock_imports = [
     "moviepy",
     "cv2",
     "pygame",
+    "hydra",
+    "omegaconf",
 ]
 
 html_theme = "pydata_sphinx_theme"

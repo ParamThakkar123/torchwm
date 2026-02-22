@@ -38,74 +38,19 @@ from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
 from ..utils.utils import flatten_dict
+from ..catalog import get_catalog, refresh_catalog
 
 
-SUPPORTED_MODELS: dict[str, dict[str, str]] = {
-    "dreamer": {
-        "label": "DreamerAgent",
-        "description": "Model-based RL agent that learns a latent world model and policy.",
-    },
-    "planet": {
-        "label": "Planet",
-        "description": "PlaNet-style recurrent state-space world model with MPC planning.",
-    },
+CATALOG = get_catalog()
+
+SUPPORTED_MODELS = CATALOG["models"]
+ENVIRONMENTS_BY_MODEL = {
+    k: v.get("supported_environments", []) for k, v in SUPPORTED_MODELS.items()
 }
-
-DREAMER_ENVS = [
-    "cartpole-balance",
-    "cartpole-swingup",
-    "cheetah-run",
-    "finger-spin",
-    "reacher-easy",
-    "walker-walk",
-    "walker-run",
-    "quadruped-walk",
-]
-
-PLANET_BASE_ENVS = [
-    "CartPole-v1",
-    "Pendulum-v1",
-    "MountainCarContinuous-v0",
-    "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
-]
-
-DEFAULT_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
-    "dreamer": {
-        "seed": 1,
-        "action_repeat": 2,
-        "batch_size": 50,
-        "train_seq_len": 50,
-    },
-    "planet": {
-        "bit_depth": 5,
-        "memory_size": 100,
-        "action_repeats": 1,
-    },
+DEFAULT_MODEL_CONFIGS = {
+    k: v.get("default_config", {}) for k, v in SUPPORTED_MODELS.items()
 }
-
-DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
-    "dreamer": {
-        "total_steps": 20000,
-        "seed_steps": 1000,
-        "update_steps": 50,
-        "collect_steps": 500,
-        "test_interval": 2000,
-        "test_episodes": 1,
-        "preview_eval_episodes": 1,
-    },
-    "planet": {
-        "epochs": 25,
-        "warmup_episodes": 2,
-        "steps_per_epoch": 50,
-        "batch_size": 32,
-        "horizon": 50,
-        "beta": 1.0,
-        "save_every": 10,
-        "record_grads": False,
-    },
-}
+DEFAULT_TRAINING_CONFIGS = CATALOG["default_training_configs"]
 
 
 def _build_env_catalog() -> dict[str, list[str]]:
@@ -114,13 +59,51 @@ def _build_env_catalog() -> dict[str, list[str]]:
         atari_envs = list_available_atari_envs()
     except Exception:
         atari_envs = []
-    return {
-        "dreamer": DREAMER_ENVS,
-        "planet": PLANET_BASE_ENVS + atari_envs[:80],
-    }
+
+    all_envs = {}
+    for model_key in SUPPORTED_MODELS:
+        base_envs = ENVIRONMENTS_BY_MODEL.get(model_key, [])
+        if model_key == "planet":
+            base_envs = base_envs + atari_envs[:80]
+        all_envs[model_key] = base_envs
+
+    return all_envs
 
 
 ENVIRONMENTS_BY_MODEL = _build_env_catalog()
+
+
+MODEL_TRAINERS: dict[str, Any] = {}
+
+
+def register_model_trainer(model_key: str, trainer_class: type) -> None:
+    """Register a trainer class for a model.
+
+    Args:
+        model_key: Unique identifier for the model
+        trainer_class: Class with train() method
+    """
+    MODEL_TRAINERS[model_key] = trainer_class
+
+
+def get_model_trainer(model_key: str) -> type | None:
+    """Get the trainer class for a model.
+
+    Args:
+        model_key: Unique identifier for the model
+
+    Returns:
+        Trainer class or None if not found
+    """
+    if model_key in MODEL_TRAINERS:
+        return MODEL_TRAINERS[model_key]
+
+    trainer_map = {
+        "dreamer": DreamerAgent,
+        "planet": Planet,
+    }
+
+    return trainer_map.get(model_key)
 
 
 class LoadModelRequest(BaseModel):
@@ -216,6 +199,8 @@ class TrainingController:
 
         self._model_name: str | None = None
         self._model_config: dict[str, Any] = {}
+        self._model_module: str | None = None
+        self._model_class: str | None = None
         self._environment_name: str | None = None
         self._environment_config: dict[str, Any] = {}
         self._training_config: dict[str, Any] = {}
@@ -250,14 +235,21 @@ class TrainingController:
     def load_model(self, model_name: str, config: dict[str, Any] | None = None) -> None:
         key = model_name.strip().lower()
         if key not in SUPPORTED_MODELS:
-            raise ValueError(f"Unsupported model '{model_name}'.")
+            raise ValueError(
+                f"Unsupported model '{model_name}'. Available: {list(SUPPORTED_MODELS.keys())}"
+            )
 
         with self._lock:
             if self._is_running_locked():
                 raise RuntimeError("Cannot change model while training is running.")
             self._model_name = key
             self._model_config = dict(config or {})
-            valid_envs = set(ENVIRONMENTS_BY_MODEL[key])
+
+            model_info = SUPPORTED_MODELS.get(key, {})
+            self._model_module = model_info.get("module")
+            self._model_class = model_info.get("class_name")
+
+            valid_envs = set(ENVIRONMENTS_BY_MODEL.get(key, []))
             if self._environment_name not in valid_envs:
                 self._environment_name = None
                 self._environment_config = {}
@@ -636,17 +628,94 @@ def healthcheck() -> dict[str, str]:
 
 
 @app.get("/api/catalog")
-def catalog() -> dict[str, Any]:
+def catalog(refresh: bool = Query(default=False)) -> dict[str, Any]:
+    global CATALOG, SUPPORTED_MODELS, ENVIRONMENTS_BY_MODEL, DEFAULT_MODEL_CONFIGS, DEFAULT_TRAINING_CONFIGS
+
+    if refresh:
+        CATALOG = refresh_catalog()
+        SUPPORTED_MODELS = CATALOG["models"]
+        ENVIRONMENTS_BY_MODEL = {
+            k: v.get("supported_environments", []) for k, v in SUPPORTED_MODELS.items()
+        }
+        DEFAULT_MODEL_CONFIGS = {
+            k: v.get("default_config", {}) for k, v in SUPPORTED_MODELS.items()
+        }
+        DEFAULT_TRAINING_CONFIGS = CATALOG["default_training_configs"]
+
     return {
         "models": SUPPORTED_MODELS,
         "environments_by_model": ENVIRONMENTS_BY_MODEL,
         "default_model_configs": DEFAULT_MODEL_CONFIGS,
         "default_training_configs": DEFAULT_TRAINING_CONFIGS,
+        "all_environments": CATALOG["environments"],
     }
+
+
+@app.get("/api/models")
+def models() -> dict[str, Any]:
+    return {"items": list(SUPPORTED_MODELS.keys())}
+
+
+class RegisterModelRequest(BaseModel):
+    model_key: str
+    label: str
+    module: str
+    class_name: str
+    description: str = ""
+    supported_environments: list[str] = []
+    default_config: dict[str, Any] = {}
+
+
+@app.post("/api/models/register")
+def register_model(payload: RegisterModelRequest) -> dict[str, Any]:
+    global SUPPORTED_MODELS, ENVIRONMENTS_BY_MODEL, DEFAULT_MODEL_CONFIGS
+
+    SUPPORTED_MODELS[payload.model_key] = {
+        "label": payload.label,
+        "module": payload.module,
+        "class_name": payload.class_name,
+        "description": payload.description,
+        "supported_environments": payload.supported_environments,
+        "default_config": payload.default_config,
+    }
+    ENVIRONMENTS_BY_MODEL[payload.model_key] = payload.supported_environments
+    DEFAULT_MODEL_CONFIGS[payload.model_key] = payload.default_config
+
+    return {"status": "registered", "model": payload.model_key}
+
+
+@app.post("/api/models/register-trainer/{model_key}")
+def register_trainer(
+    model_key: str, trainer_module: str, trainer_class: str
+) -> dict[str, Any]:
+    """Register a trainer for a model dynamically.
+
+    Args:
+        model_key: Model identifier
+        trainer_module: Python module path (e.g., 'my_package.trainer')
+        trainer_class: Class name in the module
+    """
+    try:
+        module = importlib.import_module(trainer_module)
+        trainer_cls = getattr(module, trainer_class)
+        register_model_trainer(model_key, trainer_cls)
+        return {
+            "status": "registered",
+            "model": model_key,
+            "trainer": f"{trainer_module}.{trainer_class}",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/environments")
 def environments(model: str | None = Query(default=None)) -> dict[str, Any]:
+    if model is None:
+        all_envs = set()
+        for env_list in ENVIRONMENTS_BY_MODEL.values():
+            all_envs.update(env_list)
+        return {"model": None, "items": sorted(all_envs)}
+
     try:
         items = controller.available_environments(model)
     except ValueError as exc:

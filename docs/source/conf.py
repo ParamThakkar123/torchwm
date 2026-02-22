@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
 ]
@@ -38,7 +39,12 @@ autodoc_default_options = {
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = [
+    "colon_fence",
+    "amsmath",
+    "deflist",
+    "fieldlist",
+]
 
 autodoc_mock_imports = [
     "ale_py",
@@ -47,10 +53,24 @@ autodoc_mock_imports = [
     "moviepy",
     "cv2",
     "pygame",
+    "hydra",
+    "omegaconf",
 ]
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
+html_theme_options = {
+    "github_url": "https://github.com/paramthakkar123/torchwm",
+    "show_nav_level": 2,
+    "pygments_light_style": "default",
+    "pygments_dark_style": "github-dark",
+    "navbar_center": ["navbar-nav"],
+    "navigation_depth": 2,
+}
 html_static_path = ["_static"]
+
+html_css_files = [
+    "custom.css",
+]
 
 # Canonical docs URL. Overridden in CI for PR previews.
 html_baseurl = os.getenv(

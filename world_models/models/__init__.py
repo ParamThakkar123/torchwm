@@ -1,4 +1,4 @@
-__all__ = ["Dreamer", "Planet", "DreamerAgent", "JEPAAgent"]
+__all__ = ["Dreamer", "Planet", "DreamerAgent", "JEPAAgent", "VisionTransformer"]
 
 
 def __getattr__(name):
@@ -18,4 +18,8 @@ def __getattr__(name):
         from .jepa_agent import JEPAAgent
 
         return JEPAAgent
+    if name == "VisionTransformer":
+        from .vit import VisionTransformer
+
+        return VisionTransformer
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

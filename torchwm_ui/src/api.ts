@@ -51,11 +51,12 @@ export function loadModel(model: string, config: Record<string, unknown>): Promi
 
 export function loadEnvironment(
   environment: string,
-  config: Record<string, unknown>
+  backend: string = "dm_control",
+  config: Record<string, unknown> = {}
 ): Promise<StateResponse> {
   return request<StateResponse>("/api/load-environment", {
     method: "POST",
-    body: JSON.stringify({ environment, config })
+    body: JSON.stringify({ environment, backend, config })
   });
 }
 

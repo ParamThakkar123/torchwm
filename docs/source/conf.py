@@ -60,7 +60,7 @@ autodoc_mock_imports = [
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
-    "show_nav_level": 2,
+    "show_nav_level": 1,
     "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
     "navbar_center": ["navbar-nav"],

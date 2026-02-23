@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-33/getting_started.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
-<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
+<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Docker: Build the Docker image: Run the container: Docker Compose: Build and run all services: This starts both the ..." />
+<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Docker: Build the Docker image: Run the container: Docker Compose: Build and run all services: This starts both the ..." />
 
     <title>Getting Started &#8212; TorchWM 0.2.1 documentation</title>
   
@@ -384,6 +384,25 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 </pre></div>
 </div>
+<section id="docker">
+<h3>Docker<a class="headerlink" href="#docker" title="Link to this heading">#</a></h3>
+<p>Build the Docker image:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>torchwm<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Run the container:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>torchwm
+</pre></div>
+</div>
+</section>
+<section id="docker-compose">
+<h3>Docker Compose<a class="headerlink" href="#docker-compose" title="Link to this heading">#</a></h3>
+<p>Build and run all services:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</pre></div>
+</div>
+<p>This starts both the backend (port 8000) and frontend (port 5173) services.</p>
+</section>
 </section>
 <section id="quick-start-dreamer">
 <h2>Quick Start: Dreamer<a class="headerlink" href="#quick-start-dreamer" title="Link to this heading">#</a></h2>
@@ -491,7 +510,11 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docker">Docker</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#docker-compose">Docker Compose</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-jepa">Quick Start: JEPA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>

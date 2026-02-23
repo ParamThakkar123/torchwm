@@ -37,3 +37,20 @@ If your backend runs elsewhere:
 set VITE_API_URL=http://127.0.0.1:9000
 npm run dev
 ```
+
+## UI end-to-end tests (browser automation)
+
+These tests open the UI and automate interactions (typing in JSON fields, clicking
+buttons, changing dropdowns), similar to Selenium workflows.
+
+From `torchwm_ui/`:
+
+```bash
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+Notes:
+- Tests are in `torchwm_ui/e2e/app.spec.ts`.
+- API calls are mocked in-browser, so the backend server is not required.

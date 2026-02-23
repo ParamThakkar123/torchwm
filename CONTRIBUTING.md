@@ -21,7 +21,27 @@ We welcome contributions to torchwm! This document outlines the guidelines for c
    pip install -e ".[dev]"
    ```
 
-3. Set up pre-commit hooks:
+3. Or use Docker:
+
+   Build the Docker image:
+
+   ```bash
+   docker build -t torchwm .
+   ```
+
+   Run the container:
+
+   ```bash
+   docker run -p 8000:8000 torchwm
+   ```
+
+   Or use Docker Compose to run all services:
+
+   ```bash
+   docker compose up -d
+   ```
+
+ 4. Set up pre-commit hooks:
    ```bash
    pre-commit install
    ```

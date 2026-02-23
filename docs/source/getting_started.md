@@ -22,6 +22,30 @@ For development and tests:
 pip install -e ".[dev]"
 ```
 
+### Docker
+
+Build the Docker image:
+
+```bash
+docker build -t torchwm .
+```
+
+Run the container:
+
+```bash
+docker run -p 8000:8000 torchwm
+```
+
+### Docker Compose
+
+Build and run all services:
+
+```bash
+docker compose up -d
+```
+
+This starts both the backend (port 8000) and frontend (port 5173) services.
+
 ## Quick Start: Dreamer
 
 ```python

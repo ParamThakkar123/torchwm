@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import importlib
+import logging
 import sys
 import threading
 import time
@@ -42,6 +43,9 @@ from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
 from ..utils.utils import flatten_dict
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
@@ -869,7 +873,7 @@ if DIST_DIR.exists():
 
 
 @app.get("/")
-def serve_index() -> FileResponse:
+def serve_index():
     if DIST_DIR.exists():
         index_path = DIST_DIR / "index.html"
         if index_path.exists():
@@ -911,29 +915,37 @@ def environments(
 
 @app.post("/api/load-model")
 def load_model(payload: LoadModelRequest) -> dict[str, Any]:
+    logger.info(f"load_model called: model={payload.model}, config={payload.config}")
     try:
         controller.load_model(payload.model, payload.config)
     except (ValueError, RuntimeError) as exc:
+        logger.error(f"load_model failed: {exc}")
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
 
 @app.post("/api/load-environment")
 def load_environment(payload: LoadEnvironmentRequest) -> dict[str, Any]:
+    logger.info(
+        f"load_environment called: env={payload.environment}, backend={payload.backend}"
+    )
     try:
         controller.load_environment(
             payload.environment, payload.backend, payload.config
         )
     except (ValueError, RuntimeError) as exc:
+        logger.error(f"load_environment failed: {exc}")
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
 
 @app.post("/api/train/start")
 def start_training(payload: StartTrainingRequest) -> dict[str, Any]:
+    logger.info(f"start_training called: config={payload.config}")
     try:
         controller.start_training(payload.config)
     except (ValueError, RuntimeError) as exc:
+        logger.error(f"start_training failed: {exc}")
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 

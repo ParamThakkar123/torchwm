@@ -182,9 +182,11 @@ export default function App() {
   }, [activeMetric, sortedMetricEntries]);
 
   useEffect(() => {
-    const t = setInterval(refreshState, 500);
+    let interval = 5000;
+    if (state?.status === "running") interval = 500;
+    const t = setInterval(refreshState, interval);
     return () => clearInterval(t);
-  }, []);
+  }, [state?.status]);
 
   const handleConfigChange = (key: string, value: number) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));

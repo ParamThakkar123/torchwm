@@ -881,6 +881,15 @@ def serve_index():
     return {"error": "Frontend not found"}
 
 
+@app.head("/")
+def serve_index_head():
+    if DIST_DIR.exists():
+        index_path = DIST_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+    return {"error": "Frontend not found"}
+
+
 @app.get("/api/health")
 def healthcheck() -> dict[str, str]:
     return {"status": "ok"}

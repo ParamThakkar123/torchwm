@@ -927,8 +927,8 @@ def load_model(payload: LoadModelRequest) -> dict[str, Any]:
     logger.info(f"load_model called: model={payload.model}, config={payload.config}")
     try:
         controller.load_model(payload.model, payload.config)
-    except (ValueError, RuntimeError) as exc:
-        logger.error(f"load_model failed: {exc}")
+    except Exception as exc:
+        logger.error(f"load_model failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
@@ -942,8 +942,8 @@ def load_environment(payload: LoadEnvironmentRequest) -> dict[str, Any]:
         controller.load_environment(
             payload.environment, payload.backend, payload.config
         )
-    except (ValueError, RuntimeError) as exc:
-        logger.error(f"load_environment failed: {exc}")
+    except Exception as exc:
+        logger.error(f"load_environment failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
@@ -953,8 +953,8 @@ def start_training(payload: StartTrainingRequest) -> dict[str, Any]:
     logger.info(f"start_training called: config={payload.config}")
     try:
         controller.start_training(payload.config)
-    except (ValueError, RuntimeError) as exc:
-        logger.error(f"start_training failed: {exc}")
+    except Exception as exc:
+        logger.error(f"start_training failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 

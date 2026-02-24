@@ -16,6 +16,8 @@ import numpy as np
 import torch
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from PIL import Image
 from pydantic import BaseModel, Field
 
@@ -852,11 +854,27 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:5173",
         "https://torchwm.vercel.app",
+        "https://torchwm.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DIST_DIR = BASE_DIR / "torchwm_ui" / "dist"
+
+if DIST_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(DIST_DIR)), name="static")
+
+
+@app.get("/")
+def serve_index() -> FileResponse:
+    if DIST_DIR.exists():
+        index_path = DIST_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+    return {"error": "Frontend not found"}
 
 
 @app.get("/api/health")

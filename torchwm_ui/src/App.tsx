@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
 import {
   Area,
   AreaChart,
@@ -11,6 +12,7 @@ import {
 } from "recharts";
 import {
   fetchCatalog,
+  fetchDependencies,
   fetchFrame,
   fetchMetrics,
   fetchState,
@@ -19,7 +21,7 @@ import {
   startTraining,
   stopTraining
 } from "./api";
-import type { CatalogResponse, MetricPoint, MetricsResponse, StateResponse } from "./types";
+import type { CatalogResponse, Dependency, MetricPoint, MetricsResponse, StateResponse } from "./types";
 
 function formatNumber(num: number): string {
   if (Math.abs(num) >= 1000000) return (num / 1000000).toFixed(2) + "M";
@@ -94,8 +96,10 @@ export default function App() {
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<"image" | "gif">("image");
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dependencies, setDependencies] = useState<Dependency[]>([]);
+  const [showDependencies, setShowDependencies] = useState(false);
 
   const configFields = selectedModel === "planet" ? PLANET_CONFIG_FIELDS : DREAMER_CONFIG_FIELDS;
   const envBackends = catalog?.env_backends ?? {};
@@ -181,12 +185,35 @@ export default function App() {
     if (!sortedMetricEntries.some(([n]) => n === activeMetric)) setActiveMetric(sortedMetricEntries[0][0]);
   }, [activeMetric, sortedMetricEntries]);
 
-  useEffect(() => {
+useEffect(() => {
     let interval = 5000;
     if (state?.status === "running") interval = 500;
     const t = setInterval(refreshState, interval);
     return () => clearInterval(t);
   }, [state?.status]);
+
+  useEffect(() => {
+    const fetchDeps = async () => {
+      try {
+        const deps = await fetchDependencies();
+        setDependencies(deps.dependencies);
+      } catch { /* ignore */ }
+    };
+    void fetchDeps();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.dependencies-wrapper')) {
+        setShowDependencies(false);
+      }
+    };
+    if (showDependencies) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showDependencies]);
 
   const handleConfigChange = (key: string, value: number) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));
@@ -199,21 +226,69 @@ export default function App() {
     finally { setIsSubmitting(false); }
   }
 
-  const handleLoadModel = () => runAction(() => loadModel(selectedModel, {}));
-  const handleLoadEnv = () => selectedEnvironment ? runAction(() => loadEnvironment(selectedEnvironment, selectedBackend, {})) : setErrorMessage("Select env");
-  const handleStart = () => runAction(() => startTraining(trainingConfig));
+const handleLoadModel = () => {
+    toast.loading("Loading model...", { id: "loadModel" });
+    runAction(() => loadModel(selectedModel, {}))
+      .then(() => toast.success(`Model "${selectedModel}" loaded successfully!`, { id: "loadModel" }))
+      .catch(() => {});
+  };
+  const handleLoadEnv = () => {
+    if (!selectedEnvironment) {
+      setErrorMessage("Select env");
+      toast.error("Please select an environment", { id: "loadEnv" });
+      return;
+    }
+    toast.loading("Loading environment...", { id: "loadEnv" });
+    runAction(() => loadEnvironment(selectedEnvironment, selectedBackend, {}))
+      .then(() => toast.success(`Environment "${selectedEnvironment}" loaded successfully!`, { id: "loadEnv" }))
+      .catch(() => {});
+  };
+  const handleStart = () => {
+    toast.loading("Starting training...", { id: "startTraining" });
+    runAction(() => startTraining(trainingConfig))
+      .then(() => toast.success("Training started!", { id: "startTraining" }))
+      .catch(() => {});
+  };
   const handleStop = () => runAction(() => stopTraining());
 
   const progressPercent = Math.round(((state?.progress.ratio ?? 0) * 1000) / 10);
 
-  return (
+return (
     <div className="app">
+      <Toaster position="top-right" />
       <header className="header">
         <div className="header-left">
           <h1>TorchWM Studio</h1>
           <span className={`status-badge status-${state?.status ?? "idle"}`}>{state?.status ?? "idle"}</span>
         </div>
-        <div className="header-right">
+<div className="header-right">
+          <div className="dependencies-wrapper">
+            <button
+              className="dependencies-toggle"
+              onClick={() => setShowDependencies(!showDependencies)}
+            >
+              <span className="deps-icon">📦</span>
+              <span className="deps-label">Dependencies</span>
+              <span className={`deps-arrow ${showDependencies ? 'open' : ''}`}>▼</span>
+            </button>
+            {showDependencies && (
+              <div className="dependencies-dropdown">
+                <div className="deps-header">Training Dependencies</div>
+                <div className="deps-list">
+                  {dependencies.map(dep => (
+                    <div key={dep.name} className={`dep-item ${dep.installed ? 'installed' : 'missing'}`}>
+                      <span className="dep-status">{dep.installed ? '✓' : '✗'}</span>
+                      <span className="dep-label">{dep.label}</span>
+                      {dep.required && !dep.installed && <span className="dep-required">Required</span>}
+                    </div>
+                  ))}
+                </div>
+                <div className="deps-summary">
+                  {dependencies.filter(d => d.installed).length} / {dependencies.length} installed
+                </div>
+              </div>
+            )}
+          </div>
           <div className="progress-mini"><div className="progress-mini-bar" style={{ width: `${progressPercent}%` }} /></div>
           <span className="progress-text">{progressPercent}%</span>
         </div>

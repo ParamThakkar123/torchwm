@@ -37,3 +37,10 @@ export interface FrameResponse {
   image: string | null;
   gif: string | null;
 }
+
+export interface Dependency {
+  name: string;
+  label: string;
+  required: boolean;
+  installed: boolean;
+}

@@ -1,5 +1,16 @@
 import type { CatalogResponse, FrameResponse, MetricsResponse, StateResponse } from "./types";
 
+export interface Dependency {
+  name: string;
+  label: string;
+  required: boolean;
+  installed: boolean;
+}
+
+export interface DependenciesResponse {
+  dependencies: Dependency[];
+}
+
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -71,4 +82,8 @@ export function stopTraining(): Promise<{ stop_requested: boolean } & StateRespo
   return request<{ stop_requested: boolean } & StateResponse>("/api/train/stop", {
     method: "POST"
   });
+}
+
+export function fetchDependencies(): Promise<DependenciesResponse> {
+  return request<DependenciesResponse>("/api/dependencies");
 }

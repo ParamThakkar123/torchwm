@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import importlib
+import importlib.util
 import logging
 import sys
 import threading
@@ -978,3 +979,62 @@ def metrics(limit: int = Query(default=400, ge=1, le=5000)) -> dict[str, Any]:
 @app.get("/api/frame")
 def frame() -> dict[str, str | None]:
     return controller.snapshot_frame()
+
+
+TRAINING_DEPENDENCIES = [
+    {"name": "torch", "label": "PyTorch", "required": True},
+    {"name": "numpy", "label": "NumPy", "required": True},
+    {"name": "einops", "label": "EinOps", "required": True},
+    {"name": "cv2", "label": "OpenCV", "required": True},
+    {"name": "PIL", "label": "Pillow", "required": True},
+    {"name": "gym", "label": "Gym", "required": True},
+    {"name": "gymnasium", "label": "Gymnasium", "required": True},
+    {"name": "dm_control", "label": "DM Control", "required": False},
+    {"name": "mujoco", "label": "MuJoCo", "required": False},
+    {"name": "ale_py", "label": "ALE Py", "required": False},
+    {"name": "mlagents", "label": "ML Agents", "required": False},
+    {"name": "tensorboard", "label": "TensorBoard", "required": False},
+]
+
+
+def _check_dependency(name: str) -> bool:
+    try:
+        if name == "cv2":
+            importlib.import_module("cv2")
+        elif name == "PIL":
+            importlib.import_module("PIL")
+        elif name == "gym":
+            importlib.import_module("gym")
+        elif name == "gymnasium":
+            importlib.import_module("gymnasium")
+        elif name == "dm_control":
+            importlib.import_module("dm_control")
+        elif name == "mujoco":
+            importlib.import_module("mujoco")
+        elif name == "ale_py":
+            importlib.import_module("ale_py")
+        elif name == "mlagents":
+            importlib.import_module("mlagents_envs")
+        elif name == "tensorboard":
+            importlib.import_module("tensorboard")
+        else:
+            importlib.import_module(name)
+        return True
+    except ImportError:
+        return False
+
+
+@app.get("/api/dependencies")
+def get_dependencies() -> dict[str, Any]:
+    deps = []
+    for dep in TRAINING_DEPENDENCIES:
+        installed = _check_dependency(dep["name"])
+        deps.append(
+            {
+                "name": dep["name"],
+                "label": dep["label"],
+                "required": dep["required"],
+                "installed": installed,
+            }
+        )
+    return {"dependencies": deps}

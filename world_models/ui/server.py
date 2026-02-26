@@ -4,6 +4,7 @@ import base64
 import importlib
 import importlib.util
 import logging
+import os
 import sys
 import threading
 import time
@@ -853,14 +854,28 @@ class TrainingController:
 
 controller = TrainingController()
 app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
+
+cors_origins = [
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:*",
+    "http://localhost:*",
+    "https://torchwm.vercel.app",
+    "https://torchwm.onrender.com",
+    "file://",
+]
+
+if os.environ.get("ELECTRON_RUN") == "true":
+    cors_origins.extend(
+        [
+            "http://0.0.0.0:*",
+            "http://*",
+        ]
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
-        "https://torchwm.vercel.app",
-        "https://torchwm.onrender.com",
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

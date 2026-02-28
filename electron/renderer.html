@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8000">
+  <title>TorchWM Desktop</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .status-badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .status-badge.connected {
+      background: rgba(0, 255, 127, 0.2);
+      color: #00ff7f;
+    }
+    .status-badge.disconnected {
+      background: rgba(255, 99, 71, 0.2);
+      color: #ff6347;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #00d4ff;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      color: #888;
+    }
+    .info-value {
+      font-weight: 500;
+    }
+    .info-value.installed {
+      color: #00ff7f;
+    }
+    .info-value.missing {
+      color: #ff6347;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e0e0e0;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .log-container {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+    }
+    .log-entry {
+      padding: 4px 0;
+      color: #888;
+    }
+    .log-entry.error {
+      color: #ff6347;
+    }
+    .log-entry.success {
+      color: #00ff7f;
+    }
+    .log-entry.info {
+      color: #00d4ff;
+    }
+    .menu-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .menu-btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #888;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .menu-btn.active {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: #00d4ff;
+      color: #00d4ff;
+    }
+    .menu-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .panel {
+      display: none;
+    }
+    .panel.active {
+      display: block;
+    }
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #00d4ff;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>TorchWM Desktop</h1>
+      <span id="connectionStatus" class="status-badge disconnected">Disconnected</span>
+    </header>
+
+    <div class="menu-bar">
+      <button class="menu-btn active" data-panel="home">Home</button>
+      <button class="menu-btn" data-panel="training">Training</button>
+      <button class="menu-btn" data-panel="logs">Logs</button>
+    </div>
+
+    <div id="homePanel" class="panel active">
+      <div class="grid">
+        <div class="card">
+          <h2>Environment</h2>
+          <div class="info-row">
+            <span class="info-label">Python</span>
+            <span id="pythonStatus" class="info-value">Checking...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">TorchWM</span>
+            <span id="torchwmStatus" class="info-value">Checking...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Backend</span>
+            <span id="backendStatus" class="info-value">Checking...</span>
+          </div>
+          <div class="actions">
+            <button id="startBackendBtn" class="btn btn-primary">Start Backend</button>
+            <button id="checkEnvBtn" class="btn btn-secondary">Refresh</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Application</h2>
+          <div class="info-row">
+            <span class="info-label">Version</span>
+            <span id="appVersion" class="info-value">0.1.0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Platform</span>
+            <span id="platformInfo" class="info-value">-</span>
+          </div>
+          <div class="actions">
+            <button id="openWebBtn" class="btn btn-secondary">Open Web UI</button>
+            <button id="checkUpdatesBtn" class="btn btn-secondary">Check Updates</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="trainingPanel" class="panel">
+      <div class="card">
+        <h2>Quick Training</h2>
+        <p style="color: #888; margin-bottom: 16px;">Start a training session from the desktop app.</p>
+        <div class="info-row">
+          <span class="info-label">Server URL</span>
+          <span id="serverUrl" class="info-value">http://127.0.0.1:8000</span>
+        </div>
+        <div class="actions">
+          <button id="startTrainingBtn" class="btn btn-primary">Open Training Page</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="logsPanel" class="panel">
+      <div class="card">
+        <h2>Application Logs</h2>
+        <div id="logContainer" class="log-container">
+          <div class="log-entry info">[App] TorchWM Desktop started</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SERVER_PORT = 8000;
+    const UI_PORT = 5173;
+
+    function log(message, type = 'info') {
+      const container = document.getElementById('logContainer');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function setStatus(elementId, text, isInstalled = null) {
+      const el = document.getElementById(elementId);
+      el.textContent = text;
+      if (isInstalled !== null) {
+        el.className = 'info-value ' + (isInstalled ? 'installed' : 'missing');
+      }
+    }
+
+    function setConnectionStatus(connected) {
+      const el = document.getElementById('connectionStatus');
+      if (connected) {
+        el.textContent = 'Connected';
+        el.className = 'status-badge connected';
+      } else {
+        el.textContent = 'Disconnected';
+        el.className = 'status-badge disconnected';
+      }
+    }
+
+    async function checkEnvironment() {
+      try {
+        const env = await window.electronAPI.checkEnvironment();
+        setStatus('pythonStatus', env.python.available ? env.python.version : 'Not found', env.python.available);
+        setStatus('torchwmStatus', env.torchwm === 'installed' ? 'Installed' : 'Not installed', env.torchwm === 'installed');
+        setStatus('backendStatus', env.backendRunning ? 'Running' : 'Stopped', env.backendRunning);
+        setConnectionStatus(env.backendRunning);
+        log('Environment check complete', 'success');
+      } catch (err) {
+        log('Error checking environment: ' + err.message, 'error');
+      }
+    }
+
+    async function startBackend() {
+      const btn = document.getElementById('startBackendBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Starting...';
+      log('Starting backend...', 'info');
+
+      try {
+        const result = await window.electronAPI.startBackend();
+        if (result.success) {
+          log('Backend started successfully', 'success');
+          setConnectionStatus(true);
+          setStatus('backendStatus', 'Running', true);
+        } else {
+          log('Failed to start backend: ' + result.error, 'error');
+        }
+      } catch (err) {
+        log('Error starting backend: ' + err.message, 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Start Backend';
+    }
+
+    async function openWebUI() {
+      try {
+        await window.electronAPI.openWebUI();
+      } catch (err) {
+        log('Error opening web UI: ' + err.message, 'error');
+      }
+    }
+
+    async function checkForUpdates() {
+      const btn = document.getElementById('checkUpdatesBtn');
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      log('Checking for updates...', 'info');
+
+      try {
+        const result = await window.electronAPI.checkForUpdates();
+        if (!result.success && result.error) {
+          log(result.error, 'info');
+        }
+      } catch (err) {
+        log('Error checking updates: ' + err.message, 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Check Updates';
+    }
+
+    window.electronAPI.onUpdateStatus((data) => {
+      log('Update: ' + JSON.stringify(data), 'info');
+    });
+
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.panel + 'Panel').classList.add('active');
+      });
+    });
+
+    document.getElementById('startBackendBtn').addEventListener('click', startBackend);
+    document.getElementById('checkEnvBtn').addEventListener('click', checkEnvironment);
+    document.getElementById('openWebBtn').addEventListener('click', openWebUI);
+    document.getElementById('checkUpdatesBtn').addEventListener('click', checkForUpdates);
+    document.getElementById('startTrainingBtn').addEventListener('click', openWebUI);
+
+    document.getElementById('platformInfo').textContent = navigator.platform;
+
+    checkEnvironment();
+    setInterval(checkEnvironment, 10000);
+  </script>
+</body>
+</html>

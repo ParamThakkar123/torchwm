@@ -858,8 +858,8 @@ app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
 cors_origins = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "http://127.0.0.1:*",
-    "http://localhost:*",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
     "https://torchwm.vercel.app",
     "https://torchwm.onrender.com",
     "file://",
@@ -868,8 +868,9 @@ cors_origins = [
 if os.environ.get("ELECTRON_RUN") == "true":
     cors_origins.extend(
         [
-            "http://0.0.0.0:*",
-            "http://*",
+            "http://127.0.0.1",
+            "http://localhost",
+            "http://0.0.0.0",
         ]
     )
 

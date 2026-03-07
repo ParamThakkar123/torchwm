@@ -13,28 +13,63 @@ export interface DependenciesResponse {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json"
-    },
-    ...options
-  });
-
-  if (!response.ok) {
-    let detail = `${response.status} ${response.statusText}`;
+// Exponential backoff retry logic
+export async function retry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 5,
+  initialDelay = 500
+): Promise<T> {
+  let delay = initialDelay;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const body = (await response.json()) as { detail?: string };
-      if (body.detail) {
-        detail = body.detail;
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
       }
-    } catch {
-      // keep fallback detail
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
     }
-    throw new Error(detail);
   }
+  throw new Error("Max retries exceeded");
+}
 
-  return (await response.json()) as T;
+export async function checkBackendHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/api/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  return retry(async () => {
+    const response = await fetch(`${API_BASE}${path}`, {
+      headers: {
+        "Content-Type": "application/json"
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      let detail = `${response.status} ${response.statusText}`;
+      try {
+        const body = (await response.json()) as { detail?: string };
+        if (body.detail) {
+          detail = body.detail;
+        }
+      } catch {
+        // keep fallback detail
+      }
+      throw new Error(detail);
+    }
+
+    return (await response.json()) as T;
+  });
 }
 
 export function fetchCatalog(): Promise<CatalogResponse> {

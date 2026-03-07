@@ -858,8 +858,8 @@ app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
 cors_origins = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "http://127.0.0.1:*",
-    "http://localhost:*",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
     "https://torchwm.vercel.app",
     "https://torchwm.onrender.com",
     "file://",
@@ -868,8 +868,9 @@ cors_origins = [
 if os.environ.get("ELECTRON_RUN") == "true":
     cors_origins.extend(
         [
-            "http://0.0.0.0:*",
-            "http://*",
+            "http://127.0.0.1",
+            "http://localhost",
+            "http://0.0.0.0",
         ]
     )
 
@@ -1041,15 +1042,23 @@ def _check_dependency(name: str) -> bool:
 
 @app.get("/api/dependencies")
 def get_dependencies() -> dict[str, Any]:
-    deps = []
-    for dep in TRAINING_DEPENDENCIES:
-        installed = _check_dependency(dep["name"])
-        deps.append(
-            {
-                "name": dep["name"],
-                "label": dep["label"],
-                "required": dep["required"],
-                "installed": installed,
-            }
-        )
-    return {"dependencies": deps}
+    try:
+        deps = []
+        for dep in TRAINING_DEPENDENCIES:
+            try:
+                installed = _check_dependency(dep["name"])
+            except Exception as e:
+                logger.warning(f"Error checking dependency {dep['name']}: {e}")
+                installed = False
+            deps.append(
+                {
+                    "name": dep["name"],
+                    "label": dep["label"],
+                    "required": dep["required"],
+                    "installed": installed,
+                }
+            )
+        return {"dependencies": deps}
+    except Exception as e:
+        logger.error(f"Failed to check dependencies: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

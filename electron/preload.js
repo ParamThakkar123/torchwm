@@ -11,6 +11,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFile: (filters) => ipcRenderer.invoke('select-file', filters),
   openWebUI: () => ipcRenderer.invoke('open-web-ui'),
 
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+
+  onUpdateStatus: (callback) => {
+    ipcRenderer.on('update-status', (event, data) => callback(data));
+  },
+
   onTrainingUpdate: (callback) => {
     ipcRenderer.on('training-update', (event, data) => callback(data));
   },

@@ -3,6 +3,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 
 let mainWindow = null;
 let pythonProcess = null;
@@ -11,15 +13,76 @@ const isDev = !app.isPackaged;
 const SERVER_PORT = 8000;
 const UI_PORT = 5173;
 
-function getDistPath() {
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
+
+function getWebUIPath() {
   if (isDev) {
-    return null;
+    return path.join(__dirname, '../torchwm_ui/dist');
   }
-  return path.join(__dirname, '../torchwm_ui/dist');
+  return path.join(process.resourcesPath, 'web-ui');
+}
+
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for updates...');
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'checking' });
+    }
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    log.info('Update available:', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'available', version: info.version });
+    }
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    log.info('No updates available');
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'not-available' });
+    }
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'downloading', percent: progress.percent });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('Update downloaded:', info.version);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'downloaded', version: info.version });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    log.error('Auto-updater error:', err);
+    if (mainWindow) {
+      mainWindow.webContents.send('update-status', { status: 'error', error: err.message });
+    }
+  });
+}
+
+function checkForUpdates() {
+  if (!isDev) {
+    autoUpdater.checkForUpdates().catch(err => {
+      log.error('Error checking for updates:', err);
+    });
+  }
 }
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  const iconPath = isDev
+    ? path.join(__dirname, 'icon.png')
+    : path.join(process.resourcesPath, 'app.asar', 'icon.png');
+
+  const windowOptions = {
     width: 1400,
     height: 900,
     minWidth: 1000,
@@ -27,26 +90,45 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      sandbox: true
     },
-    icon: path.join(__dirname, 'icon.png'),
     show: false,
     backgroundColor: '#1a1a2e'
-  });
+  };
+
+  if (fs.existsSync(iconPath)) {
+    windowOptions.icon = iconPath;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    if (!isDev) {
+      mainWindow.webContents.openDevTools();
+    }
   });
 
   if (isDev) {
-    mainWindow.loadURL(`http://127.0.0.1:${UI_PORT}`);
-    mainWindow.webContents.openDevTools();
-  } else {
-    const distPath = getDistPath();
-    if (distPath && fs.existsSync(distPath)) {
-      mainWindow.loadFile(path.join(distPath, 'index.html'));
+    const webUIPath = getWebUIPath();
+    console.log('Loading web UI from:', webUIPath);
+    if (fs.existsSync(webUIPath)) {
+      mainWindow.loadFile(path.join(webUIPath, 'index.html'));
     } else {
-      console.error('Dist folder not found:', distPath);
+      console.error('Web UI not found at:', webUIPath);
+      mainWindow.loadURL('data:text/html,<html><body><h1>Error: Web UI not found</h1></body></html>');
+    }
+  } else {
+    const webUIPath = getWebUIPath();
+    console.log('Loading web UI from:', webUIPath);
+    if (fs.existsSync(webUIPath)) {
+      mainWindow.loadFile(path.join(webUIPath, 'index.html'));
+    } else {
+      console.error('Web UI not found at:', webUIPath);
+      mainWindow.loadURL('data:text/html,<html><body><h1>Error: Web UI not found</h1></body></html>');
     }
   }
 
@@ -149,8 +231,29 @@ function checkBackendRunning() {
 
 app.whenReady().then(async () => {
   console.log('Starting TorchWM Desktop...');
+  console.log('Is packaged:', app.isPackaged);
 
-  createWindow();
+  try {
+    createWindow();
+  } catch (error) {
+    console.error('Error creating window:', error);
+  }
+
+  console.log('Starting backend...');
+  try {
+    await startPythonServer();
+    console.log('Backend started successfully');
+  } catch (error) {
+    console.error('Failed to start backend:', error);
+  }
+
+  setupAutoUpdater();
+
+  if (!isDev) {
+    setTimeout(() => {
+      checkForUpdates();
+    }, 3000);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -164,6 +267,14 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
 });
 
 ipcMain.handle('start-backend', async () => {
@@ -228,4 +339,32 @@ ipcMain.handle('open-web-ui', async () => {
   if (running) {
     await shell.openExternal(`http://127.0.0.1:${UI_PORT}`);
   }
+});
+
+ipcMain.handle('check-for-updates', async () => {
+  if (isDev) {
+    return { success: false, error: 'Updates are not available in development mode' };
+  }
+  try {
+    await autoUpdater.checkForUpdates();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('download-update', async () => {
+  if (isDev) {
+    return { success: false, error: 'Updates are not available in development mode' };
+  }
+  try {
+    await autoUpdater.downloadUpdate();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall();
 });

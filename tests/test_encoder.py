@@ -1,9 +1,11 @@
+import pytest
 import torch
 from world_models.vision.dreamer_encoder import ConvEncoder
 from world_models.vision.planet_encoder import CNNEncoder
 
 
 class TestConvEncoder:
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_initialization(self):
         input_shape = (3, 64, 64)
         embed_size = 256
@@ -14,7 +16,9 @@ class TestConvEncoder:
         assert isinstance(encoder.conv_block, torch.nn.Sequential)
         assert isinstance(encoder.fc, torch.nn.Linear)
 
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_forward_pass(self):
+        torch.manual_seed(42)
         input_shape = (3, 64, 64)
         embed_size = 256
         activation = "relu"
@@ -24,7 +28,9 @@ class TestConvEncoder:
         embed = encoder(inputs)
         assert embed.shape == (batch_size, embed_size)
 
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_forward_pass_different_batch(self):
+        torch.manual_seed(42)
         input_shape = (3, 64, 64)
         embed_size = 256
         activation = "relu"
@@ -35,6 +41,7 @@ class TestConvEncoder:
 
 
 class TestCNNEncoder:
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_initialization(self):
         embedding_size = 256
         activation_function = "relu"
@@ -43,7 +50,9 @@ class TestCNNEncoder:
         assert isinstance(encoder.conv1, torch.nn.Conv2d)
         assert isinstance(encoder.fc, torch.nn.Linear)
 
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_forward_pass(self):
+        torch.manual_seed(42)
         embedding_size = 256
         activation_function = "relu"
         encoder = CNNEncoder(embedding_size, activation_function)
@@ -52,7 +61,9 @@ class TestCNNEncoder:
         hidden = encoder(observation)
         assert hidden.shape == (batch_size, embedding_size)
 
+    @pytest.mark.randomly(dont_reset_seed=True)
     def test_forward_pass_different_batch(self):
+        torch.manual_seed(42)
         embedding_size = 256
         activation_function = "relu"
         encoder = CNNEncoder(embedding_size, activation_function)

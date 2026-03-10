@@ -1,5 +1,6 @@
 from world_models.controller.rollout_generator import RolloutGenerator
 from world_models.controller.rssm_policy import RSSMPolicy
+from unittest.mock import Mock
 
 
 class TestRolloutGenerator:
@@ -17,21 +18,22 @@ class TestRolloutGenerator:
 
 class TestRSSMPolicy:
     def test_initialization(self):
-        model = None  # Mock model
+        rssm = Mock()
+        rssm.action_size = 5
         planning_horizon = 10
         num_candidates = 100
         num_iterations = 5
         top_candidates = 10
         device = "cpu"
         policy = RSSMPolicy(
-            model,
+            rssm,
             planning_horizon,
             num_candidates,
             num_iterations,
             top_candidates,
             device,
         )
-        assert policy.rssm == model
+        assert policy.rssm == rssm
         assert policy.H == planning_horizon
         assert policy.N == num_candidates
         assert policy.T == num_iterations

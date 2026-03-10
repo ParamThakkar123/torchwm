@@ -21,6 +21,8 @@ class TestReplayBuffer:
         assert not buffer.full
 
     def test_add(self):
+        np.random.seed(42)
+        torch.manual_seed(42)
         size = 10
         obs_shape = (3, 64, 64)
         action_size = 2
@@ -37,6 +39,8 @@ class TestReplayBuffer:
         assert buffer.episodes == 0
 
     def test_sample(self):
+        np.random.seed(42)
+        torch.manual_seed(42)
         size = 20
         obs_shape = (3, 64, 64)
         action_size = 2
@@ -64,6 +68,7 @@ class TestEpisode:
         assert len(episode.x) == 0
 
     def test_append(self):
+        torch.manual_seed(42)
         episode = Episode()
         obs = torch.randn(3, 64, 64)
         act = torch.randn(2)
@@ -74,6 +79,7 @@ class TestEpisode:
         assert len(episode.x) == 1
 
     def test_terminate(self):
+        torch.manual_seed(42)
         episode = Episode()
         obs = torch.randn(3, 64, 64)
         act = torch.randn(2)
@@ -92,6 +98,7 @@ class TestMemory:
         assert len(memory) == 0
 
     def test_append_episode(self):
+        torch.manual_seed(42)
         memory = Memory(size=10)
         episode = Episode()
         obs = torch.randn(3, 64, 64)
@@ -105,6 +112,7 @@ class TestMemory:
         assert len(memory) == 1
 
     def test_sample(self):
+        torch.manual_seed(42)
         memory = Memory(size=10)
         # Add a dummy episode
         episode = Episode()
@@ -117,5 +125,5 @@ class TestMemory:
         final_obs = torch.randn(3, 64, 64)
         episode.terminate(final_obs)
         memory.append([episode])
-        batch = memory.sample(batch_size=1, tracelen=3)
+        batch, lengths = memory.sample(batch_size=1, tracelen=3)
         assert len(batch) == 4  # obs, act, rew, term

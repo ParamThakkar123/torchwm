@@ -31,7 +31,6 @@ class RSSM(nn.Module):
         obs_embed_size,
         activation,
     ):
-
         super().__init__()
 
         self.action_size = action_size
@@ -54,7 +53,6 @@ class RSSM(nn.Module):
         self.fc_state_posterior = nn.Linear(self.hidden_size, 2 * self.stoch_size)
 
     def init_state(self, batch_size, device):
-
         return dict(
             mean=torch.zeros(batch_size, self.stoch_size).to(device),
             std=torch.zeros(batch_size, self.stoch_size).to(device),
@@ -63,13 +61,11 @@ class RSSM(nn.Module):
         )
 
     def get_dist(self, mean, std):
-
         distribution = distributions.Normal(mean, std)
         distribution = distributions.independent.Independent(distribution, 1)
         return distribution
 
     def observe_step(self, prev_state, prev_action, obs_embed, nonterm=1.0):
-
         prior = self.imagine_step(prev_state, prev_action, nonterm)
         posterior_embed = self.act_fn(
             self.fc_embed_posterior(torch.cat([obs_embed, prior["deter"]], dim=-1))
@@ -83,7 +79,6 @@ class RSSM(nn.Module):
         return prior, posterior
 
     def imagine_step(self, prev_state, prev_action, nonterm=1.0):
-
         state_action = self.act_fn(
             self.fc_state_action(
                 torch.cat([prev_state["stoch"] * nonterm, prev_action], dim=-1)
@@ -99,7 +94,6 @@ class RSSM(nn.Module):
         return prior
 
     def observe_rollout(self, obs_embed, actions, nonterms, prev_state, horizon):
-
         priors = []
         posteriors = []
 
@@ -118,7 +112,6 @@ class RSSM(nn.Module):
         return priors, posteriors
 
     def imagine_rollout(self, actor, prev_state, horizon):
-
         rssm_state = prev_state
         next_states = []
 
@@ -133,7 +126,6 @@ class RSSM(nn.Module):
         return next_states
 
     def stack_states(self, states, dim=0):
-
         return dict(
             mean=torch.stack([state["mean"] for state in states], dim=dim),
             std=torch.stack([state["std"] for state in states], dim=dim),
@@ -142,7 +134,6 @@ class RSSM(nn.Module):
         )
 
     def detach_state(self, state):
-
         return dict(
             mean=state["mean"].detach(),
             std=state["std"].detach(),
@@ -151,7 +142,6 @@ class RSSM(nn.Module):
         )
 
     def seq_to_batch(self, state):
-
         return dict(
             mean=torch.reshape(
                 state["mean"],

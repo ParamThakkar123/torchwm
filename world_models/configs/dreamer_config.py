@@ -10,6 +10,7 @@ class DreamerConfig:
         # Environment selection.
         # dmc: DeepMind Control Suite
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
+        # procgen: OpenAI ProcGen environments
         # unity_mlagents: Unity ML-Agents executable
         self.env_backend = "dmc"
         self.env = "walker-walk"
@@ -25,6 +26,11 @@ class DreamerConfig:
         self.unity_no_graphics = True
         self.unity_time_scale = 20.0
         self.unity_quality_level = 1
+
+        # ProcGen options.
+        self.procgen_distribution_mode = "hard"
+        self.procgen_num_levels = 0
+        self.procgen_start_level = 0
 
         self.algo = "Dreamerv1"
         self.exp_name = "lr1e-3"

@@ -6,6 +6,7 @@ import torch
 
 from world_models.configs.dreamer_config import DreamerConfig
 from world_models.envs.gym_env import GymImageEnv
+from world_models.envs.procgen_env import make_procgen_env, list_available_procgen_envs
 from world_models.models.dreamer import make_env
 from world_models.utils.utils import TorchImageEnvWrapper
 
@@ -176,3 +177,81 @@ def test_torch_image_wrapper_accepts_env_instances_and_dict_obs():
     assert reward == 0.5  # action_repeats defaults to 2
     assert done is False
     assert isinstance(info, dict)
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.envs.make_procgen_env")
+def test_make_env_procgen_backend(
+    mock_procgen_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "procgen"
+    cfg.env = "coinrun"
+    cfg.procgen_distribution_mode = "hard"
+    cfg.procgen_num_levels = 10
+    cfg.procgen_start_level = 5
+    cfg.image_size = (64, 64)
+
+    env = Mock()
+    mock_procgen_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_procgen_env.assert_called_once_with(
+        cfg.env,
+        distribution_mode=cfg.procgen_distribution_mode,
+        num_levels=cfg.procgen_num_levels,
+        start_level=cfg.procgen_start_level,
+        seed=cfg.seed,
+        size=cfg.image_size,
+    )
+
+
+@patch("world_models.envs.procgen_env.GymImageEnv")
+def test_make_procgen_env(mock_gym_env):
+    env = Mock()
+    mock_gym_env.return_value = env
+
+    result = make_procgen_env(
+        "coinrun", distribution_mode="easy", num_levels=5, start_level=1
+    )
+
+    assert result is env
+    mock_gym_env.assert_called_once_with(
+        env="procgen:procgen-coinrun-v0",
+        distribution_mode="easy",
+        num_levels=5,
+        start_level=1,
+    )
+
+
+def test_list_available_procgen_envs():
+    envs = list_available_procgen_envs()
+    expected = [
+        "bigfish",
+        "bossfight",
+        "caveflyer",
+        "chaser",
+        "climber",
+        "coinrun",
+        "dodgeball",
+        "fruitbot",
+        "heist",
+        "jumper",
+        "leaper",
+        "maze",
+        "miner",
+        "ninja",
+        "plunder",
+        "starpilot",
+    ]
+    assert envs == expected

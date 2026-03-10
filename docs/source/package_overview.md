@@ -10,7 +10,7 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 
 ## Environment Integration
 
-- `world_models.envs`: Environment adapters for DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents
+- `world_models.envs`: Environment adapters for DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents, ProcGen
 - `world_models.envs.wrappers`: Common wrappers for action repeat, action normalization, time limits, and observation shaping
 
 ## World Model Building Blocks

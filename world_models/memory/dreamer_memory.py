@@ -9,7 +9,6 @@ class ReplayBuffer:
     """
 
     def __init__(self, size, obs_shape, action_size, seq_len, batch_size):
-
         self.size = size
         self.obs_shape = obs_shape
         self.action_size = action_size
@@ -24,7 +23,6 @@ class ReplayBuffer:
         self.steps, self.episodes = 0, 0
 
     def add(self, obs, ac, rew, done):
-
         self.observations[self.idx] = obs["image"]
         self.actions[self.idx] = ac
         self.rewards[self.idx] = rew
@@ -35,7 +33,6 @@ class ReplayBuffer:
         self.episodes = self.episodes + (1 if done else 0)
 
     def _sample_idx(self, L):
-
         valid_idx = False
         while not valid_idx:
             idx = np.random.randint(0, self.size if self.full else self.idx - L)

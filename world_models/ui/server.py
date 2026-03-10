@@ -119,6 +119,28 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "OpenAI Gym environments",
         "environments": PLANET_BASE_ENVS,
     },
+    "procgen": {
+        "label": "ProcGen",
+        "description": "OpenAI ProcGen environments",
+        "environments": [
+            "bigfish",
+            "bossfight",
+            "caveflyer",
+            "chaser",
+            "climber",
+            "coinrun",
+            "dodgeball",
+            "fruitbot",
+            "heist",
+            "jumper",
+            "leaper",
+            "maze",
+            "miner",
+            "ninja",
+            "plunder",
+            "starpilot",
+        ],
+    },
     "unity": {
         "label": "Unity ML Agents",
         "description": "Unity ML Agents environments",
@@ -188,9 +210,27 @@ def _build_env_catalog() -> dict[str, list[str]]:
         atari_envs = list_available_atari_envs()
     except Exception:
         atari_envs = []
+    procgen_envs = [
+        "bigfish",
+        "bossfight",
+        "caveflyer",
+        "chaser",
+        "climber",
+        "coinrun",
+        "dodgeball",
+        "fruitbot",
+        "heist",
+        "jumper",
+        "leaper",
+        "maze",
+        "miner",
+        "ninja",
+        "plunder",
+        "starpilot",
+    ]
     return {
-        "dreamerv1": DREAMER_ENVS + GYM_ENVS,
-        "dreamerv2": DREAMER_ENVS + GYM_ENVS,
+        "dreamerv1": DREAMER_ENVS + GYM_ENVS + procgen_envs,
+        "dreamerv2": DREAMER_ENVS + GYM_ENVS + procgen_envs,
         "planet": PLANET_BASE_ENVS + atari_envs[:80],
     }
 
@@ -408,6 +448,7 @@ class TrainingController:
             "dm_control": "dmc",
             "mujoco": "gym",
             "gym": "gym",
+            "procgen": "procgen",
             "unity": "unity_mlagents",
         }
 
@@ -1004,6 +1045,7 @@ TRAINING_DEPENDENCIES = [
     {"name": "PIL", "label": "Pillow", "required": True},
     {"name": "gym", "label": "Gym", "required": True},
     {"name": "gymnasium", "label": "Gymnasium", "required": True},
+    {"name": "procgen", "label": "ProcGen", "required": False},
     {"name": "dm_control", "label": "DM Control", "required": False},
     {"name": "mujoco", "label": "MuJoCo", "required": False},
     {"name": "ale_py", "label": "ALE Py", "required": False},
@@ -1030,6 +1072,8 @@ def _check_dependency(name: str) -> bool:
             importlib.import_module("ale_py")
         elif name == "mlagents":
             importlib.import_module("mlagents_envs")
+        elif name == "procgen":
+            importlib.import_module("procgen")
         elif name == "tensorboard":
             importlib.import_module("tensorboard")
         else:

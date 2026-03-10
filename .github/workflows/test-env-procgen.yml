@@ -1,0 +1,31 @@
+name: Environment Tests - ProcGen
+
+on:
+  pull_request:
+  push:
+    paths:
+      - 'tests/**'
+      - 'world_models/envs/procgen_env.py'
+
+jobs:
+  test-procgen:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'  # ProcGen supports up to Python 3.10
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-randomly pytest-mock
+        pip install procgen
+
+    - name: Run ProcGen environment tests
+      run: |
+        pytest tests/test_env_adapters.py::test_make_procgen_env tests/test_env_adapters.py::test_list_available_procgen_envs tests/test_env_adapters.py::test_make_env_procgen_backend -v

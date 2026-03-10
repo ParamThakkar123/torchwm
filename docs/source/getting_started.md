@@ -37,6 +37,21 @@ agent = DreamerAgent(cfg)
 agent.train()
 ```
 
+## Quick Start: Dreamer with ProcGen
+
+```python
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env_backend = "procgen"
+cfg.env = "coinrun"
+cfg.total_steps = 10_000
+
+agent = DreamerAgent(cfg)
+agent.train()
+```
+
 ## Quick Start: JEPA
 
 ```python
@@ -59,6 +74,7 @@ Dreamer supports multiple backends through `DreamerConfig.env_backend`:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
+- `procgen`: OpenAI ProcGen procedurally generated environments (for example `coinrun`)
 - `unity_mlagents`: Unity ML-Agents executable environments
 
 Important Unity settings are available in `DreamerConfig`:
@@ -66,6 +82,11 @@ Important Unity settings are available in `DreamerConfig`:
 - `unity_behavior_name`
 - `unity_no_graphics`
 - `unity_time_scale`
+
+ProcGen-specific settings are available in `DreamerConfig`:
+- `procgen_distribution_mode`: Difficulty level ("easy", "hard", "extreme", etc.)
+- `procgen_num_levels`: Number of unique levels to generate (0 for unlimited)
+- `procgen_start_level`: Starting seed for level generation
 
 ## Typical Training Flow
 

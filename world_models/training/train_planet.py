@@ -180,11 +180,11 @@ def main():
         mem.append(eval_episode)
         # normalize frames to (T,H,W,3) float in [0,1] before saving
         safe_frames = normalize_frames_for_saving(eval_frames)
-        save_video(safe_frames, res_dir, f"vid_{i+1}")
+        save_video(safe_frames, res_dir, f"vid_{i + 1}")
         summary.update(eval_metrics)
 
         if (i + 1) % 25 == 0:
-            torch.save(rssm_model.state_dict(), f"{res_dir}/ckpt_{i+1}.pth")
+            torch.save(rssm_model.state_dict(), f"{res_dir}/ckpt_{i + 1}.pth")
 
     if os.getenv("TRAIN_RSSM_DEBUG", "0") == "1":
         pdb.set_trace()

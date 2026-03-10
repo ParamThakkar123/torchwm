@@ -178,7 +178,7 @@ def main():
         if (i + 1) % 10 == 0:
             evaluate(test_data, rssm, "results/test_rssm/eps", i + 1)
         if (i + 1) % 25 == 0:
-            torch.save(rssm.state_dict(), f"results/test_rssm/ckpt_{i+1}.pth")
+            torch.save(rssm.state_dict(), f"results/test_rssm/ckpt_{i + 1}.pth")
     if os.getenv("TRAIN_RSSM_DEBUG", "0") == "1":
         pdb.set_trace()
 

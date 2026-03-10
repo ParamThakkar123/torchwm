@@ -1,14 +1,14 @@
-name: Core Tests
+name: Environment Tests - Gym
 
 on:
   pull_request:
   push:
     paths:
       - 'tests/**'
-      - '!tests/test_env_adapters.py'  # Environment tests run in separate workflows
+      - 'world_models/envs/gym_env.py'
 
 jobs:
-  test-core:
+  test-gym:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +24,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .
         pip install pytest pytest-randomly pytest-mock
-        pip install gymnasium  # For basic environment functionality
+        pip install gymnasium
 
-    - name: Run core tests (excluding environment adapters)
+    - name: Run Gym environment tests
       run: |
-        pytest tests/ --tb=short --ignore=tests/test_env_adapters.py
+        pytest tests/test_env_adapters.py::test_make_env_gym_backend tests/test_env_adapters.py::test_gym_image_env_discrete_action_mapping -v

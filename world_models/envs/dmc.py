@@ -11,7 +11,6 @@ class DeepMindControlEnv:
     """
 
     def __init__(self, name, seed, size=(64, 64), camera=None):
-
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"

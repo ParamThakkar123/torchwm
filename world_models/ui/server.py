@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import base64
 import importlib
+import importlib.util
+import logging
+import os
 import sys
 import threading
 import time
 import traceback
 from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +19,9 @@ import numpy as np
 import torch
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from PIL import Image
 from pydantic import BaseModel, Field
 
 # Support both module paths:
@@ -39,11 +46,18 @@ from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
 from ..utils.utils import flatten_dict
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
-    "dreamer": {
-        "label": "DreamerAgent",
-        "description": "Model-based RL agent that learns a latent world model and policy.",
+    "dreamerv1": {
+        "label": "DreamerV1",
+        "description": "DreamerV1 - Model-based RL agent with latent world model.",
+    },
+    "dreamerv2": {
+        "label": "DreamerV2",
+        "description": "DreamerV2 - Improved Dreamer with discrete latent variables.",
     },
     "planet": {
         "label": "Planet",
@@ -71,12 +85,63 @@ PLANET_BASE_ENVS = [
     "Humanoid-v4",
 ]
 
+GYM_ENVS = [
+    "CartPole-v1",
+    "Pendulum-v1",
+    "MountainCarContinuous-v0",
+    "Acrobot-v1",
+    "HalfCheetah-v4",
+    "Humanoid-v4",
+    "Hopper-v4",
+    "Swimmer-v4",
+    "Walker2d-v4",
+    "Ant-v4",
+    "Reacher-v4",
+    "Pusher-v4",
+    "Manipulator-v4",
+]
+
+UNITY_ENVS = []
+
+ENV_BACKENDS: dict[str, dict[str, Any]] = {
+    "dm_control": {
+        "label": "DM Control",
+        "description": "DeepMind Control Suite",
+        "environments": DREAMER_ENVS,
+    },
+    "mujoco": {
+        "label": "MuJoCo",
+        "description": "MuJoCo physics environments",
+        "environments": GYM_ENVS,
+    },
+    "gym": {
+        "label": "Gym",
+        "description": "OpenAI Gym environments",
+        "environments": PLANET_BASE_ENVS,
+    },
+    "unity": {
+        "label": "Unity ML Agents",
+        "description": "Unity ML Agents environments",
+        "environments": UNITY_ENVS,
+    },
+}
+
 DEFAULT_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
-    "dreamer": {
+    "dreamerv1": {
         "seed": 1,
         "action_repeat": 2,
         "batch_size": 50,
         "train_seq_len": 50,
+        "algo": "Dreamerv1",
+        "env_backend": "dmc",
+    },
+    "dreamerv2": {
+        "seed": 1,
+        "action_repeat": 2,
+        "batch_size": 50,
+        "train_seq_len": 50,
+        "algo": "Dreamerv2",
+        "env_backend": "dmc",
     },
     "planet": {
         "bit_depth": 5,
@@ -86,7 +151,16 @@ DEFAULT_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
 }
 
 DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
-    "dreamer": {
+    "dreamerv1": {
+        "total_steps": 20000,
+        "seed_steps": 1000,
+        "update_steps": 50,
+        "collect_steps": 500,
+        "test_interval": 2000,
+        "test_episodes": 1,
+        "preview_eval_episodes": 1,
+    },
+    "dreamerv2": {
         "total_steps": 20000,
         "seed_steps": 1000,
         "update_steps": 50,
@@ -115,7 +189,8 @@ def _build_env_catalog() -> dict[str, list[str]]:
     except Exception:
         atari_envs = []
     return {
-        "dreamer": DREAMER_ENVS,
+        "dreamerv1": DREAMER_ENVS + GYM_ENVS,
+        "dreamerv2": DREAMER_ENVS + GYM_ENVS,
         "planet": PLANET_BASE_ENVS + atari_envs[:80],
     }
 
@@ -130,6 +205,7 @@ class LoadModelRequest(BaseModel):
 
 class LoadEnvironmentRequest(BaseModel):
     environment: str
+    backend: str = "dm_control"
     config: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -196,6 +272,56 @@ def _encode_frame_as_data_url(frame: Any) -> str | None:
     return f"data:image/png;base64,{raw}"
 
 
+def _encode_frames_as_gif(frames: list[np.ndarray], duration: int = 100) -> str | None:
+    if not frames or len(frames) == 0:
+        return None
+
+    try:
+        pil_frames = []
+        for arr in frames:
+            arr = np.asarray(arr)
+            if arr.ndim == 4:
+                arr = arr[-1]
+            if arr.shape[0] in (1, 3, 4) and arr.shape[-1] not in (1, 3, 4):
+                arr = np.transpose(arr, (1, 2, 0))
+            if arr.shape[-1] == 1:
+                arr = np.repeat(arr, 3, axis=-1)
+            elif arr.shape[-1] == 4:
+                arr = arr[..., :3]
+            elif arr.shape[-1] != 3:
+                continue
+
+            arr = arr.astype(np.float32)
+            mn, mx = float(arr.min()), float(arr.max())
+            if mn >= -0.6 and mx <= 0.6:
+                arr = (arr + 0.5) * 255.0
+            elif mn >= 0.0 and mx <= 1.0:
+                arr = arr * 255.0
+            arr = np.clip(arr, 0.0, 255.0).astype(np.uint8)
+
+            pil_frames.append(Image.fromarray(arr))
+
+        if not pil_frames:
+            return None
+
+        sample_interval = max(1, len(pil_frames) // 30)
+        sampled_frames = pil_frames[::sample_interval][:30]
+
+        buffer = BytesIO()
+        sampled_frames[0].save(
+            buffer,
+            format="GIF",
+            save_all=True,
+            append_images=sampled_frames[1:],
+            duration=duration,
+            loop=0,
+        )
+        raw = base64.b64encode(buffer.getvalue()).decode("ascii")
+        return f"data:image/gif;base64,{raw}"
+    except Exception:
+        return None
+
+
 def _reward_stats(values: Any, prefix: str) -> dict[str, float]:
     arr = np.asarray(values, dtype=np.float32).reshape(-1)
     if arr.size == 0:
@@ -231,14 +357,18 @@ class TrainingController:
 
         self._metrics: dict[str, list[dict[str, float]]] = defaultdict(list)
         self._latest_frame_data_url: str | None = None
+        self._latest_gif_data_url: str | None = None
 
         self._started_at: float | None = None
         self._finished_at: float | None = None
 
+        self._latest_metrics: dict[str, float] = {}
+
     def available_environments(self, model_name: str | None) -> list[str]:
         if model_name is None:
             merged = sorted(
-                set(ENVIRONMENTS_BY_MODEL["dreamer"])
+                set(ENVIRONMENTS_BY_MODEL["dreamerv1"])
+                | set(ENVIRONMENTS_BY_MODEL["dreamerv2"])
                 | set(ENVIRONMENTS_BY_MODEL["planet"])
             )
             return merged
@@ -266,9 +396,21 @@ class TrainingController:
             self._traceback = None
 
     def load_environment(
-        self, environment_name: str, config: dict[str, Any] | None = None
+        self,
+        environment_name: str,
+        backend: str = "dm_control",
+        config: dict[str, Any] | None = None,
     ) -> None:
         env = environment_name.strip()
+        backend_key = backend.strip().lower() if backend else "dm_control"
+
+        backend_to_env_type = {
+            "dm_control": "dmc",
+            "mujoco": "gym",
+            "gym": "gym",
+            "unity": "unity_mlagents",
+        }
+
         with self._lock:
             if self._is_running_locked():
                 raise RuntimeError(
@@ -281,9 +423,11 @@ class TrainingController:
                         f"Environment '{env}' is not valid for model '{self._model_name}'."
                     )
             self._environment_name = env
-            self._environment_config = dict(config or {})
+            merged_config = dict(config or {})
+            merged_config["env_backend"] = backend_to_env_type.get(backend_key, "gym")
+            self._environment_config = merged_config
             self._status = "idle"
-            self._message = f"Environment '{env}' loaded."
+            self._message = f"Environment '{env}' loaded (backend: {backend_key})."
             self._traceback = None
 
     def start_training(self, config: dict[str, Any] | None = None) -> None:
@@ -302,6 +446,7 @@ class TrainingController:
 
             self._metrics = defaultdict(list)
             self._latest_frame_data_url = None
+            self._latest_gif_data_url = None
             self._progress_current = 0
             self._progress_total = 1
             self._progress_unit = "steps"
@@ -361,7 +506,10 @@ class TrainingController:
 
     def snapshot_frame(self) -> dict[str, str | None]:
         with self._lock:
-            return {"image": self._latest_frame_data_url}
+            return {
+                "image": self._latest_frame_data_url,
+                "gif": self._latest_gif_data_url,
+            }
 
     def _is_running_locked(self) -> bool:
         return (
@@ -390,6 +538,7 @@ class TrainingController:
                 self._metrics[key].append(
                     {"step": float(step), "value": numeric, "timestamp": now}
                 )
+                self._latest_metrics[key] = numeric
                 if len(self._metrics[key]) > 3000:
                     self._metrics[key] = self._metrics[key][-3000:]
 
@@ -400,10 +549,16 @@ class TrainingController:
         with self._lock:
             self._latest_frame_data_url = encoded
 
+    def _set_gif(self, frames: list[Any]) -> None:
+        if not frames:
+            return
+        with self._lock:
+            self._latest_gif_data_url = _encode_frames_as_gif(frames)
+
     def _run_training(self) -> None:
         try:
             model_name = self._model_name
-            if model_name == "dreamer":
+            if model_name in ("dreamerv1", "dreamerv2"):
                 self._run_dreamer()
             elif model_name == "planet":
                 self._run_planet()
@@ -430,12 +585,22 @@ class TrainingController:
     def _run_dreamer(self) -> None:
         with self._lock:
             env_name = self._environment_name
-            model_cfg = dict(DEFAULT_MODEL_CONFIGS["dreamer"])
+            model_cfg = dict(DEFAULT_MODEL_CONFIGS[self._model_name])
             model_cfg.update(self._model_config)
+            model_cfg.update(self._environment_config)
             train_cfg = dict(self._training_config)
 
         if env_name is None:
             raise ValueError("Dreamer requires an environment.")
+
+        results_dir = str(
+            train_cfg.get(
+                "results_dir", Path("results") / f"ui_dreamer_{int(time.time())}"
+            )
+        )
+        Path(results_dir).mkdir(parents=True, exist_ok=True)
+        with self._lock:
+            self._results_dir = results_dir
 
         cfg = DreamerConfig()
         cfg.env = env_name
@@ -477,6 +642,31 @@ class TrainingController:
                 agent.train_env, collect_steps
             )
 
+            if global_step % 100 == 0:
+                try:
+                    obs = agent.test_env.reset()
+                    _, action = agent.dreamer.act_with_world_model(
+                        obs,
+                        agent.dreamer.rssm.init_state(1, agent.dreamer.device),
+                        torch.zeros(1, agent.dreamer.action_size).to(
+                            agent.dreamer.device
+                        ),
+                        explore=False,
+                    )
+                    action_np = action[0].cpu().numpy()
+                    next_obs, _, _, _ = agent.test_env.step(action_np)
+                    if isinstance(next_obs, dict) and "image" in next_obs:
+                        frame_img = next_obs["image"]
+                        if hasattr(frame_img, "shape"):
+                            if frame_img.shape[-1] == 3:
+                                self._set_frame(frame_img)
+                            elif frame_img.shape[0] == 3:
+                                self._set_frame(frame_img.transpose(1, 2, 0))
+                    elif hasattr(next_obs, "shape") and next_obs.shape[-1] == 3:
+                        self._set_frame(next_obs)
+                except Exception:
+                    pass
+
             logs: dict[str, Any] = {
                 "train/model_loss": model_loss,
                 "train/actor_loss": actor_loss,
@@ -484,7 +674,12 @@ class TrainingController:
             }
             logs.update(_reward_stats(train_rewards, "train"))
 
-            should_eval = global_step % max(1, int(cfg.test_interval)) == 0
+            self._append_metrics(global_step, logs)
+
+            eval_interval = max(1, int(cfg.test_interval))
+            should_eval = (global_step % eval_interval == 0) or (
+                global_step >= total_steps
+            )
             if should_eval:
                 eval_episodes = max(1, int(train_cfg.get("preview_eval_episodes", 1)))
                 eval_rewards, eval_videos = agent.dreamer.evaluate(
@@ -494,8 +689,9 @@ class TrainingController:
                 frame = self._extract_dreamer_preview_frame(eval_videos)
                 if frame is not None:
                     self._set_frame(frame)
+                    self._set_gif(self._extract_dreamer_preview_frames(eval_videos))
+                    self._save_preview_image(frame, global_step, results_dir)
 
-            self._append_metrics(global_step, logs)
             global_step = int(agent.dreamer.data_buffer.steps * cfg.action_repeat)
             self._set_progress(min(global_step, total_steps), total_steps, "steps")
 
@@ -618,16 +814,96 @@ class TrainingController:
         except Exception:
             return None
 
+    @staticmethod
+    def _extract_dreamer_preview_frames(videos: Any) -> list[np.ndarray]:
+        if videos is None:
+            return []
+
+        frames = []
+        try:
+            if isinstance(videos, np.ndarray) and videos.dtype != object:
+                if videos.ndim >= 5:
+                    for ep in videos[:1]:
+                        frames.extend([np.asarray(f) for f in ep])
+                elif videos.ndim == 4:
+                    frames = [np.asarray(f) for f in videos]
+            else:
+                first_video = videos[0]
+                if len(first_video) > 0:
+                    frames = [np.asarray(f) for f in first_video]
+        except Exception:
+            pass
+        return frames
+
+    def _save_preview_image(
+        self, frame: np.ndarray, step: int, results_dir: str | None
+    ) -> None:
+        if results_dir is None:
+            return
+        try:
+            preview_dir = Path(results_dir) / "previews"
+            preview_dir.mkdir(parents=True, exist_ok=True)
+            frame_path = preview_dir / f"step_{step:08d}.png"
+            if frame is not None:
+                arr = np.asarray(frame)
+                if arr.ndim == 3 and arr.shape[-1] == 3:
+                    cv2.imwrite(str(frame_path), cv2.cvtColor(arr, cv2.COLOR_RGB2BGR))
+        except Exception:
+            pass
+
 
 controller = TrainingController()
 app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
+
+cors_origins = [
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:*",
+    "http://localhost:*",
+    "https://torchwm.vercel.app",
+    "https://torchwm.onrender.com",
+    "file://",
+]
+
+if os.environ.get("ELECTRON_RUN") == "true":
+    cors_origins.extend(
+        [
+            "http://0.0.0.0:*",
+            "http://*",
+        ]
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DIST_DIR = BASE_DIR / "torchwm_ui" / "dist"
+
+if DIST_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(DIST_DIR)), name="static")
+
+
+@app.get("/")
+def serve_index():
+    if DIST_DIR.exists():
+        index_path = DIST_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+    return {"error": "Frontend not found"}
+
+
+@app.head("/")
+def serve_index_head():
+    if DIST_DIR.exists():
+        index_path = DIST_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+    return {"error": "Frontend not found"}
 
 
 @app.get("/api/health")
@@ -640,13 +916,21 @@ def catalog() -> dict[str, Any]:
     return {
         "models": SUPPORTED_MODELS,
         "environments_by_model": ENVIRONMENTS_BY_MODEL,
+        "env_backends": ENV_BACKENDS,
         "default_model_configs": DEFAULT_MODEL_CONFIGS,
         "default_training_configs": DEFAULT_TRAINING_CONFIGS,
     }
 
 
 @app.get("/api/environments")
-def environments(model: str | None = Query(default=None)) -> dict[str, Any]:
+def environments(
+    model: str | None = Query(default=None), backend: str | None = Query(default=None)
+) -> dict[str, Any]:
+    if backend and backend in ENV_BACKENDS:
+        return {
+            "backend": backend,
+            "items": ENV_BACKENDS[backend].get("environments", []),
+        }
     try:
         items = controller.available_environments(model)
     except ValueError as exc:
@@ -656,27 +940,37 @@ def environments(model: str | None = Query(default=None)) -> dict[str, Any]:
 
 @app.post("/api/load-model")
 def load_model(payload: LoadModelRequest) -> dict[str, Any]:
+    logger.info(f"load_model called: model={payload.model}, config={payload.config}")
     try:
         controller.load_model(payload.model, payload.config)
-    except (ValueError, RuntimeError) as exc:
+    except Exception as exc:
+        logger.error(f"load_model failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
 
 @app.post("/api/load-environment")
 def load_environment(payload: LoadEnvironmentRequest) -> dict[str, Any]:
+    logger.info(
+        f"load_environment called: env={payload.environment}, backend={payload.backend}"
+    )
     try:
-        controller.load_environment(payload.environment, payload.config)
-    except (ValueError, RuntimeError) as exc:
+        controller.load_environment(
+            payload.environment, payload.backend, payload.config
+        )
+    except Exception as exc:
+        logger.error(f"load_environment failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
 
 @app.post("/api/train/start")
 def start_training(payload: StartTrainingRequest) -> dict[str, Any]:
+    logger.info(f"start_training called: config={payload.config}")
     try:
         controller.start_training(payload.config)
-    except (ValueError, RuntimeError) as exc:
+    except Exception as exc:
+        logger.error(f"start_training failed: {exc}", exc_info=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return controller.snapshot_state()
 
@@ -700,3 +994,62 @@ def metrics(limit: int = Query(default=400, ge=1, le=5000)) -> dict[str, Any]:
 @app.get("/api/frame")
 def frame() -> dict[str, str | None]:
     return controller.snapshot_frame()
+
+
+TRAINING_DEPENDENCIES = [
+    {"name": "torch", "label": "PyTorch", "required": True},
+    {"name": "numpy", "label": "NumPy", "required": True},
+    {"name": "einops", "label": "EinOps", "required": True},
+    {"name": "cv2", "label": "OpenCV", "required": True},
+    {"name": "PIL", "label": "Pillow", "required": True},
+    {"name": "gym", "label": "Gym", "required": True},
+    {"name": "gymnasium", "label": "Gymnasium", "required": True},
+    {"name": "dm_control", "label": "DM Control", "required": False},
+    {"name": "mujoco", "label": "MuJoCo", "required": False},
+    {"name": "ale_py", "label": "ALE Py", "required": False},
+    {"name": "mlagents", "label": "ML Agents", "required": False},
+    {"name": "tensorboard", "label": "TensorBoard", "required": False},
+]
+
+
+def _check_dependency(name: str) -> bool:
+    try:
+        if name == "cv2":
+            importlib.import_module("cv2")
+        elif name == "PIL":
+            importlib.import_module("PIL")
+        elif name == "gym":
+            importlib.import_module("gym")
+        elif name == "gymnasium":
+            importlib.import_module("gymnasium")
+        elif name == "dm_control":
+            importlib.import_module("dm_control")
+        elif name == "mujoco":
+            importlib.import_module("mujoco")
+        elif name == "ale_py":
+            importlib.import_module("ale_py")
+        elif name == "mlagents":
+            importlib.import_module("mlagents_envs")
+        elif name == "tensorboard":
+            importlib.import_module("tensorboard")
+        else:
+            importlib.import_module(name)
+        return True
+    except ImportError:
+        return False
+
+
+@app.get("/api/dependencies")
+def get_dependencies() -> dict[str, Any]:
+    deps = []
+    for dep in TRAINING_DEPENDENCIES:
+        installed = _check_dependency(dep["name"])
+        deps.append(
+            {
+                "name": dep["name"],
+                "label": dep["label"],
+                "required": dep["required"],
+                "installed": installed,
+            }
+        )
+    return {"dependencies": deps}

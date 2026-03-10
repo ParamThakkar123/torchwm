@@ -1,5 +1,16 @@
 import type { CatalogResponse, FrameResponse, MetricsResponse, StateResponse } from "./types";
 
+export interface Dependency {
+  name: string;
+  label: string;
+  required: boolean;
+  installed: boolean;
+}
+
+export interface DependenciesResponse {
+  dependencies: Dependency[];
+}
+
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -51,11 +62,12 @@ export function loadModel(model: string, config: Record<string, unknown>): Promi
 
 export function loadEnvironment(
   environment: string,
-  config: Record<string, unknown>
+  backend: string = "dm_control",
+  config: Record<string, unknown> = {}
 ): Promise<StateResponse> {
   return request<StateResponse>("/api/load-environment", {
     method: "POST",
-    body: JSON.stringify({ environment, config })
+    body: JSON.stringify({ environment, backend, config })
   });
 }
 
@@ -70,4 +82,8 @@ export function stopTraining(): Promise<{ stop_requested: boolean } & StateRespo
   return request<{ stop_requested: boolean } & StateResponse>("/api/train/stop", {
     method: "POST"
   });
+}
+
+export function fetchDependencies(): Promise<DependenciesResponse> {
+  return request<DependenciesResponse>("/api/dependencies");
 }

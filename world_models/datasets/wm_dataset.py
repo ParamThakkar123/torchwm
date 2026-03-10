@@ -109,16 +109,26 @@ class RolloutDataset(Dataset):
         self.root = root
         self.transform = transform
         self.files = glob.glob(self.root + "/**/*.npz", recursive=True)
-        if train:
-            self.files = self.files[:-num_test_files]
+        if len(self.files) > num_test_files:
+            if train:
+                self.files = self.files[:-num_test_files]
+            else:
+                self.files = self.files[-num_test_files:]
         else:
-            self.files = self.files[-num_test_files:]
+            # If not enough files, use all for training, none for test
+            if not train:
+                self.files = []
 
-        self.cum_size = None
-        self.buffer = None
+        self.cum_size = [0]
+        for f in self.files:
+            with np.load(f) as data:
+                size = len(data["observations"])
+            self.cum_size.append(self.cum_size[-1] + size)
+
+        self.buffer = [None] * len(self.files)
         self.buffer_size = buffer_size
         self.buffer_idx = 0
-        self.buffer_fnames = None
+        self.buffer_fnames = [None] * len(self.files)
 
     def __len__(self):
         """Get the total number of samples in the dataset.
@@ -126,9 +136,6 @@ class RolloutDataset(Dataset):
         Returns:
             int: Total number of samples across all rollouts.
         """
-        if not self.cum_size:
-            print("Load new buffer")
-            self.load_next_buffer()
         return self.cum_size[-1]
 
     def __getitem__(self, idx: int):
@@ -140,8 +147,11 @@ class RolloutDataset(Dataset):
         Returns:
             Tuple of (observation, action, reward, terminal) tensors.
         """
-        file_idx = bisect(self.cum_size, idx)
+        file_idx = bisect(self.cum_size, idx) - 1
         seq_idx = idx - self.cum_size[file_idx]
+        if self.buffer[file_idx] is None:
+            self.buffer[file_idx] = np.load(self.files[file_idx])
+            self.buffer_fnames[file_idx] = self.files[file_idx]
         data = self.buffer[file_idx]
         return self._get_data(data, seq_idx)
 
@@ -178,7 +188,6 @@ class RolloutDataset(Dataset):
         """
         if self.buffer is None:
             self.buffer = [None] * len(self.files)
-            self.cum_size = [0]
             self.buffer_fnames = [None] * len(self.files)
 
         start_idx = self.buffer_idx
@@ -190,10 +199,6 @@ class RolloutDataset(Dataset):
                 self.buffer_fnames[i] = self.files[i]
 
         self.buffer_idx = end_idx % len(self.files)
-
-        sizes = [len(self.buffer[i]["observations"]) for i in range(start_idx, end_idx)]
-        for s in sizes:
-            self.cum_size.append(self.cum_size[-1] + s)
 
 
 class ObservationDataset(RolloutDataset):
@@ -225,7 +230,7 @@ class ObservationDataset(RolloutDataset):
         if self.transform:
             transformed = self.transform(image=obs)
             obs = transformed["image"]
-        obs = torch.tensor(obs).float()
+        obs = torch.tensor(obs).permute(2, 0, 1).float()
         obs = obs / 255.0
         return obs
 

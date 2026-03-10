@@ -50,10 +50,23 @@ cfg.image_folder = "train"
 cfg.epochs = 10
 
 agent = JEPAAgent(cfg)
-agent.train()
-```
+## Quick Start: World Model Training
 
-## Environment Backends
+Train a complete world model pipeline (VAE + MDNRNN + Controller) on any Gym environment:
+
+```bash
+# Train on CarRacing
+python -m world_models.training.train_world_model --env CarRacing-v2
+
+# Train on Pendulum
+python -m world_models.training.train_world_model --env Pendulum-v1
+
+# Test trained model
+python -m world_models.training.train_world_model --env CarRacing-v2 --test
+
+# Specify action size manually for environments with missing dependencies
+python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
+```
 
 Dreamer supports multiple backends through `DreamerConfig.env_backend`:
 

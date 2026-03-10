@@ -10,8 +10,8 @@ from os.path import join, exists
 import torch
 import torch.utils.data
 from torch import optim
-from torchvision import transforms
 from torchvision.utils import save_image
+import albumentations as A
 from world_models.datasets.wm_dataset import ObservationDataset
 from world_models.vision.VAE.ConvVAE import ConvVAE
 from world_models.configs.wm_config import WMVAEConfig
@@ -50,7 +50,6 @@ def test_epoch(model, test_loader, device, loss_fn):
     with torch.no_grad():
         for data in test_loader:
             data = data.to(device)
-            data = torch.transpose(data, 1, 3)
             recon, mu, logvar = model(data)
             test_loss += loss_fn(recon, data, mu, logvar).item()
 
@@ -90,7 +89,6 @@ def train_epoch(
 
     for batch_idx, data in enumerate(train_loader):
         data = data.to(device)
-        data = torch.transpose(data, 1, 3)
         optimizer.zero_grad()
 
         if use_amp:
@@ -181,20 +179,16 @@ def train_convae(config: WMVAEConfig) -> None:
             scheduler.load_state_dict(state["scheduler"])
             earlystopping.load_state_dict(state["earlystopping"])
 
-    transform_train = transforms.Compose(
+    transform_train = A.Compose(
         [
-            transforms.ToPILImage(),
-            transforms.Resize((RED_SIZE, RED_SIZE)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
+            A.Resize(height=RED_SIZE, width=RED_SIZE),
+            A.HorizontalFlip(p=0.5),
         ]
     )
 
-    transform_test = transforms.Compose(
+    transform_test = A.Compose(
         [
-            transforms.ToPILImage(),
-            transforms.Resize((RED_SIZE, RED_SIZE)),
-            transforms.ToTensor(),
+            A.Resize(height=RED_SIZE, width=RED_SIZE),
         ]
     )
 

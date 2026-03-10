@@ -7,6 +7,7 @@ This script trains a complete World Model pipeline consisting of:
 
 Usage:
     python train_world_model.py --env CarRacing-v2 --data_dir ./data --logdir ./results
+    python train_world_model.py --env BipedalWalker-v3 --action_size 4  # if env loading fails
 
 The script will:
 1. Generate rollout data (if not already present)
@@ -21,6 +22,8 @@ import numpy as np
 import multiprocessing as mp
 from glob import glob
 from tqdm import tqdm
+
+import uuid
 
 import gymnasium as gym
 import torch
@@ -60,15 +63,22 @@ def generate_rollouts(
 
     print(f"Generating {num_rollouts} rollouts with {num_workers} workers...")
 
-    rollouts_per_worker = num_rollouts // num_workers
-    args = [
-        (data_dir, env_name, seq_len, rollouts_per_worker) for _ in range(num_workers)
-    ]
+    try:
+        rollouts_per_worker = num_rollouts // num_workers
+        args = [
+            (data_dir, env_name, seq_len, rollouts_per_worker)
+            for _ in range(num_workers)
+        ]
 
-    with mp.Pool(num_workers) as pool:
-        list(tqdm(pool.imap(_generate_worker, args), total=num_workers))
+        with mp.Pool(num_workers) as pool:
+            list(tqdm(pool.imap(_generate_worker, args), total=num_workers))
 
-    print(f"Generated rollouts in {data_dir}")
+        print(f"Generated rollouts in {data_dir}")
+
+    except KeyboardInterrupt:
+        print("\nData generation interrupted by user (Ctrl+C)")
+        print("Partial rollouts may have been saved.")
+        raise
 
 
 def _generate_worker(args):
@@ -104,7 +114,7 @@ def _generate_worker(args):
             if len(observations) < 10:
                 continue
 
-            filepath = os.path.join(data_dir, f"rollout_{np.random.randint(1e10)}.npz")
+            filepath = os.path.join(data_dir, f"rollout_{uuid.uuid4().hex[:8]}.npz")
             np.savez(
                 filepath,
                 observations=np.array(observations, dtype=np.uint8),
@@ -122,158 +132,178 @@ def _generate_worker(args):
 def run_training_pipeline(args, action_size):
     """Execute the complete World Model training pipeline."""
 
-    vae_config = WMVAEConfig(
-        {
-            "height": 64,
-            "width": 64,
-            "latent_size": args.latent_size,
-            "device": args.device,
-            "train_batch_size": args.vae_batch_size,
-            "num_epochs": args.vae_epochs,
-            "data_dir": args.data_dir,
-            "learning_rate": args.vae_lr,
-            "logdir": args.logdir,
-            "noreload": args.noreload,
-            "nosamples": args.nosamples,
-        }
-    )
-
-    mdrnn_config = WMMDNRNNConfig(
-        {
-            "latent_size": args.latent_size,
-            "action_size": action_size,
-            "hidden_size": args.rnn_hidden,
-            "gmm_components": args.gmm_components,
-            "device": args.device,
-            "batch_size": args.rnn_batch_size,
-            "seq_len": args.seq_len,
-            "num_epochs": args.rnn_epochs,
-            "data_dir": args.data_dir,
-            "learning_rate": args.rnn_lr,
-            "logdir": args.logdir,
-            "noreload": args.noreload,
-            "include_reward": True,
-        }
-    )
-
-    ctrl_config = WMControllerConfig(
-        {
-            "latent_size": args.latent_size,
-            "hidden_size": args.rnn_hidden,
-            "action_size": action_size,
-            "logdir": args.logdir,
-            "n_samples": args.ctrl_samples,
-            "pop_size": args.ctrl_pop_size,
-            "target_return": args.ctrl_target,
-            "max_workers": args.ctrl_workers,
-            "display": True,
-            "time_limit": args.ctrl_time_limit,
-        }
-    )
-
-    if args.stage in ["all", "vae"]:
-        print("\n" + "=" * 50)
-        print("STAGE 1: Training ConvVAE")
-        print("=" * 50)
-        train_convae(vae_config)
-
-    if args.stage in ["all", "rnn"]:
-        print("\n" + "=" * 50)
-        print("STAGE 2: Training MDNRNN")
-        print("=" * 50)
-        use_precomputed = getattr(args, "precompute_latents", True)
-        use_amp = getattr(args, "use_amp", True)
-        train_mdn_rnn(
-            vae_config,
-            mdrnn_config,
-            use_precomputed_latents=use_precomputed,
-            use_amp=use_amp,
+    try:
+        vae_config = WMVAEConfig(
+            {
+                "height": 64,
+                "width": 64,
+                "latent_size": args.latent_size,
+                "device": args.device,
+                "train_batch_size": args.vae_batch_size,
+                "num_epochs": args.vae_epochs,
+                "data_dir": args.data_dir,
+                "learning_rate": args.vae_lr,
+                "logdir": args.logdir,
+                "noreload": args.noreload,
+                "nosamples": args.nosamples,
+            }
         )
 
-    if args.stage in ["all", "ctrl"]:
-        print("\n" + "=" * 50)
-        print("STAGE 3: Training Controller")
-        print("=" * 50)
-        train_controller(ctrl_config)
+        mdrnn_config = WMMDNRNNConfig(
+            {
+                "latent_size": args.latent_size,
+                "action_size": action_size,
+                "hidden_size": args.rnn_hidden,
+                "gmm_components": args.gmm_components,
+                "device": args.device,
+                "batch_size": args.rnn_batch_size,
+                "seq_len": args.seq_len,
+                "num_epochs": args.rnn_epochs,
+                "data_dir": args.data_dir,
+                "learning_rate": args.rnn_lr,
+                "logdir": args.logdir,
+                "noreload": args.noreload,
+                "include_reward": True,
+            }
+        )
 
-    print("\n" + "=" * 50)
-    print("Training Complete!")
-    print("=" * 50)
+        ctrl_config = WMControllerConfig(
+            {
+                "latent_size": args.latent_size,
+                "hidden_size": args.rnn_hidden,
+                "action_size": action_size,
+                "logdir": args.logdir,
+                "n_samples": args.ctrl_samples,
+                "pop_size": args.ctrl_pop_size,
+                "target_return": args.ctrl_target,
+                "max_workers": args.ctrl_workers,
+                "display": True,
+                "time_limit": args.ctrl_time_limit,
+            }
+        )
+
+        if args.stage in ["all", "vae"]:
+            print("\n" + "=" * 50)
+            print("STAGE 1: Training ConvVAE")
+            print("=" * 50)
+            train_convae(vae_config)
+
+        if args.stage in ["all", "rnn"]:
+            print("\n" + "=" * 50)
+            print("STAGE 2: Training MDNRNN")
+            print("=" * 50)
+            use_precomputed = getattr(args, "precompute_latents", True)
+            use_amp = getattr(args, "use_amp", True)
+            train_mdn_rnn(
+                vae_config,
+                mdrnn_config,
+                use_precomputed_latents=use_precomputed,
+                use_amp=use_amp,
+            )
+
+        if args.stage in ["all", "ctrl"]:
+            print("\n" + "=" * 50)
+            print("STAGE 3: Training Controller")
+            print("=" * 50)
+            train_controller(ctrl_config)
+
+        print("\n" + "=" * 50)
+        print("Training Complete!")
+        print("=" * 50)
+
+    except KeyboardInterrupt:
+        print("\n" + "=" * 50)
+        print("Training interrupted by user (Ctrl+C)")
+        print("Partial checkpoints may have been saved.")
+        print("You can resume training later with --noreload=False")
+        print("=" * 50)
+        raise  # Re-raise to exit
 
 
 def test_trained_model(logdir, env_name, action_size, num_episodes=5):
     """Test the trained world model with controller in the environment."""
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    vae_file = os.path.join(logdir, "vae", "best.tar")
-    rnn_file = os.path.join(logdir, "mdrnn", "best.tar")
-    ctrl_file = os.path.join(logdir, "ctrl", "best.tar")
-
-    for f in [vae_file, rnn_file, ctrl_file]:
-        if not os.path.exists(f):
-            print(f"Missing: {f}")
-            return
-
-    print("\nLoading trained models...")
-
-    vae_state = torch.load(vae_file, map_location=device)
-    vae = ConvVAE(img_channels=3, latent_size=32).to(device)
-    vae.load_state_dict(vae_state["state_dict"])
-    vae.eval()
-
-    rnn_state = torch.load(rnn_file, map_location=device)
-    rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5).to(device)
-    rnn.load_state_dict(rnn_state["state_dict"])
-    rnn.eval()
-
-    ctrl_state = torch.load(ctrl_file, map_location=device)
-    ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
-    ctrl.load_state_dict(ctrl_state["state_dict"])
-    ctrl.eval()
-
     try:
-        env = gym.make(env_name, continuous=True)
-    except Exception:
-        env = gym.make(env_name)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    env = GymImageEnv(env=env, size=(64, 64))
+        vae_file = os.path.join(logdir, "vae", "best.tar")
+        rnn_file = os.path.join(logdir, "mdrnn", "best.tar")
+        ctrl_file = os.path.join(logdir, "ctrl", "best.tar")
 
-    print(f"\nRunning {num_episodes} episodes...")
+        for f in [vae_file, rnn_file, ctrl_file]:
+            if not os.path.exists(f):
+                print(f"Missing: {f}")
+                return
 
-    for episode in range(num_episodes):
-        obs, _ = env.reset()
-        total_reward = 0
-        h = torch.zeros(1, 256).to(device)
+        print("\nLoading trained models...")
 
-        for step in range(1000):
-            with torch.no_grad():
-                obs_tensor = torch.tensor(obs["image"]).float().unsqueeze(0).to(device)
-                obs_tensor = torch.nn.functional.interpolate(
-                    obs_tensor, size=64, mode="bilinear", align_corners=True
-                )
-                obs_tensor = obs_tensor / 255.0
-                obs_tensor = obs_tensor.permute(0, 2, 3, 1)
+        vae_state = torch.load(vae_file, map_location=device)
+        vae = ConvVAE(img_channels=3, latent_size=32).to(device)
+        vae.load_state_dict(vae_state["state_dict"])
+        vae.eval()
 
-                mu, logsigma = vae.encoder(obs_tensor)
-                z = mu + logsigma.exp() * torch.randn_like(logsigma)
+        rnn_state = torch.load(rnn_file, map_location=device)
+        rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5).to(
+            device
+        )
+        rnn.load_state_dict(rnn_state["state_dict"])
+        rnn.eval()
 
-                action = ctrl(h, z).cpu().numpy().flatten()
+        ctrl_state = torch.load(ctrl_file, map_location=device)
+        ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
+        ctrl.load_state_dict(ctrl_state["state_dict"])
+        ctrl.eval()
 
-                mus, sigmas, logpi, _, _ = rnn(action, z)
-                h = rnn.get_init_hidden(1)
-                h = h + torch.randn_like(h) * 0.1
+        try:
+            env = gym.make(env_name, continuous=True)
+        except Exception:
+            env = gym.make(env_name)
 
-                next_obs, reward, done, _ = env.step(action)
-                total_reward += reward
-                obs = next_obs
+        env = GymImageEnv(env=env, size=(64, 64))
 
-                if done:
-                    break
+        print(f"\nRunning {num_episodes} episodes...")
 
-        print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")
+        for episode in range(num_episodes):
+            obs, _ = env.reset()
+            total_reward = 0
+            h = torch.zeros(1, 256).to(device)
 
-    env.close()
+            for step in range(1000):
+                with torch.no_grad():
+                    obs_tensor = (
+                        torch.tensor(obs["image"]).float().unsqueeze(0).to(device)
+                    )
+                    obs_tensor = torch.nn.functional.interpolate(
+                        obs_tensor, size=64, mode="bilinear", align_corners=True
+                    )
+                    obs_tensor = obs_tensor / 255.0
+                    obs_tensor = obs_tensor.permute(0, 2, 3, 1)
+
+                    mu, logsigma = vae.encoder(obs_tensor)
+                    z = mu + logsigma.exp() * torch.randn_like(logsigma)
+
+                    action = ctrl(h, z).cpu().numpy().flatten()
+
+                    mus, sigmas, logpi, _, _ = rnn(action, z)
+                    h = rnn.get_init_hidden(1)
+                    h = h + torch.randn_like(h) * 0.1
+
+                    next_obs, reward, done, _ = env.step(action)
+                    total_reward += reward
+                    obs = next_obs
+
+                    if done:
+                        break
+
+            print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")
+
+        env.close()
+
+    except KeyboardInterrupt:
+        print("\nTesting interrupted by user (Ctrl+C)")
+        if "env" in locals():
+            env.close()
+        raise
 
 
 def main():
@@ -360,7 +390,16 @@ def main():
         help="Target return to stop training",
     )
     parser.add_argument(
-        "--ctrl_time_limit", type=int, default=1000, help="Max steps per episode"
+        "--ctrl_time_limit",
+        type=int,
+        default=1000,
+        help="Max steps per episode for controller training",
+    )
+    parser.add_argument(
+        "--action_size",
+        type=int,
+        default=None,
+        help="Action space size (determined automatically if not provided)",
     )
 
     parser.add_argument(
@@ -403,17 +442,33 @@ def main():
     if args.logdir is None:
         args.logdir = f"./results/{args.env.replace('-', '_').lower()}"
 
-    # Determine action size from environment
-    try:
-        temp_env = gym.make(args.env, continuous=True)
-    except Exception:
-        temp_env = gym.make(args.env)
-
-    if hasattr(temp_env.action_space, "shape"):
-        action_size = temp_env.action_space.shape[0]
+    # Determine action size from environment or argument
+    if args.action_size is not None:
+        action_size = args.action_size
     else:
-        action_size = temp_env.action_space.n
-    temp_env.close()
+        try:
+            try:
+                temp_env = gym.make(args.env, continuous=True)
+            except Exception:
+                temp_env = gym.make(args.env)
+
+            if hasattr(temp_env.action_space, "shape"):
+                action_size = temp_env.action_space.shape[0]
+            else:
+                action_size = temp_env.action_space.n
+            temp_env.close()
+        except Exception as e:
+            print(
+                f"Failed to load environment '{args.env}' to determine action size: {e}"
+            )
+            print("Please ensure the environment and its dependencies are installed.")
+            print(
+                "For example, for Box2D environments, run: pip install 'gymnasium[box2d]'"
+            )
+            print("Alternatively, specify --action_size manually.")
+            import sys
+
+            sys.exit(1)
 
     if args.test:
         vae_file = os.path.join(args.logdir, "vae", "best.tar")

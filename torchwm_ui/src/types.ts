@@ -1,6 +1,7 @@
 export interface CatalogResponse {
   models: Record<string, { label: string; description: string }>;
   environments_by_model: Record<string, string[]>;
+  env_backends: Record<string, { label: string; description: string; environments: string[] }>;
   default_model_configs: Record<string, Record<string, unknown>>;
   default_training_configs: Record<string, Record<string, unknown>>;
 }
@@ -34,4 +35,12 @@ export interface MetricsResponse {
 
 export interface FrameResponse {
   image: string | null;
+  gif: string | null;
+}
+
+export interface Dependency {
+  name: string;
+  label: string;
+  required: boolean;
+  installed: boolean;
 }

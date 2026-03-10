@@ -73,3 +73,13 @@ class DreamerConfig:
         self.restore = False
         self.experience_replay = ""
         self.render = False
+
+        # Logging options
+        self.enable_wandb = False
+        self.wandb_api_key = (
+            ""  # Required if enable_wandb is True (anonymous logins not supported)
+        )
+        self.wandb_project = "torchwm"
+        self.wandb_entity = ""
+        self.enable_tensorboard = True
+        self.log_dir = "runs"

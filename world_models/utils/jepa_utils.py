@@ -4,6 +4,11 @@ from logging import getLogger
 import os
 import torch.distributed as dist
 
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
 logger = getLogger()
 
 
@@ -155,25 +160,57 @@ def gpu_timer(closure, log_timings=True):
 
 
 class CSVLogger(object):
-    """Lightweight CSV logger with per-column printf-style formatting."""
+    """Lightweight CSV logger with per-column printf-style formatting and WandB support."""
 
-    def __init__(self, fname, *argv):
+    def __init__(
+        self,
+        fname,
+        enable_wandb=False,
+        wandb_api_key="",
+        wandb_project="torchwm",
+        wandb_entity="",
+        *argv,
+    ):
         self.fname = fname
         self.types = []
+        self.names = []
+        self.enable_wandb = enable_wandb
+        self._wandb_run = None
+
+        if self.enable_wandb:
+            if not wandb_api_key:
+                raise ValueError("WandB API key is required when enable_wandb is True")
+            if wandb is None:
+                raise ImportError("wandb is not installed")
+            os.environ["WANDB_API_KEY"] = wandb_api_key
+            self._wandb_run = wandb.init(
+                project=wandb_project,
+                entity=wandb_entity,
+                dir=os.path.dirname(fname),
+                name=os.path.basename(fname).replace(".csv", ""),
+            )
 
         with open(self.fname, "+a") as f:
             for i, v in enumerate(argv, 1):
                 self.types.append(v[0])
+                self.names.append(v[1])
                 if i < len(argv):
                     print(v[1], end=",", file=f)
                 else:
                     print(v[1], end="\n", file=f)
 
-    def log(self, *argv):
+    def log(self, step, *argv):
         with open(self.fname, "+a") as f:
             for i, tv in enumerate(zip(self.types, argv), 1):
                 end = "," if i < len(argv) else "\n"
                 print(tv[0] % tv[1], end=end, file=f)
+
+        # Log to WandB
+        if self.enable_wandb and self._wandb_run:
+            log_dict = {}
+            for name, value in zip(self.names, argv):
+                log_dict[name] = value
+            self._wandb_run.log(log_dict, step=step)
 
 
 class AverageMeter(object):

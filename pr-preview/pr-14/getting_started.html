@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-14/getting_started.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
-<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
+<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Dreamer supports multiple backends through DreamerConfig.env_backend: dmc: ..." />
+<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Dreamer supports multiple backends through DreamerConfig.env_backend: dmc: ..." />
 
     <title>Getting Started &#8212; TorchWM 0.2.1 documentation</title>
   
@@ -412,12 +412,24 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">10</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">JEPAAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="c1">## Quick Start: World Model Training</span>
+
+<span class="n">Train</span> <span class="n">a</span> <span class="n">complete</span> <span class="n">world</span> <span class="n">model</span> <span class="n">pipeline</span> <span class="p">(</span><span class="n">VAE</span> <span class="o">+</span> <span class="n">MDNRNN</span> <span class="o">+</span> <span class="n">Controller</span><span class="p">)</span> <span class="n">on</span> <span class="nb">any</span> <span class="n">Gym</span> <span class="n">environment</span><span class="p">:</span>
+
+<span class="err">```</span><span class="n">bash</span>
+<span class="c1"># Train on CarRacing</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">world_models</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">train_world_model</span> <span class="o">--</span><span class="n">env</span> <span class="n">CarRacing</span><span class="o">-</span><span class="n">v2</span>
+
+<span class="c1"># Train on Pendulum</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">world_models</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">train_world_model</span> <span class="o">--</span><span class="n">env</span> <span class="n">Pendulum</span><span class="o">-</span><span class="n">v1</span>
+
+<span class="c1"># Test trained model</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">world_models</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">train_world_model</span> <span class="o">--</span><span class="n">env</span> <span class="n">CarRacing</span><span class="o">-</span><span class="n">v2</span> <span class="o">--</span><span class="n">test</span>
+
+<span class="c1"># Specify action size manually for environments with missing dependencies</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">world_models</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">train_world_model</span> <span class="o">--</span><span class="n">env</span> <span class="n">BipedalWalker</span><span class="o">-</span><span class="n">v3</span> <span class="o">--</span><span class="n">action_size</span> <span class="mi">4</span>
 </pre></div>
 </div>
-</section>
-<section id="environment-backends">
-<h2>Environment Backends<a class="headerlink" href="#environment-backends" title="Link to this heading">#</a></h2>
 <p>Dreamer supports multiple backends through <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">dmc</span></code>: DeepMind Control Suite tasks (for example <code class="docutils literal notranslate"><span class="pre">walker-walk</span></code>)</p></li>
@@ -494,7 +506,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-jepa">Quick Start: JEPA</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-training-flow">Typical Training Flow</a></li>
 </ul>
   </nav></div>

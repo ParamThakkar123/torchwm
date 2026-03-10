@@ -1,4 +1,4 @@
-name: Core Tests
+name: Environment Tests - DMC
 
 permissions:
   contents: read
@@ -8,10 +8,10 @@ on:
   push:
     paths:
       - 'tests/**'
-      - '!tests/test_env_adapters.py'  # Environment tests run in separate workflows
+      - 'world_models/envs/dmc.py'
 
 jobs:
-  test-core:
+  test-dmc:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +22,21 @@ jobs:
       with:
         python-version: '3.13'
 
+    - name: Enable universe repository
+      run: sudo add-apt-repository universe -y
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libosmesa6-dev libgl1-mesa-dri libglfw3
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e .
         pip install pytest pytest-randomly pytest-mock
-        pip install gymnasium  # For basic environment functionality
+        pip install dm-control
 
-    - name: Run core tests (excluding environment adapters)
+    - name: Run DMC environment tests
       run: |
-        pytest tests/ --tb=short --ignore=tests/test_env_adapters.py
+        pytest tests/test_env_adapters.py::test_make_env_dmc_backend -v

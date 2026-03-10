@@ -21,7 +21,6 @@ class ConvEncoder(nn.Module):
     """
 
     def __init__(self, input_shape, embed_size, activation, depth=32):
-
         super().__init__()
 
         self.input_shape = input_shape

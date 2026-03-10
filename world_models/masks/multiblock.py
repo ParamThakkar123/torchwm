@@ -129,7 +129,6 @@ class MaskCollator(object):
         min_keep_pred = self.height * self.width
         min_keep_enc = self.height * self.width
         for _ in range(B):
-
             masks_p, masks_C = [], []
             for _ in range(self.npred):
                 mask, mask_C = self._sample_block_mask(p_size)

@@ -224,7 +224,7 @@ def copy_imgnt_locally(
                 start_time = time.time()
                 logger.info(f"Executing {cmnd}")
                 subprocess.run(cmnd)
-                logger.info(f"Cmnd took {(time.time()-start_time)/60.} min.")
+                logger.info(f"Cmnd took {(time.time() - start_time) / 60.0} min.")
             with open(tmp_sgnl_file, "+w") as f:
                 print("Done copying locally.", file=f)
         else:

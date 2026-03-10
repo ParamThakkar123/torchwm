@@ -43,6 +43,7 @@ class TestDreamerAgent:
     @patch("world_models.models.dreamer.Logger")
     def test_train(self, mock_logger, mock_make_env, config):
         config.total_steps = 10  # Shorten for test
+        config.seed_steps = 0  # Start with 0 steps
         mock_env = Mock()
         mock_obs_space = Mock()
         mock_obs_space.shape = (3, 64, 64)
@@ -55,9 +56,14 @@ class TestDreamerAgent:
         agent = DreamerAgent(config)
         agent.dreamer.collect_random_episodes = Mock(return_value=np.array([1.0]))
         agent.dreamer.train_one_batch = Mock(return_value=(0.1, 0.2, 0.3))
-        agent.dreamer.act_and_collect_data = Mock(return_value=np.array([2.0]))
+
+        def mock_act_and_collect(*args, **kwargs):
+            agent.dreamer.data_buffer.steps += 1
+            return np.array([2.0])
+
+        agent.dreamer.act_and_collect_data = Mock(side_effect=mock_act_and_collect)
         agent.dreamer.evaluate = Mock(return_value=(np.array([3.0]), np.array([])))
-        agent.dreamer.data_buffer.steps = 1
+        agent.dreamer.data_buffer.steps = 0
 
         agent.train(total_steps=10)
 

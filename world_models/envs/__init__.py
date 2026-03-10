@@ -15,6 +15,7 @@ from .wrappers import (
     SelectAction,
 )
 from .dmc import DeepMindControlEnv
+from .procgen_env import make_procgen_env, list_available_procgen_envs
 
 __all__ = [
     "make_atari_env",
@@ -27,6 +28,8 @@ __all__ = [
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "DeepMindControlEnv",
+    "make_procgen_env",
+    "list_available_procgen_envs",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

@@ -62,7 +62,6 @@ class ConvDecoder(nn.Module):
     """
 
     def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
-
         super().__init__()
 
         self.output_shape = output_shape
@@ -111,7 +110,6 @@ class DenseDecoder(nn.Module):
     def __init__(
         self, stoch_size, deter_size, output_shape, n_layers, units, activation, dist
     ):
-
         super().__init__()
 
         self.input_size = stoch_size + deter_size
@@ -134,7 +132,6 @@ class DenseDecoder(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, features):
-
         out = self.model(features)
 
         if self.dist == "normal":
@@ -211,7 +208,6 @@ class ActionDecoder(nn.Module):
         init_std=5,
         mean_scale=5,
     ):
-
         super().__init__()
 
         self.action_size = action_size
@@ -236,7 +232,6 @@ class ActionDecoder(nn.Module):
         self.action_model = nn.Sequential(*layers)
 
     def forward(self, features, deter=False):
-
         out = self.action_model(features)
         mean, std = torch.chunk(out, 2, dim=-1)
 
@@ -255,5 +250,4 @@ class ActionDecoder(nn.Module):
             return dist.rsample()
 
     def add_exploration(self, action, action_noise=0.3):
-
         return torch.clamp(Normal(action, action_noise).rsample(), -1, 1)

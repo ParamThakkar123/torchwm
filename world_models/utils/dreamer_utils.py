@@ -43,7 +43,6 @@ class FreezeParameters:
         self.param_states = [p.requires_grad for p in get_parameters(self.modules)]
 
     def __enter__(self):
-
         for param in get_parameters(self.modules):
             param.requires_grad = False
 
@@ -79,7 +78,6 @@ class Logger:
     def log_videos(
         self, videos, step, max_videos_to_save=1, fps=20, video_title="video"
     ):
-
         # max rollout length
         max_videos_to_save = np.min([max_videos_to_save, videos.shape[0]])
         max_length = videos[0].shape[0]

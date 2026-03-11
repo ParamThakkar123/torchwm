@@ -6,7 +6,7 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 
 - `world_models.models`: High-level models and agents (`Dreamer`, `DreamerAgent`, `Planet`, `JEPAAgent`)
 - `world_models.configs`: Configuration containers for Dreamer, JEPA, and diffusion runs
-- `world_models.training`: Script-style training entrypoints
+- `world_models.training`: Script-style training entrypoints for world models (VAE, MDNRNN, Controller, Planet, RSSM, JEPA)
 
 ## Environment Integration
 
@@ -41,5 +41,6 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 
 - End-to-end Dreamer training: `DreamerAgent`
 - End-to-end JEPA training: `JEPAAgent`
+- World model training scripts: `world_models.training` modules (e.g., `train_world_model` for VAE+MDNRNN+Controller pipeline)
 - Low-level model experimentation: `Dreamer`, `RSSM`, decoder/encoder modules
 - Custom data pipelines: `make_cifar10`, `make_imagenet1k`, `make_imagefolder`

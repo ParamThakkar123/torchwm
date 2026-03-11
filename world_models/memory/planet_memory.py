@@ -58,6 +58,9 @@ class Memory(deque):
         if size is not None:
             print(f"Creating memory with len {size} episodes.")
 
+    def __len__(self):
+        return len(self.episodes)
+
     @property
     def size(self):
         return sum(self.eps_lengths)

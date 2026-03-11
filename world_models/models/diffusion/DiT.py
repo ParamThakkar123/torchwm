@@ -187,7 +187,11 @@ class DiT(nn.Module):
         subset_file=None,
         val_split=None,
     ):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         if dataset.lower() == "cifar10":
             transform = Compose([RandomHorizontalFlip(), ToTensor()])
@@ -269,7 +273,7 @@ class DiT(nn.Module):
         def param_count(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-        print(f"Model Parameters: {param_count(model)/1e6:.2f}M")
+        print(f"Model Parameters: {param_count(model) / 1e6:.2f}M")
 
         ema_model = None
         if ema:
@@ -313,7 +317,7 @@ class DiT(nn.Module):
                 if global_step % 100 == 0:
                     elapsed = time.time() - start_time
                     print(
-                        f"Epoch [{epoch}/{epochs}] Step [{global_step}] Loss: {loss.item():.4f} Time Elapsed: {elapsed/60:.2f} min"
+                        f"Epoch [{epoch}/{epochs}] Step [{global_step}] Loss: {loss.item():.4f} Time Elapsed: {elapsed / 60:.2f} min"
                     )
                     start_time = time.time()
 

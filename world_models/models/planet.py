@@ -45,9 +45,13 @@ class Planet:
         if headless:
             os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
-        self.device = device or (
-            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        )
+        if device:
+            self.device = device
+        elif torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        else:
+            self.device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
         self.bit_depth = bit_depth
 
         if isinstance(env, str):
@@ -304,19 +308,19 @@ class Planet:
             new_lr = self.optimizer.param_groups[0]["lr"]
             if new_lr != current_lr:
                 print(
-                    f"Epoch {ep+1}: Learning rate changed from {current_lr:.2e} to {new_lr:.2e}"
+                    f"Epoch {ep + 1}: Learning rate changed from {current_lr:.2e} to {new_lr:.2e}"
                 )
 
             self.memory.append(self.rollout_gen.rollout_once(explore=True))
             eval_episode, eval_frames, eval_metrics = self.rollout_gen.rollout_eval()
             self.memory.append(eval_episode)
-            save_video(eval_frames, self.results_dir, f"vid_{ep+1}")
+            save_video(eval_frames, self.results_dir, f"vid_{ep + 1}")
             self.summary.update(eval_metrics)
 
             if (ep + 1) % save_every == 0:
                 torch.save(
                     self.rssm.state_dict(),
-                    os.path.join(self.results_dir, f"ckpt_{ep+1}.pth"),
+                    os.path.join(self.results_dir, f"ckpt_{ep + 1}.pth"),
                 )
 
         return self.results_dir

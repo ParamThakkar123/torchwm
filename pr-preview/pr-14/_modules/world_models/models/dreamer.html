@@ -462,7 +462,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_size</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">restore</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
@@ -480,7 +479,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_build_model</span><span class="p">(</span><span class="n">restore</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">restore</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restore</span><span class="p">):</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span> <span class="o">=</span> <span class="n">RSSM</span><span class="p">(</span>
             <span class="n">action_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action_size</span><span class="p">,</span>
             <span class="n">stoch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">,</span>
@@ -588,7 +586,6 @@
 <div class="viewcode-block" id="Dreamer.world_model_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.world_model_loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">world_model_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">):</span>
-
         <span class="n">obs</span> <span class="o">=</span> <span class="n">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="n">init_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -659,7 +656,6 @@
 <div class="viewcode-block" id="Dreamer.actor_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.actor_loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">))</span>
 
@@ -699,7 +695,6 @@
 <div class="viewcode-block" id="Dreamer.value_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.value_loss">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">value_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">value_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imag_feat</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
             <span class="n">value_targ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
@@ -715,7 +710,6 @@
 <div class="viewcode-block" id="Dreamer.train_one_batch">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.train_one_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_one_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">acs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">acs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -752,7 +746,6 @@
 <div class="viewcode-block" id="Dreamer.act_with_world_model">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.act_with_world_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">act_with_world_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">explore</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-
         <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">))</span>
@@ -768,7 +761,6 @@
 <div class="viewcode-block" id="Dreamer.act_and_collect_data">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.act_and_collect_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">act_and_collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">collect_steps</span><span class="p">):</span>
-
         <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -777,7 +769,6 @@
         <span class="n">episode_rewards</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collect_steps</span><span class="p">):</span>
-
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">posterior</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_with_world_model</span><span class="p">(</span>
                     <span class="n">obs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">explore</span><span class="o">=</span><span class="kc">True</span>
@@ -815,7 +806,6 @@
 <div class="viewcode-block" id="Dreamer.evaluate">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">eval_episodes</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-
         <span class="n">episode_rew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">eval_episodes</span><span class="p">))</span>
 
         <span class="n">video_images</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">eval_episodes</span><span class="p">)]</span>
@@ -856,7 +846,6 @@
 <div class="viewcode-block" id="Dreamer.collect_random_episodes">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.collect_random_episodes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">collect_random_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">seed_steps</span><span class="p">):</span>
-
         <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">seed_episode_rews</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
@@ -886,7 +875,6 @@
 <div class="viewcode-block" id="Dreamer.save">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">):</span>
-
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s2">&quot;rssm&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
@@ -910,7 +898,6 @@
 <div class="viewcode-block" id="Dreamer.restore_checkpoint">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.restore_checkpoint">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">restore_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">):</span>
-
         <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;rssm&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;actor&quot;</span><span class="p">])</span>
@@ -979,6 +966,7 @@
             <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: CUDA not available, using CPU&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">train_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">test_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
@@ -1019,7 +1007,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
         <span class="k">while</span> <span class="n">global_step</span> <span class="o">&lt;=</span> <span class="n">total_steps</span><span class="p">:</span>
-
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;##################################&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;At global step </span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 

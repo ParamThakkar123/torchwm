@@ -224,7 +224,11 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
     """Test the trained world model with controller in the environment."""
 
     try:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         vae_file = os.path.join(logdir, "vae", "best.tar")
         rnn_file = os.path.join(logdir, "mdrnn", "best.tar")

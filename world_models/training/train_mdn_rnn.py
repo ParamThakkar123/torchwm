@@ -486,7 +486,11 @@ def train_mdn_rnn(
             seq_len=mdrnn_config.seq_len,
         )
         train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=mdrnn_config.batch_size, shuffle=True
+            train_dataset,
+            batch_size=mdrnn_config.batch_size,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True,
         )
         test_dataset = LatentSequenceDataset(
             latents=all_actions.shape[0],
@@ -500,7 +504,11 @@ def train_mdn_rnn(
             seq_len=mdrnn_config.seq_len,
         )
         test_loader = torch.utils.data.DataLoader(
-            test_dataset, batch_size=mdrnn_config.batch_size, shuffle=True
+            test_dataset,
+            batch_size=mdrnn_config.batch_size,
+            shuffle=False,
+            num_workers=0,
+            pin_memory=False,
         )
     else:
 
@@ -516,7 +524,11 @@ def train_mdn_rnn(
             seq_len=mdrnn_config.seq_len,
         )
         train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=mdrnn_config.batch_size, shuffle=True
+            train_dataset,
+            batch_size=mdrnn_config.batch_size,
+            shuffle=True,
+            num_workers=0,
+            pin_memory=False,
         )
         test_dataset = SequenceDataset(
             root=mdrnn_config.data_dir,
@@ -527,7 +539,11 @@ def train_mdn_rnn(
             seq_len=mdrnn_config.seq_len,
         )
         test_loader = torch.utils.data.DataLoader(
-            test_dataset, batch_size=mdrnn_config.batch_size, shuffle=True
+            test_dataset,
+            batch_size=mdrnn_config.batch_size,
+            shuffle=False,
+            num_workers=0,
+            pin_memory=False,
         )
 
     train_fn = partial(

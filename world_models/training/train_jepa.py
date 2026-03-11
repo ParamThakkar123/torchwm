@@ -67,11 +67,12 @@ def main(args, resume_preempt=False):
     copy_data = args["meta"]["copy_data"]
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
-    if not torch.cuda.is_available():
-        device = torch.device("cpu")
-    else:
+    if torch.cuda.is_available():
         device = torch.device("cuda:0")
         torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]

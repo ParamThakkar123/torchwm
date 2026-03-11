@@ -93,7 +93,7 @@ class RolloutDataset(Dataset):
         root: str,
         transform: Compose,
         train: bool = True,
-        buffer_size: int = 100,
+        buffer_size: int = 1000,
         num_test_files: int = 600,
     ):
         """Initialize the RolloutDataset.

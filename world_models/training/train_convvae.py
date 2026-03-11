@@ -6,6 +6,7 @@ for world model learning.
 
 import os
 from os.path import join, exists
+from typing import Optional
 
 import torch
 import torch.utils.data
@@ -47,11 +48,22 @@ def test_epoch(model, test_loader, device, loss_fn):
     """
     model.eval()
     test_loss = 0.0
+    total_batches = len(test_loader)
+    print(
+        f"Test epoch: {total_batches} batches, dataset size: {len(test_loader.dataset)}"
+    )
+
     with torch.no_grad():
-        for data in test_loader:
+        for batch_idx, data in enumerate(test_loader):
             data = data.to(device)
             recon, mu, logvar = model(data)
-            test_loss += loss_fn(recon, data, mu, logvar).item()
+            loss = loss_fn(recon, data, mu, logvar)
+            test_loss += loss.item()
+
+            if batch_idx % 50 == 0:
+                print(
+                    f"Test batch {batch_idx}/{total_batches}, loss: {loss.item():.4f}"
+                )
 
     test_loss /= len(test_loader.dataset)
     print("---> Test set loss: {:.4f}".format(test_loss))
@@ -67,7 +79,7 @@ def train_epoch(
     train_dataset,
     loss_fn,
     use_amp: bool = False,
-    scaler: torch.cuda.amp.GradScaler = None,
+    scaler: Optional["torch.cuda.amp.GradScaler"] = None,
 ):
     """Run one epoch of training.
 
@@ -147,8 +159,19 @@ def train_convae(config: WMVAEConfig) -> None:
         ... })
         >>> train_convae(config)
     """
-    device = torch.device(config.device if hasattr(config, "device") else "cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
+
+    print(f"Using device: {device}")
     model = ConvVAE(img_channels=3, latent_size=config.latent_size).to(device)
+
+    if hasattr(torch, "compile") and device.type == "cuda":
+        print("Compiling model with torch.compile for faster training...")
+        model = torch.compile(model, mode="reduce-overhead")
+
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
     scheduler = ReduceLROnPlateau(
         optimizer,
@@ -195,16 +218,67 @@ def train_convae(config: WMVAEConfig) -> None:
     train_dataset = ObservationDataset(
         root=config.data_dir, transform=transform_train, train=True
     )
+    num_workers = 0
+    pin_memory = False
+
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=config.train_batch_size, shuffle=True
+        train_dataset,
+        batch_size=config.train_batch_size,
+        shuffle=True,
+        drop_last=False,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
     )
+    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
 
     test_dataset = ObservationDataset(
         root=config.data_dir, transform=transform_test, train=False
     )
-    test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=config.train_batch_size, shuffle=True
+    if len(test_dataset) == 0:
+        print("WARNING: Test dataset is empty! Using training data for validation.")
+        test_loader = train_loader
+    else:
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=config.train_batch_size,
+            shuffle=False,
+            drop_last=False,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+        )
+    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
+
+    test_dataset = ObservationDataset(
+        root=config.data_dir, transform=transform_test, train=False
     )
+    if len(test_dataset) == 0:
+        print("WARNING: Test dataset is empty! Using training data for validation.")
+        test_loader = train_loader
+    else:
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=config.train_batch_size,
+            shuffle=False,
+            drop_last=False,
+            num_workers=4,
+            pin_memory=True,
+        )
+    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
+
+    test_dataset = ObservationDataset(
+        root=config.data_dir, transform=transform_test, train=False
+    )
+    if len(test_dataset) == 0:
+        print("WARNING: Test dataset is empty! Using training data for validation.")
+        test_loader = train_loader
+    else:
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=config.train_batch_size,
+            shuffle=False,
+            drop_last=False,
+        )
+    print(f"Test dataset size: {len(test_dataset)}, batches: {len(test_loader)}")
 
     use_amp = device.type == "cuda"
     scaler = torch.cuda.amp.GradScaler() if use_amp else None
@@ -212,6 +286,7 @@ def train_convae(config: WMVAEConfig) -> None:
     cur_best = None
 
     for ep in range(1, config.num_epochs + 1):
+        print(f"\n=== Starting Epoch {ep}/{config.num_epochs} ===")
         train_epoch(
             ep,
             model,
@@ -223,6 +298,7 @@ def train_convae(config: WMVAEConfig) -> None:
             use_amp=use_amp,
             scaler=scaler,
         )
+        print("Training complete, starting validation...")
         test_loss = test_epoch(model, test_loader, device, conv_vae_loss_fn)
         scheduler.step(test_loss)
         earlystopping.step(test_loss)

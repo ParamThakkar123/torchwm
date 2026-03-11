@@ -46,7 +46,7 @@ class WMVAEConfig:
 
         height: int
         width: int
-        device: str = "cpu"
+        device: str = "cuda"
         train_batch_size: int = 32
         num_epochs: int = 10
         latent_size: int = 32
@@ -177,7 +177,7 @@ class WMMDNRNNConfig:
         action_size: int = 3
         hidden_size: int = 256
         gmm_components: int = 5
-        device: str = "cpu"
+        device: str = "cuda"
         batch_size: int = 16
         seq_len: int = 32
         num_epochs: int = 30

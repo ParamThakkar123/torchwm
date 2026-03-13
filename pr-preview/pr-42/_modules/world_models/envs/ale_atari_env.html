@@ -404,6 +404,111 @@
     <span class="n">atari_envs</span> <span class="o">=</span> <span class="p">[</span><span class="n">env</span> <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">all_envs</span> <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ALE/&quot;</span><span class="p">)]</span>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">atari_envs</span><span class="p">)</span></div>
 
+
+
+<div class="viewcode-block" id="list_gymnasium_envs">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.list_gymnasium_envs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_gymnasium_envs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a dictionary of all available Gymnasium environments organized by category.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict[str, list[str]]: Dictionary with categories as keys and lists of env IDs as values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_envs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">envs</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="n">categories</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;classic_control&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;box2d&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;toy_text&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;mujoco&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;atari&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;other&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+
+    <span class="n">classic_control_envs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Acrobot&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CartPole&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MountainCar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MountainCarContinuous&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Pendulum&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">box2d_envs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BipedalWalker&quot;</span><span class="p">,</span> <span class="s2">&quot;CarRacing&quot;</span><span class="p">,</span> <span class="s2">&quot;LunarLander&quot;</span><span class="p">]</span>
+    <span class="n">toy_text_envs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Blackjack&quot;</span><span class="p">,</span> <span class="s2">&quot;Taxi&quot;</span><span class="p">,</span> <span class="s2">&quot;CliffWalking&quot;</span><span class="p">,</span> <span class="s2">&quot;FrozenLake&quot;</span><span class="p">]</span>
+    <span class="n">mujoco_envs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Ant&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;HalfCheetah&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Hopper&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Humanoid&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;HumanoidStandup&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;InvertedDoublePendulum&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;InvertedPendulum&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Pusher&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Reacher&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Swimmer&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Walker2d&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">all_envs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">env_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ALE/&quot;</span><span class="p">):</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;atari&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env_id</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">env_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">classic_control_envs</span>
+        <span class="p">):</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;classic_control&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env_id</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">env_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">box2d_envs</span>
+        <span class="p">):</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;box2d&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env_id</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">env_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">toy_text_envs</span>
+        <span class="p">):</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;toy_text&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env_id</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">env_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">env</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">env</span> <span class="ow">in</span> <span class="n">mujoco_envs</span>
+        <span class="p">):</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;mujoco&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">env_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;Ant-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;HalfCheetah-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Hopper-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Humanoid-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Swimmer-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Walker2d-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Reacher-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pusher-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;InvertedPendulum-v5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;InvertedDoublePendulum-v5&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">categories</span><span class="p">[</span><span class="s2">&quot;other&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">categories</span><span class="p">:</span>
+        <span class="n">categories</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">categories</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">categories</span></div>
+
+
+
+<div class="viewcode-block" id="get_all_gymnasium_env_ids">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.get_all_gymnasium_env_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_gymnasium_env_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a flat list of all available Gymnasium environment IDs (excluding Atari).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list[str]: List of all available Gymnasium environment IDs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">categories</span> <span class="o">=</span> <span class="n">list_gymnasium_envs</span><span class="p">()</span>
+    <span class="n">all_envs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">category</span><span class="p">,</span> <span class="n">envs</span> <span class="ow">in</span> <span class="n">categories</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">category</span> <span class="o">!=</span> <span class="s2">&quot;atari&quot;</span><span class="p">:</span>
+            <span class="n">all_envs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">envs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_envs</span><span class="p">)</span></div>
+
 </pre></div>
 
                 </article>

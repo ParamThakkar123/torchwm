@@ -93,7 +93,7 @@ function createWindow() {
       nodeIntegration: false,
       webSecurity: true,
       allowRunningInsecureContent: false,
-      sandbox: true
+      sandbox: false
     },
     show: false,
     backgroundColor: '#1a1a2e'
@@ -144,9 +144,8 @@ function startPythonServer() {
     pythonProcess = spawn(pythonCmd, [
       '-m', 'uvicorn',
       'world_models.ui.server:app',
-      '--host', '0.0.0.0',
-      '--port', String(SERVER_PORT),
-      '--reload'
+      '--host', '127.0.0.1',
+      '--port', String(SERVER_PORT)
     ], {
       cwd: path.join(__dirname, '..'),
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -159,6 +158,13 @@ function startPythonServer() {
     });
 
     let started = false;
+    let resolveCalled = false;
+
+    const tryResolve = () => {
+      if (resolveCalled) return;
+      resolveCalled = true;
+      setTimeout(() => resolve(), 5000);
+    };
 
     pythonProcess.stdout.on('data', (data) => {
       const output = data.toString();
@@ -166,13 +172,19 @@ function startPythonServer() {
 
       if (!started && output.includes('Application startup complete')) {
         started = true;
-        setTimeout(() => resolve(), 1000);
+        tryResolve();
+      }
+
+      // Also check for Uvicorn running message as backup
+      if (!started && output.includes('Uvicorn running on')) {
+        started = true;
+        tryResolve();
       }
     });
 
     pythonProcess.stderr.on('data', (data) => {
       const output = data.toString();
-      console.log('[TorchWM Backend]', output);
+      console.log('[TorchWM Backend Error]', output);
     });
 
     pythonProcess.on('error', (err) => {
@@ -183,11 +195,14 @@ function startPythonServer() {
     pythonProcess.on('close', (code) => {
       console.log('Backend closed with code:', code);
       pythonProcess = null;
+      if (!resolveCalled && code !== 0) {
+        reject(new Error(`Backend exited with code ${code}`));
+      }
     });
 
     setTimeout(() => {
       if (!started) resolve();
-    }, 8000);
+    }, 15000);
   });
 }
 
@@ -221,7 +236,7 @@ function checkTorchwm() {
 
 function checkBackendRunning() {
   return new Promise((resolve) => {
-    const req = http.get(`http://127.0.0.1:${SERVER_PORT}/health`, (res) => {
+    const req = http.get(`http://127.0.0.1:${SERVER_PORT}/api/health`, (res) => {
       resolve(res.statusCode === 200);
     });
     req.on('error', () => resolve(false));
@@ -233,18 +248,31 @@ app.whenReady().then(async () => {
   console.log('Starting TorchWM Desktop...');
   console.log('Is packaged:', app.isPackaged);
 
+  console.log('Starting backend...');
+  try {
+    // Check if backend is already running first
+    const alreadyRunning = await checkBackendRunning();
+    if (alreadyRunning) {
+      console.log('Backend already running on port', SERVER_PORT);
+    } else {
+      await startPythonServer();
+    }
+
+    // Verify backend is actually running
+    const isRunning = await checkBackendRunning();
+    if (isRunning) {
+      console.log('Backend started successfully');
+    } else {
+      console.error('Backend failed to start: not responding on port', SERVER_PORT);
+    }
+  } catch (error) {
+    console.error('Failed to start backend:', error.message);
+  }
+
   try {
     createWindow();
   } catch (error) {
     console.error('Error creating window:', error);
-  }
-
-  console.log('Starting backend...');
-  try {
-    await startPythonServer();
-    console.log('Backend started successfully');
-  } catch (error) {
-    console.error('Failed to start backend:', error);
   }
 
   setupAutoUpdater();

@@ -40,7 +40,10 @@ if "world_models" not in sys.modules:
                 pass
 
 from ..configs.dreamer_config import DreamerConfig
-from ..envs import list_available_atari_envs
+from ..envs import (
+    list_available_atari_envs,
+    get_all_gymnasium_env_ids,
+)
 from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
@@ -76,30 +79,66 @@ DREAMER_ENVS = [
     "quadruped-walk",
 ]
 
-PLANET_BASE_ENVS = [
+GYMNASIUM_ENVS = get_all_gymnasium_env_ids()
+
+CLASSIC_CONTROL_ENVS = [
     "CartPole-v1",
     "Pendulum-v1",
     "MountainCarContinuous-v0",
+    "MountainCar-v0",
     "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
 ]
 
-GYM_ENVS = [
-    "CartPole-v1",
-    "Pendulum-v1",
-    "MountainCarContinuous-v0",
-    "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
-    "Hopper-v4",
-    "Swimmer-v4",
-    "Walker2d-v4",
-    "Ant-v4",
-    "Reacher-v4",
-    "Pusher-v4",
-    "Manipulator-v4",
+BOX2D_ENVS = [
+    "BipedalWalker-v3",
+    "BipedalWalkerHardcore-v3",
+    "CarRacing-v3",
+    "LunarLander-v3",
+    "LunarLanderContinuous-v3",
 ]
+
+TOY_TEXT_ENVS = [
+    "Blackjack-v1",
+    "Taxi-v3",
+    "CliffWalking-v1",
+    "CliffWalkingSlippery-v1",
+    "FrozenLake-v1",
+    "FrozenLake8x8-v1",
+]
+
+MUJOCO_ENVS = [
+    "HalfCheetah-v5",
+    "Humanoid-v5",
+    "Hopper-v5",
+    "Swimmer-v5",
+    "Walker2d-v5",
+    "Ant-v5",
+    "Reacher-v5",
+    "Pusher-v5",
+    "Manipulator-v5",
+    "InvertedPendulum-v5",
+    "InvertedDoublePendulum-v5",
+    "HumanoidStandup-v5",
+    "CoupledHalfCheetah-v5",
+    "Swimmer-v5",
+    "Walker2d-v5",
+]
+
+PLANET_BASE_ENVS = CLASSIC_CONTROL_ENVS + ["HalfCheetah-v5", "Humanoid-v5"]
+
+GYM_ENVS = CLASSIC_CONTROL_ENVS + BOX2D_ENVS + MUJOCO_ENVS
+
+ALL_GYMNASIUM_ENVS = CLASSIC_CONTROL_ENVS + BOX2D_ENVS + TOY_TEXT_ENVS + MUJOCO_ENVS
+
+
+def _get_atari_envs() -> list[str]:
+    try:
+        return list_available_atari_envs()
+    except Exception:
+        return []
+
+
+ATARI_ENVS = _get_atari_envs()
 
 UNITY_ENVS = []
 
@@ -109,15 +148,30 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "DeepMind Control Suite",
         "environments": DREAMER_ENVS,
     },
+    "classic_control": {
+        "label": "Classic Control",
+        "description": "Classic Control environments (CartPole, Pendulum, etc.)",
+        "environments": CLASSIC_CONTROL_ENVS,
+    },
+    "box2d": {
+        "label": "Box2D",
+        "description": "Box2D physics environments (Lunar Lander, Bipedal Walker, etc.)",
+        "environments": BOX2D_ENVS,
+    },
+    "toy_text": {
+        "label": "Toy Text",
+        "description": "Toy text environments (Taxi, Blackjack, Frozen Lake, etc.)",
+        "environments": TOY_TEXT_ENVS,
+    },
     "mujoco": {
         "label": "MuJoCo",
         "description": "MuJoCo physics environments",
-        "environments": GYM_ENVS,
+        "environments": MUJOCO_ENVS,
     },
     "gym": {
-        "label": "Gym",
-        "description": "OpenAI Gym environments",
-        "environments": PLANET_BASE_ENVS,
+        "label": "Gymnasium",
+        "description": "All Gymnasium environments (Classic + Box2D + Toy Text + MuJoCo + Atari)",
+        "environments": ALL_GYMNASIUM_ENVS + ATARI_ENVS,
     },
     "unity": {
         "label": "Unity ML Agents",
@@ -183,15 +237,23 @@ DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
 
 
 def _build_env_catalog() -> dict[str, list[str]]:
-    atari_envs: list[str] = []
-    try:
-        atari_envs = list_available_atari_envs()
-    except Exception:
-        atari_envs = []
+    atari_envs = ATARI_ENVS
+
+    all_gym_envs = GYM_ENVS + atari_envs
+    all_gymnasium_with_atari = ALL_GYMNASIUM_ENVS + atari_envs
+
     return {
         "dreamerv1": DREAMER_ENVS + GYM_ENVS,
         "dreamerv2": DREAMER_ENVS + GYM_ENVS,
         "planet": PLANET_BASE_ENVS + atari_envs[:80],
+        "classic_control": CLASSIC_CONTROL_ENVS,
+        "box2d": BOX2D_ENVS,
+        "toy_text": TOY_TEXT_ENVS,
+        "mujoco": MUJOCO_ENVS,
+        "gym": all_gymnasium_with_atari,
+        "atari": atari_envs,
+        "all": all_gym_envs,
+        "all_gymnasium": all_gymnasium_with_atari,
     }
 
 
@@ -370,6 +432,11 @@ class TrainingController:
                 set(ENVIRONMENTS_BY_MODEL["dreamerv1"])
                 | set(ENVIRONMENTS_BY_MODEL["dreamerv2"])
                 | set(ENVIRONMENTS_BY_MODEL["planet"])
+                | set(ENVIRONMENTS_BY_MODEL["classic_control"])
+                | set(ENVIRONMENTS_BY_MODEL["box2d"])
+                | set(ENVIRONMENTS_BY_MODEL["toy_text"])
+                | set(ENVIRONMENTS_BY_MODEL["mujoco"])
+                | set(ENVIRONMENTS_BY_MODEL["atari"])
             )
             return merged
         key = model_name.strip().lower()
@@ -406,6 +473,9 @@ class TrainingController:
 
         backend_to_env_type = {
             "dm_control": "dmc",
+            "classic_control": "gym",
+            "box2d": "gym",
+            "toy_text": "gym",
             "mujoco": "gym",
             "gym": "gym",
             "unity": "unity_mlagents",

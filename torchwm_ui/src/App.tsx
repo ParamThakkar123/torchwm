@@ -306,6 +306,9 @@ return (
         <div className="header-left">
           <h1>TorchWM Studio</h1>
           <span className={`status-badge status-${state?.status ?? "idle"}`}>{state?.status ?? "idle"}</span>
+          {state?.status === "failed" && state.message && (
+            <span className="status-message" title={state.message}>{state.message}</span>
+          )}
         </div>
 <div className="header-right">
           <div className="dependencies-wrapper">

@@ -154,7 +154,11 @@ function startPythonServer() {
         ...process.env,
         'PYTORCH_ENABLE_MPS_FALLBACK': '1',
         'ELECTRON_RUN': 'true',
-        'TORCHWM_RESULTS_DIR': path.join(app.getPath('userData'), 'results')
+        'TORCHWM_RESULTS_DIR': path.join(app.getPath('userData'), 'results'),
+        ...(process.platform === 'linux' ? {
+          'SDL_VIDEODRIVER': 'dummy',
+          'SDL_AUDIODRIVER': 'dummy'
+        } : {})
       }
     });
 

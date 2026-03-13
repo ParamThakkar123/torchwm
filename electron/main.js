@@ -153,7 +153,8 @@ function startPythonServer() {
       env: {
         ...process.env,
         'PYTORCH_ENABLE_MPS_FALLBACK': '1',
-        'ELECTRON_RUN': 'true'
+        'ELECTRON_RUN': 'true',
+        'TORCHWM_RESULTS_DIR': path.join(app.getPath('userData'), 'results')
       }
     });
 

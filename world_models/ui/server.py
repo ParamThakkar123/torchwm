@@ -53,6 +53,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _default_results_dir(run_name: str) -> Path:
+    """Resolve a writable results directory for UI-triggered training runs."""
+    configured_root = os.environ.get("TORCHWM_RESULTS_DIR", "").strip()
+    if configured_root:
+        return Path(configured_root).expanduser() / run_name
+    return Path("results") / run_name
+
+
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
     "dreamerv1": {
         "label": "DreamerV1",
@@ -646,6 +654,7 @@ class TrainingController:
                     self._status = "completed"
                     self._message = "Training completed."
         except Exception as exc:
+            logger.error("Training failed", exc_info=True)
             with self._lock:
                 self._status = "failed"
                 self._message = f"{type(exc).__name__}: {exc}"
@@ -664,9 +673,7 @@ class TrainingController:
             raise ValueError("Dreamer requires an environment.")
 
         results_dir = str(
-            train_cfg.get(
-                "results_dir", Path("results") / f"ui_dreamer_{int(time.time())}"
-            )
+            train_cfg.get("results_dir", _default_results_dir(f"ui_dreamer_{int(time.time())}"))
         )
         Path(results_dir).mkdir(parents=True, exist_ok=True)
         with self._lock:
@@ -776,9 +783,7 @@ class TrainingController:
             raise ValueError("Planet requires an environment.")
 
         results_dir = str(
-            train_cfg.get(
-                "results_dir", Path("results") / f"ui_planet_{int(time.time())}"
-            )
+            train_cfg.get("results_dir", _default_results_dir(f"ui_planet_{int(time.time())}"))
         )
         Path(results_dir).mkdir(parents=True, exist_ok=True)
         with self._lock:

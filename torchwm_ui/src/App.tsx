@@ -239,16 +239,22 @@ export default function App() {
 
   async function runAction(action: () => Promise<unknown>) {
     setIsSubmitting(true); setErrorMessage(null);
-    try { await action(); await refreshState(); }
-    catch (e) { setErrorMessage((e as Error).message); }
-    finally { setIsSubmitting(false); }
+    try {
+      await action();
+      await refreshState();
+    } catch (e) {
+      setErrorMessage((e as Error).message);
+      throw e;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
 const handleLoadModel = () => {
     toast.loading("Loading model...", { id: "loadModel" });
     runAction(() => loadModel(selectedModel, {}))
       .then(() => toast.success(`Model "${selectedModel}" loaded successfully!`, { id: "loadModel" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "loadModel" }));
   };
   const handleLoadEnv = () => {
     if (!selectedEnvironment) {
@@ -259,13 +265,13 @@ const handleLoadModel = () => {
     toast.loading("Loading environment...", { id: "loadEnv" });
     runAction(() => loadEnvironment(selectedEnvironment, selectedBackend, {}))
       .then(() => toast.success(`Environment "${selectedEnvironment}" loaded successfully!`, { id: "loadEnv" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "loadEnv" }));
   };
   const handleStart = () => {
     toast.loading("Starting training...", { id: "startTraining" });
     runAction(() => startTraining(trainingConfig))
       .then(() => toast.success("Training started!", { id: "startTraining" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "startTraining" }));
   };
   const handleStop = () => runAction(() => stopTraining());
 
@@ -377,6 +383,17 @@ return (
           </div>
 
           {errorMessage && <div className="error">{errorMessage}</div>}
+          {state?.status === "failed" && (
+            <div className="error">
+              {state.message}
+              {state.traceback && (
+                <details>
+                  <summary>Show traceback</summary>
+                  <pre>{state.traceback}</pre>
+                </details>
+              )}
+            </div>
+          )}
         </aside>
 
         <div className="content">

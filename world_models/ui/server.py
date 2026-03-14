@@ -182,6 +182,550 @@ DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
 }
 
 
+COMPONENTS: dict[str, dict[str, Any]] = {
+    "dreamerv2": {
+        "label": "DreamerV2",
+        "description": "Model-based RL agent with discrete latent variables and world model",
+        "category": "rssm",
+        "icon": "🧠",
+        "source_file": "world_models/models/dreamer.py",
+        "inputs": ["observation", "action"],
+        "outputs": ["latent_state", "reward", "discount"],
+        "hyperparameters": [
+            {
+                "name": "deter_size",
+                "label": "Deterministic State Size",
+                "type": "number",
+                "default": 200,
+                "min": 50,
+                "max": 1024,
+                "step": 10,
+            },
+            {
+                "name": "stoch_size",
+                "label": "Stochastic State Size",
+                "type": "number",
+                "default": 30,
+                "min": 10,
+                "max": 128,
+                "step": 5,
+            },
+            {
+                "name": "num_units",
+                "label": "MLP Units",
+                "type": "number",
+                "default": 400,
+                "min": 100,
+                "max": 1024,
+                "step": 50,
+            },
+            {
+                "name": "obs_embed_size",
+                "label": "Observation Embed Size",
+                "type": "number",
+                "default": 1024,
+                "min": 256,
+                "max": 2048,
+                "step": 128,
+            },
+            {
+                "name": "action_repeat",
+                "label": "Action Repeat",
+                "type": "number",
+                "default": 2,
+                "min": 1,
+                "max": 8,
+                "step": 1,
+            },
+            {
+                "name": "batch_size",
+                "label": "Batch Size",
+                "type": "number",
+                "default": 50,
+                "min": 16,
+                "max": 256,
+                "step": 8,
+            },
+            {
+                "name": "train_seq_len",
+                "label": "Sequence Length",
+                "type": "number",
+                "default": 50,
+                "min": 10,
+                "max": 200,
+                "step": 10,
+            },
+            {
+                "name": "imagine_horizon",
+                "label": "Imagine Horizon",
+                "type": "number",
+                "default": 15,
+                "min": 5,
+                "max": 50,
+                "step": 1,
+            },
+            {
+                "name": "model_learning_rate",
+                "label": "Model LR",
+                "type": "number",
+                "default": 0.0006,
+                "min": 0.0001,
+                "max": 0.01,
+                "step": 0.0001,
+            },
+            {
+                "name": "actor_learning_rate",
+                "label": "Actor LR",
+                "type": "number",
+                "default": 0.00008,
+                "min": 0.00001,
+                "max": 0.001,
+                "step": 0.00001,
+            },
+            {
+                "name": "value_learning_rate",
+                "label": "Value LR",
+                "type": "number",
+                "default": 0.00008,
+                "min": 0.00001,
+                "max": 0.001,
+                "step": 0.00001,
+            },
+            {
+                "name": "kl_loss_coeff",
+                "label": "KL Loss Coefficient",
+                "type": "number",
+                "default": 1.0,
+                "min": 0.1,
+                "max": 5.0,
+                "step": 0.1,
+            },
+            {
+                "name": "free_nats",
+                "label": "Free Nats",
+                "type": "number",
+                "default": 3.0,
+                "min": 0.0,
+                "max": 10.0,
+                "step": 0.5,
+            },
+            {
+                "name": "discount",
+                "label": "Discount Factor",
+                "type": "number",
+                "default": 0.99,
+                "min": 0.9,
+                "max": 0.999,
+                "step": 0.001,
+            },
+            {
+                "name": "td_lambda",
+                "label": "TD Lambda",
+                "type": "number",
+                "default": 0.95,
+                "min": 0.9,
+                "max": 0.999,
+                "step": 0.01,
+            },
+        ],
+    },
+    "dreamerv1": {
+        "label": "DreamerV1",
+        "description": "Original Dreamer with recurrent state-space model",
+        "category": "rssm",
+        "icon": "🧠",
+        "source_file": "world_models/models/dreamer.py",
+        "inputs": ["observation", "action"],
+        "outputs": ["latent_state", "reward", "discount"],
+        "hyperparameters": [
+            {
+                "name": "deter_size",
+                "label": "Deterministic State Size",
+                "type": "number",
+                "default": 200,
+                "min": 50,
+                "max": 1024,
+                "step": 10,
+            },
+            {
+                "name": "stoch_size",
+                "label": "Stochastic State Size",
+                "type": "number",
+                "default": 30,
+                "min": 10,
+                "max": 128,
+                "step": 5,
+            },
+            {
+                "name": "num_units",
+                "label": "MLP Units",
+                "type": "number",
+                "default": 400,
+                "min": 100,
+                "max": 1024,
+                "step": 50,
+            },
+            {
+                "name": "batch_size",
+                "label": "Batch Size",
+                "type": "number",
+                "default": 50,
+                "min": 16,
+                "max": 256,
+                "step": 8,
+            },
+            {
+                "name": "train_seq_len",
+                "label": "Sequence Length",
+                "type": "number",
+                "default": 50,
+                "min": 10,
+                "max": 200,
+                "step": 10,
+            },
+        ],
+    },
+    "planet": {
+        "label": "PlaNet",
+        "description": "Recurrent state-space model with model-predictive control planning",
+        "category": "rssm",
+        "icon": "🌍",
+        "source_file": "world_models/models/planet.py",
+        "inputs": ["observation", "action"],
+        "outputs": ["latent_state", "reward"],
+        "hyperparameters": [
+            {
+                "name": "bit_depth",
+                "label": "Bit Depth",
+                "type": "number",
+                "default": 5,
+                "min": 1,
+                "max": 10,
+                "step": 1,
+            },
+            {
+                "name": "memory_size",
+                "label": "Memory Size",
+                "type": "number",
+                "default": 100,
+                "min": 50,
+                "max": 500,
+                "step": 10,
+            },
+            {
+                "name": "action_repeats",
+                "label": "Action Repeats",
+                "type": "number",
+                "default": 1,
+                "min": 1,
+                "max": 10,
+                "step": 1,
+            },
+        ],
+    },
+    "dreamer_encoder": {
+        "label": "Dreamer Encoder",
+        "description": "Convolutional encoder for processing image observations",
+        "category": "encoder",
+        "icon": "📷",
+        "source_file": "world_models/vision/dreamer_encoder.py",
+        "inputs": ["image"],
+        "outputs": ["embedding"],
+        "hyperparameters": [
+            {
+                "name": "obs_embed_size",
+                "label": "Embedding Size",
+                "type": "number",
+                "default": 1024,
+                "min": 256,
+                "max": 2048,
+                "step": 128,
+            },
+            {
+                "name": "cnn_activation",
+                "label": "Activation",
+                "type": "select",
+                "default": "relu",
+                "options": [
+                    {"value": "relu", "label": "ReLU"},
+                    {"value": "elu", "label": "ELU"},
+                    {"value": "swish", "label": "Swish"},
+                ],
+            },
+        ],
+    },
+    "dreamer_decoder": {
+        "label": "Dreamer Decoder",
+        "description": "Deconvolutional decoder for reconstructing observations",
+        "category": "decoder",
+        "icon": "🖼️",
+        "source_file": "world_models/vision/dreamer_decoder.py",
+        "inputs": ["latent_state"],
+        "outputs": ["reconstruction"],
+        "hyperparameters": [
+            {
+                "name": "image_size",
+                "label": "Image Size",
+                "type": "select",
+                "default": 64,
+                "options": [
+                    {"value": 32, "label": "32x32"},
+                    {"value": 64, "label": "64x64"},
+                    {"value": 128, "label": "128x128"},
+                ],
+            },
+        ],
+    },
+    "dreamer_actor": {
+        "label": "Dreamer Actor",
+        "description": "Stochastic actor network for action selection",
+        "category": "actor",
+        "icon": "🎮",
+        "source_file": "world_models/controller/rssm_policy.py",
+        "inputs": ["latent_state"],
+        "outputs": ["action"],
+        "hyperparameters": [
+            {
+                "name": "num_units",
+                "label": "MLP Units",
+                "type": "number",
+                "default": 400,
+                "min": 100,
+                "max": 1024,
+                "step": 50,
+            },
+            {
+                "name": "action_dist",
+                "label": "Action Distribution",
+                "type": "select",
+                "default": "tanh_normal",
+                "options": [
+                    {"value": "tanh_normal", "label": "Tanh Normal"},
+                    {"value": "one_hot", "label": "One Hot"},
+                    {"value": "categorical", "label": "Categorical"},
+                ],
+            },
+        ],
+    },
+    "dreamer_value": {
+        "label": "Dreamer Value",
+        "description": "Value network for estimating state values",
+        "category": "value",
+        "icon": "💰",
+        "source_file": "world_models/reward/dreamer_v1_value.py",
+        "inputs": ["latent_state"],
+        "outputs": ["value"],
+        "hyperparameters": [
+            {
+                "name": "num_units",
+                "label": "MLP Units",
+                "type": "number",
+                "default": 400,
+                "min": 100,
+                "max": 1024,
+                "step": 50,
+            },
+        ],
+    },
+    "dreamer_reward": {
+        "label": "Reward Model",
+        "description": "Network for predicting rewards from latent states",
+        "category": "reward",
+        "icon": "🎯",
+        "source_file": "world_models/reward/dreamer_v1_reward.py",
+        "inputs": ["latent_state", "action"],
+        "outputs": ["reward"],
+        "hyperparameters": [
+            {
+                "name": "num_units",
+                "label": "MLP Units",
+                "type": "number",
+                "default": 400,
+                "min": 100,
+                "max": 1024,
+                "step": 50,
+            },
+        ],
+    },
+    "dmc_env": {
+        "label": "DM Control",
+        "description": "DeepMind Control Suite environments",
+        "category": "environment",
+        "icon": "🌍",
+        "source_file": "world_models/envs/dmc.py",
+        "inputs": [],
+        "outputs": ["observation"],
+        "hyperparameters": [
+            {
+                "name": "env_name",
+                "label": "Environment",
+                "type": "select",
+                "default": "cartpole-swingup",
+                "options": [{"value": e, "label": e} for e in DREAMER_ENVS],
+            },
+            {
+                "name": "image_size",
+                "label": "Image Size",
+                "type": "select",
+                "default": 64,
+                "options": [
+                    {"value": 32, "label": "32x32"},
+                    {"value": 64, "label": "64x64"},
+                    {"value": 128, "label": "128x128"},
+                ],
+            },
+            {
+                "name": "action_repeat",
+                "label": "Action Repeat",
+                "type": "number",
+                "default": 2,
+                "min": 1,
+                "max": 8,
+                "step": 1,
+            },
+        ],
+    },
+    "gym_env": {
+        "label": "Gym Environment",
+        "description": "OpenAI Gym/Gymnasium environments",
+        "category": "environment",
+        "icon": "🎲",
+        "source_file": "world_models/envs/gym_env.py",
+        "inputs": [],
+        "outputs": ["observation"],
+        "hyperparameters": [
+            {
+                "name": "env_name",
+                "label": "Environment",
+                "type": "select",
+                "default": "CartPole-v1",
+                "options": [{"value": e, "label": e} for e in PLANET_BASE_ENVS[:20]],
+            },
+            {
+                "name": "render_mode",
+                "label": "Render Mode",
+                "type": "select",
+                "default": "rgb_array",
+                "options": [
+                    {"value": "rgb_array", "label": "RGB Array"},
+                    {"value": "human", "label": "Human"},
+                ],
+            },
+        ],
+    },
+    "adam_optimizer": {
+        "label": "Adam Optimizer",
+        "description": "Adaptive moment estimation optimizer",
+        "category": "optimizer",
+        "icon": "⚡",
+        "inputs": ["parameters"],
+        "outputs": ["optimizer_state"],
+        "hyperparameters": [
+            {
+                "name": "lr",
+                "label": "Learning Rate",
+                "type": "number",
+                "default": 0.001,
+                "min": 0.00001,
+                "max": 0.1,
+                "step": 0.0001,
+            },
+            {
+                "name": "beta1",
+                "label": "Beta 1",
+                "type": "number",
+                "default": 0.9,
+                "min": 0.8,
+                "max": 0.99,
+                "step": 0.01,
+            },
+            {
+                "name": "beta2",
+                "label": "Beta 2",
+                "type": "number",
+                "default": 0.999,
+                "min": 0.9,
+                "max": 0.9999,
+                "step": 0.0001,
+            },
+            {
+                "name": "epsilon",
+                "label": "Epsilon",
+                "type": "number",
+                "default": 1e-7,
+                "min": 1e-10,
+                "max": 1e-5,
+                "step": 1e-8,
+            },
+        ],
+    },
+    "replay_memory": {
+        "label": "Replay Memory",
+        "description": "Experience replay buffer for storing transitions",
+        "category": "memory",
+        "icon": "💾",
+        "source_file": "world_models/memory/dreamer_memory.py",
+        "inputs": [],
+        "outputs": ["batch"],
+        "hyperparameters": [
+            {
+                "name": "capacity",
+                "label": "Capacity",
+                "type": "number",
+                "default": 100000,
+                "min": 10000,
+                "max": 1000000,
+                "step": 10000,
+            },
+            {
+                "name": "batch_size",
+                "label": "Batch Size",
+                "type": "number",
+                "default": 50,
+                "min": 8,
+                "max": 256,
+                "step": 8,
+            },
+        ],
+    },
+    "rssm": {
+        "label": "RSSM",
+        "description": "Recurrent State-Space Model - core component for latent dynamics",
+        "category": "rssm",
+        "icon": "🔄",
+        "source_file": "world_models/models/rssm.py",
+        "inputs": ["latent", "action"],
+        "outputs": ["prior", "posterior", "hidden"],
+        "hyperparameters": [
+            {
+                "name": "hidden_size",
+                "label": "Hidden Size",
+                "type": "number",
+                "default": 200,
+                "min": 64,
+                "max": 512,
+                "step": 32,
+            },
+            {
+                "name": "stoch_size",
+                "label": "Stochastic Size",
+                "type": "number",
+                "default": 30,
+                "min": 10,
+                "max": 128,
+                "step": 5,
+            },
+            {
+                "name": "discrete",
+                "label": "Discrete Latents",
+                "type": "boolean",
+                "default": True,
+            },
+        ],
+    },
+}
+
+
 def _build_env_catalog() -> dict[str, list[str]]:
     atari_envs: list[str] = []
     try:
@@ -210,6 +754,35 @@ class LoadEnvironmentRequest(BaseModel):
 
 
 class StartTrainingRequest(BaseModel):
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class FlowchartNodeData(BaseModel):
+    component: str
+    label: str
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class FlowchartNode(BaseModel):
+    id: str
+    type: str
+    position: dict[str, float]
+    data: FlowchartNodeData
+
+
+class FlowchartEdge(BaseModel):
+    id: str
+    source: str
+    target: str
+
+
+class FlowchartConfig(BaseModel):
+    nodes: list[FlowchartNode]
+    edges: list[FlowchartEdge]
+
+
+class StartFlowchartTrainingRequest(BaseModel):
+    flowchart: FlowchartConfig
     config: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -919,6 +1492,7 @@ def catalog() -> dict[str, Any]:
         "env_backends": ENV_BACKENDS,
         "default_model_configs": DEFAULT_MODEL_CONFIGS,
         "default_training_configs": DEFAULT_TRAINING_CONFIGS,
+        "components": COMPONENTS,
     }
 
 
@@ -981,6 +1555,60 @@ def stop_training() -> dict[str, Any]:
     return {"stop_requested": stopped, **controller.snapshot_state()}
 
 
+@app.post("/api/train/flowchart/start")
+def start_flowchart_training(payload: StartFlowchartTrainingRequest) -> dict[str, Any]:
+    logger.info(
+        f"start_flowchart_training called: nodes={len(payload.flowchart.nodes)}, edges={len(payload.flowchart.edges)}"
+    )
+
+    model_node = None
+    env_node = None
+
+    for node in payload.flowchart.nodes:
+        comp = COMPONENTS.get(node.data.component, {})
+        if comp.get("category") == "rssm":
+            model_node = node
+        elif comp.get("category") == "environment":
+            env_node = node
+
+    if not model_node:
+        raise HTTPException(
+            status_code=400, detail="No model/RSSM component found in flowchart"
+        )
+
+    if not env_node:
+        raise HTTPException(
+            status_code=400, detail="No environment component found in flowchart"
+        )
+
+    env_comp = COMPONENTS.get(env_node.data.component, {})
+
+    env_name = env_node.data.config.get("env_name", "cartpole-swingup")
+    backend = "dm_control" if env_comp.get("label", "").startswith("DM") else "gym"
+
+    try:
+        controller.load_model(model_node.data.component, model_node.data.config)
+    except Exception as exc:
+        logger.error(f"Failed to load model: {exc}")
+        raise HTTPException(status_code=400, detail=f"Failed to load model: {exc}")
+
+    try:
+        controller.load_environment(env_name, backend, env_node.data.config)
+    except Exception as exc:
+        logger.error(f"Failed to load environment: {exc}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to load environment: {exc}"
+        )
+
+    try:
+        controller.start_training(payload.config)
+    except Exception as exc:
+        logger.error(f"Failed to start training: {exc}")
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return controller.snapshot_state()
+
+
 @app.get("/api/state")
 def state() -> dict[str, Any]:
     return controller.snapshot_state()
@@ -994,6 +1622,31 @@ def metrics(limit: int = Query(default=400, ge=1, le=5000)) -> dict[str, Any]:
 @app.get("/api/frame")
 def frame() -> dict[str, str | None]:
     return controller.snapshot_frame()
+
+
+@app.get("/api/component-source/{component_key}")
+def get_component_source(component_key: str) -> dict[str, Any]:
+    component = COMPONENTS.get(component_key)
+    if not component:
+        raise HTTPException(
+            status_code=404, detail=f"Component '{component_key}' not found"
+        )
+
+    source_file = component.get("source_file")
+    if not source_file:
+        return {"source": None, "file": None, "error": "No source file available"}
+
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    full_path = base_dir / source_file
+
+    if not full_path.exists():
+        return {"source": None, "file": source_file, "error": "Source file not found"}
+
+    try:
+        content = full_path.read_text(encoding="utf-8")
+        return {"source": content, "file": source_file, "error": None}
+    except Exception as e:
+        return {"source": None, "file": source_file, "error": str(e)}
 
 
 TRAINING_DEPENDENCIES = [

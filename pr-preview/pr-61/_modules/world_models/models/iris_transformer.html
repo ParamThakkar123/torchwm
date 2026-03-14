@@ -498,6 +498,36 @@
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reward_head</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">termination_head</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_sequence</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tokens</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the interleaved token-action sequence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tokens: Frame tokens (B, T, K)</span>
+<span class="sd">            actions: Actions (B, T)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Sequence ready for transformer (B, T*(K+1), embed_dim)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">tokens_flat</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">*</span> <span class="n">K</span><span class="p">)</span>
+        <span class="n">token_embeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_embedding</span><span class="p">(</span><span class="n">tokens_flat</span><span class="p">)</span>
+
+        <span class="n">action_embeds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_embedding</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">token_embeds</span> <span class="o">=</span> <span class="n">token_embeds</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">)</span>
+
+        <span class="n">action_embeds_expanded</span> <span class="o">=</span> <span class="n">action_embeds</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">token_embeds</span><span class="p">,</span> <span class="n">action_embeds_expanded</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">sequence</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="n">sequence</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_embedding</span><span class="p">[:,</span> <span class="p">:</span> <span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">sequence</span>
+
 <div class="viewcode-block" id="IRISTransformer.forward">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.iris_transformer.IRISTransformer.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
@@ -583,7 +613,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tokens</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict the next frame tokens autoregressively.</span>
 
 <span class="sd">        Used during imagination rollouts.</span>
@@ -593,17 +623,33 @@
 <span class="sd">            actions: Actions taken (B,)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Next frame token predictions (B, K, vocab_size)</span>
+<span class="sd">            token_logits: Next frame token predictions (B, K, vocab_size)</span>
+<span class="sd">            action_hidden: Hidden states for reward prediction (B, embed_dim)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Add batch dimension if needed</span>
+        <span class="c1"># Handle token shapes: (B, H, W) -&gt; (B, K) -&gt; (B, 1, K)</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># tokens is (B, H, W) grid of tokens, flatten to (B, K)</span>
+            <span class="n">B_grid</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B_grid</span><span class="p">,</span> <span class="n">H</span> <span class="o">*</span> <span class="n">W</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">tokens</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (1, K) -&gt; (1, 1, K)</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, K) -&gt; (B, 1, K)</span>
         <span class="k">if</span> <span class="n">actions</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B,) -&gt; (B, 1)</span>
 
         <span class="n">token_logits</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">token_logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># Return last timestep predictions</span></div>
+        <span class="c1"># Get action hidden states for reward prediction</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">embed_dim</span> <span class="o">=</span> <span class="n">token_logits</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_build_sequence</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">actions</span><span class="p">),</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="n">hidden</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">K</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">)</span>
+        <span class="n">action_hidden</span> <span class="o">=</span> <span class="n">hidden</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># (B, embed_dim)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">token_logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span>
+            <span class="n">action_hidden</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># Return last timestep predictions</span></div>
 
 
 <div class="viewcode-block" id="IRISTransformer.sample_next_tokens">
@@ -625,7 +671,7 @@
 <span class="sd">            sampled_tokens: Sampled token indices (B, K)</span>
 <span class="sd">            log_probs: Log probabilities of sampled tokens (B, K)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">token_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_next_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
+        <span class="n">token_logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_next_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
 
         <span class="c1"># Apply temperature</span>
         <span class="n">token_logits</span> <span class="o">=</span> <span class="n">token_logits</span> <span class="o">/</span> <span class="n">temperature</span>
@@ -785,13 +831,11 @@
 
             <span class="c1"># Get reward and termination predictions</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="n">token_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">predict_next_tokens</span><span class="p">(</span>
+                <span class="n">token_logits</span><span class="p">,</span> <span class="n">action_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">predict_next_tokens</span><span class="p">(</span>
                     <span class="n">current_tokens</span><span class="p">,</span> <span class="n">action</span>
                 <span class="p">)</span>
-                <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">reward_head</span><span class="p">(</span><span class="n">token_logits</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-                <span class="n">termination_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">termination_head</span><span class="p">(</span>
-                    <span class="n">token_logits</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="p">)</span>
+                <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">reward_head</span><span class="p">(</span><span class="n">action_hidden</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">termination_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">termination_head</span><span class="p">(</span><span class="n">action_hidden</span><span class="p">)</span>
                 <span class="n">termination</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">termination_logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
 
             <span class="n">tokens_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sampled_tokens</span><span class="p">)</span>

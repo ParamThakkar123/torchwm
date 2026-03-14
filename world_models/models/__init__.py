@@ -1,4 +1,12 @@
-__all__ = ["Dreamer", "Planet", "DreamerAgent", "JEPAAgent", "VisionTransformer"]
+__all__ = [
+    "Dreamer",
+    "Planet",
+    "DreamerAgent",
+    "JEPAAgent",
+    "VisionTransformer",
+    "ModularRSSM",
+    "create_modular_rssm",
+]
 
 
 def __getattr__(name):
@@ -22,4 +30,12 @@ def __getattr__(name):
         from .vit import VisionTransformer
 
         return VisionTransformer
+    if name == "ModularRSSM":
+        from .modular_rssm import ModularRSSM
+
+        return ModularRSSM
+    if name == "create_modular_rssm":
+        from .modular_rssm import create_modular_rssm
+
+        return create_modular_rssm
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

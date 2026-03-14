@@ -7,6 +7,7 @@ JEPA-style representation learning, and diffusion/transformer building blocks.
 ## Highlights
 
 - Modular components for encoders, decoders, RSSMs, reward/value heads, and policies
+- **Modular RSSM** with swappable encoder/decoder/backbone for research experiments
 - Multiple environment backends: DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents
 - Replay/memory utilities for both Dreamer and PlaNet-style training loops
 - ViT + masking utilities for JEPA workflows
@@ -100,6 +101,7 @@ sphinx-build -b html docs/source docs/build/html
 ## Package Layout
 
 - `world_models/models`: Agents and model architectures (`Dreamer`, `JEPAAgent`, `Planet`, ViT, diffusion)
+- `world_models/models/modular_rssm`: Modular RSSM with swappable encoder/decoder/backbone
 - `world_models/configs`: Config classes (`DreamerConfig`, `JEPAConfig`, `DiTConfig`)
 - `world_models/envs`: Environment adapters and wrappers
 - `world_models/training`: Script-style training entrypoints

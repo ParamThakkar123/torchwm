@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import os
 import gym
 import numpy as np
 from PIL import Image
+
+# Fix MuJoCo rendering on Windows
+if os.name == "nt" and os.environ.get("MUJOCO_GL") == "egl":
+    os.environ["MUJOCO_GL"] = "gl"
 
 
 def make_gym_env(env, **kwargs):
@@ -62,7 +67,8 @@ class GymImageEnv:
         )
 
     def _make_env_from_id(self, env_id, render_mode):
-        # Prefer gymnasium if available, then fallback to gym.
+        # Always prefer gymnasium (has more up-to-date envs like v5)
+        # Only fall back to gym if gymnasium is completely unavailable
         try:
             import gymnasium as gymnasium
 
@@ -70,7 +76,8 @@ class GymImageEnv:
                 return gymnasium.make(env_id, render_mode=render_mode)
             except TypeError:
                 return gymnasium.make(env_id)
-        except Exception:
+        except ImportError:
+            # Fallback to gym only if gymnasium is not installed
             try:
                 return gym.make(env_id, render_mode=render_mode)
             except TypeError:

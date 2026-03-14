@@ -18,48 +18,67 @@
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
-    "electron-log": "^5.2.4"
+    "electron-log": "^5.2.4",
+    "electron-updater": "^6.8.3"
   },
   "build": {
     "appId": "com.torchwm.desktop",
     "productName": "TorchWM Desktop",
+    "asar": true,
+    "asarUnpack": "**/*.node",
+    "npmRebuild": false,
+    "publish": {
+      "provider": "github",
+      "owner": "torchwm",
+      "repo": "torchwm"
+    },
     "directories": {
-      "output": "dist"
+      "output": "dist-new"
     },
     "files": [
       "main.js",
       "preload.js",
+      "renderer.html",
       "icon.png"
     ],
     "extraResources": [
       {
         "from": "../torchwm_ui/dist",
         "to": "web-ui",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "icon.png"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "icon.png"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "icon": "icon.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "useZip": false
     }
   }
 }

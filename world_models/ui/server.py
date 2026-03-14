@@ -40,7 +40,10 @@ if "world_models" not in sys.modules:
                 pass
 
 from ..configs.dreamer_config import DreamerConfig
-from ..envs import list_available_atari_envs
+from ..envs import (
+    list_available_atari_envs,
+    get_all_gymnasium_env_ids,
+)
 from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
@@ -48,6 +51,14 @@ from ..utils.utils import flatten_dict
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _default_results_dir(run_name: str) -> Path:
+    """Resolve a writable results directory for UI-triggered training runs."""
+    configured_root = os.environ.get("TORCHWM_RESULTS_DIR", "").strip()
+    if configured_root:
+        return Path(configured_root).expanduser() / run_name
+    return Path("results") / run_name
 
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
@@ -76,30 +87,66 @@ DREAMER_ENVS = [
     "quadruped-walk",
 ]
 
-PLANET_BASE_ENVS = [
+GYMNASIUM_ENVS = get_all_gymnasium_env_ids()
+
+CLASSIC_CONTROL_ENVS = [
     "CartPole-v1",
     "Pendulum-v1",
     "MountainCarContinuous-v0",
+    "MountainCar-v0",
     "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
 ]
 
-GYM_ENVS = [
-    "CartPole-v1",
-    "Pendulum-v1",
-    "MountainCarContinuous-v0",
-    "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
-    "Hopper-v4",
-    "Swimmer-v4",
-    "Walker2d-v4",
-    "Ant-v4",
-    "Reacher-v4",
-    "Pusher-v4",
-    "Manipulator-v4",
+BOX2D_ENVS = [
+    "BipedalWalker-v3",
+    "BipedalWalkerHardcore-v3",
+    "CarRacing-v3",
+    "LunarLander-v3",
+    "LunarLanderContinuous-v3",
 ]
+
+TOY_TEXT_ENVS = [
+    "Blackjack-v1",
+    "Taxi-v3",
+    "CliffWalking-v1",
+    "CliffWalkingSlippery-v1",
+    "FrozenLake-v1",
+    "FrozenLake8x8-v1",
+]
+
+MUJOCO_ENVS = [
+    "HalfCheetah-v5",
+    "Humanoid-v5",
+    "Hopper-v5",
+    "Swimmer-v5",
+    "Walker2d-v5",
+    "Ant-v5",
+    "Reacher-v5",
+    "Pusher-v5",
+    "Manipulator-v5",
+    "InvertedPendulum-v5",
+    "InvertedDoublePendulum-v5",
+    "HumanoidStandup-v5",
+    "CoupledHalfCheetah-v5",
+    "Swimmer-v5",
+    "Walker2d-v5",
+]
+
+PLANET_BASE_ENVS = CLASSIC_CONTROL_ENVS + ["HalfCheetah-v5", "Humanoid-v5"]
+
+GYM_ENVS = CLASSIC_CONTROL_ENVS + BOX2D_ENVS + MUJOCO_ENVS
+
+ALL_GYMNASIUM_ENVS = CLASSIC_CONTROL_ENVS + BOX2D_ENVS + TOY_TEXT_ENVS + MUJOCO_ENVS
+
+
+def _get_atari_envs() -> list[str]:
+    try:
+        return list_available_atari_envs()
+    except Exception:
+        return []
+
+
+ATARI_ENVS = _get_atari_envs()
 
 UNITY_ENVS = []
 
@@ -109,15 +156,30 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "DeepMind Control Suite",
         "environments": DREAMER_ENVS,
     },
+    "classic_control": {
+        "label": "Classic Control",
+        "description": "Classic Control environments (CartPole, Pendulum, etc.)",
+        "environments": CLASSIC_CONTROL_ENVS,
+    },
+    "box2d": {
+        "label": "Box2D",
+        "description": "Box2D physics environments (Lunar Lander, Bipedal Walker, etc.)",
+        "environments": BOX2D_ENVS,
+    },
+    "toy_text": {
+        "label": "Toy Text",
+        "description": "Toy text environments (Taxi, Blackjack, Frozen Lake, etc.)",
+        "environments": TOY_TEXT_ENVS,
+    },
     "mujoco": {
         "label": "MuJoCo",
         "description": "MuJoCo physics environments",
-        "environments": GYM_ENVS,
+        "environments": MUJOCO_ENVS,
     },
     "gym": {
-        "label": "Gym",
-        "description": "OpenAI Gym environments",
-        "environments": PLANET_BASE_ENVS,
+        "label": "Gymnasium",
+        "description": "All Gymnasium environments (Classic + Box2D + Toy Text + MuJoCo + Atari)",
+        "environments": ALL_GYMNASIUM_ENVS + ATARI_ENVS,
     },
     "unity": {
         "label": "Unity ML Agents",
@@ -183,15 +245,23 @@ DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
 
 
 def _build_env_catalog() -> dict[str, list[str]]:
-    atari_envs: list[str] = []
-    try:
-        atari_envs = list_available_atari_envs()
-    except Exception:
-        atari_envs = []
+    atari_envs = ATARI_ENVS
+
+    all_gym_envs = GYM_ENVS + atari_envs
+    all_gymnasium_with_atari = ALL_GYMNASIUM_ENVS + atari_envs
+
     return {
         "dreamerv1": DREAMER_ENVS + GYM_ENVS,
         "dreamerv2": DREAMER_ENVS + GYM_ENVS,
         "planet": PLANET_BASE_ENVS + atari_envs[:80],
+        "classic_control": CLASSIC_CONTROL_ENVS,
+        "box2d": BOX2D_ENVS,
+        "toy_text": TOY_TEXT_ENVS,
+        "mujoco": MUJOCO_ENVS,
+        "gym": all_gymnasium_with_atari,
+        "atari": atari_envs,
+        "all": all_gym_envs,
+        "all_gymnasium": all_gymnasium_with_atari,
     }
 
 
@@ -370,6 +440,11 @@ class TrainingController:
                 set(ENVIRONMENTS_BY_MODEL["dreamerv1"])
                 | set(ENVIRONMENTS_BY_MODEL["dreamerv2"])
                 | set(ENVIRONMENTS_BY_MODEL["planet"])
+                | set(ENVIRONMENTS_BY_MODEL["classic_control"])
+                | set(ENVIRONMENTS_BY_MODEL["box2d"])
+                | set(ENVIRONMENTS_BY_MODEL["toy_text"])
+                | set(ENVIRONMENTS_BY_MODEL["mujoco"])
+                | set(ENVIRONMENTS_BY_MODEL["atari"])
             )
             return merged
         key = model_name.strip().lower()
@@ -406,6 +481,9 @@ class TrainingController:
 
         backend_to_env_type = {
             "dm_control": "dmc",
+            "classic_control": "gym",
+            "box2d": "gym",
+            "toy_text": "gym",
             "mujoco": "gym",
             "gym": "gym",
             "unity": "unity_mlagents",
@@ -576,6 +654,7 @@ class TrainingController:
                     self._status = "completed"
                     self._message = "Training completed."
         except Exception as exc:
+            logger.error("Training failed", exc_info=True)
             with self._lock:
                 self._status = "failed"
                 self._message = f"{type(exc).__name__}: {exc}"
@@ -594,9 +673,7 @@ class TrainingController:
             raise ValueError("Dreamer requires an environment.")
 
         results_dir = str(
-            train_cfg.get(
-                "results_dir", Path("results") / f"ui_dreamer_{int(time.time())}"
-            )
+            train_cfg.get("results_dir", _default_results_dir(f"ui_dreamer_{int(time.time())}"))
         )
         Path(results_dir).mkdir(parents=True, exist_ok=True)
         with self._lock:
@@ -706,9 +783,7 @@ class TrainingController:
             raise ValueError("Planet requires an environment.")
 
         results_dir = str(
-            train_cfg.get(
-                "results_dir", Path("results") / f"ui_planet_{int(time.time())}"
-            )
+            train_cfg.get("results_dir", _default_results_dir(f"ui_planet_{int(time.time())}"))
         )
         Path(results_dir).mkdir(parents=True, exist_ok=True)
         with self._lock:
@@ -858,8 +933,8 @@ app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
 cors_origins = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
-    "http://127.0.0.1:*",
-    "http://localhost:*",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
     "https://torchwm.vercel.app",
     "https://torchwm.onrender.com",
     "file://",
@@ -868,8 +943,9 @@ cors_origins = [
 if os.environ.get("ELECTRON_RUN") == "true":
     cors_origins.extend(
         [
-            "http://0.0.0.0:*",
-            "http://*",
+            "http://127.0.0.1",
+            "http://localhost",
+            "http://0.0.0.0",
         ]
     )
 
@@ -1041,15 +1117,23 @@ def _check_dependency(name: str) -> bool:
 
 @app.get("/api/dependencies")
 def get_dependencies() -> dict[str, Any]:
-    deps = []
-    for dep in TRAINING_DEPENDENCIES:
-        installed = _check_dependency(dep["name"])
-        deps.append(
-            {
-                "name": dep["name"],
-                "label": dep["label"],
-                "required": dep["required"],
-                "installed": installed,
-            }
-        )
-    return {"dependencies": deps}
+    try:
+        deps = []
+        for dep in TRAINING_DEPENDENCIES:
+            try:
+                installed = _check_dependency(dep["name"])
+            except Exception as e:
+                logger.warning(f"Error checking dependency {dep['name']}: {e}")
+                installed = False
+            deps.append(
+                {
+                    "name": dep["name"],
+                    "label": dep["label"],
+                    "required": dep["required"],
+                    "installed": installed,
+                }
+            )
+        return {"dependencies": deps}
+    except Exception as e:
+        logger.error(f"Failed to check dependencies: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

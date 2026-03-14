@@ -1,4 +1,9 @@
-from .ale_atari_env import make_atari_env, list_available_atari_envs
+from .ale_atari_env import (
+    make_atari_env,
+    list_available_atari_envs,
+    list_gymnasium_envs,
+    get_all_gymnasium_env_ids,
+)
 from .ale_atari_vector_env import make_atari_vector_env
 from .mujoco_env import make_humanoid_env, make_half_cheetah_env
 from .gym_env import GymImageEnv, make_gym_env
@@ -19,6 +24,8 @@ from .dmc import DeepMindControlEnv
 __all__ = [
     "make_atari_env",
     "list_available_atari_envs",
+    "list_gymnasium_envs",
+    "get_all_gymnasium_env_ids",
     "make_atari_vector_env",
     "make_humanoid_env",
     "make_half_cheetah_env",

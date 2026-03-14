@@ -19,7 +19,9 @@ import {
   loadEnvironment,
   loadModel,
   startTraining,
-  stopTraining
+  stopTraining,
+  retry,
+  checkBackendHealth
 } from "./api";
 import type { CatalogResponse, Dependency, MetricPoint, MetricsResponse, StateResponse } from "./types";
 
@@ -88,18 +90,20 @@ export default function App() {
   const [gif, setGif] = useState<string | null>(null);
 
   const [selectedModel, setSelectedModel] = useState("dreamerv2");
-  const [selectedBackend, setSelectedBackend] = useState("dm_control");
-  const [selectedEnvironment, setSelectedEnvironment] = useState("");
+  const [selectedBackend, setSelectedBackend] = useState("gym");
+  const [selectedEnvironment, setSelectedEnvironment] = useState("CartPole-v1");
   const [trainingConfig, setTrainingConfig] = useState<Record<string, number>>({});
   const [activeMetric, setActiveMetric] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval">("all");
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<"image" | "gif">("image");
 
-const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dependencies, setDependencies] = useState<Dependency[]>([]);
   const [showDependencies, setShowDependencies] = useState(false);
+  const [backendReady, setBackendReady] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
 
   const configFields = selectedModel === "planet" ? PLANET_CONFIG_FIELDS : DREAMER_CONFIG_FIELDS;
   const envBackends = catalog?.env_backends ?? {};
@@ -147,23 +151,32 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
+      setLoadingMessage("Checking backend status...");
       try {
+        const isReady = await retry(checkBackendHealth, 10, 1000);
+        if (!isReady) {
+          setLoadingMessage("Backend failed to start");
+          return;
+        }
+        setLoadingMessage("Loading catalog and state...");
         const [cat, st] = await Promise.all([fetchCatalog(), fetchState()]);
         setCatalog(cat); setState(st);
+        setBackendReady(true);
+        setLoadingMessage(null);
         const model = st.model ?? Object.keys(cat.models)[0] ?? "dreamerv2";
         setSelectedModel(model);
-
         const backends = Object.keys(cat.env_backends);
         setSelectedBackend(backends[0] ?? "dm_control");
-
         const envs = cat.env_backends[backends[0]]?.environments ?? [];
         setSelectedEnvironment(st.environment ?? envs[0] ?? "");
-
         const defaults = cat.default_training_configs[model] ?? {};
         setTrainingConfig(Object.fromEntries(Object.entries(defaults).map(([k, v]) => [k, Number(v)])));
         const m = await fetchMetrics(200);
         setMetrics(m);
-      } catch (e) { setErrorMessage((e as Error).message); }
+      } catch (e) {
+        setErrorMessage((e as Error).message);
+        setLoadingMessage("Failed to load data");
+      }
     };
     void init();
   }, []);
@@ -185,7 +198,12 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
     if (!sortedMetricEntries.some(([n]) => n === activeMetric)) setActiveMetric(sortedMetricEntries[0][0]);
   }, [activeMetric, sortedMetricEntries]);
 
-useEffect(() => {
+  useEffect(() => {
+    if (sortedMetricEntries.length === 0) { setActiveMetric(""); return; }
+    if (!sortedMetricEntries.some(([n]) => n === activeMetric)) setActiveMetric(sortedMetricEntries[0][0]);
+  }, [activeMetric, sortedMetricEntries]);
+
+  useEffect(() => {
     let interval = 5000;
     if (state?.status === "running") interval = 500;
     const t = setInterval(refreshState, interval);
@@ -221,16 +239,22 @@ useEffect(() => {
 
   async function runAction(action: () => Promise<unknown>) {
     setIsSubmitting(true); setErrorMessage(null);
-    try { await action(); await refreshState(); }
-    catch (e) { setErrorMessage((e as Error).message); }
-    finally { setIsSubmitting(false); }
+    try {
+      await action();
+      await refreshState();
+    } catch (e) {
+      setErrorMessage((e as Error).message);
+      throw e;
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
 const handleLoadModel = () => {
     toast.loading("Loading model...", { id: "loadModel" });
     runAction(() => loadModel(selectedModel, {}))
       .then(() => toast.success(`Model "${selectedModel}" loaded successfully!`, { id: "loadModel" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "loadModel" }));
   };
   const handleLoadEnv = () => {
     if (!selectedEnvironment) {
@@ -241,17 +265,39 @@ const handleLoadModel = () => {
     toast.loading("Loading environment...", { id: "loadEnv" });
     runAction(() => loadEnvironment(selectedEnvironment, selectedBackend, {}))
       .then(() => toast.success(`Environment "${selectedEnvironment}" loaded successfully!`, { id: "loadEnv" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "loadEnv" }));
   };
   const handleStart = () => {
     toast.loading("Starting training...", { id: "startTraining" });
     runAction(() => startTraining(trainingConfig))
       .then(() => toast.success("Training started!", { id: "startTraining" }))
-      .catch(() => {});
+      .catch((e) => toast.error((e as Error).message, { id: "startTraining" }));
   };
   const handleStop = () => runAction(() => stopTraining());
 
   const progressPercent = Math.round(((state?.progress.ratio ?? 0) * 1000) / 10);
+
+  if (!backendReady) {
+    return (
+      <div className="app loading-screen">
+        <Toaster position="top-right" />
+        <div className="loading-container">
+          <div className="loading-spinner" />
+          <h2>Starting TorchWM Studio</h2>
+          <p className="loading-message">{loadingMessage || "Please wait while backend starts..."}</p>
+          {!loadingMessage && (
+            <div className="loading-progress">
+              <div className="loading-bar">
+                <div className="loading-bar-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+              <span className="loading-percent">{progressPercent}%</span>
+            </div>
+          )}
+          {errorMessage && <div className="loading-error">{errorMessage}</div>}
+        </div>
+      </div>
+    );
+  }
 
 return (
     <div className="app">
@@ -260,6 +306,9 @@ return (
         <div className="header-left">
           <h1>TorchWM Studio</h1>
           <span className={`status-badge status-${state?.status ?? "idle"}`}>{state?.status ?? "idle"}</span>
+          {state?.status === "failed" && state.message && (
+            <span className="status-message" title={state.message}>{state.message}</span>
+          )}
         </div>
 <div className="header-right">
           <div className="dependencies-wrapper">
@@ -337,6 +386,17 @@ return (
           </div>
 
           {errorMessage && <div className="error">{errorMessage}</div>}
+          {state?.status === "failed" && (
+            <div className="error">
+              {state.message}
+              {state.traceback && (
+                <details>
+                  <summary>Show traceback</summary>
+                  <pre>{state.traceback}</pre>
+                </details>
+              )}
+            </div>
+          )}
         </aside>
 
         <div className="content">

@@ -16,6 +16,7 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 ## World Model Building Blocks
 
 - `world_models.models.dreamer_rssm`: Recurrent state-space model used by Dreamer
+- `world_models.models.modular_rssm`: Modular RSSM with swappable encoder/decoder/backbone for research experiments
 - `world_models.vision`: Encoders/decoders and action heads for latent dynamics models
 - `world_models.reward`: Reward and value prediction heads
 - `world_models.observations`: Symbolic and visual observation reconstruction modules
@@ -42,4 +43,5 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 - End-to-end Dreamer training: `DreamerAgent`
 - End-to-end JEPA training: `JEPAAgent`
 - Low-level model experimentation: `Dreamer`, `RSSM`, decoder/encoder modules
+- Custom world model architectures: `ModularRSSM` with swappable encoder/decoder/backbone
 - Custom data pipelines: `make_cifar10`, `make_imagenet1k`, `make_imagefolder`

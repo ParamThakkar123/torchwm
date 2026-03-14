@@ -84,6 +84,36 @@ class IRISTransformer(nn.Module):
         nn.init.zeros_(self.reward_head.bias)
         nn.init.zeros_(self.termination_head.bias)
 
+    def _build_sequence(
+        self,
+        tokens: torch.Tensor,
+        actions: torch.Tensor,
+    ) -> torch.Tensor:
+        """Build the interleaved token-action sequence.
+
+        Args:
+            tokens: Frame tokens (B, T, K)
+            actions: Actions (B, T)
+
+        Returns:
+            Sequence ready for transformer (B, T*(K+1), embed_dim)
+        """
+        B, T, K = tokens.shape
+
+        tokens_flat = tokens.reshape(B, T * K)
+        token_embeds = self.token_embedding(tokens_flat)
+
+        action_embeds = self.action_embedding(actions)
+        token_embeds = token_embeds.reshape(B, T, K, self.embed_dim)
+
+        action_embeds_expanded = action_embeds.unsqueeze(2)
+        sequence = torch.cat([token_embeds, action_embeds_expanded], dim=2)
+
+        sequence = sequence.reshape(B, T * (K + 1), self.embed_dim)
+        sequence = sequence + self.pos_embedding[:, : T * (K + 1), :]
+
+        return sequence
+
     def forward(
         self,
         tokens: torch.Tensor,  # (B, T, K) - frame tokens
@@ -164,7 +194,7 @@ class IRISTransformer(nn.Module):
         self,
         tokens: torch.Tensor,
         actions: torch.Tensor,
-    ) -> torch.Tensor:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Predict the next frame tokens autoregressively.
 
         Used during imagination rollouts.
@@ -174,17 +204,33 @@ class IRISTransformer(nn.Module):
             actions: Actions taken (B,)
 
         Returns:
-            Next frame token predictions (B, K, vocab_size)
+            token_logits: Next frame token predictions (B, K, vocab_size)
+            action_hidden: Hidden states for reward prediction (B, embed_dim)
         """
-        # Add batch dimension if needed
+        # Handle token shapes: (B, H, W) -> (B, K) -> (B, 1, K)
+        if tokens.dim() == 3:
+            # tokens is (B, H, W) grid of tokens, flatten to (B, K)
+            B_grid, H, W = tokens.shape
+            tokens = tokens.reshape(B_grid, H * W)
         if tokens.dim() == 2:
-            tokens = tokens.unsqueeze(1)  # (1, K) -> (1, 1, K)
+            tokens = tokens.unsqueeze(1)  # (B, K) -> (B, 1, K)
         if actions.dim() == 1:
             actions = actions.unsqueeze(1)  # (B,) -> (B, 1)
 
         token_logits, _, _ = self.forward(tokens, actions)
 
-        return token_logits[:, -1, :, :]  # Return last timestep predictions
+        # Get action hidden states for reward prediction
+        B, T, K, embed_dim = token_logits.shape
+        hidden = self.layer_norm(
+            self.transformer(self._build_sequence(tokens, actions), mask=None)
+        )
+        hidden = hidden.reshape(B, T, K + 1, self.embed_dim)
+        action_hidden = hidden[:, -1, K, :]  # (B, embed_dim)
+
+        return (
+            token_logits[:, -1, :, :],
+            action_hidden,
+        )  # Return last timestep predictions
 
     def sample_next_tokens(
         self,
@@ -203,7 +249,7 @@ class IRISTransformer(nn.Module):
             sampled_tokens: Sampled token indices (B, K)
             log_probs: Log probabilities of sampled tokens (B, K)
         """
-        token_logits = self.predict_next_tokens(tokens, actions)
+        token_logits, _ = self.predict_next_tokens(tokens, actions)
 
         # Apply temperature
         token_logits = token_logits / temperature
@@ -354,13 +400,11 @@ class IRISWorldModel(nn.Module):
 
             # Get reward and termination predictions
             with torch.no_grad():
-                token_logits = self.transformer.predict_next_tokens(
+                token_logits, action_hidden = self.transformer.predict_next_tokens(
                     current_tokens, action
                 )
-                reward = self.transformer.reward_head(token_logits[:, 0, 0]).mean()
-                termination_logits = self.transformer.termination_head(
-                    token_logits[:, 0, 0]
-                )
+                reward = self.transformer.reward_head(action_hidden).mean()
+                termination_logits = self.transformer.termination_head(action_hidden)
                 termination = torch.softmax(termination_logits, dim=-1)[:, 1]
 
             tokens_history.append(sampled_tokens)

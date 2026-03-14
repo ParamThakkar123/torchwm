@@ -280,13 +280,21 @@ class IRISAgent(nn.Module):
 
             # Predict next tokens
             with torch.no_grad():
-                token_logits = self.transformer.predict_next_tokens(
+                token_logits, action_hidden = self.transformer.predict_next_tokens(
                     current_tokens, action
                 )
                 next_tokens = torch.argmax(token_logits, dim=-1)
 
-                # Get reward prediction (use mean embedding)
-                reward_pred = self.transformer.reward_head(token_logits[:, 0, 0])
+                # Reshape from (B, K) to (B, H, W) for decode_indices
+                tokens_per_dim = int(self.config.tokens_per_frame**0.5)
+                next_tokens = next_tokens.reshape(
+                    next_tokens.shape[0],
+                    tokens_per_dim,
+                    tokens_per_dim,
+                )
+
+                # Get reward prediction
+                reward_pred = self.transformer.reward_head(action_hidden).squeeze(-1)
 
             actions_imagined.append(action)
             rewards_imagined.append(reward_pred)

@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/getting_started.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
-<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Environment Backends: Dreamer supports multiple backends through DreamerCon..." />
+<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Quick Start: Modular RSSM: The modular RSSM allows researchers to swap enco..." />
+<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Quick Start: Dreamer: Quick Start: JEPA: Quick Start: Modular RSSM: The modular RSSM allows researchers to swap enco..." />
 
     <title>Getting Started &#8212; TorchWM 0.2.1 documentation</title>
   
@@ -416,6 +416,31 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
+<section id="quick-start-modular-rssm">
+<h2>Quick Start: Modular RSSM<a class="headerlink" href="#quick-start-modular-rssm" title="Link to this heading">#</a></h2>
+<p>The modular RSSM allows researchers to swap encoders, decoders, and backbones for experimentation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.modular_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_modular_rssm</span><span class="p">,</span> <span class="n">ModularRSSM</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.modular_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvEncoder</span><span class="p">,</span> <span class="n">ViTEncoder</span><span class="p">,</span> <span class="n">GRUBackbone</span><span class="p">,</span> <span class="n">LSTMBackbone</span>
+
+<span class="c1"># Factory function for quick setup</span>
+<span class="n">rssm</span> <span class="o">=</span> <span class="n">create_modular_rssm</span><span class="p">(</span>
+    <span class="n">encoder_type</span><span class="o">=</span><span class="s2">&quot;conv&quot;</span><span class="p">,</span>      <span class="c1"># &quot;conv&quot;, &quot;mlp&quot;, or &quot;vit&quot;</span>
+    <span class="n">decoder_type</span><span class="o">=</span><span class="s2">&quot;conv&quot;</span><span class="p">,</span>       <span class="c1"># &quot;conv&quot; or &quot;mlp&quot;</span>
+    <span class="n">backbone_type</span><span class="o">=</span><span class="s2">&quot;gru&quot;</span><span class="p">,</span>      <span class="c1"># &quot;gru&quot;, &quot;lstm&quot;, or &quot;transformer&quot;</span>
+    <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="n">stoch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+    <span class="n">deter_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Or build manually with custom components</span>
+<span class="n">encoder</span> <span class="o">=</span> <span class="n">ViTEncoder</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">LSTMBackbone</span><span class="p">(</span><span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">stoch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">deter_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">rssm</span> <span class="o">=</span> <span class="n">ModularRSSM</span><span class="p">(</span><span class="n">encoder</span><span class="o">=</span><span class="n">encoder</span><span class="p">,</span> <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span> <span class="n">backbone</span><span class="o">=</span><span class="n">backbone</span><span class="p">,</span> <span class="n">reward_decoder</span><span class="o">=</span><span class="n">reward_decoder</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="environment-backends">
 <h2>Environment Backends<a class="headerlink" href="#environment-backends" title="Link to this heading">#</a></h2>
 <p>Dreamer supports multiple backends through <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code>:</p>
@@ -494,6 +519,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-jepa">Quick Start: JEPA</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-modular-rssm">Quick Start: Modular RSSM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-training-flow">Typical Training Flow</a></li>
 </ul>

@@ -53,6 +53,32 @@ agent = JEPAAgent(cfg)
 agent.train()
 ```
 
+## Quick Start: Modular RSSM
+
+The modular RSSM allows researchers to swap encoders, decoders, and backbones for experimentation:
+
+```python
+from world_models.models.modular_rssm import create_modular_rssm, ModularRSSM
+from world_models.models.modular_rssm import ConvEncoder, ViTEncoder, GRUBackbone, LSTMBackbone
+
+# Factory function for quick setup
+rssm = create_modular_rssm(
+    encoder_type="conv",      # "conv", "mlp", or "vit"
+    decoder_type="conv",       # "conv" or "mlp"
+    backbone_type="gru",      # "gru", "lstm", or "transformer"
+    obs_shape=(3, 64, 64),
+    action_size=6,
+    stoch_size=32,
+    deter_size=200,
+    embed_size=1024,
+)
+
+# Or build manually with custom components
+encoder = ViTEncoder(input_shape=(3, 64, 64), embed_size=1024, patch_size=8, depth=6)
+backbone = LSTMBackbone(action_size=6, stoch_size=32, deter_size=200, hidden_size=200, embed_size=1024)
+rssm = ModularRSSM(encoder=encoder, decoder=decoder, backbone=backbone, reward_decoder=reward_decoder)
+```
+
 ## Environment Backends
 
 Dreamer supports multiple backends through `DreamerConfig.env_backend`:

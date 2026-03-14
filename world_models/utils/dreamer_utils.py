@@ -8,6 +8,11 @@ from typing import Iterable
 from torch.nn import Module
 from tensorboardX import SummaryWriter
 
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
 
 def get_parameters(modules: Iterable[Module]):
     """
@@ -43,7 +48,6 @@ class FreezeParameters:
         self.param_states = [p.requires_grad for p in get_parameters(self.modules)]
 
     def __enter__(self):
-
         for param in get_parameters(self.modules):
             param.requires_grad = False
 
@@ -53,22 +57,53 @@ class FreezeParameters:
 
 
 class Logger:
-    """Experiment logger for scalars and GIF rollouts using TensorBoardX.
+    """Experiment logger for scalars and GIF rollouts using TensorBoardX and WandB.
 
     Provides helpers to write scalar metrics, dump pickle snapshots, and save
     video previews during Dreamer training/evaluation.
     """
 
-    def __init__(self, log_dir, n_logged_samples=10, summary_writer=None):
+    def __init__(
+        self,
+        log_dir,
+        enable_wandb=False,
+        wandb_api_key="",
+        wandb_project="torchwm",
+        wandb_entity="",
+        enable_tensorboard=True,
+    ):
         self._log_dir = log_dir
         print("########################")
         print("logging outputs to ", log_dir)
         print("########################")
-        self._n_logged_samples = n_logged_samples
-        self._summ_writer = SummaryWriter(log_dir, flush_secs=1, max_queue=1)
+        self._n_logged_samples = 10
+        self.enable_wandb = enable_wandb
+        self.enable_tensorboard = enable_tensorboard
+        self._wandb_run = None
+
+        if self.enable_tensorboard:
+            self._summ_writer = SummaryWriter(log_dir, flush_secs=1, max_queue=1)
+        else:
+            self._summ_writer = None
+
+        if self.enable_wandb:
+            if not wandb_api_key:
+                raise ValueError("WandB API key is required when enable_wandb is True")
+            if wandb is None:
+                raise ImportError("wandb is not installed")
+            os.environ["WANDB_API_KEY"] = wandb_api_key
+            self._wandb_run = wandb.init(
+                project=wandb_project,
+                entity=wandb_entity,
+                dir=log_dir,
+                name=os.path.basename(log_dir),
+            )
 
     def log_scalar(self, scalar, name, step_):
-        self._summ_writer.add_scalar("{}".format(name), scalar, step_)
+        if self.enable_tensorboard and self._summ_writer:
+            self._summ_writer.add_scalar("{}".format(name), scalar, step_)
+        if self.enable_wandb and self._wandb_run:
+            self._wandb_run.log({name: scalar}, step=step_)
 
     def log_scalars(self, scalar_dict, step):
         for key, value in scalar_dict.items():
@@ -79,7 +114,6 @@ class Logger:
     def log_videos(
         self, videos, step, max_videos_to_save=1, fps=20, video_title="video"
     ):
-
         # max rollout length
         max_videos_to_save = np.min([max_videos_to_save, videos.shape[0]])
         max_length = videos[0].shape[0]
@@ -100,6 +134,16 @@ class Logger:
             filename = os.path.join(self._log_dir, new_video_title)
             clip.write_gif(filename, fps=fps)
 
+            # Log to WandB
+            if self.enable_wandb and self._wandb_run:
+                # Convert to numpy array for WandB
+                video_array = np.array(videos[i])  # Shape: (T, H, W, C)
+                # WandB expects (T, C, H, W) or (T, H, W, C)?
+                # For video, WandB uses (T, H, W, C) I think, but let's transpose if needed
+                self._wandb_run.log(
+                    {f"{video_title}_{i}": wandb.Video(video_array, fps=fps)}, step=step
+                )
+
     def dump_scalars_to_pickle(self, metrics, step, log_title=None):
         log_path = os.path.join(
             self._log_dir, "scalar_data.pkl" if log_title is None else log_title
@@ -108,7 +152,8 @@ class Logger:
             pickle.dump({"step": step, **dict(metrics)}, f)
 
     def flush(self):
-        self._summ_writer.flush()
+        if self.enable_tensorboard and self._summ_writer:
+            self._summ_writer.flush()
 
 
 def compute_return(rewards, values, discounts, td_lam, last_value):

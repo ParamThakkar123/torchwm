@@ -33,6 +33,7 @@ setup(
         "pygame>=2.6.1",
         "tensorboard>=2.20.0",
         "tensorboardx>=2.6.4",
+        "wandb>=0.16.0",
         "tqdm>=4.67.1",
         "torch>=1.13.0",
         "torchvision>=0.14.0",

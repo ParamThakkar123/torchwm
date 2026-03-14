@@ -115,6 +115,10 @@ def main(args, resume_preempt=False):
     # -- LOGGING
     folder = args["logging"]["folder"]
     tag = args["logging"]["write_tag"]
+    enable_wandb = args["logging"]["enable_wandb"]
+    wandb_api_key = args["logging"]["wandb_api_key"]
+    wandb_project = args["logging"]["wandb_project"]
+    wandb_entity = args["logging"]["wandb_entity"]
 
     os.makedirs(folder, exist_ok=True)  # ensure output dir exists
 
@@ -145,6 +149,10 @@ def main(args, resume_preempt=False):
     # -- make csv_logger
     csv_logger = CSVLogger(
         log_file,
+        enable_wandb,
+        wandb_api_key,
+        wandb_project,
+        wandb_entity,
         ("%d", "epoch"),
         ("%d", "itr"),
         ("%.5f", "loss"),
@@ -393,8 +401,15 @@ def main(args, resume_preempt=False):
             time_meter.update(etime)
 
             def log_stats():
+                global_step = epoch * ipe + itr
                 csv_logger.log(
-                    epoch + 1, itr, loss, maskA_meter.val, maskB_meter.val, etime
+                    global_step,
+                    epoch + 1,
+                    itr,
+                    loss,
+                    maskA_meter.val,
+                    maskB_meter.val,
+                    etime,
                 )
                 if (itr % log_freq == 0) or np.isnan(loss) or np.isinf(loss):
                     logger.info(

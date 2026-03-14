@@ -22,6 +22,35 @@ For development and tests:
 pip install -e ".[dev]"
 ```
 
+## Logging with Weights & Biases and TensorBoard
+
+TorchWM supports logging experiment results to Weights & Biases (WandB) and TensorBoard.
+
+### Weights & Biases
+
+To use WandB logging, you must provide an API key as anonymous logins are no longer supported.
+
+1. Get your WandB API key from [wandb.ai](https://wandb.ai/settings).
+2. Set the key in your config:
+
+```python
+cfg.enable_wandb = True
+cfg.wandb_api_key = "your-api-key-here"
+cfg.wandb_project = "torchwm"
+cfg.wandb_entity = "your-entity"
+```
+
+### TensorBoard
+
+Enable TensorBoard logging:
+
+```python
+cfg.enable_tensorboard = True
+cfg.log_dir = "runs"
+```
+
+Logs will be saved to the specified directory and can be viewed with `tensorboard --logdir runs`.
+
 ## Quick Start: Dreamer
 
 ```python

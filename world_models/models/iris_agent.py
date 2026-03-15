@@ -524,7 +524,8 @@ class IRISAgent(nn.Module):
 
     def load(self, path: str):
         """Load agent state."""
-        checkpoint = torch.load(path, map_location=self.device)
+        with torch.serialization.safe_globals([IRISConfig]):
+            checkpoint = torch.load(path, map_location=self.device)
 
         self.encoder.load_state_dict(checkpoint["encoder"])
         self.decoder.load_state_dict(checkpoint["decoder"])

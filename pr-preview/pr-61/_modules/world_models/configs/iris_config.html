@@ -451,9 +451,9 @@
 
         <span class="c1"># === Actor-Critic ===</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">imagination_horizon</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1"># H</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">discount</span> <span class="o">=</span> <span class="mf">0.995</span>  <span class="c1"># gamma</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">td_lambda</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># lambda for lambda-return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">entropy_coef</span> <span class="o">=</span> <span class="mf">0.001</span>  <span class="c1"># eta: entropy coefficient</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discount</span> <span class="o">=</span> <span class="mf">0.99</span>  <span class="c1"># gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">td_lambda</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># lambda for lambda-return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entropy_coef</span> <span class="o">=</span> <span class="mf">0.01</span>  <span class="c1"># eta: entropy coefficient</span>
 
         <span class="c1"># Policy network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_hidden_size</span> <span class="o">=</span> <span class="mi">512</span>
@@ -466,8 +466,8 @@
         <span class="c1"># === Training ===</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_epochs</span> <span class="o">=</span> <span class="mi">600</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collection_epochs</span> <span class="o">=</span> <span class="mi">500</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">env_steps_per_epoch</span> <span class="o">=</span> <span class="mi">200</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">training_steps_per_epoch</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_steps_per_epoch</span> <span class="o">=</span> <span class="mi">400</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_steps_per_epoch</span> <span class="o">=</span> <span class="mi">500</span>
 
         <span class="c1"># Optimization</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_learning_rate</span> <span class="o">=</span> <span class="mf">1e-4</span>
@@ -480,12 +480,12 @@
 
         <span class="c1"># Exploration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">collect_epsilon</span> <span class="o">=</span> <span class="mf">0.01</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">eval_temperature</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_temperature</span> <span class="o">=</span> <span class="mf">0.1</span>
 
         <span class="c1"># Warm-start delays (epochs)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_autoencoder_after</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_transformer_after</span> <span class="o">=</span> <span class="mi">25</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_actor_critic_after</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_autoencoder_after</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_transformer_after</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_actor_critic_after</span> <span class="o">=</span> <span class="mi">25</span>
 
         <span class="c1"># Batch sizes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">autoencoder_batch_size</span> <span class="o">=</span> <span class="mi">256</span>

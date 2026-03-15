@@ -37,9 +37,9 @@ class IRISConfig:
 
         # === Actor-Critic ===
         self.imagination_horizon = 20  # H
-        self.discount = 0.995  # gamma
-        self.td_lambda = 0.95  # lambda for lambda-return
-        self.entropy_coef = 0.001  # eta: entropy coefficient
+        self.discount = 0.99  # gamma
+        self.td_lambda = 0.9  # lambda for lambda-return
+        self.entropy_coef = 0.01  # eta: entropy coefficient
 
         # Policy network
         self.actor_hidden_size = 512
@@ -52,8 +52,8 @@ class IRISConfig:
         # === Training ===
         self.total_epochs = 600
         self.collection_epochs = 500
-        self.env_steps_per_epoch = 200
-        self.training_steps_per_epoch = 200
+        self.env_steps_per_epoch = 400
+        self.training_steps_per_epoch = 500
 
         # Optimization
         self.model_learning_rate = 1e-4
@@ -66,12 +66,12 @@ class IRISConfig:
 
         # Exploration
         self.collect_epsilon = 0.01
-        self.eval_temperature = 0.5
+        self.eval_temperature = 0.1
 
         # Warm-start delays (epochs)
-        self.start_autoencoder_after = 5
-        self.start_transformer_after = 25
-        self.start_actor_critic_after = 50
+        self.start_autoencoder_after = 1
+        self.start_transformer_after = 10
+        self.start_actor_critic_after = 25
 
         # Batch sizes
         self.autoencoder_batch_size = 256

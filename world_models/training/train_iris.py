@@ -32,7 +32,6 @@ class IRISTrainer:
 
         # Config
         self.config = config if config is not None else IRISConfig()
-        self.config.autoencoder_batch_size = 64
 
         # Create environment
         self.env = make_atari_env(

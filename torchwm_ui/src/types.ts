@@ -4,6 +4,29 @@ export interface CatalogResponse {
   env_backends: Record<string, { label: string; description: string; environments: string[] }>;
   default_model_configs: Record<string, Record<string, unknown>>;
   default_training_configs: Record<string, Record<string, unknown>>;
+  components: Record<string, ComponentDefinition>;
+}
+
+export interface ComponentDefinition {
+  label: string;
+  description: string;
+  category: "environment" | "encoder" | "decoder" | "rssm" | "reward" | "value" | "actor" | "optimizer" | "memory";
+  hyperparameters: HyperparameterDefinition[];
+  inputs: string[];
+  outputs: string[];
+  icon: string;
+  source_file?: string;
+}
+
+export interface HyperparameterDefinition {
+  name: string;
+  label: string;
+  type: "number" | "string" | "boolean" | "select";
+  default: number | string | boolean;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: { value: string; label: string }[];
 }
 
 export interface StateResponse {
@@ -43,4 +66,33 @@ export interface Dependency {
   label: string;
   required: boolean;
   installed: boolean;
+}
+
+export interface FlowchartNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: {
+    component: string;
+    label: string;
+    config: Record<string, number | string | boolean>;
+  };
+}
+
+export interface FlowchartEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+}
+
+export interface FlowchartConfig {
+  nodes: FlowchartNode[];
+  edges: FlowchartEdge[];
+}
+
+export interface StartFlowchartTrainingRequest {
+  flowchart: FlowchartConfig;
+  config: Record<string, unknown>;
 }

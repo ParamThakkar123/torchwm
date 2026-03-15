@@ -1,4 +1,4 @@
-import type { CatalogResponse, FrameResponse, MetricsResponse, StateResponse } from "./types";
+import type { CatalogResponse, FrameResponse, MetricsResponse, StateResponse, FlowchartConfig } from "./types";
 
 export interface Dependency {
   name: string;
@@ -84,6 +84,23 @@ export function stopTraining(): Promise<{ stop_requested: boolean } & StateRespo
   });
 }
 
+export function startFlowchartTraining(flowchart: FlowchartConfig, config: Record<string, unknown>): Promise<StateResponse> {
+  return request<StateResponse>("/api/train/flowchart/start", {
+    method: "POST",
+    body: JSON.stringify({ flowchart, config })
+  });
+}
+
 export function fetchDependencies(): Promise<DependenciesResponse> {
   return request<DependenciesResponse>("/api/dependencies");
+}
+
+export interface ComponentSourceResponse {
+  source: string | null;
+  file: string | null;
+  error: string | null;
+}
+
+export function fetchComponentSource(componentKey: string): Promise<ComponentSourceResponse> {
+  return request<ComponentSourceResponse>(`/api/component-source/${componentKey}`);
 }

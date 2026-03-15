@@ -1645,8 +1645,13 @@ def get_component_source(component_key: str) -> dict[str, Any]:
     try:
         content = full_path.read_text(encoding="utf-8")
         return {"source": content, "file": source_file, "error": None}
-    except Exception as e:
-        return {"source": None, "file": source_file, "error": str(e)}
+    except Exception:
+        logging.exception("Failed to read source file '%s'", source_file)
+        return {
+            "source": None,
+            "file": source_file,
+            "error": "Failed to read source file",
+        }
 
 
 TRAINING_DEPENDENCIES = [

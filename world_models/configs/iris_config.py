@@ -36,7 +36,7 @@ class IRISConfig:
         self.transformer_dropout = 0.1
 
         # === Actor-Critic ===
-        self.imagination_horizon = 20  # H
+        self.imagination_horizon = 15  # H - Reduced from 20 for faster training
         self.discount = 0.99  # gamma
         self.td_lambda = 0.9  # lambda for lambda-return
         self.entropy_coef = 0.01  # eta: entropy coefficient
@@ -52,8 +52,8 @@ class IRISConfig:
         # === Training ===
         self.total_epochs = 600
         self.collection_epochs = 500
-        self.env_steps_per_epoch = 400
-        self.training_steps_per_epoch = 500
+        self.env_steps_per_epoch = 200  # Reduced from 400 for faster training
+        self.training_steps_per_epoch = 250  # Reduced from 500 for faster training
 
         # Optimization
         self.model_learning_rate = 1e-4
@@ -65,13 +65,17 @@ class IRISConfig:
         self.grad_clip_norm = 10.0
 
         # Exploration
-        self.collect_epsilon = 0.01
+        self.collect_epsilon = 0.1  # Increased from 0.01 for better exploration
         self.eval_temperature = 0.1
 
         # Warm-start delays (epochs)
         self.start_autoencoder_after = 1
-        self.start_transformer_after = 10
-        self.start_actor_critic_after = 25
+        self.start_transformer_after = (
+            15  # Increased to give more time for autoencoder to train
+        )
+        self.start_actor_critic_after = (
+            35  # Increased to give more time for world model to train
+        )
 
         # Batch sizes
         self.autoencoder_batch_size = 256

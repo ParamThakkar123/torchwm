@@ -144,10 +144,13 @@ class IRISTrainer:
         """
         metrics = {}
 
+        # Get epsilon with decay for better exploration early on
+        epsilon = self.get_epsilon(epoch)
+
         # Phase 1: Collect experience
         mean_return = self.collect_experience(
             num_steps=self.config.env_steps_per_epoch,
-            epsilon=self.config.collect_epsilon,
+            epsilon=epsilon,
         )
         metrics["collection_return"] = mean_return
 
@@ -227,6 +230,17 @@ class IRISTrainer:
         self.agent.global_step += self.config.env_steps_per_epoch
 
         return metrics
+
+    def get_epsilon(self, epoch: int) -> float:
+        """Get exploration epsilon with decay."""
+        start_epsilon = 0.5
+        min_epsilon = self.config.collect_epsilon
+        decay_epochs = 50
+        epsilon = max(
+            min_epsilon,
+            start_epsilon - (start_epsilon - min_epsilon) * epoch / decay_epochs,
+        )
+        return epsilon
 
     def evaluate(self, num_episodes: int = 100) -> dict:
         """Evaluate agent performance.

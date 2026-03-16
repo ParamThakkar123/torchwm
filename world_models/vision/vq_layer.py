@@ -190,14 +190,17 @@ class VectorQuantizerEMA(nn.Module):
 
                 self.ema_embed_avg.copy_(new_ema_embed_avg)
 
-                # Normalize and update codebook
+                # Normalize and update codebook properly (avoid breaking gradient graph)
                 normalized = F.normalize(self.ema_embed_avg, dim=1)
-                self.codebook.weight = nn.Parameter(normalized)
+                self.codebook.weight.data.copy_(normalized)
 
         # Reshape back
         z_q = z_q.reshape(B, H, W, C).permute(0, 3, 1, 2)
 
-        # Compute loss
+        # Compute losses
+        # Codebook loss: move codebook toward encoder output (stop gradient on encoder)
+        codebook_loss = F.mse_loss(z_q, z.detach())
+        # Commitment loss: move encoder output toward codebook (stop gradient on codebook)
         commitment_loss = F.mse_loss(z_q.detach(), z)
 
         # Perplexity
@@ -206,7 +209,7 @@ class VectorQuantizerEMA(nn.Module):
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
 
         loss = {
-            "vq_loss": commitment_loss,
+            "vq_loss": codebook_loss + commitment_loss * self.commitment_weight,
             "perplexity": perplexity,
         }
 

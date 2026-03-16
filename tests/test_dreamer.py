@@ -6,7 +6,6 @@ from world_models.models.dreamer_rssm import RSSM
 from world_models.configs.dreamer_config import DreamerConfig
 
 
-@pytest.mark.randomly(dont_reset_seed=True)
 class TestDreamerAgent:
     @pytest.fixture
     def config(self):
@@ -93,8 +92,7 @@ class TestDreamerAgent:
 
     @patch("world_models.models.dreamer.make_env")
     @patch("world_models.models.dreamer.Logger")
-    def test_initialization_with_invalid_arg(self, mock_make_env, config):
-        config.invalid_arg = "test"  # Add invalid arg
+    def test_initialization_with_invalid_arg(self, mock_logger, mock_make_env, config):
         mock_env = Mock()
         mock_obs_space = Mock()
         mock_obs_space.shape = (3, 64, 64)
@@ -105,4 +103,4 @@ class TestDreamerAgent:
         mock_make_env.return_value = mock_env
 
         with pytest.raises(ValueError, match="Invalid argument: invalid_arg"):
-            DreamerAgent(config)
+            DreamerAgent(config, invalid_arg="test")

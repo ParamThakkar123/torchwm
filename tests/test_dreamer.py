@@ -17,6 +17,7 @@ class TestDreamerAgent:
         config.seed_steps = 100
         config.action_repeat = 1
         config.restore = False
+        config.buffer_size = 1000
         return config
 
     @patch("world_models.models.dreamer.make_env")

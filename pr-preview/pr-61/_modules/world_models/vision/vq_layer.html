@@ -615,14 +615,17 @@
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">ema_embed_avg</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">new_ema_embed_avg</span><span class="p">)</span>
 
-                <span class="c1"># Normalize and update codebook</span>
+                <span class="c1"># Normalize and update codebook properly (avoid breaking gradient graph)</span>
                 <span class="n">normalized</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ema_embed_avg</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">codebook</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">codebook</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">normalized</span><span class="p">)</span>
 
         <span class="c1"># Reshape back</span>
         <span class="n">z_q</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
-        <span class="c1"># Compute loss</span>
+        <span class="c1"># Compute losses</span>
+        <span class="c1"># Codebook loss: move codebook toward encoder output (stop gradient on encoder)</span>
+        <span class="n">codebook_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">z_q</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+        <span class="c1"># Commitment loss: move encoder output toward codebook (stop gradient on codebook)</span>
         <span class="n">commitment_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">z_q</span><span class="o">.</span><span class="n">detach</span><span class="p">(),</span> <span class="n">z</span><span class="p">)</span>
 
         <span class="c1"># Perplexity</span>
@@ -631,7 +634,7 @@
         <span class="n">perplexity</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)))</span>
 
         <span class="n">loss</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;vq_loss&quot;</span><span class="p">:</span> <span class="n">commitment_loss</span><span class="p">,</span>
+            <span class="s2">&quot;vq_loss&quot;</span><span class="p">:</span> <span class="n">codebook_loss</span> <span class="o">+</span> <span class="n">commitment_loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">commitment_weight</span><span class="p">,</span>
             <span class="s2">&quot;perplexity&quot;</span><span class="p">:</span> <span class="n">perplexity</span><span class="p">,</span>
         <span class="p">}</span>
 

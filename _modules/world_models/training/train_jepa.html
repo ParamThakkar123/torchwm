@@ -463,6 +463,10 @@
     <span class="c1"># -- LOGGING</span>
     <span class="n">folder</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;folder&quot;</span><span class="p">]</span>
     <span class="n">tag</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;write_tag&quot;</span><span class="p">]</span>
+    <span class="n">enable_wandb</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;enable_wandb&quot;</span><span class="p">]</span>
+    <span class="n">wandb_api_key</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;wandb_api_key&quot;</span><span class="p">]</span>
+    <span class="n">wandb_project</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;wandb_project&quot;</span><span class="p">]</span>
+    <span class="n">wandb_entity</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;logging&quot;</span><span class="p">][</span><span class="s2">&quot;wandb_entity&quot;</span><span class="p">]</span>
 
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># ensure output dir exists</span>
 
@@ -493,6 +497,10 @@
     <span class="c1"># -- make csv_logger</span>
     <span class="n">csv_logger</span> <span class="o">=</span> <span class="n">CSVLogger</span><span class="p">(</span>
         <span class="n">log_file</span><span class="p">,</span>
+        <span class="n">enable_wandb</span><span class="p">,</span>
+        <span class="n">wandb_api_key</span><span class="p">,</span>
+        <span class="n">wandb_project</span><span class="p">,</span>
+        <span class="n">wandb_entity</span><span class="p">,</span>
         <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;epoch&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;itr&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;</span><span class="si">%.5f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">),</span>
@@ -741,8 +749,15 @@
             <span class="n">time_meter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">etime</span><span class="p">)</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">log_stats</span><span class="p">():</span>
+                <span class="n">global_step</span> <span class="o">=</span> <span class="n">epoch</span> <span class="o">*</span> <span class="n">ipe</span> <span class="o">+</span> <span class="n">itr</span>
                 <span class="n">csv_logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
-                    <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">itr</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">maskA_meter</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="n">maskB_meter</span><span class="o">.</span><span class="n">val</span><span class="p">,</span> <span class="n">etime</span>
+                    <span class="n">global_step</span><span class="p">,</span>
+                    <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">itr</span><span class="p">,</span>
+                    <span class="n">loss</span><span class="p">,</span>
+                    <span class="n">maskA_meter</span><span class="o">.</span><span class="n">val</span><span class="p">,</span>
+                    <span class="n">maskB_meter</span><span class="o">.</span><span class="n">val</span><span class="p">,</span>
+                    <span class="n">etime</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">itr</span> <span class="o">%</span> <span class="n">log_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">loss</span><span class="p">):</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>

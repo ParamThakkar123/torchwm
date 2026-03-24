@@ -1,9 +1,69 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+
+
+@dataclass
+class ModelPreset:
+    """Model architecture preset for different hardware tiers."""
+
+    diffusion_channels: List[int]
+    diffusion_res_blocks: int
+    diffusion_cond_dim: int
+    reward_channels: List[int]
+    reward_lstm_dim: int
+    actor_channels: List[int]
+    actor_lstm_dim: int
+
+
+MODEL_PRESETS = {
+    "small": ModelPreset(
+        diffusion_channels=[32, 32, 32, 32],
+        diffusion_res_blocks=2,
+        diffusion_cond_dim=128,
+        reward_channels=[16, 16, 16, 16],
+        reward_lstm_dim=256,
+        actor_channels=[16, 16, 32, 32],
+        actor_lstm_dim=256,
+    ),
+    "medium": ModelPreset(
+        diffusion_channels=[64, 64, 64, 64],
+        diffusion_res_blocks=2,
+        diffusion_cond_dim=256,
+        reward_channels=[32, 32, 32, 32],
+        reward_lstm_dim=512,
+        actor_channels=[32, 32, 64, 64],
+        actor_lstm_dim=512,
+    ),
+    "large": ModelPreset(
+        diffusion_channels=[128, 128, 128, 128],
+        diffusion_res_blocks=3,
+        diffusion_cond_dim=512,
+        reward_channels=[64, 64, 64, 64],
+        reward_lstm_dim=1024,
+        actor_channels=[64, 64, 128, 128],
+        actor_lstm_dim=1024,
+    ),
+}
 
 
 @dataclass
 class DiamondConfig:
+    # Preset selection (overrides manual model config if set)
+    preset: Optional[str] = None  # "small", "medium", "large", or None
+
+    def __post_init__(self):
+        if self.preset and self.preset in MODEL_PRESETS:
+            p = MODEL_PRESETS[self.preset]
+            self.diffusion_channels = p.diffusion_channels
+            self.diffusion_res_blocks = p.diffusion_res_blocks
+            self.diffusion_cond_dim = p.diffusion_cond_dim
+            self.reward_channels = list(
+                p.reward_channels
+            )  # convert tuple for dataclass
+            self.reward_lstm_dim = p.reward_lstm_dim
+            self.actor_channels = list(p.actor_channels)
+            self.actor_lstm_dim = p.actor_lstm_dim
+
     # Environment
     game: str = "Breakout-v5"
     obs_size: int = 64
@@ -15,7 +75,7 @@ class DiamondConfig:
     # Frame stacking (observation conditioning)
     num_conditioning_frames: int = 4
 
-    # Diffusion model (Dθ)
+    # Diffusion model (Dθ) - used if preset is None
     diffusion_channels: List[int] = field(default_factory=lambda: [64, 64, 64, 64])
     diffusion_res_blocks: int = 2
     diffusion_cond_dim: int = 256
@@ -32,14 +92,14 @@ class DiamondConfig:
     sampling_method: str = "euler"
     num_sampling_steps: int = 3
 
-    # Reward/Termination model (Rψ)
+    # Reward/Termination model (Rψ) - used if preset is None
     reward_channels: List[int] = field(default_factory=lambda: [32, 32, 32, 32])
     reward_res_blocks: int = 2
     reward_cond_dim: int = 128
     reward_lstm_dim: int = 512
     burn_in_length: int = 4
 
-    # RL Agent (actor-critic)
+    # RL Agent (actor-critic) - used if preset is None
     actor_channels: List[int] = field(default_factory=lambda: [32, 32, 64, 64])
     actor_res_blocks: int = 1
     actor_lstm_dim: int = 512

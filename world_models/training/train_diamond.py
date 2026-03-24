@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from tqdm import tqdm
 import os
 
@@ -504,11 +504,15 @@ class DiamondAgent:
         self.actor_opt.load_state_dict(checkpoint["actor_opt"])
 
 
-def train_diamond(game: str, seed: int = 0):
+def train_diamond(
+    game: str, seed: int = 0, preset: Optional[str] = None, device: str = "cuda"
+):
     """Train DIAMOND on a specific game."""
     config = DiamondConfig(
         game=game,
         seed=seed,
+        preset=preset if preset else None,
+        device=device,
     )
 
     agent = DiamondAgent(config)
@@ -521,6 +525,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--game", type=str, default="Breakout-v5")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--preset", type=str, default=None, choices=["small", "medium", "large"]
+    )
+    parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
-    train_diamond(args.game, args.seed)
+    train_diamond(args.game, args.seed, args.preset, args.device)

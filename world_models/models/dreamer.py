@@ -108,7 +108,6 @@ class Dreamer:
     """
 
     def __init__(self, args, obs_shape, action_size, device, restore=False):
-
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
@@ -126,7 +125,6 @@ class Dreamer:
         self._build_model(restore=self.restore)
 
     def _build_model(self, restore):
-
         self.rssm = RSSM(
             action_size=self.action_size,
             stoch_size=self.args.stoch_size,
@@ -232,7 +230,6 @@ class Dreamer:
             self.restore_checkpoint(self.restore_path)
 
     def world_model_loss(self, obs, acs, rews, nonterms):
-
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
         init_state = self.rssm.init_state(self.args.batch_size, self.device)
@@ -300,7 +297,6 @@ class Dreamer:
         return model_loss
 
     def actor_loss(self):
-
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
 
@@ -337,7 +333,6 @@ class Dreamer:
         return actor_loss
 
     def value_loss(self):
-
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
             value_targ = self.returns.detach()
@@ -350,7 +345,6 @@ class Dreamer:
         return value_loss
 
     def train_one_batch(self):
-
         obs, acs, rews, terms = self.data_buffer.sample()
         obs = torch.tensor(obs, dtype=torch.float32).to(self.device)
         acs = torch.tensor(acs, dtype=torch.float32).to(self.device)
@@ -384,7 +378,6 @@ class Dreamer:
         return model_loss.item(), actor_loss.item(), value_loss.item()
 
     def act_with_world_model(self, obs, prev_state, prev_action, explore=False):
-
         obs = obs["image"]
         obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
         obs_embed = self.obs_encoder(preprocess_obs(obs))
@@ -397,7 +390,6 @@ class Dreamer:
         return posterior, action
 
     def act_and_collect_data(self, env, collect_steps):
-
         obs = env.reset()
         done = False
         prev_state = self.rssm.init_state(1, self.device)
@@ -406,7 +398,6 @@ class Dreamer:
         episode_rewards = [0.0]
 
         for i in range(collect_steps):
-
             with torch.no_grad():
                 posterior, action = self.act_with_world_model(
                     obs, prev_state, prev_action, explore=True
@@ -441,7 +432,6 @@ class Dreamer:
         return np.array(episode_rewards)
 
     def evaluate(self, env, eval_episodes, render=False):
-
         episode_rew = np.zeros((eval_episodes))
 
         video_images = [[] for _ in range(eval_episodes)]
@@ -479,7 +469,6 @@ class Dreamer:
         return episode_rew, np.array(video_images[: self.args.max_videos_to_save])
 
     def collect_random_episodes(self, env, seed_steps):
-
         obs = env.reset()
         done = False
         seed_episode_rews = [0.0]
@@ -506,7 +495,6 @@ class Dreamer:
         return np.array(seed_episode_rews)
 
     def save(self, save_path):
-
         torch.save(
             {
                 "rssm": self.rssm.state_dict(),
@@ -527,7 +515,6 @@ class Dreamer:
         )
 
     def restore_checkpoint(self, ckpt_path):
-
         checkpoint = torch.load(ckpt_path)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
@@ -602,7 +589,14 @@ class DreamerAgent:
             self.args, obs_shape, action_size, device, self.args.restore
         )
 
-        self.logger = Logger(self.logdir)
+        self.logger = Logger(
+            self.logdir,
+            self.args.enable_wandb,
+            self.args.wandb_api_key,
+            self.args.wandb_project,
+            self.args.wandb_entity,
+            self.args.enable_tensorboard,
+        )
 
     def train(self, total_steps=None):
         if total_steps is None:
@@ -630,7 +624,6 @@ class DreamerAgent:
         self.logger.flush()
 
         while global_step <= total_steps:
-
             print("##################################")
             print(f"At global step {global_step}")
 

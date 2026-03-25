@@ -1,0 +1,922 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Tutorial: Dreamer Agent" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-66/learning/tutorial_dreamer.html" />
+<meta property="og:site_name" content="TorchWM Documentation" />
+<meta property="og:description" content="Dreamer is a model-based reinforcement learning algorithm that learns a world model and uses it for planning via imagined trajectories. This tutorial covers both the theory and TorchWM implementati..." />
+<meta name="description" content="Dreamer is a model-based reinforcement learning algorithm that learns a world model and uses it for planning via imagined trajectories. This tutorial covers both the theory and TorchWM implementati..." />
+
+    <title>Tutorial: Dreamer Agent &#8212; TorchWM 0.2.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=154cb7d9" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'learning/tutorial_dreamer';</script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-66/learning/tutorial_dreamer.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial: JEPA - Joint Embedding Predictive Architecture" href="tutorial_jepa.html" />
+    <link rel="prev" title="Introduction to World Models" href="intro_world_models.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.2.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="intro_world_models.html">
+    Introduction to World Models
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Tutorial: Dreamer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_jepa.html">
+    Tutorial: JEPA
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_modular_rssm.html">
+    Tutorial: Modular RSSM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="intro_world_models.html">
+    Introduction to World Models
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Tutorial: Dreamer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_jepa.html">
+    Tutorial: JEPA
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_modular_rssm.html">
+    Tutorial: Modular RSSM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Learning</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="intro_world_models.html">Introduction to World Models</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tutorial: Dreamer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_jepa.html">Tutorial: JEPA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_modular_rssm.html">Tutorial: Modular RSSM</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Tutorial: Dreamer Agent</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="tutorial-dreamer-agent">
+<h1>Tutorial: Dreamer Agent<a class="headerlink" href="#tutorial-dreamer-agent" title="Link to this heading">#</a></h1>
+<p>Dreamer is a model-based reinforcement learning algorithm that learns a world model
+and uses it for planning via imagined trajectories. This tutorial covers both the
+theory and TorchWM implementation.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_static/dreamer_architecture.png"><img alt="Dreamer Architecture" src="_static/dreamer_architecture.png" style="width: 700px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Dreamer combines world model learning with actor-critic optimization</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="the-dreamer-algorithm">
+<h2>The Dreamer Algorithm<a class="headerlink" href="#the-dreamer-algorithm" title="Link to this heading">#</a></h2>
+<section id="world-model-learning">
+<h3>1. World Model Learning<a class="headerlink" href="#world-model-learning" title="Link to this heading">#</a></h3>
+<p>The world model learns to predict future latent states and observations:</p>
+<div class="math notranslate nohighlight">
+\[\underbrace{p(s_{t+1} | s_t, a_t)}_{\text{transition}} 
+\underbrace{p(o_{t+1} | s_{t+1})}_{\text{observation}}
+\underbrace{p(r_t | s_t, a_t)}_{\text{reward}}\]</div>
+</section>
+<section id="latent-imagination">
+<h3>2. Latent Imagination<a class="headerlink" href="#latent-imagination" title="Link to this heading">#</a></h3>
+<p>Once trained, Dreamer can “dream” trajectories without environment interaction:</p>
+<div class="math notranslate nohighlight">
+\[\hat{s}_{t+1} \sim p(s_{t+1} | \hat{s}_t, \hat{a}_t)
+\hat{r}_t = p(r_t | \hat{s}_t, \hat{a}_t)\]</div>
+</section>
+<section id="actor-critic-training">
+<h3>3. Actor-Critic Training<a class="headerlink" href="#actor-critic-training" title="Link to this heading">#</a></h3>
+<p>The actor (policy) and critic (value function) are trained on imagined trajectories:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_{\text{actor}} = -\mathbb{E}_{\tau \sim p_\theta}[\sum_t \lambda_t \cdot V_\psi(s_t)]\]</div>
+</section>
+</section>
+<section id="implementation-in-torchwm">
+<h2>Implementation in TorchWM<a class="headerlink" href="#implementation-in-torchwm" title="Link to this heading">#</a></h2>
+<section id="step-1-configuration">
+<h3>Step 1: Configuration<a class="headerlink" href="#step-1-configuration" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">100_000</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="mf">1e-4</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.99</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">lambda_</span> <span class="o">=</span> <span class="mf">0.95</span>  <span class="c1"># TD(lambda) decay</span>
+</pre></div>
+</div>
+</section>
+<section id="step-2-create-the-agent">
+<h3>Step 2: Create the Agent<a class="headerlink" href="#step-2-create-the-agent" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="step-3-train">
+<h3>Step 3: Train<a class="headerlink" href="#step-3-train" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="deep-dive-the-mathematics">
+<h2>Deep Dive: The Mathematics<a class="headerlink" href="#deep-dive-the-mathematics" title="Link to this heading">#</a></h2>
+<section id="rssm-state-evolution">
+<h3>RSSM State Evolution<a class="headerlink" href="#rssm-state-evolution" title="Link to this heading">#</a></h3>
+<p>The RSSM maintains two types of state:</p>
+<ol class="arabic simple">
+<li><p><strong>Deterministic hidden state</strong> :math:<code class="docutils literal notranslate"><span class="pre">h_t</span></code>: Captures temporal dependencies via RNN</p></li>
+<li><p><strong>Stochastic latent state</strong> :math:<code class="docutils literal notranslate"><span class="pre">s_t</span></code>: Discretized bottleneck for information</p></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}h_t = \text{GRU}(h_{t-1}, [s_{t-1}; a_{t-1}])\\s_t \sim q(s_t | h_t, o_t) \quad \text{(posterior)}\\\hat{s}_t \sim p(s_t | h_{t-1}, a_{t-1}) \quad \text{(prior)}\end{aligned}\end{align} \]</div>
+</section>
+<section id="kl-balancing">
+<h3>KL Balancing<a class="headerlink" href="#kl-balancing" title="Link to this heading">#</a></h3>
+<p>To prevent posterior collapse, we use KL balancing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">kl_loss</span><span class="p">(</span><span class="n">prior_mean</span><span class="p">,</span> <span class="n">prior_logstd</span><span class="p">,</span> <span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_logstd</span><span class="p">,</span> 
+            <span class="n">kl_balance</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KL balancing - use mix of targets to prevent posterior collapse&quot;&quot;&quot;</span>
+    <span class="c1"># Target: 0.8 * posterior_target + 0.2 * prior_target</span>
+    <span class="n">sg</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>  <span class="c1"># stop gradient</span>
+    
+    <span class="n">kl_forward</span> <span class="o">=</span> <span class="n">kl_divergence</span><span class="p">(</span>
+        <span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_logstd</span><span class="p">,</span>
+        <span class="n">sg</span><span class="p">(</span><span class="n">prior_mean</span><span class="p">),</span> <span class="n">sg</span><span class="p">(</span><span class="n">prior_logstd</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">kl_reverse</span> <span class="o">=</span> <span class="n">kl_divergence</span><span class="p">(</span>
+        <span class="n">sg</span><span class="p">(</span><span class="n">prior_mean</span><span class="p">),</span> <span class="n">sg</span><span class="p">(</span><span class="n">prior_logstd</span><span class="p">),</span>
+        <span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_logstd</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">kl_balance</span> <span class="o">*</span> <span class="n">kl_forward</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">kl_balance</span><span class="p">)</span> <span class="o">*</span> <span class="n">kl_reverse</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">kl_divergence</span><span class="p">(</span><span class="n">mu1</span><span class="p">,</span> <span class="n">logstd1</span><span class="p">,</span> <span class="n">mu2</span><span class="p">,</span> <span class="n">logstd2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KL divergence between two Gaussians&quot;&quot;&quot;</span>
+    <span class="n">var1</span> <span class="o">=</span> <span class="n">logstd1</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">var2</span> <span class="o">=</span> <span class="n">logstd2</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    
+    <span class="n">kl</span> <span class="o">=</span> <span class="n">logstd2</span> <span class="o">-</span> <span class="n">logstd1</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">var1</span> <span class="o">+</span> <span class="p">(</span><span class="n">mu1</span> <span class="o">-</span> <span class="n">mu2</span><span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">var2</span> <span class="o">-</span> <span class="mf">0.5</span>
+    <span class="k">return</span> <span class="n">kl</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="td-returns">
+<h3>TD(λ) Returns<a class="headerlink" href="#td-returns" title="Link to this heading">#</a></h3>
+<p>Dreamer uses λ-returns for credit assignment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_lambda_returns</span><span class="p">(</span><span class="n">rewards</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute TD(λ) returns</span>
+<span class="sd">    </span>
+<span class="sd">    Where G_t^{(n)} is the n-step return</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">rewards</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">returns</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rewards</span><span class="p">)</span>
+    
+    <span class="c1"># Bootstrap from the end</span>
+    <span class="n">returns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c1"># Propagate backwards</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">returns</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lambda_</span><span class="p">)</span> <span class="o">*</span> <span class="n">values</span><span class="p">[</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">lambda_</span> <span class="o">*</span> <span class="n">returns</span><span class="p">[</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">returns</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_value_loss</span><span class="p">(</span><span class="n">pred_values</span><span class="p">,</span> <span class="n">target_values</span><span class="p">,</span> <span class="n">loss_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Value function loss&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">loss_scale</span> <span class="o">*</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">pred_values</span><span class="p">,</span> <span class="n">target_values</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="actor-policy-loss">
+<h3>Actor (Policy) Loss<a class="headerlink" href="#actor-policy-loss" title="Link to this heading">#</a></h3>
+<p>The actor maximizes expected imagined returns:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">actor_loss</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">imagined_trajectories</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.99</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor loss - maximize expected returns</span>
+<span class="sd">    </span>
+<span class="sd">    Loss = -E[Σ_t γ^t * λ_t * V(s_t)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">T</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">imagined_trajectories</span><span class="p">[</span><span class="s1">&#39;rewards&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+    
+    <span class="c1"># Compute returns for each timestep</span>
+    <span class="n">discounts</span> <span class="o">=</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">rewards</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Value function prediction</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">imagined_trajectories</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">],</span> 
+                         <span class="n">imagined_trajectories</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+    
+    <span class="c1"># λ-returns</span>
+    <span class="n">lambda_returns</span> <span class="o">=</span> <span class="n">compute_lambda_returns</span><span class="p">(</span>
+        <span class="n">rewards</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">gamma</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Weighted loss</span>
+    <span class="n">weighted_returns</span> <span class="o">=</span> <span class="p">(</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">lambda_returns</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">B</span>
+    
+    <span class="k">return</span> <span class="o">-</span><span class="n">weighted_returns</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="customizing-dreamer">
+<h2>Customizing Dreamer<a class="headerlink" href="#customizing-dreamer" title="Link to this heading">#</a></h2>
+<section id="using-different-environment-backends">
+<h3>Using Different Environment Backends<a class="headerlink" href="#using-different-environment-backends" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DeepMind Control Suite</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_seed</span> <span class="o">=</span> <span class="mi">42</span>
+
+<span class="c1"># Unity ML-Agents</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;unity_mlagents&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">unity_file_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;C:\path\to\env.exe&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">unity_behavior_name</span> <span class="o">=</span> <span class="s2">&quot;Agent&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">unity_no_graphics</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">unity_time_scale</span> <span class="o">=</span> <span class="mf">20.0</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-encoder-decoder">
+<h3>Custom Encoder/Decoder<a class="headerlink" href="#custom-encoder-decoder" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">encoder_type</span> <span class="o">=</span> <span class="s2">&quot;vit&quot;</span>      <span class="c1"># Vision Transformer encoder</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">decoder_type</span> <span class="o">=</span> <span class="s2">&quot;mlp&quot;</span>      <span class="c1"># MLP decoder (for vector observations)</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">backbone_type</span> <span class="o">=</span> <span class="s2">&quot;lstm&quot;</span>    <span class="c1"># LSTM instead of GRU</span>
+</pre></div>
+</div>
+</section>
+<section id="using-modular-rssm">
+<h3>Using Modular RSSM<a class="headerlink" href="#using-modular-rssm" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.modular_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_modular_rssm</span>
+
+<span class="c1"># Fully modular RSSM</span>
+<span class="n">rssm</span> <span class="o">=</span> <span class="n">create_modular_rssm</span><span class="p">(</span>
+    <span class="n">encoder_type</span><span class="o">=</span><span class="s2">&quot;vit&quot;</span><span class="p">,</span>         <span class="c1"># Multiple encoder choices</span>
+    <span class="n">decoder_type</span><span class="o">=</span><span class="s2">&quot;conv&quot;</span><span class="p">,</span>
+    <span class="n">backbone_type</span><span class="o">=</span><span class="s2">&quot;transformer&quot;</span><span class="p">,</span> <span class="c1"># Transformer backbone</span>
+    <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="n">stoch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+    <span class="n">deter_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-training-example">
+<h2>Complete Training Example<a class="headerlink" href="#complete-training-example" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span>
+
+<span class="c1"># 1. Configuration</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;CartPole-v1&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">50_000</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">16</span>
+
+<span class="c1"># 2. Create agent</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+<span class="c1"># 3. Training loop (manual control)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+<span class="n">state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">episode_reward</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">episode_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">while</span> <span class="n">agent</span><span class="o">.</span><span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span><span class="p">:</span>
+    <span class="c1"># Sample from replay buffer</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">replay</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span><span class="p">:</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">replay</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">)</span>
+        
+        <span class="c1"># World model training</span>
+        <span class="n">model_loss</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">train_world_model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        
+        <span class="c1"># Actor-Critic training (every few steps)</span>
+        <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">global_step</span> <span class="o">%</span> <span class="n">cfg</span><span class="o">.</span><span class="n">actor_update_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">actor_loss</span><span class="p">,</span> <span class="n">critic_loss</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">train_actor_critic</span><span class="p">()</span>
+    
+    <span class="c1"># Environment interaction</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="n">done</span> <span class="o">=</span> <span class="n">terminated</span> <span class="ow">or</span> <span class="n">truncated</span>
+    
+    <span class="n">agent</span><span class="o">.</span><span class="n">replay</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">next_state</span>
+    <span class="n">episode_reward</span> <span class="o">+=</span> <span class="n">reward</span>
+    
+    <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Episode </span><span class="si">{</span><span class="n">episode_count</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">episode_reward</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">episode_reward</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">episode_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Training complete!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="monitoring-training">
+<h2>Monitoring Training<a class="headerlink" href="#monitoring-training" title="Link to this heading">#</a></h2>
+<section id="tensorboard">
+<h3>TensorBoard<a class="headerlink" href="#tensorboard" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tensorboard<span class="w"> </span>--logdir<span class="w"> </span>runs/
+</pre></div>
+</div>
+</section>
+<section id="weights-biases">
+<h3>Weights &amp; Biases<a class="headerlink" href="#weights-biases" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_api_key</span> <span class="o">=</span> <span class="s2">&quot;your-api-key&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_project</span> <span class="o">=</span> <span class="s2">&quot;my-dreamer-experiments&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_entity</span> <span class="o">=</span> <span class="s2">&quot;your-username&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="common-issues-and-solutions">
+<h2>Common Issues and Solutions<a class="headerlink" href="#common-issues-and-solutions" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Issue</p></th>
+<th class="head"><p>Solution</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Posterior collapse</p></td>
+<td><p>Increase <code class="docutils literal notranslate"><span class="pre">kl_free</span></code>, reduce <code class="docutils literal notranslate"><span class="pre">kl_scale</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Poor exploration</p></td>
+<td><p>Increase <code class="docutils literal notranslate"><span class="pre">action_noise</span></code> in config</p></td>
+</tr>
+<tr class="row-even"><td><p>Slow training</p></td>
+<td><p>Reduce <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code>, increase <code class="docutils literal notranslate"><span class="pre">batch_size</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Unstable learning</p></td>
+<td><p>Reduce <code class="docutils literal notranslate"><span class="pre">lr</span></code>, increase <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Learn about JEPA for self-supervised representation learning</p></li>
+<li><p>Explore the Modular RSSM for research experiments</p></li>
+<li><p>Check the API Reference for detailed documentation</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="intro_world_models.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Introduction to World Models</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="tutorial_jepa.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tutorial: JEPA - Joint Embedding Predictive Architecture</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-dreamer-algorithm">The Dreamer Algorithm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world-model-learning">1. World Model Learning</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#latent-imagination">2. Latent Imagination</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#actor-critic-training">3. Actor-Critic Training</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-in-torchwm">Implementation in TorchWM</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-configuration">Step 1: Configuration</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-create-the-agent">Step 2: Create the Agent</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-train">Step 3: Train</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deep-dive-the-mathematics">Deep Dive: The Mathematics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rssm-state-evolution">RSSM State Evolution</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-balancing">KL Balancing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#td-returns">TD(λ) Returns</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#actor-policy-loss">Actor (Policy) Loss</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#customizing-dreamer">Customizing Dreamer</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-different-environment-backends">Using Different Environment Backends</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-encoder-decoder">Custom Encoder/Decoder</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-modular-rssm">Using Modular RSSM</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-training-example">Complete Training Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#monitoring-training">Monitoring Training</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensorboard">TensorBoard</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weights-biases">Weights &amp; Biases</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-issues-and-solutions">Common Issues and Solutions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next Steps</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/learning/tutorial_dreamer.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

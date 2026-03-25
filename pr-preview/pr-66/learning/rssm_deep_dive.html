@@ -1,0 +1,1016 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="RSSM Deep Dive" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-66/learning/rssm_deep_dive.html" />
+<meta property="og:site_name" content="TorchWM Documentation" />
+<meta property="og:description" content="This tutorial provides an in-depth mathematical and implementation understanding of the Recurrent State-Space Model (RSSM), the core component of Dreamer. Core Concepts: The State-Space Model: An R..." />
+<meta name="description" content="This tutorial provides an in-depth mathematical and implementation understanding of the Recurrent State-Space Model (RSSM), the core component of Dreamer. Core Concepts: The State-Space Model: An R..." />
+
+    <title>RSSM Deep Dive &#8212; TorchWM 0.2.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=154cb7d9" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=37f418d5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'learning/rssm_deep_dive';</script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-66/learning/rssm_deep_dive.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.2.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="intro_world_models.html">
+    Introduction to World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_dreamer.html">
+    Tutorial: Dreamer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_jepa.html">
+    Tutorial: JEPA
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_modular_rssm.html">
+    Tutorial: Modular RSSM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="intro_world_models.html">
+    Introduction to World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_dreamer.html">
+    Tutorial: Dreamer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_jepa.html">
+    Tutorial: JEPA
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorial_modular_rssm.html">
+    Tutorial: Modular RSSM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">RSSM Deep Dive</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="rssm-deep-dive">
+<h1>RSSM Deep Dive<a class="headerlink" href="#rssm-deep-dive" title="Link to this heading">#</a></h1>
+<p>This tutorial provides an in-depth mathematical and implementation understanding
+of the Recurrent State-Space Model (RSSM), the core component of Dreamer.</p>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading">#</a></h2>
+<section id="the-state-space-model">
+<h3>The State-Space Model<a class="headerlink" href="#the-state-space-model" title="Link to this heading">#</a></h3>
+<p>An RSSM models the world as a latent variable model:</p>
+<div class="math notranslate nohighlight">
+\[p(s_{1:T}, o_{1:T}, a_{1:T}) = p(s_1) \prod_{t=1}^T p(s_t | s_{t-1}, a_{t-1}) p(o_t | s_t) p(a_t | s_{\le t})\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><dl class="myst field-list simple">
+<dt class="field-odd">math<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">s_t</span></code>: latent state at time t</p>
+</dd>
+</dl>
+</li>
+<li><dl class="myst field-list simple">
+<dt class="field-odd">math<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">o_t</span></code>: observation at time t</p>
+</dd>
+</dl>
+</li>
+<li><dl class="myst field-list simple">
+<dt class="field-odd">math<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">a_t</span></code>: action at time t</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="two-part-state-representation">
+<h3>Two-Part State Representation<a class="headerlink" href="#two-part-state-representation" title="Link to this heading">#</a></h3>
+<p>RSSM uses a hybrid state representation:</p>
+<ol class="arabic simple">
+<li><p><strong>Deterministic state</strong> :math:<code class="docutils literal notranslate"><span class="pre">h_t</span></code>: Captures all deterministic dynamics via RNN</p></li>
+<li><p><strong>Stochastic state</strong> :math:<code class="docutils literal notranslate"><span class="pre">s_t</span></code>: Stochastic latent variable (discrete or continuous)</p></li>
+</ol>
+</section>
+</section>
+<section id="the-mathematical-framework">
+<h2>The Mathematical Framework<a class="headerlink" href="#the-mathematical-framework" title="Link to this heading">#</a></h2>
+<section id="state-transition">
+<h3>State Transition<a class="headerlink" href="#state-transition" title="Link to this heading">#</a></h3>
+<p>The latent dynamics are modeled as:</p>
+<div class="math notranslate nohighlight">
+\[h_t = f(h_{t-1}, s_{t-1}, a_{t-1})\]</div>
+<p>Where f is typically a GRU or LSTM:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># GRU transition</span>
+<span class="n">h_t</span> <span class="o">=</span> \<span class="n">text</span><span class="p">{</span><span class="n">GRU</span><span class="p">}([</span><span class="n">s_</span><span class="p">{</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">};</span> <span class="n">a_</span><span class="p">{</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">}],</span> <span class="n">h_</span><span class="p">{</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
+<section id="prior-and-posterior">
+<h3>Prior and Posterior<a class="headerlink" href="#prior-and-posterior" title="Link to this heading">#</a></h3>
+<p><strong>Prior</strong> (predicted next state):</p>
+<div class="math notranslate nohighlight">
+\[\hat{s}_t \sim p(s_t | h_{t-1}, a_{t-1}) = \mathcal{N}(\mu_\text{prior}(h_{t-1}), \sigma_\text{prior}(h_{t-1}))\]</div>
+<p><strong>Posterior</strong> (updated with observation):</p>
+<div class="math notranslate nohighlight">
+\[s_t \sim q(s_t | h_t, o_t) = \mathcal{N}(\mu_\text{post}(h_t, o_t), \sigma_\text{post}(h_t, o_t))\]</div>
+</section>
+<section id="complete-rssm-implementation">
+<h3>Complete RSSM Implementation<a class="headerlink" href="#complete-rssm-implementation" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RSSM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete RSSM implementation</span>
+<span class="sd">    </span>
+<span class="sd">    Core components:</span>
+<span class="sd">    1. GRU: deterministic state transition</span>
+<span class="sd">    2. Prior Net: predict next state prior distribution</span>
+<span class="sd">    3. Posterior Net: update posterior with observation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">stoch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">embed_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="n">discrete</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_discrete</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">stoch_size</span> <span class="o">=</span> <span class="n">stoch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deter_size</span> <span class="o">=</span> <span class="n">deter_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embed_size</span> <span class="o">=</span> <span class="n">embed_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discrete</span> <span class="o">=</span> <span class="n">discrete</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_discrete</span> <span class="o">=</span> <span class="n">num_discrete</span> <span class="k">if</span> <span class="n">discrete</span> <span class="k">else</span> <span class="mi">0</span>
+        
+        <span class="c1"># GRU for deterministic state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gru</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span>
+            <span class="n">input_size</span><span class="o">=</span><span class="n">stoch_size</span> <span class="o">+</span> <span class="n">action_size</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">deter_size</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Prior network: h -&gt; prior distribution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">deter_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(),</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">discrete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prior_mean</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_discrete</span> <span class="o">*</span> <span class="n">stoch_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prior_logit</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_discrete</span> <span class="o">*</span> <span class="n">stoch_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prior_mean</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prior_logstd</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">)</span>
+        
+        <span class="c1"># Posterior network: h + embed -&gt; posterior distribution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posterior_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">deter_size</span> <span class="o">+</span> <span class="n">embed_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(),</span>
+        <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">discrete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_discrete</span> <span class="o">*</span> <span class="n">stoch_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">posterior_logit</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_discrete</span> <span class="o">*</span> <span class="n">stoch_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">posterior_logstd</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_weights</span><span class="p">()</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">orthogonal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize hidden states&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;hidden&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">deter_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">),</span>
+            <span class="s1">&#39;stoch&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">),</span>
+        <span class="p">}</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">embed</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single step forward pass</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            prev_state: dict with &#39;hidden&#39; and &#39;stoch&#39;</span>
+<span class="sd">            action: (B, action_size)</span>
+<span class="sd">            embed: (B, embed_size) - encoded observation</span>
+<span class="sd">            training: bool - whether to compute posterior</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            new_state: updated hidden and stochastic states</span>
+<span class="sd">            prior: prior distribution parameters</span>
+<span class="sd">            posterior: posterior distribution parameters (if training)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="n">prev_state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">]</span>
+        <span class="n">stoch</span> <span class="o">=</span> <span class="n">prev_state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># 1. GRU transition</span>
+        <span class="n">gru_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">stoch</span><span class="p">,</span> <span class="n">action</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gru</span><span class="p">(</span><span class="n">gru_input</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        
+        <span class="c1"># 2. Prior (predicted next state)</span>
+        <span class="n">prior_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_net</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete</span><span class="p">:</span>
+            <span class="n">prior_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_logit</span><span class="p">(</span><span class="n">prior_feat</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+                <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_discrete</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoch_size</span>
+            <span class="p">)</span>
+            <span class="n">prior_mean</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_discrete</span><span class="p">(</span><span class="n">prior_logits</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">prior_logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prior_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_mean</span><span class="p">(</span><span class="n">prior_feat</span><span class="p">)</span>
+            <span class="n">prior_logstd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_logstd</span><span class="p">(</span><span class="n">prior_feat</span><span class="p">)</span>
+            <span class="n">prior_logstd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">prior_logstd</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reparameterize</span><span class="p">(</span><span class="n">prior_mean</span><span class="p">,</span> <span class="n">prior_logstd</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="n">prior_mean</span>
+        
+        <span class="c1"># 3. Posterior (updated with observation)</span>
+        <span class="k">if</span> <span class="n">training</span> <span class="ow">and</span> <span class="n">embed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">posterior_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior_net</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">hidden</span><span class="p">,</span> <span class="n">embed</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete</span><span class="p">:</span>
+                <span class="n">posterior_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior_logit</span><span class="p">(</span><span class="n">posterior_feat</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
+                    <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_discrete</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoch_size</span>
+                <span class="p">)</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_discrete</span><span class="p">(</span><span class="n">posterior_logits</span><span class="p">)</span>
+                <span class="n">posterior</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">posterior_logits</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">posterior_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean</span><span class="p">(</span><span class="n">posterior_feat</span><span class="p">)</span>
+                <span class="n">posterior_logstd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior_logstd</span><span class="p">(</span><span class="n">posterior_feat</span><span class="p">)</span>
+                <span class="n">posterior_logstd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">posterior_logstd</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">stoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reparameterize</span><span class="p">(</span><span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_logstd</span><span class="p">)</span>
+                <span class="n">posterior</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">posterior_mean</span><span class="p">,</span> <span class="s1">&#39;logstd&#39;</span><span class="p">:</span> <span class="n">posterior_logstd</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">posterior</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="n">new_state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hidden&#39;</span><span class="p">:</span> <span class="n">hidden</span><span class="p">,</span> <span class="s1">&#39;stoch&#39;</span><span class="p">:</span> <span class="n">stoch</span><span class="p">}</span>
+        
+        <span class="n">prior_info</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">prior_mean</span><span class="p">,</span> <span class="s1">&#39;logstd&#39;</span><span class="p">:</span> <span class="n">prior_logstd</span><span class="p">}</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">discrete</span> <span class="k">else</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">prior_logits</span><span class="p">}</span>
+        
+        <span class="k">return</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">prior_info</span><span class="p">,</span> <span class="n">posterior</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reparameterize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">logstd</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reparameterization trick: z = mu + sigma * eps&quot;&quot;&quot;</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">logstd</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">std</span> <span class="o">*</span> <span class="n">eps</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sample_discrete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gumbel-Softmax sampling for discrete latent&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">gumbel_softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="kl-divergence-and-free-bits">
+<h2>KL Divergence and Free Bits<a class="headerlink" href="#kl-divergence-and-free-bits" title="Link to this heading">#</a></h2>
+<section id="the-kl-loss">
+<h3>The KL Loss<a class="headerlink" href="#the-kl-loss" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">kl_loss</span><span class="p">(</span><span class="n">prior</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">kl_free</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">kl_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">kl_balance</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute KL divergence loss</span>
+<span class="sd">    </span>
+<span class="sd">    Uses kl_balance to balance forward and backward KL:</span>
+<span class="sd">    - Forward KL: q(s_t | h_t, o_t) || p(s_t | h_{t-1}, a_{t-1})</span>
+<span class="sd">    - Backward KL: p(s_t | h_{t-1}, a_{t-1}) || q(s_t | h_t, o_t)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;logits&#39;</span> <span class="ow">in</span> <span class="n">prior</span><span class="p">:</span>  <span class="c1"># discrete</span>
+        <span class="n">kl</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">kl_div</span><span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logits&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logits&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># continuous</span>
+        <span class="n">var_posterior</span> <span class="o">=</span> <span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_prior</span> <span class="o">=</span> <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">kl</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">(</span><span class="n">var_posterior</span> <span class="o">+</span> <span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">var_prior</span>
+            <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># Free bits: don&#39;t update if KL too small</span>
+    <span class="n">kl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">kl</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="n">kl_free</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">kl_scale</span> <span class="o">*</span> <span class="n">kl</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="why-kl-balancing">
+<h3>Why KL Balancing?<a class="headerlink" href="#why-kl-balancing" title="Link to this heading">#</a></h3>
+<p>KL balancing prevents posterior collapse:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Original: use posterior target only</span>
+<span class="n">kl_naive</span> <span class="o">=</span> <span class="n">kl</span><span class="p">(</span><span class="n">posterior</span><span class="p">,</span> <span class="n">prior</span><span class="p">)</span>
+
+<span class="c1"># Balanced: mix prior and posterior targets</span>
+<span class="n">kl_balanced</span> <span class="o">=</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">kl</span><span class="p">(</span><span class="n">posterior</span><span class="p">,</span> <span class="n">stopgrad</span><span class="p">(</span><span class="n">prior</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">kl</span><span class="p">(</span><span class="n">stopgrad</span><span class="p">(</span><span class="n">posterior</span><span class="p">),</span> <span class="n">prior</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="rolling-out-trajectories">
+<h2>Rolling Out Trajectories<a class="headerlink" href="#rolling-out-trajectories" title="Link to this heading">#</a></h2>
+<section id="imagined-rollout">
+<h3>Imagined Rollout<a class="headerlink" href="#imagined-rollout" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span><span class="n">rssm</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="mi">15</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rollout imagined trajectories in latent space</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        rssm: RSSM model</span>
+<span class="sd">        initial_state: initial hidden/stoch states</span>
+<span class="sd">        policy: policy network</span>
+<span class="sd">        horizon: number of steps to imagine</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        trajectory: dict with states, actions, rewards</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">trajectory</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;stoch&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;hidden&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;actions&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">&#39;rewards&#39;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    
+    <span class="n">state</span> <span class="o">=</span> <span class="n">initial_state</span>
+    
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">horizon</span><span class="p">):</span>
+        <span class="c1"># Sample action</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+        
+        <span class="c1"># RSSM transition (without posterior)</span>
+        <span class="n">state</span><span class="p">,</span> <span class="n">prior</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rssm</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="c1"># Predict reward</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">reward_net</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+        
+        <span class="n">trajectory</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">])</span>
+        <span class="n">trajectory</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+        <span class="n">trajectory</span><span class="p">[</span><span class="s1">&#39;actions&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="n">trajectory</span><span class="p">[</span><span class="s1">&#39;rewards&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-training-example">
+<h2>Complete Training Example<a class="headerlink" href="#complete-training-example" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.modular_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_modular_rssm</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">train_rssm</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete RSSM training loop&quot;&quot;&quot;</span>
+    
+    <span class="c1"># 1. Create model</span>
+    <span class="n">rssm</span> <span class="o">=</span> <span class="n">create_modular_rssm</span><span class="p">(</span>
+        <span class="n">encoder_type</span><span class="o">=</span><span class="s2">&quot;conv&quot;</span><span class="p">,</span>
+        <span class="n">decoder_type</span><span class="o">=</span><span class="s2">&quot;conv&quot;</span><span class="p">,</span>
+        <span class="n">backbone_type</span><span class="o">=</span><span class="s2">&quot;gru&quot;</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+        <span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">stoch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">embed_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+    
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">rssm</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">)</span>
+    
+    <span class="c1"># 2. Training loop</span>
+    <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="c1"># Sample batch</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>  <span class="c1"># (T, B, C, H, W)</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="n">rewards</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        
+        <span class="n">total_loss</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Initialize state</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>  <span class="c1"># chunk size</span>
+            <span class="c1"># Encode observation</span>
+            <span class="n">embed</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+            
+            <span class="c1"># RSSM forward</span>
+            <span class="n">state</span><span class="p">,</span> <span class="n">prior</span><span class="p">,</span> <span class="n">posterior</span> <span class="o">=</span> <span class="n">rssm</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">actions</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">embed</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="c1"># Compute loss</span>
+            <span class="c1"># 1. Reconstruction loss</span>
+            <span class="n">obs_pred</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+            <span class="n">recon_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">obs_pred</span><span class="p">,</span> <span class="n">obs</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+            
+            <span class="c1"># 2. KL loss</span>
+            <span class="n">kl</span> <span class="o">=</span> <span class="n">kl_loss</span><span class="p">(</span><span class="n">prior</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">kl_balance</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+            
+            <span class="c1"># 3. Reward loss</span>
+            <span class="n">reward_pred</span> <span class="o">=</span> <span class="n">rssm</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;stoch&#39;</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;hidden&#39;</span><span class="p">])</span>
+            <span class="n">reward_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">reward_pred</span><span class="p">,</span> <span class="n">rewards</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+            
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">recon_loss</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">kl</span> <span class="o">+</span> <span class="n">reward_loss</span>
+            <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span>
+        
+        <span class="c1"># Backward pass</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">: Loss=</span><span class="si">{</span><span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">kl_loss</span><span class="p">(</span><span class="n">prior</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">kl_balance</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KL loss with balancing&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;logits&#39;</span> <span class="ow">in</span> <span class="n">prior</span><span class="p">:</span>
+        <span class="c1"># Discrete case</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">kl_div</span><span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;batchmean&#39;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Continuous case</span>
+        <span class="n">var_p</span> <span class="o">=</span> <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_q</span> <span class="o">=</span> <span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="n">kl</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;logstd&#39;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">(</span><span class="n">var_q</span> <span class="o">+</span> <span class="p">(</span><span class="n">posterior</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">prior</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">var_p</span>
+            <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">kl</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">train_rssm</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-topics">
+<h2>Advanced Topics<a class="headerlink" href="#advanced-topics" title="Link to this heading">#</a></h2>
+<section id="discrete-vs-continuous-latents">
+<h3>Discrete vs Continuous Latents<a class="headerlink" href="#discrete-vs-continuous-latents" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p>Discrete</p></th>
+<th class="head"><p>Continuous</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Representation</p></td>
+<td><p>Categorical</p></td>
+<td><p>Gaussian</p></td>
+</tr>
+<tr class="row-odd"><td><p>Posterior collapse</p></td>
+<td><p>More prone</p></td>
+<td><p>Less prone</p></td>
+</tr>
+<tr class="row-even"><td><p>Expressiveness</p></td>
+<td><p>Good for categorical</p></td>
+<td><p>Good for continuous</p></td>
+</tr>
+<tr class="row-odd"><td><p>Implementation</p></td>
+<td><p>Gumbel-softmax</p></td>
+<td><p>Reparameterization</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="hierarchical-rssm">
+<h3>Hierarchical RSSM<a class="headerlink" href="#hierarchical-rssm" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalRSSM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hierarchical RSSM: multiple time-scale states&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">,</span> <span class="n">deter_size</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Slow dynamics (high-level)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slow_rssm</span> <span class="o">=</span> <span class="n">RSSM</span><span class="p">(</span><span class="n">stoch_size</span><span class="p">,</span> <span class="n">deter_size</span><span class="p">)</span>
+        <span class="c1"># Fast dynamics (low-level)  </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fast_rssm</span> <span class="o">=</span> <span class="n">RSSM</span><span class="p">(</span><span class="n">stoch_size</span><span class="p">,</span> <span class="n">deter_size</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://arxiv.org/abs/1912.01603">Dreamer: Learning Latent Dynamics for Planning</a></p></li>
+<li><p><a class="reference external" href="https://arxiv.org/abs/1811.04551">PlaNet: Learning Latent Dynamics</a></p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-concepts">Core Concepts</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-state-space-model">The State-Space Model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#two-part-state-representation">Two-Part State Representation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-mathematical-framework">The Mathematical Framework</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-transition">State Transition</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prior-and-posterior">Prior and Posterior</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-rssm-implementation">Complete RSSM Implementation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kl-divergence-and-free-bits">KL Divergence and Free Bits</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-kl-loss">The KL Loss</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-kl-balancing">Why KL Balancing?</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rolling-out-trajectories">Rolling Out Trajectories</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#imagined-rollout">Imagined Rollout</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#complete-training-example">Complete Training Example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-topics">Advanced Topics</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#discrete-vs-continuous-latents">Discrete vs Continuous Latents</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hierarchical-rssm">Hierarchical RSSM</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/learning/rssm_deep_dive.md.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

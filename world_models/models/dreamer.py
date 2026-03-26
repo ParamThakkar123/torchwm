@@ -596,6 +596,8 @@ class DreamerAgent:
             self.args.wandb_project,
             self.args.wandb_entity,
             self.args.enable_tensorboard,
+            self.args.video_format,
+            self.args.video_fps,
         )
 
     def train(self, total_steps=None):

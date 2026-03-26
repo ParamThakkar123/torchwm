@@ -3,6 +3,7 @@ import pickle
 import torch
 import numpy as np
 import moviepy as mpy
+import cv2
 
 from typing import Iterable
 from torch.nn import Module
@@ -71,6 +72,8 @@ class Logger:
         wandb_project="torchwm",
         wandb_entity="",
         enable_tensorboard=True,
+        video_format="gif",
+        video_fps=20,
     ):
         self._log_dir = log_dir
         print("########################")
@@ -79,6 +82,8 @@ class Logger:
         self._n_logged_samples = 10
         self.enable_wandb = enable_wandb
         self.enable_tensorboard = enable_tensorboard
+        self.video_format = video_format
+        self.video_fps = video_fps
         self._wandb_run = None
 
         if self.enable_tensorboard:
@@ -112,8 +117,11 @@ class Logger:
         self.dump_scalars_to_pickle(scalar_dict, step)
 
     def log_videos(
-        self, videos, step, max_videos_to_save=1, fps=20, video_title="video"
+        self, videos, step, max_videos_to_save=1, fps=None, video_title="video"
     ):
+        if fps is None:
+            fps = self.video_fps
+        format = self.video_format
         # max rollout length
         max_videos_to_save = np.min([max_videos_to_save, videos.shape[0]])
         max_length = videos[0].shape[0]
@@ -129,17 +137,30 @@ class Logger:
                 )
                 videos[i] = np.concatenate([videos[i], padding], 0)
 
-            clip = mpy.ImageSequenceClip(list(videos[i]), fps=fps)
-            new_video_title = video_title + "{}_{}".format(step, i) + ".gif"
-            filename = os.path.join(self._log_dir, new_video_title)
-            clip.write_gif(filename, fps=fps)
+            if format.lower() == "mp4":
+                # Convert to uint8 HWC BGR for OpenCV
+                video_u8 = (videos[i] * 255).astype(np.uint8)
+                if video_u8.shape[-1] == 3:  # RGB to BGR
+                    video_u8 = video_u8[..., ::-1]
+                new_video_title = video_title + "{}_{}".format(step, i) + ".mp4"
+                filename = os.path.join(self._log_dir, new_video_title)
+                height, width = video_u8.shape[1], video_u8.shape[2]
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                out = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+                for frame in video_u8:
+                    out.write(frame)
+                out.release()
+            else:  # gif
+                clip = mpy.ImageSequenceClip(list(videos[i]), fps=fps)
+                new_video_title = video_title + "{}_{}".format(step, i) + ".gif"
+                filename = os.path.join(self._log_dir, new_video_title)
+                clip.write_gif(filename, fps=fps)
 
             # Log to WandB
             if self.enable_wandb and self._wandb_run:
                 # Convert to numpy array for WandB
                 video_array = np.array(videos[i])  # Shape: (T, H, W, C)
-                # WandB expects (T, C, H, W) or (T, H, W, C)?
-                # For video, WandB uses (T, H, W, C) I think, but let's transpose if needed
+                # WandB expects (T, H, W, C) for Video
                 self._wandb_run.log(
                     {f"{video_title}_{i}": wandb.Video(video_array, fps=fps)}, step=step
                 )

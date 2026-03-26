@@ -32,7 +32,7 @@ function formatNumber(num: number): string {
 interface ConfigField {
   name: string;
   label: string;
-  type: "number" | "boolean";
+  type: "number" | "boolean" | "string";
 }
 
 const DREAMER_CONFIG_FIELDS: ConfigField[] = [
@@ -41,6 +41,11 @@ const DREAMER_CONFIG_FIELDS: ConfigField[] = [
   { name: "update_steps", label: "Update Steps", type: "number" },
   { name: "collect_steps", label: "Collect Steps", type: "number" },
   { name: "test_interval", label: "Test Interval", type: "number" },
+  { name: "enable_wandb", label: "Enable WandB", type: "boolean" },
+  { name: "wandb_api_key", label: "WandB API Key", type: "string" },
+  { name: "wandb_project", label: "WandB Project", type: "string" },
+  { name: "wandb_entity", label: "WandB Entity", type: "string" },
+  { name: "enable_tensorboard", label: "Enable TensorBoard", type: "boolean" },
 ];
 
 const PLANET_CONFIG_FIELDS: ConfigField[] = [
@@ -90,7 +95,7 @@ export default function App() {
   const [selectedModel, setSelectedModel] = useState("dreamerv2");
   const [selectedBackend, setSelectedBackend] = useState("dm_control");
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
-  const [trainingConfig, setTrainingConfig] = useState<Record<string, number>>({});
+  const [trainingConfig, setTrainingConfig] = useState<Record<string, unknown>>({});
   const [activeMetric, setActiveMetric] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval">("all");
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
@@ -215,7 +220,7 @@ useEffect(() => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showDependencies]);
 
-  const handleConfigChange = (key: string, value: number) => {
+  const handleConfigChange = (key: string, value: unknown) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));
   };
 
@@ -321,11 +326,25 @@ return (
               {configFields.map(field => (
                 <div key={field.name} className="config-field">
                   <span className="config-label">{field.label}</span>
-                  <input
-                    type="number"
-                    value={trainingConfig[field.name] ?? 0}
-                    onChange={e => handleConfigChange(field.name, Number(e.target.value))}
-                  />
+                  {field.type === "boolean" ? (
+                    <input
+                      type="checkbox"
+                      checked={Boolean(trainingConfig[field.name] ?? false)}
+                      onChange={e => handleConfigChange(field.name, e.target.checked)}
+                    />
+                  ) : field.type === "string" ? (
+                    <input
+                      type="text"
+                      value={String(trainingConfig[field.name] ?? "")}
+                      onChange={e => handleConfigChange(field.name, e.target.value)}
+                    />
+                  ) : (
+                    <input
+                      type="number"
+                      value={Number(trainingConfig[field.name] ?? 0)}
+                      onChange={e => handleConfigChange(field.name, Number(e.target.value))}
+                    />
+                  )}
                 </div>
               ))}
             </div>

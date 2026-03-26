@@ -267,7 +267,7 @@ class ConvEmbed(nn.Module):
             ]
             if batch_norm:
                 stem += [nn.BatchNorm2d(channels[i + 1])]
-            stem += [nn.ReLU(inplace=True)]
+            stem += [nn.ReLU()]
         stem += [
             nn.Conv2d(channels[-2], channels[-1], kernel_size=1, stride=strides[-1])
         ]

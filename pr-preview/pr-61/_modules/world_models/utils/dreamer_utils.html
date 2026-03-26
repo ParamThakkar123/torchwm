@@ -420,6 +420,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tensorboardX</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryWriter</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">wandb</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">wandb</span> <span class="o">=</span> <span class="kc">None</span>
+
 
 <div class="viewcode-block" id="get_parameters">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.get_parameters">[docs]</a>
@@ -460,7 +465,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">param_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">)]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">):</span>
             <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -473,24 +477,55 @@
 <div class="viewcode-block" id="Logger">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Experiment logger for scalars and GIF rollouts using TensorBoardX.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Experiment logger for scalars and GIF rollouts using TensorBoardX and WandB.</span>
 
 <span class="sd">    Provides helpers to write scalar metrics, dump pickle snapshots, and save</span>
 <span class="sd">    video previews during Dreamer training/evaluation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">,</span> <span class="n">n_logged_samples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">summary_writer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">log_dir</span><span class="p">,</span>
+        <span class="n">enable_wandb</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">wandb_api_key</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">wandb_project</span><span class="o">=</span><span class="s2">&quot;torchwm&quot;</span><span class="p">,</span>
+        <span class="n">wandb_entity</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">enable_tensorboard</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_dir</span> <span class="o">=</span> <span class="n">log_dir</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;########################&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;logging outputs to &quot;</span><span class="p">,</span> <span class="n">log_dir</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;########################&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_n_logged_samples</span> <span class="o">=</span> <span class="n">n_logged_samples</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">flush_secs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_queue</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_logged_samples</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="o">=</span> <span class="n">enable_wandb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enable_tensorboard</span> <span class="o">=</span> <span class="n">enable_tensorboard</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_tensorboard</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="n">flush_secs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_queue</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_wandb</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">wandb_api_key</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;WandB API key is required when enable_wandb is True&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">wandb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;wandb is not installed&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WANDB_API_KEY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wandb_api_key</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span>
+                <span class="n">project</span><span class="o">=</span><span class="n">wandb_project</span><span class="p">,</span>
+                <span class="n">entity</span><span class="o">=</span><span class="n">wandb_entity</span><span class="p">,</span>
+                <span class="nb">dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">log_dir</span><span class="p">),</span>
+            <span class="p">)</span>
 
 <div class="viewcode-block" id="Logger.log_scalar">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.log_scalar">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">step_</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">step_</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_tensorboard</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">step_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">scalar</span><span class="p">},</span> <span class="n">step</span><span class="o">=</span><span class="n">step_</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Logger.log_scalars">
@@ -507,7 +542,6 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">log_videos</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">videos</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">max_videos_to_save</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">video_title</span><span class="o">=</span><span class="s2">&quot;video&quot;</span>
     <span class="p">):</span>
-
         <span class="c1"># max rollout length</span>
         <span class="n">max_videos_to_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">max_videos_to_save</span><span class="p">,</span> <span class="n">videos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
         <span class="n">max_length</span> <span class="o">=</span> <span class="n">videos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -526,7 +560,17 @@
             <span class="n">clip</span> <span class="o">=</span> <span class="n">mpy</span><span class="o">.</span><span class="n">ImageSequenceClip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
             <span class="n">new_video_title</span> <span class="o">=</span> <span class="n">video_title</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.gif&quot;</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_dir</span><span class="p">,</span> <span class="n">new_video_title</span><span class="p">)</span>
-            <span class="n">clip</span><span class="o">.</span><span class="n">write_gif</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span></div>
+            <span class="n">clip</span><span class="o">.</span><span class="n">write_gif</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+
+            <span class="c1"># Log to WandB</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span><span class="p">:</span>
+                <span class="c1"># Convert to numpy array for WandB</span>
+                <span class="n">video_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>  <span class="c1"># Shape: (T, H, W, C)</span>
+                <span class="c1"># WandB expects (T, C, H, W) or (T, H, W, C)?</span>
+                <span class="c1"># For video, WandB uses (T, H, W, C) I think, but let&#39;s transpose if needed</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                    <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">video_title</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">wandb</span><span class="o">.</span><span class="n">Video</span><span class="p">(</span><span class="n">video_array</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)},</span> <span class="n">step</span><span class="o">=</span><span class="n">step</span>
+                <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Logger.dump_scalars_to_pickle">
@@ -542,7 +586,8 @@
 <div class="viewcode-block" id="Logger.flush">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.flush">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_tensorboard</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summ_writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 </div>
 
 

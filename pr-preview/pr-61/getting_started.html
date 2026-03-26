@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-61/getting_started.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Available Algorithms: TorchWM implements multiple world model algorithms. Click on each to see detailed documentatio..." />
-<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Available Algorithms: TorchWM implements multiple world model algorithms. Click on each to see detailed documentatio..." />
+<meta property="og:description" content="Installation: Install from PyPI: Install from source: For development and tests: Logging with Weights &amp; Biases and TensorBoard: TorchWM supports logging experiment results to Weights &amp; Bias..." />
+<meta name="description" content="Installation: Install from PyPI: Install from source: For development and tests: Logging with Weights &amp; Biases and TensorBoard: TorchWM supports logging experiment results to Weights &amp; Bias..." />
 
     <title>Getting Started &#8212; TorchWM 0.2.1 documentation</title>
   
@@ -461,8 +461,35 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="available-algorithms">
-<h2>Available Algorithms<a class="headerlink" href="#available-algorithms" title="Link to this heading">#</a></h2>
+<section id="logging-with-weights-biases-and-tensorboard">
+<h2>Logging with Weights &amp; Biases and TensorBoard<a class="headerlink" href="#logging-with-weights-biases-and-tensorboard" title="Link to this heading">#</a></h2>
+<p>TorchWM supports logging experiment results to Weights &amp; Biases (WandB) and TensorBoard.</p>
+<section id="weights-biases">
+<h3>Weights &amp; Biases<a class="headerlink" href="#weights-biases" title="Link to this heading">#</a></h3>
+<p>To use WandB logging, you must provide an API key as anonymous logins are no longer supported.</p>
+<ol class="arabic simple">
+<li><p>Get your WandB API key from <a class="reference external" href="https://wandb.ai/settings">wandb.ai</a>.</p></li>
+<li><p>Set the key in your config:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_api_key</span> <span class="o">=</span> <span class="s2">&quot;your-api-key-here&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_project</span> <span class="o">=</span> <span class="s2">&quot;torchwm&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">wandb_entity</span> <span class="o">=</span> <span class="s2">&quot;your-entity&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="tensorboard">
+<h3>TensorBoard<a class="headerlink" href="#tensorboard" title="Link to this heading">#</a></h3>
+<p>Enable TensorBoard logging:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">enable_tensorboard</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span>
+</pre></div>
+</div>
+<p>Logs will be saved to the specified directory and can be viewed with <code class="docutils literal notranslate"><span class="pre">tensorboard</span> <span class="pre">--logdir</span> <span class="pre">runs</span></code>.</p>
+</section>
+</section>
+<section id="quick-start-dreamer">
+<h2>Quick Start: Dreamer<a class="headerlink" href="#quick-start-dreamer" title="Link to this heading">#</a></h2>
 <p>TorchWM implements multiple world model algorithms. Click on each to see detailed documentation:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -587,7 +614,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-algorithms">Available Algorithms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-with-weights-biases-and-tensorboard">Logging with Weights &amp; Biases and TensorBoard</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weights-biases">Weights &amp; Biases</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tensorboard">TensorBoard</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-modular-rssm">Quick Start: Modular RSSM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-training-flow">Typical Training Flow</a></li>

@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-67/api_reference.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: Diffusion: Datasets and Transforms: Memory and Controllers: Utilities:" />
-<meta name="description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: Diffusion: Datasets and Transforms: Memory and Controllers: Utilities:" />
+<meta property="og:description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: IRIS (Sample-Efficient World Models): IRIS implements “Transformers are Sample-..." />
+<meta name="description" content="This reference is generated from source docstrings and grouped by subsystem. Core Public APIs: Dreamer: JEPA and ViT: IRIS (Sample-Efficient World Models): IRIS implements “Transformers are Sample-..." />
 
     <title>API Reference &#8212; TorchWM 0.2.1 documentation</title>
   
@@ -52,7 +52,7 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-67/api_reference.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Package Overview" href="package_overview.html" />
+    <link rel="prev" title="DiT: Diffusion Transformer" href="dit.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -145,12 +145,50 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="#">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
     API Reference
   </a>
 </li>
 
+                </ul>
+            </li>
+            
   </ul>
 </nav></div>
       
@@ -254,6 +292,34 @@
 </li>
 
 
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="#">
     API Reference
@@ -304,9 +370,19 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul class="current nav bd-sidenav">
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">API Reference</a></li>
 </ul>
 </div>
@@ -1493,6 +1569,1333 @@ fraction is assigned to context and the remainder to prediction targets.</p>
 </dd></dl>
 
 </section>
+<section id="iris-sample-efficient-world-models">
+<h2>IRIS (Sample-Efficient World Models)<a class="headerlink" href="#iris-sample-efficient-world-models" title="Link to this heading">#</a></h2>
+<p>IRIS implements “Transformers are Sample-Efficient World Models” - a method that achieves
+human-level performance on Atari with only 100k environment steps (~2 hours of gameplay)
+by learning entirely in the imagination of a world model.</p>
+<p>Architecture:
+- Discrete autoencoder (VQVAE) compresses frames to tokens
+- Autoregressive Transformer models dynamics
+- Actor-Critic trains entirely in imagined trajectories</p>
+<dl class="py class" id="module-world_models.configs.iris_config">
+<dt class="sig sig-object py" id="world_models.configs.iris_config.IRISConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.iris_config.</span></span><span class="sig-name descname"><span class="pre">IRISConfig</span></span><a class="reference internal" href="_modules/world_models/configs/iris_config.html#IRISConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.iris_config.IRISConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for IRIS (Imagination with auto-Regression over an Inner Speech)</p>
+<p>Based on paper: “Transformers are Sample-Efficient World Models”
+Implements discrete autoencoder + autoregressive Transformer for sample-efficient RL.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.configs.iris_config.IRISConfig.get_frame_shape">
+<span class="sig-name descname"><span class="pre">get_frame_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/iris_config.html#IRISConfig.get_frame_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.iris_config.IRISConfig.get_frame_shape" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.configs.iris_config.IRISConfig.get_autoencoder_config">
+<span class="sig-name descname"><span class="pre">get_autoencoder_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/iris_config.html#IRISConfig.get_autoencoder_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.iris_config.IRISConfig.get_autoencoder_config" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.configs.iris_config.IRISConfig.get_transformer_config">
+<span class="sig-name descname"><span class="pre">get_transformer_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/iris_config.html#IRISConfig.get_transformer_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.iris_config.IRISConfig.get_transformer_config" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.configs.iris_config.IRISConfig.get_rl_config">
+<span class="sig-name descname"><span class="pre">get_rl_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/iris_config.html#IRISConfig.get_rl_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.iris_config.IRISConfig.get_rl_config" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-world_models.models.iris_agent">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.compute_lambda_return">
+<span class="sig-prename descclassname"><span class="pre">world_models.models.iris_agent.</span></span><span class="sig-name descname"><span class="pre">compute_lambda_return</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discounts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#compute_lambda_return"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.compute_lambda_return" title="Link to this definition">#</a></dt>
+<dd><p>Compute λ-return target for value function training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rewards</strong> (<em>Tensor</em>) – Rewards (B, T)</p></li>
+<li><p><strong>values</strong> (<em>Tensor</em>) – Value estimates (B, T+1)</p></li>
+<li><p><strong>discounts</strong> (<em>Tensor</em>) – Discount factors (B, T)</p></li>
+<li><p><strong>lambda_coef</strong> (<em>float</em>) – Lambda parameter for bootstrapping</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>λ-return targets (B, T)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>lambda_returns</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.iris_agent.</span></span><span class="sig-name descname"><span class="pre">IRISAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Complete IRIS Agent with world model and policy.</p>
+<p>Combines:
+- Discrete autoencoder (encoder + decoder)
+- Transformer world model
+- Actor-Critic for policy and value learning</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>)</p></li>
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>device</strong> (<em>device</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.forward_actor_critic">
+<span class="sig-name descname"><span class="pre">forward_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.forward_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.forward_actor_critic" title="Link to this definition">#</a></dt>
+<dd><p>Forward pass through actor-critic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<em>Tensor</em>) – Input frames (B, T, C, H, W)</p></li>
+<li><p><strong>hidden</strong> (<em>Tuple</em><em>[</em><em>Tensor</em><em>, </em><em>Tensor</em><em>] </em><em>| </em><em>None</em>) – Optional LSTM hidden state</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(B, T, action_size)
+values: (B, T)
+hidden_state: (h, c)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>action_logits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.act">
+<span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.act"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.act" title="Link to this definition">#</a></dt>
+<dd><p>Sample action from policy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>Tensor</em>) – Single frame (B, C, H, W)</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Random action probability</p></li>
+<li><p><strong>temperature</strong> (<em>float</em>) – Action distribution temperature</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Selected actions (B,)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>actions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.imagine_rollout">
+<span class="sig-name descname"><span class="pre">imagine_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.imagine_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.imagine_rollout" title="Link to this definition">#</a></dt>
+<dd><p>Generate imagined trajectories using world model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_frame</strong> (<em>Tensor</em>) – Starting frame (B, C, H, W)</p></li>
+<li><p><strong>horizon</strong> (<em>int</em>) – Number of steps to imagine</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with imagined rollout data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>trajectory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.update_autoencoder">
+<span class="sig-name descname"><span class="pre">update_autoencoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.update_autoencoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.update_autoencoder" title="Link to this definition">#</a></dt>
+<dd><p>Update discrete autoencoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frames</strong> (<em>Tensor</em>) – Training frames (B, C, H, W)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of loss values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>losses</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.update_transformer">
+<span class="sig-name descname"><span class="pre">update_transformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewards</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.update_transformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.update_transformer" title="Link to this definition">#</a></dt>
+<dd><p>Update transformer world model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<em>Tensor</em>) – Frame sequence</p></li>
+<li><p><strong>actions</strong> (<em>Tensor</em>) – Actions taken</p></li>
+<li><p><strong>rewards</strong> (<em>Tensor</em>) – Rewards received</p></li>
+<li><p><strong>terminals</strong> (<em>Tensor</em>) – Terminal flags</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of loss values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>losses</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.update_actor_critic">
+<span class="sig-name descname"><span class="pre">update_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagined_trajectory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.update_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.update_actor_critic" title="Link to this definition">#</a></dt>
+<dd><p>Update actor-critic in imagination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>imagined_trajectory</strong> (<em>dict</em>) – Dictionary from imagine_rollout</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of loss values</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>losses</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.save" title="Link to this definition">#</a></dt>
+<dd><p>Save agent state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_agent.IRISAgent.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_agent.html#IRISAgent.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_agent.IRISAgent.load" title="Link to this definition">#</a></dt>
+<dd><p>Load agent state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.models.iris_transformer">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISTransformer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.iris_transformer.</span></span><span class="sig-name descname"><span class="pre">IRISTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens_per_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISTransformer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Autoregressive Transformer for world modeling.</p>
+<p>Models the dynamics of the environment by predicting:
+- Next frame tokens (transition model)
+- Rewards
+- Episode termination</p>
+<p>The Transformer operates on sequences of interleaved frame tokens and actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokens_per_frame</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embed_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISTransformer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISTransformer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISTransformer.forward" title="Link to this definition">#</a></dt>
+<dd><p>Forward pass through the Transformer world model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokens</strong> (<em>Tensor</em>) – Frame tokens (B, T, K) where T is timesteps</p></li>
+<li><p><strong>actions</strong> (<em>Tensor</em>) – Actions (B, T)</p></li>
+<li><p><strong>mask</strong> (<em>Tensor</em><em> | </em><em>None</em>) – Optional attention mask</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Next token predictions (B, T, K, vocab_size)
+rewards: Predicted rewards (B, T)
+terminations: Predicted terminations (B, T, 2)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>token_logits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISTransformer.predict_next_tokens">
+<span class="sig-name descname"><span class="pre">predict_next_tokens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISTransformer.predict_next_tokens"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISTransformer.predict_next_tokens" title="Link to this definition">#</a></dt>
+<dd><p>Predict the next frame tokens autoregressively.</p>
+<p>Used during imagination rollouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokens</strong> (<em>Tensor</em>) – Current frame tokens (B, K)</p></li>
+<li><p><strong>actions</strong> (<em>Tensor</em>) – Actions taken (B,)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Next frame token predictions (B, K, vocab_size)
+action_hidden: Hidden states for reward prediction (B, embed_dim)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>token_logits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISTransformer.sample_next_tokens">
+<span class="sig-name descname"><span class="pre">sample_next_tokens</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISTransformer.sample_next_tokens"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISTransformer.sample_next_tokens" title="Link to this definition">#</a></dt>
+<dd><p>Sample next tokens from the distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokens</strong> (<em>Tensor</em>) – Current frame tokens (B, K)</p></li>
+<li><p><strong>actions</strong> (<em>Tensor</em>) – Actions taken (B,)</p></li>
+<li><p><strong>temperature</strong> (<em>float</em>) – Sampling temperature (higher = more random)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sampled token indices (B, K)
+log_probs: Log probabilities of sampled tokens (B, K)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sampled_tokens</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISWorldModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.iris_transformer.</span></span><span class="sig-name descname"><span class="pre">IRISWorldModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encoder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISWorldModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISWorldModel" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Complete IRIS World Model combining autoencoder and transformer.</p>
+<p>This is the core component that learns environment dynamics entirely
+in the “imaginary” latent space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encoder</strong> (<em>Module</em>)</p></li>
+<li><p><strong>decoder</strong> (<em>Module</em>)</p></li>
+<li><p><strong>transformer</strong> (<a class="reference internal" href="#world_models.models.iris_transformer.IRISTransformer" title="world_models.models.iris_transformer.IRISTransformer"><em>IRISTransformer</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISWorldModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISWorldModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISWorldModel.forward" title="Link to this definition">#</a></dt>
+<dd><p>Full world model forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>observations</strong> (<em>Tensor</em>) – Image sequence (B, T+1, C, H, W)</p></li>
+<li><p><strong>actions</strong> (<em>Tensor</em>) – Actions (B, T)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with predicted tokens, rewards, terminations
+losses: Dictionary with loss components</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>predictions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.models.iris_transformer.IRISWorldModel.imagine">
+<span class="sig-name descname"><span class="pre">imagine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/iris_transformer.html#IRISWorldModel.imagine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.iris_transformer.IRISWorldModel.imagine" title="Link to this definition">#</a></dt>
+<dd><p>Generate imagined trajectories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_tokens</strong> (<em>Tensor</em>) – Initial frame tokens (B, K)</p></li>
+<li><p><strong>policy</strong> (<em>Module</em>) – Policy network to sample actions</p></li>
+<li><p><strong>horizon</strong> (<em>int</em>) – Number of steps to imagine</p></li>
+<li><p><strong>temperature</strong> (<em>float</em>) – Sampling temperature for token prediction</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with imagined trajectories</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>imagined</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.vision.iris_encoder">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.IRISEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_encoder.</span></span><span class="sig-name descname"><span class="pre">IRISEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens_per_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_residual_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#IRISEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.IRISEncoder" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>CNN Encoder for IRIS discrete autoencoder.</p>
+<p>Encodes image observations into latent features, which are then quantized
+into discrete tokens using the VectorQuantizer.</p>
+<dl class="simple">
+<dt>Architecture:</dt><dd><ul class="simple">
+<li><p>4 convolutional layers with residual blocks</p></li>
+<li><p>Self-attention at 8x8 and 16x16 resolutions</p></li>
+<li><p>Vector quantization to produce discrete tokens</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokens_per_frame</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>base_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_residual_blocks</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.IRISEncoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#IRISEncoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.IRISEncoder.forward" title="Link to this definition">#</a></dt>
+<dd><p>Encode images to discrete tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>) – Input images (B, C, H, W) - should be 64x64</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantized tokens (B, C, H’, W’)
+indices: Token indices (B, H’, W’)
+vq_loss: Dictionary with VQ loss components</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>z_q</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.IRISEncoder.encode_to_indices">
+<span class="sig-name descname"><span class="pre">encode_to_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#IRISEncoder.encode_to_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.IRISEncoder.encode_to_indices" title="Link to this definition">#</a></dt>
+<dd><p>Encode directly to token indices (for world model).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.IRISEncoder.decode_from_indices">
+<span class="sig-name descname"><span class="pre">decode_from_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#IRISEncoder.decode_from_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.IRISEncoder.decode_from_indices" title="Link to this definition">#</a></dt>
+<dd><p>Decode token indices to embeddings (for decoder).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.ResidualBlock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_encoder.</span></span><span class="sig-name descname"><span class="pre">ResidualBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#ResidualBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.ResidualBlock" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Residual block for encoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>channels</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.ResidualBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#ResidualBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.ResidualBlock.forward" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.SelfAttentionBlock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_encoder.</span></span><span class="sig-name descname"><span class="pre">SelfAttentionBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#SelfAttentionBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.SelfAttentionBlock" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Self-attention block for encoder.</p>
+<p>Applies spatial self-attention to capture long-range dependencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>channels</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_encoder.SelfAttentionBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_encoder.html#SelfAttentionBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_encoder.SelfAttentionBlock.forward" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.vision.iris_decoder">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.IRISDecoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_decoder.</span></span><span class="sig-name descname"><span class="pre">IRISDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#IRISDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.IRISDecoder" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>CNN Decoder for IRIS discrete autoencoder.</p>
+<p>Decodes discrete tokens back into image observations.
+Uses transposed convolutions to upsample from 4x4 to 64x64.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>base_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.IRISDecoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#IRISDecoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.IRISDecoder.forward" title="Link to this definition">#</a></dt>
+<dd><p>Decode tokens to images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>Tensor</em>) – Token embeddings (B, C, H, W) - e.g., (B, 512, 4, 4)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Reconstructed images (B, C, H, W) - e.g., (B, 3, 64, 64)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>reconstructed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.IRISDecoder.decode_from_embeddings">
+<span class="sig-name descname"><span class="pre">decode_from_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_flat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#IRISDecoder.decode_from_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.IRISDecoder.decode_from_embeddings" title="Link to this definition">#</a></dt>
+<dd><p>Decode flattened token embeddings to images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z_flat</strong> (<em>Tensor</em>) – Flattened tokens (B, H*W, C) or (B, C, H, W)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Reconstructed images</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.UpsampleBlock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_decoder.</span></span><span class="sig-name descname"><span class="pre">UpsampleBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#UpsampleBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.UpsampleBlock" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Upsampling block with optional residual connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>mid_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.UpsampleBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#UpsampleBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.UpsampleBlock.forward" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.ResidualBlock">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_decoder.</span></span><span class="sig-name descname"><span class="pre">ResidualBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#ResidualBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.ResidualBlock" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Residual block for decoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>channels</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.ResidualBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#ResidualBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.ResidualBlock.forward" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.DiscreteAutoencoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.iris_decoder.</span></span><span class="sig-name descname"><span class="pre">DiscreteAutoencoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens_per_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#DiscreteAutoencoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.DiscreteAutoencoder" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Complete Discrete Autoencoder combining encoder and decoder.</p>
+<p>Used for training the VQVAE component of IRIS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokens_per_frame</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>base_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.DiscreteAutoencoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#DiscreteAutoencoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.forward" title="Link to this definition">#</a></dt>
+<dd><p>Full encode-decode forward pass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>) – Input images (B, C, H, W)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Reconstructed images
+indices: Token indices (B, H’, W’)
+loss_dict: Dictionary with loss components</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>reconstruction</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.DiscreteAutoencoder.encode">
+<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#DiscreteAutoencoder.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.encode" title="Link to this definition">#</a></dt>
+<dd><p>Encode to token indices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.DiscreteAutoencoder.decode">
+<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#DiscreteAutoencoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.decode" title="Link to this definition">#</a></dt>
+<dd><p>Decode token indices to images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.vision.vq_layer">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.vq_layer.</span></span><span class="sig-name descname"><span class="pre">VectorQuantizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Vector Quantizer for discrete autoencoder.</p>
+<p>Implements the VQ-VAE quantization from:
+“Neural Discrete Representation Learning” (Van Den Oord et al., 2017)</p>
+<p>Uses exponential moving averages for codebook updates and straight-through
+estimator for gradient flow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>commitment_weight</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizer.forward" title="Link to this definition">#</a></dt>
+<dd><p>Quantize the input latents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>Tensor</em>) – Input tensor of shape (B, C, H, W) or (B, C)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantized tensor (same shape as input)
+indices: Token indices for each position (B, H, W) or (B,)
+loss: Dictionary containing VQ loss components</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>z_q</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizer.decode_indices">
+<span class="sig-name descname"><span class="pre">decode_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizer.decode_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizer.decode_indices" title="Link to this definition">#</a></dt>
+<dd><p>Decode token indices back to embeddings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>Tensor</em>) – Token indices (B, H, W) or (B,)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Embeddings (B, C, H, W) or (B, C)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizerEMA">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.vq_layer.</span></span><span class="sig-name descname"><span class="pre">VectorQuantizerEMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ema_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizerEMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizerEMA" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Vector Quantizer with Exponential Moving Average updates.</p>
+<p>Uses EMA updates for the codebook instead of gradient-based updates,
+which leads to more stable training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>commitment_weight</strong> (<em>float</em>)</p></li>
+<li><p><strong>ema_decay</strong> (<em>float</em>)</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizerEMA.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizerEMA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizerEMA.forward" title="Link to this definition">#</a></dt>
+<dd><p>Quantize with EMA updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>Tensor</em>, <em>Tensor</em>, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.vq_layer.VectorQuantizerEMA.decode_indices">
+<span class="sig-name descname"><span class="pre">decode_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/vq_layer.html#VectorQuantizerEMA.decode_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.vq_layer.VectorQuantizerEMA.decode_indices" title="Link to this definition">#</a></dt>
+<dd><p>Decode token indices to embeddings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>Tensor</em>) – Token indices (B, H, W) or (B,)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Embeddings (B, C, H, W) or (B, C)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.memory.iris_memory">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISReplayBuffer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.iris_memory.</span></span><span class="sig-name descname"><span class="pre">IRISReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISReplayBuffer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Replay buffer for IRIS training.</p>
+<p>Stores (observation, action, reward, terminal) tuples and supports
+sampling contiguous sequences used by the world model and actor-critic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>)</p></li>
+<li><p><strong>obs_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>seq_len</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISReplayBuffer.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISReplayBuffer.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISReplayBuffer.add" title="Link to this definition">#</a></dt>
+<dd><p>Add a transition to the buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>action</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>reward</strong> (<em>float</em>)</p></li>
+<li><p><strong>terminal</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISReplayBuffer.sample_sequence">
+<span class="sig-name descname"><span class="pre">sample_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISReplayBuffer.sample_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISReplayBuffer.sample_sequence" title="Link to this definition">#</a></dt>
+<dd><p>Sample a batch of sequences for world model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(batch_size, seq_len+1, C, H, W)
+actions: (batch_size, seq_len, action_size)
+rewards: (batch_size, seq_len)
+terminals: (batch_size, seq_len)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>observations</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seq_len</strong> (<em>int</em><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISReplayBuffer.sample_single">
+<span class="sig-name descname"><span class="pre">sample_single</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISReplayBuffer.sample_single"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISReplayBuffer.sample_single" title="Link to this definition">#</a></dt>
+<dd><p>Sample a single transition for online updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>ndarray</em>, <em>ndarray</em>, float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISReplayBuffer.buffer_capacity">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">buffer_capacity</span></span><a class="headerlink" href="#world_models.memory.iris_memory.IRISReplayBuffer.buffer_capacity" title="Link to this definition">#</a></dt>
+<dd><p>Returns the total capacity of the buffer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISOnPolicyBuffer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.iris_memory.</span></span><span class="sig-name descname"><span class="pre">IRISOnPolicyBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISOnPolicyBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Buffer for collecting trajectories during environment interaction.</p>
+<p>Used to store current episode data before adding to main replay buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_steps</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISOnPolicyBuffer.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISOnPolicyBuffer.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.add" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obs</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>action</strong> (<em>ndarray</em>)</p></li>
+<li><p><strong>reward</strong> (<em>float</em>)</p></li>
+<li><p><strong>terminal</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISOnPolicyBuffer.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISOnPolicyBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.clear" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.memory.iris_memory.IRISOnPolicyBuffer.get_arrays">
+<span class="sig-name descname"><span class="pre">get_arrays</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/iris_memory.html#IRISOnPolicyBuffer.get_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.get_arrays" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.controller.iris_policy">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISActor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.controller.iris_policy.</span></span><span class="sig-name descname"><span class="pre">IRISActor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISActor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISActor" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Actor network for IRIS policy.</p>
+<p>Takes reconstructed frames as input and outputs action logits.
+Uses CNN + LSTM architecture with burn-in mechanism.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISActor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burn_in_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISActor.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISActor.forward" title="Link to this definition">#</a></dt>
+<dd><p>Forward pass through actor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<em>Tensor</em>) – Input frames (B, T, C, H, W) or (B, C, H, W)</p></li>
+<li><p><strong>hidden_state</strong> (<em>Tuple</em><em>[</em><em>Tensor</em><em>, </em><em>Tensor</em><em>] </em><em>| </em><em>None</em>) – Optional (h, c) tuple for LSTM state</p></li>
+<li><p><strong>burn_in_frames</strong> (<em>Tensor</em><em> | </em><em>None</em>) – Frames to use for initializing hidden state</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Action logits (B, T, action_size) or (B, action_size)
+hidden_state: Updated (h, c) tuple</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>action_logits</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISActor.init_hidden_state">
+<span class="sig-name descname"><span class="pre">init_hidden_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISActor.init_hidden_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISActor.init_hidden_state" title="Link to this definition">#</a></dt>
+<dd><p>Initialize LSTM hidden state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>device</strong> (<em>device</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>Tensor</em>, <em>Tensor</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISActor.get_action">
+<span class="sig-name descname"><span class="pre">get_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISActor.get_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISActor.get_action" title="Link to this definition">#</a></dt>
+<dd><p>Get action from a single frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>Tensor</em>) – Single frame (B, C, H, W)</p></li>
+<li><p><strong>temperature</strong> (<em>float</em>) – Softmax temperature (higher = more random)</p></li>
+<li><p><strong>deterministic</strong> (<em>bool</em>) – If True, return argmax; else sample</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Selected action indices (B,)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>action</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISCritic">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.controller.iris_policy.</span></span><span class="sig-name descname"><span class="pre">IRISCritic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISCritic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISCritic" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Critic network for IRIS value estimation.</p>
+<p>Shares CNN and LSTM with actor, but has separate value head.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hidden_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISCritic.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISCritic.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISCritic.forward" title="Link to this definition">#</a></dt>
+<dd><p>Forward pass through critic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frames</strong> (<em>Tensor</em>) – Input frames (B, T, C, H, W)</p></li>
+<li><p><strong>hidden_state</strong> (<em>Tuple</em><em>[</em><em>Tensor</em><em>, </em><em>Tensor</em><em>] </em><em>| </em><em>None</em>) – Optional (h, c) tuple</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Value estimates (B, T)
+hidden_state: Updated (h, c) tuple</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>values</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISCritic.init_hidden_state">
+<span class="sig-name descname"><span class="pre">init_hidden_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISCritic.init_hidden_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISCritic.init_hidden_state" title="Link to this definition">#</a></dt>
+<dd><p>Initialize LSTM hidden state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>device</strong> (<em>device</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>Tensor</em>, <em>Tensor</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.CNNFeatureExtractor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.controller.iris_policy.</span></span><span class="sig-name descname"><span class="pre">CNNFeatureExtractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#CNNFeatureExtractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.CNNFeatureExtractor" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>CNN feature extractor shared between actor and critic.</p>
+<p>Processes input frames into feature vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>output_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.CNNFeatureExtractor.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#CNNFeatureExtractor.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.CNNFeatureExtractor.forward" title="Link to this definition">#</a></dt>
+<dd><p>Extract features from frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>) – Frames (B, C, H, W)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Feature vectors (B, output_size)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>features</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISPolicy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.controller.iris_policy.</span></span><span class="sig-name descname"><span class="pre">IRISPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISPolicy" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Combined policy module for IRIS.</p>
+<p>Wraps actor and optionally critic for convenience.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>frame_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISPolicy.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISPolicy.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISPolicy.forward" title="Link to this definition">#</a></dt>
+<dd><p>Get action logits from frames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frames</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISPolicy.act">
+<span class="sig-name descname"><span class="pre">act</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISPolicy.act"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISPolicy.act" title="Link to this definition">#</a></dt>
+<dd><p>Sample action from policy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>Tensor</em>)</p></li>
+<li><p><strong>temperature</strong> (<em>float</em>)</p></li>
+<li><p><strong>deterministic</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.controller.iris_policy.IRISPolicy.init_hidden">
+<span class="sig-name descname"><span class="pre">init_hidden</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/controller/iris_policy.html#IRISPolicy.init_hidden"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.controller.iris_policy.IRISPolicy.init_hidden" title="Link to this definition">#</a></dt>
+<dd><p>Initialize hidden state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>device</strong> (<em>device</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.training.train_iris">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.training.train_iris.</span></span><span class="sig-name descname"><span class="pre">IRISTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALE/Pong-v5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Training loop for IRIS on Atari 100k benchmark.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<em>str</em>)</p></li>
+<li><p><strong>device</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.preprocess_frame">
+<span class="sig-name descname"><span class="pre">preprocess_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.preprocess_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.preprocess_frame" title="Link to this definition">#</a></dt>
+<dd><p>Preprocess frame: resize to 64x64 and normalize.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frame</strong> (<em>ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>ndarray</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.collect_experience">
+<span class="sig-name descname"><span class="pre">collect_experience</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.collect_experience"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.collect_experience" title="Link to this definition">#</a></dt>
+<dd><p>Collect experience from environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_steps</strong> (<em>int</em>) – Number of steps to collect</p></li>
+<li><p><strong>epsilon</strong> (<em>float</em>) – Random action probability</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean episode return</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.train_epoch">
+<span class="sig-name descname"><span class="pre">train_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.train_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.train_epoch" title="Link to this definition">#</a></dt>
+<dd><p>Train for one epoch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> (<em>int</em>) – Current epoch number</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.get_epsilon">
+<span class="sig-name descname"><span class="pre">get_epsilon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.get_epsilon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.get_epsilon" title="Link to this definition">#</a></dt>
+<dd><p>Get exploration epsilon with decay.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> (<em>int</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.evaluate" title="Link to this definition">#</a></dt>
+<dd><p>Evaluate agent performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_episodes</strong> (<em>int</em>) – Number of evaluation episodes</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with evaluation metrics</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'checkpoints/iris'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.train" title="Link to this definition">#</a></dt>
+<dd><p>Full training loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_epochs</strong> (<em>int</em>) – Total training epochs</p></li>
+<li><p><strong>eval_interval</strong> (<em>int</em>) – Evaluate every N epochs</p></li>
+<li><p><strong>save_dir</strong> (<em>str</em>) – Directory to save checkpoints</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.training.train_iris.main">
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_iris.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.main" title="Link to this definition">#</a></dt>
+<dd><p>Run IRIS training on a single Atari game.</p>
+</dd></dl>
+
+<section id="module-benchmarks.atari_100k">
+<span id="benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#module-benchmarks.atari_100k" title="Link to this heading">#</a></h3>
+<p>IRIS Atari 100k Benchmark Runner</p>
+<p>Runs IRIS on all 26 Atari games from the Atari 100k benchmark.
+Computes human-normalized scores and compares to baselines.</p>
+<p>Based on paper: “Transformers are Sample-Efficient World Models”</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmarks.atari_100k.compute_human_normalized_score">
+<span class="sig-prename descclassname"><span class="pre">benchmarks.atari_100k.</span></span><span class="sig-name descname"><span class="pre">compute_human_normalized_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#compute_human_normalized_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.atari_100k.compute_human_normalized_score" title="Link to this definition">#</a></dt>
+<dd><p>Compute human-normalized score for a game.</p>
+<p>Formula: (score - random) / (human - random)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>score</strong> (<em>float</em>)</p></li>
+<li><p><strong>game</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmarks.atari_100k.run_single_game">
+<span class="sig-prename descclassname"><span class="pre">benchmarks.atari_100k.</span></span><span class="sig-name descname"><span class="pre">run_single_game</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#run_single_game"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.atari_100k.run_single_game" title="Link to this definition">#</a></dt>
+<dd><p>Run IRIS on a single game with multiple seeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<em>str</em>) – Game name (e.g., “ALE/Pong-v5”)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>) – IRIS config</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to run on</p></li>
+<li><p><strong>num_seeds</strong> (<em>int</em>) – Number of random seeds to run</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Dict</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmarks.atari_100k.run_atari_100k">
+<span class="sig-prename descclassname"><span class="pre">benchmarks.atari_100k.</span></span><span class="sig-name descname"><span class="pre">run_atari_100k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">games</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results/iris_atari100k.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#run_atari_100k"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.atari_100k.run_atari_100k" title="Link to this definition">#</a></dt>
+<dd><p>Run IRIS on all Atari 100k games.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>games</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of games to run (default: all 26)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>) – IRIS config</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to run on</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – Output JSON file for results</p></li>
+<li><p><strong>num_seeds</strong> (<em>int</em>) – Number of seeds per game</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmarks.atari_100k.print_results_table">
+<span class="sig-prename descclassname"><span class="pre">benchmarks.atari_100k.</span></span><span class="sig-name descname"><span class="pre">print_results_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#print_results_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.atari_100k.print_results_table" title="Link to this definition">#</a></dt>
+<dd><p>Print a nice table of results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results</strong> (<em>List</em><em>[</em><em>Dict</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmarks.atari_100k.main">
+<span class="sig-prename descclassname"><span class="pre">benchmarks.atari_100k.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.atari_100k.main" title="Link to this definition">#</a></dt>
+<dd><p>Run full Atari 100k benchmark.</p>
+</dd></dl>
+
+</section>
+</section>
 <section id="module-world_models.models.diffusion.DDPM">
 <span id="diffusion"></span><h2>Diffusion<a class="headerlink" href="#module-world_models.models.diffusion.DDPM" title="Link to this heading">#</a></h2>
 <dl class="py class">
@@ -2277,12 +3680,12 @@ along the batch dimension.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="package_overview.html"
+       href="dit.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Package Overview</p>
+        <p class="prev-next-title">DiT: Diffusion Transformer</p>
       </div>
     </a>
 </div>
@@ -2538,6 +3941,134 @@ along the batch dimension.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.masks.random.MaskCollator"><code class="docutils literal notranslate"><span class="pre">MaskCollator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.masks.random.MaskCollator.step"><code class="docutils literal notranslate"><span class="pre">MaskCollator.step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iris-sample-efficient-world-models">IRIS (Sample-Efficient World Models)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.iris_config.IRISConfig"><code class="docutils literal notranslate"><span class="pre">IRISConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.iris_config.IRISConfig.get_frame_shape"><code class="docutils literal notranslate"><span class="pre">IRISConfig.get_frame_shape()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.iris_config.IRISConfig.get_autoencoder_config"><code class="docutils literal notranslate"><span class="pre">IRISConfig.get_autoencoder_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.iris_config.IRISConfig.get_transformer_config"><code class="docutils literal notranslate"><span class="pre">IRISConfig.get_transformer_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.iris_config.IRISConfig.get_rl_config"><code class="docutils literal notranslate"><span class="pre">IRISConfig.get_rl_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.compute_lambda_return"><code class="docutils literal notranslate"><span class="pre">compute_lambda_return()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent"><code class="docutils literal notranslate"><span class="pre">IRISAgent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.forward_actor_critic"><code class="docutils literal notranslate"><span class="pre">IRISAgent.forward_actor_critic()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.act"><code class="docutils literal notranslate"><span class="pre">IRISAgent.act()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.imagine_rollout"><code class="docutils literal notranslate"><span class="pre">IRISAgent.imagine_rollout()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.update_autoencoder"><code class="docutils literal notranslate"><span class="pre">IRISAgent.update_autoencoder()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.update_transformer"><code class="docutils literal notranslate"><span class="pre">IRISAgent.update_transformer()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.update_actor_critic"><code class="docutils literal notranslate"><span class="pre">IRISAgent.update_actor_critic()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.save"><code class="docutils literal notranslate"><span class="pre">IRISAgent.save()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_agent.IRISAgent.load"><code class="docutils literal notranslate"><span class="pre">IRISAgent.load()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISTransformer"><code class="docutils literal notranslate"><span class="pre">IRISTransformer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISTransformer.forward"><code class="docutils literal notranslate"><span class="pre">IRISTransformer.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISTransformer.predict_next_tokens"><code class="docutils literal notranslate"><span class="pre">IRISTransformer.predict_next_tokens()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISTransformer.sample_next_tokens"><code class="docutils literal notranslate"><span class="pre">IRISTransformer.sample_next_tokens()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISWorldModel"><code class="docutils literal notranslate"><span class="pre">IRISWorldModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISWorldModel.forward"><code class="docutils literal notranslate"><span class="pre">IRISWorldModel.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.iris_transformer.IRISWorldModel.imagine"><code class="docutils literal notranslate"><span class="pre">IRISWorldModel.imagine()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.IRISEncoder"><code class="docutils literal notranslate"><span class="pre">IRISEncoder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.IRISEncoder.forward"><code class="docutils literal notranslate"><span class="pre">IRISEncoder.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.IRISEncoder.encode_to_indices"><code class="docutils literal notranslate"><span class="pre">IRISEncoder.encode_to_indices()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.IRISEncoder.decode_from_indices"><code class="docutils literal notranslate"><span class="pre">IRISEncoder.decode_from_indices()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.ResidualBlock"><code class="docutils literal notranslate"><span class="pre">ResidualBlock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.ResidualBlock.forward"><code class="docutils literal notranslate"><span class="pre">ResidualBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.SelfAttentionBlock"><code class="docutils literal notranslate"><span class="pre">SelfAttentionBlock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_encoder.SelfAttentionBlock.forward"><code class="docutils literal notranslate"><span class="pre">SelfAttentionBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder"><code class="docutils literal notranslate"><span class="pre">IRISDecoder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder.forward"><code class="docutils literal notranslate"><span class="pre">IRISDecoder.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder.decode_from_embeddings"><code class="docutils literal notranslate"><span class="pre">IRISDecoder.decode_from_embeddings()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.UpsampleBlock"><code class="docutils literal notranslate"><span class="pre">UpsampleBlock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.UpsampleBlock.forward"><code class="docutils literal notranslate"><span class="pre">UpsampleBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.ResidualBlock"><code class="docutils literal notranslate"><span class="pre">ResidualBlock</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.ResidualBlock.forward"><code class="docutils literal notranslate"><span class="pre">ResidualBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.DiscreteAutoencoder"><code class="docutils literal notranslate"><span class="pre">DiscreteAutoencoder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.forward"><code class="docutils literal notranslate"><span class="pre">DiscreteAutoencoder.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.encode"><code class="docutils literal notranslate"><span class="pre">DiscreteAutoencoder.encode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.DiscreteAutoencoder.decode"><code class="docutils literal notranslate"><span class="pre">DiscreteAutoencoder.decode()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizer"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizer.forward"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizer.decode_indices"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer.decode_indices()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizerEMA"><code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizerEMA.forward"><code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.vq_layer.VectorQuantizerEMA.decode_indices"><code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA.decode_indices()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISReplayBuffer"><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISReplayBuffer.add"><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer.add()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISReplayBuffer.sample_sequence"><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer.sample_sequence()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISReplayBuffer.sample_single"><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer.sample_single()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISReplayBuffer.buffer_capacity"><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer.buffer_capacity</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer"><code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.add"><code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer.add()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.clear"><code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer.clear()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.iris_memory.IRISOnPolicyBuffer.get_arrays"><code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer.get_arrays()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISActor"><code class="docutils literal notranslate"><span class="pre">IRISActor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISActor.forward"><code class="docutils literal notranslate"><span class="pre">IRISActor.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISActor.init_hidden_state"><code class="docutils literal notranslate"><span class="pre">IRISActor.init_hidden_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISActor.get_action"><code class="docutils literal notranslate"><span class="pre">IRISActor.get_action()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISCritic"><code class="docutils literal notranslate"><span class="pre">IRISCritic</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISCritic.forward"><code class="docutils literal notranslate"><span class="pre">IRISCritic.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISCritic.init_hidden_state"><code class="docutils literal notranslate"><span class="pre">IRISCritic.init_hidden_state()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.CNNFeatureExtractor"><code class="docutils literal notranslate"><span class="pre">CNNFeatureExtractor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.CNNFeatureExtractor.forward"><code class="docutils literal notranslate"><span class="pre">CNNFeatureExtractor.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISPolicy"><code class="docutils literal notranslate"><span class="pre">IRISPolicy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISPolicy.forward"><code class="docutils literal notranslate"><span class="pre">IRISPolicy.forward()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISPolicy.act"><code class="docutils literal notranslate"><span class="pre">IRISPolicy.act()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.controller.iris_policy.IRISPolicy.init_hidden"><code class="docutils literal notranslate"><span class="pre">IRISPolicy.init_hidden()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer"><code class="docutils literal notranslate"><span class="pre">IRISTrainer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.preprocess_frame"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.preprocess_frame()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.collect_experience"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.collect_experience()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.train_epoch"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.train_epoch()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.get_epsilon"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.get_epsilon()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.evaluate"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.evaluate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.train"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-benchmarks.atari_100k">Benchmarks</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.atari_100k.compute_human_normalized_score"><code class="docutils literal notranslate"><span class="pre">compute_human_normalized_score()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.atari_100k.run_single_game"><code class="docutils literal notranslate"><span class="pre">run_single_game()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.atari_100k.run_atari_100k"><code class="docutils literal notranslate"><span class="pre">run_atari_100k()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.atari_100k.print_results_table"><code class="docutils literal notranslate"><span class="pre">print_results_table()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.atari_100k.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -147,11 +147,49 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="api_reference.html">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="api_reference.html">
     API Reference
   </a>
 </li>
 
+                </ul>
+            </li>
+            
   </ul>
 </nav></div>
       
@@ -256,6 +294,34 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="api_reference.html">
     API Reference
   </a>
@@ -308,6 +374,16 @@
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 </ul>
 </div>
@@ -414,33 +490,33 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="quick-start-dreamer">
 <h2>Quick Start: Dreamer<a class="headerlink" href="#quick-start-dreamer" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">10_000</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<section id="quick-start-jepa">
-<h2>Quick Start: JEPA<a class="headerlink" href="#quick-start-jepa" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagefolder&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">image_folder</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">10</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">JEPAAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-</pre></div>
+<p>TorchWM implements multiple world model algorithms. Click on each to see detailed documentation:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Quick Start</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Dreamer</strong></p></td>
+<td><p>Model-based RL with latent dynamics</p></td>
+<td><p><a class="reference internal" href="dreamer.html"><span class="doc">Dreamer: Model-Based RL with Latent Dynamics</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>JEPA</strong></p></td>
+<td><p>Self-supervised visual representations</p></td>
+<td><p><a class="reference internal" href="jepa.html"><span class="doc">JEPA: Joint Embedding Predictive Architecture</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>IRIS</strong></p></td>
+<td><p>Sample-efficient RL with Transformers</p></td>
+<td><p><a class="reference internal" href="iris.html"><span class="doc">IRIS: Transformers for Sample-Efficient World Models</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DiT</strong></p></td>
+<td><p>Diffusion models with Transformers</p></td>
+<td><p><a class="reference internal" href="dit.html"><span class="doc">DiT: Diffusion Transformer</span></a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 <section id="quick-start-modular-rssm">
@@ -476,21 +552,15 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p><code class="docutils literal notranslate"><span class="pre">gym</span></code>: Gym/Gymnasium environment IDs or an existing environment instance</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unity_mlagents</span></code>: Unity ML-Agents executable environments</p></li>
 </ul>
-<p>Important Unity settings are available in <code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_file_name</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_behavior_name</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_no_graphics</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_time_scale</span></code></p></li>
-</ul>
 </section>
 <section id="typical-training-flow">
 <h2>Typical Training Flow<a class="headerlink" href="#typical-training-flow" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Create a config object (<code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code> or <code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code>).</p></li>
-<li><p>Override dataset/environment and optimization fields.</p></li>
-<li><p>Instantiate the corresponding agent (<code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>).</p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">train()</span></code> and monitor logs/checkpoints.</p></li>
+<li><p>Choose an algorithm (Dreamer, JEPA, IRIS, or DiT)</p></li>
+<li><p>Create a config object for that algorithm</p></li>
+<li><p>Override dataset/environment and optimization fields</p></li>
+<li><p>Instantiate the corresponding agent</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">train()</span></code> and monitor logs/checkpoints</p></li>
 </ol>
 <p>For complete API details, see <a class="reference internal" href="api_reference.html"><span class="doc">API Reference</span></a>.</p>
 </section>
@@ -550,7 +620,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-jepa">Quick Start: JEPA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-modular-rssm">Quick Start: Modular RSSM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-training-flow">Typical Training Flow</a></li>

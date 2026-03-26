@@ -60,6 +60,61 @@ JEPA and ViT
    :members:
    :show-inheritance:
 
+IRIS (Sample-Efficient World Models)
+-------------------------------------
+
+IRIS implements "Transformers are Sample-Efficient World Models" - a method that achieves
+human-level performance on Atari with only 100k environment steps (~2 hours of gameplay)
+by learning entirely in the imagination of a world model.
+
+Architecture:
+- Discrete autoencoder (VQVAE) compresses frames to tokens
+- Autoregressive Transformer models dynamics
+- Actor-Critic trains entirely in imagined trajectories
+
+.. automodule:: world_models.configs.iris_config
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.models.iris_agent
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.models.iris_transformer
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.vision.iris_encoder
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.vision.iris_decoder
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.vision.vq_layer
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.memory.iris_memory
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.controller.iris_policy
+   :members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_iris
+   :members:
+   :show-inheritance:
+
+Benchmarks
+^^^^^^^^^^
+
+.. automodule:: benchmarks.atari_100k
+   :members:
+   :show-inheritance:
+
 Diffusion
 ---------
 

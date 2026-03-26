@@ -44,10 +44,13 @@ from ..envs import list_available_atari_envs
 from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
-from ..utils.utils import flatten_dict
+from ..utils.utils import flatten_dict, visualize_latent_tsne, visualize_latent_umap
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Global storage for last latents
+last_latents = None
 
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
@@ -364,6 +367,8 @@ class TrainingController:
 
         self._latest_metrics: dict[str, float] = {}
 
+        self.last_latents_ref = [last_latents]
+
     def available_environments(self, model_name: str | None) -> list[str]:
         if model_name is None:
             merged = sorted(
@@ -612,7 +617,7 @@ class TrainingController:
         cfg.log_video_freq = -1
         cfg.restore = False
 
-        agent = DreamerAgent(cfg)
+        agent = DreamerAgent(cfg, last_latents_ref=self.last_latents_ref)
         total_steps = int(cfg.total_steps)
         self._set_progress(0, total_steps, "steps")
 
@@ -1053,3 +1058,63 @@ def get_dependencies() -> dict[str, Any]:
             }
         )
     return {"dependencies": deps}
+
+
+@app.post("/api/visualize")
+def visualize_latents(
+    latents: str = Query(..., description="Base64 encoded numpy array of latents"),
+    method: str = Query("tsne", description="Visualization method: 'tsne' or 'umap'"),
+    labels: str | None = Query(
+        None, description="Base64 encoded numpy array of labels"
+    ),
+    perplexity: int = Query(30, description="Perplexity for t-SNE"),
+    n_neighbors: int = Query(15, description="n_neighbors for UMAP"),
+):
+    try:
+        import base64
+
+        latents_data = base64.b64decode(latents)
+        latents_array = np.frombuffer(latents_data, dtype=np.float32)
+        # Assume shape is (N, D), but need to know D or reshape
+        # For simplicity, assume latents is flattened, but need shape
+        # Perhaps pass shape as well
+        # For now, assume 2D and infer
+        if latents_array.ndim == 1:
+            # Assume square or something, but better to pass shape
+            raise HTTPException(status_code=400, detail="Latents shape not provided")
+
+        labels_array = None
+        if labels:
+            labels_data = base64.b64decode(labels)
+            labels_array = np.frombuffer(labels_data, dtype=np.int32)
+
+        if method.lower() == "tsne":
+            fig = visualize_latent_tsne(
+                latents_array, labels_array, perplexity=perplexity
+            )
+        elif method.lower() == "umap":
+            fig = visualize_latent_umap(
+                latents_array, labels_array, n_neighbors=n_neighbors
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Invalid method")
+
+        html = fig.to_html(full_html=False)
+        return {"html": html}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/latents")
+def get_latents():
+    """Get recent latents from the current model (if available)."""
+    if last_latents is not None:
+        import base64
+
+        latents_b64 = base64.b64encode(last_latents.tobytes()).decode("utf-8")
+        return {"latents": latents_b64, "shape": list(last_latents.shape)}
+    else:
+        return {
+            "latents": "",
+            "message": "No latents available. Run evaluation first.",
+        }

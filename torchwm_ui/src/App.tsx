@@ -14,12 +14,15 @@ import {
   fetchCatalog,
   fetchDependencies,
   fetchFrame,
+  fetchLatents,
   fetchMetrics,
   fetchState,
+  fetchVideo,
   loadEnvironment,
   loadModel,
   startTraining,
-  stopTraining
+  stopTraining,
+  visualizeLatents
 } from "./api";
 import type { CatalogResponse, Dependency, MetricPoint, MetricsResponse, StateResponse } from "./types";
 
@@ -97,9 +100,17 @@ export default function App() {
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
   const [trainingConfig, setTrainingConfig] = useState<Record<string, unknown>>({});
   const [activeMetric, setActiveMetric] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval" | "viz">("all");
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<"image" | "gif">("image");
+
+const [vizHtml, setVizHtml] = useState<string>("");
+const [latentsInput, setLatentsInput] = useState("");
+const [labelsInput, setLabelsInput] = useState("");
+const [vizMethod, setVizMethod] = useState<"tsne" | "umap">("tsne");
+const [videoFilename, setVideoFilename] = useState("test_stream.mp4");
+
+const [latentsFetched, setLatentsFetched] = useState(false);
 
 const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -208,17 +219,18 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.dependencies-wrapper')) {
-        setShowDependencies(false);
-      }
-    };
-    if (showDependencies) {
-      document.addEventListener('click', handleClickOutside);
+    if (activeTab === "viz" && !latentsFetched) {
+      fetchLatents()
+        .then((res) => {
+          setLatentsInput(res.latents);
+          setLatentsFetched(true);
+          toast.success("Latents loaded automatically!");
+        })
+        .catch((e) => {
+          setErrorMessage((e as Error).message);
+        });
     }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [showDependencies]);
+  }, [activeTab, latentsFetched]);
 
   const handleConfigChange = (key: string, value: unknown) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));
@@ -374,6 +386,7 @@ return (
                 <button className={`chart-tab ${activeTab === "loss" ? "active" : ""}`} onClick={() => setActiveTab("loss")}>Loss</button>
                 <button className={`chart-tab ${activeTab === "reward" ? "active" : ""}`} onClick={() => setActiveTab("reward")}>Reward</button>
                 <button className={`chart-tab ${activeTab === "eval" ? "active" : ""}`} onClick={() => setActiveTab("eval")}>Eval</button>
+                <button className={`chart-tab ${activeTab === "viz" ? "active" : ""}`} onClick={() => setActiveTab("viz")}>Viz</button>
               </div>
               {activeTab !== "loss" && (
                 <select value={activeMetric} onChange={e => setActiveMetric(e.target.value)}>
@@ -381,31 +394,95 @@ return (
                 </select>
               )}
             </div>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activeMetricData}>
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="lossGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="actorGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="valueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="rewardGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="step" stroke="#606078" fontSize={11} />
-                <YAxis stroke="#606078" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#1c1c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} />
-                {activeTab === "loss" ? (
-                  <>
-                    <Area type="monotone" dataKey="train_model_loss" stroke="#f43f5e" strokeWidth={2} fill="url(#lossGrad)" isAnimationActive={false} name="Model Loss" />
-                    <Area type="monotone" dataKey="train_actor_loss" stroke="#8b5cf6" strokeWidth={2} fill="url(#actorGrad)" isAnimationActive={false} name="Actor Loss" />
-                    <Area type="monotone" dataKey="train_value_loss" stroke="#f59e0b" strokeWidth={2} fill="url(#valueGrad)" isAnimationActive={false} name="Value Loss" />
-                    <Legend />
-                  </>
-                ) : (
-                  <Area type="monotone" dataKey="value" stroke="#00d4ff" strokeWidth={2} fill="url(#chartGrad)" isAnimationActive={false} />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
+            {activeTab === "viz" ? (
+              <div className="viz-content">
+                 <div className="viz-inputs">
+                   <div className="viz-field">
+                     <label>Latents</label>
+                     <textarea
+                       value={latentsInput}
+                       readOnly
+                       placeholder="Latents will be loaded automatically when available"
+                     />
+                   </div>
+                  <div className="viz-field">
+                    <label>Labels (base64 numpy array, optional)</label>
+                    <textarea
+                      value={labelsInput}
+                      onChange={e => setLabelsInput(e.target.value)}
+                      placeholder="Enter base64 encoded labels array"
+                    />
+                  </div>
+                  <div className="viz-field">
+                    <label>Method</label>
+                    <select value={vizMethod} onChange={e => setVizMethod(e.target.value as "tsne" | "umap")}>
+                      <option value="tsne">t-SNE</option>
+                      <option value="umap">UMAP</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await visualizeLatents(latentsInput, vizMethod, labelsInput);
+                        setVizHtml(res.html);
+                      } catch (e) {
+                        setErrorMessage((e as Error).message);
+                      }
+                    }}
+                  >
+                    Generate Visualization
+                  </button>
+                </div>
+                <div className="viz-display">
+                  {vizHtml ? (
+                    <div dangerouslySetInnerHTML={{ __html: vizHtml }} />
+                  ) : (
+                    <div className="viz-placeholder">No visualization generated</div>
+                  )}
+                </div>
+                <div className="video-section">
+                  <div className="viz-field">
+                    <label>Video Filename</label>
+                    <input
+                      type="text"
+                      value={videoFilename}
+                      onChange={e => setVideoFilename(e.target.value)}
+                      placeholder="e.g., test_stream.mp4"
+                    />
+                  </div>
+                  <video controls width="100%" height="300">
+                    <source src={fetchVideo(videoFilename)} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeMetricData}>
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="lossGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="actorGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="valueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="rewardGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="step" stroke="#606078" fontSize={11} />
+                  <YAxis stroke="#606078" fontSize={11} />
+                  <Tooltip contentStyle={{ background: "#1c1c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} />
+                  {activeTab === "loss" ? (
+                    <>
+                      <Area type="monotone" dataKey="train_model_loss" stroke="#f43f5e" strokeWidth={2} fill="url(#lossGrad)" isAnimationActive={false} name="Model Loss" />
+                      <Area type="monotone" dataKey="train_actor_loss" stroke="#8b5cf6" strokeWidth={2} fill="url(#actorGrad)" isAnimationActive={false} name="Actor Loss" />
+                      <Area type="monotone" dataKey="train_value_loss" stroke="#f59e0b" strokeWidth={2} fill="url(#valueGrad)" isAnimationActive={false} name="Value Loss" />
+                      <Legend />
+                    </>
+                  ) : (
+                    <Area type="monotone" dataKey="value" stroke="#00d4ff" strokeWidth={2} fill="url(#chartGrad)" isAnimationActive={false} />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           <div className="preview-row">

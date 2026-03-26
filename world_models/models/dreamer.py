@@ -435,6 +435,7 @@ class Dreamer:
         episode_rew = np.zeros((eval_episodes))
 
         video_images = [[] for _ in range(eval_episodes)]
+        latents = [] if render else None
 
         for i in range(eval_episodes):
             obs = env.reset()
@@ -465,8 +466,20 @@ class Dreamer:
 
                 if render:
                     video_images[i].append(obs["image"].transpose(1, 2, 0).copy())
+                    if latents is not None:
+                        latents.append(
+                            torch.cat([posterior[0], posterior[1]], dim=-1)
+                            .cpu()
+                            .numpy()
+                        )
                 obs = next_obs
-        return episode_rew, np.array(video_images[: self.args.max_videos_to_save])
+        if latents is not None and len(latents) > 0:
+            latents = np.array(latents)
+        return (
+            episode_rew,
+            np.array(video_images[: self.args.max_videos_to_save]),
+            latents,
+        )
 
     def collect_random_episodes(self, env, seed_steps):
         obs = env.reset()
@@ -542,11 +555,15 @@ class DreamerAgent:
         else:
             self.args = config
 
+        self.last_latents_ref = kwargs.get("last_latents_ref", None)
+
         for key, value in kwargs.items():
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             elif key == "logdir":
                 setattr(self.args, key, value)
+            elif key == "last_latents_ref":
+                self.last_latents_ref = value
             else:
                 raise ValueError(f"Invalid argument: {key}")
 
@@ -651,9 +668,11 @@ class DreamerAgent:
             )
 
             if global_step % self.args.test_interval == 0:
-                episode_rews, video_images = self.dreamer.evaluate(
+                episode_rews, video_images, latents = self.dreamer.evaluate(
                     self.test_env, self.args.test_episodes
                 )
+                if self.last_latents_ref is not None and latents is not None:
+                    self.last_latents_ref[0] = latents
 
                 logs.update(
                     {
@@ -685,9 +704,11 @@ class DreamerAgent:
 
     def evaluate(self):
         logs = OrderedDict()
-        episode_rews, video_images = self.dreamer.evaluate(
+        episode_rews, video_images, latents = self.dreamer.evaluate(
             self.test_env, self.args.test_episodes, render=True
         )
+        if self.last_latents_ref is not None and latents is not None:
+            self.last_latents_ref[0] = latents
         logs.update(
             {
                 "test_avg_reward": np.mean(episode_rews),

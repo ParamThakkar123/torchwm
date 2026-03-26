@@ -87,3 +87,30 @@ export function stopTraining(): Promise<{ stop_requested: boolean } & StateRespo
 export function fetchDependencies(): Promise<DependenciesResponse> {
   return request<DependenciesResponse>("/api/dependencies");
 }
+
+export function visualizeLatents(
+  latents: string,
+  method: "tsne" | "umap" = "tsne",
+  labels?: string,
+  perplexity = 30,
+  nNeighbors = 15
+): Promise<{ html: string }> {
+  const params = new URLSearchParams({
+    latents,
+    method,
+    perplexity: perplexity.toString(),
+    n_neighbors: nNeighbors.toString(),
+  });
+  if (labels) {
+    params.append("labels", labels);
+  }
+  return request<{ html: string }>(`/api/visualize?${params}`, { method: "POST" });
+}
+
+export function fetchLatents(): Promise<{ latents: string }> {
+  return request<{ latents: string }>("/api/latents");
+}
+
+export function fetchVideo(filename: string): string {
+  return `${API_BASE}/api/video/${filename}`;
+}

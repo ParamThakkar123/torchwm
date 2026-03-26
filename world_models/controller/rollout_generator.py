@@ -86,13 +86,14 @@ class RolloutGenerator:
                 metrics[k].append(v)
         return episodes, frames, metrics
 
-    def rollout_eval(self):
+    def rollout_eval(self, collect_latents=False):
         assert self.policy is not None, "Policy is None!!"
         self.policy.reset()
         eps = self.episode_gen()
         obs = self.env.reset()
         des = f"{self.name} Eval Ts"
         frames = []
+        latents_list = [] if collect_latents else None
         if self.enable_streaming_video and self.streaming_video_path:
             self.video_writer = StreamingVideoWriter(
                 self.streaming_video_path,
@@ -117,6 +118,10 @@ class RolloutGenerator:
                 frames.append(frame)
                 if self.video_writer:
                     self.video_writer.write_frame(frame)
+                if collect_latents:
+                    latents_list.append(
+                        torch.cat([self.policy.h, self.policy.s], dim=-1).cpu().numpy()
+                    )
                 pred_r.append(
                     self.policy.rssm.pred_reward(self.policy.h, self.policy.s)
                     .cpu()
@@ -136,4 +141,4 @@ class RolloutGenerator:
         metrics["eval/reward_pred_loss"] = abs(
             np.array(act_r)[:-1] - np.array(pred_r)[1:]
         )
-        return eps, np.stack(frames), metrics
+        return eps, np.stack(frames), metrics, latents_list

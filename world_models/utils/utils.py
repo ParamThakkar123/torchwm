@@ -874,8 +874,7 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
 
     if save_path:
         fig.write_html(save_path)
-    else:
-        fig.show()
+    return fig
 
 
 def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
@@ -930,8 +929,7 @@ def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
 
     if save_path:
         fig.write_html(save_path)
-    else:
-        fig.show()
+    return fig
 
 
 class StreamingVideoWriter:

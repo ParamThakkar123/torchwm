@@ -11,7 +11,6 @@ class DeepMindControlEnv:
     """
 
     def __init__(self, name, seed, size=(64, 64), camera=None):
-
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
@@ -32,7 +31,7 @@ class DeepMindControlEnv:
         spaces = {}
         for key, value in self._env.observation_spec().items():
             spaces[key] = gym.spaces.Box(-np.inf, np.inf, value.shape, dtype=np.float32)
-        spaces["image"] = gym.spaces.Box(0, 255, (3,) + self._size, dtype=np.uint8)
+        spaces["image"] = gym.spaces.Box(0, 255, self._size + (3,), dtype=np.uint8)
         return gym.spaces.Dict(spaces)
 
     @property
@@ -43,7 +42,7 @@ class DeepMindControlEnv:
     def step(self, action):
         time_step = self._env.step(action)
         obs = dict(time_step.observation)
-        obs["image"] = self.render().transpose(2, 0, 1).copy()
+        obs["image"] = self.render().copy()
         reward = time_step.reward or 0
         done = time_step.last()
         info = {"discount": np.array(time_step.discount, np.float32)}
@@ -52,10 +51,13 @@ class DeepMindControlEnv:
     def reset(self):
         time_step = self._env.reset()
         obs = dict(time_step.observation)
-        obs["image"] = self.render().transpose(2, 0, 1).copy()
+        obs["image"] = self.render().copy()
         return obs
 
     def render(self, *args, **kwargs):
         if kwargs.get("mode", "rgb_array") != "rgb_array":
             raise ValueError("Only render mode 'rgb_array' is supported.")
         return self._env.physics.render(*self._size, camera_id=self._camera)
+
+    def close(self):
+        self._env.close()

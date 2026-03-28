@@ -111,8 +111,10 @@ const [vizMethod, setVizMethod] = useState<"tsne" | "umap">("tsne");
 const [videoFilename, setVideoFilename] = useState("test_stream.mp4");
 
 const [latentsFetched, setLatentsFetched] = useState(false);
+const [vizGenerated, setVizGenerated] = useState(false);
+const [vizLoading, setVizLoading] = useState(false);
 
-const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dependencies, setDependencies] = useState<Dependency[]>([]);
   const [showDependencies, setShowDependencies] = useState(false);
@@ -220,17 +222,49 @@ useEffect(() => {
 
   useEffect(() => {
     if (activeTab === "viz" && !latentsFetched) {
-      fetchLatents()
+      const fetchAndRetry = () => {
+        fetchLatents()
+          .then((res) => {
+            setLatentsInput(res.latents);
+            setLatentsFetched(true);
+          })
+          .catch((e) => {
+            // Suppress expected 'latents not ready' errors until latents actually arrive.
+            // Be robust to different error formats like "400: Latents shape not provided".
+            const msg = (e as Error)?.message ?? String(e);
+            const lower = msg.toLowerCase();
+            const isLatentsNotReady =
+              lower.includes("latents shape not provided") ||
+              lower.includes("latents not ready") ||
+              lower.includes("no latents available") ||
+              (lower.includes("400") && lower.includes("latents"));
+            if (!isLatentsNotReady) {
+              setErrorMessage(msg);
+            }
+            // otherwise keep polling silently
+          });
+      };
+      fetchAndRetry();
+      const interval = setInterval(fetchAndRetry, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, latentsFetched]);
+
+  useEffect(() => {
+    if (latentsFetched && !vizGenerated && !vizLoading) {
+      setVizLoading(true);
+      visualizeLatents(latentsInput, vizMethod, labelsInput)
         .then((res) => {
-          setLatentsInput(res.latents);
-          setLatentsFetched(true);
-          toast.success("Latents loaded automatically!");
+          setVizHtml(res.html);
+          setVizGenerated(true);
+          setVizLoading(false);
         })
         .catch((e) => {
           setErrorMessage((e as Error).message);
+          setVizLoading(false);
         });
     }
-  }, [activeTab, latentsFetched]);
+  }, [latentsFetched, vizGenerated, vizLoading, latentsInput, vizMethod, labelsInput]);
 
   const handleConfigChange = (key: string, value: unknown) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));
@@ -269,6 +303,22 @@ const handleLoadModel = () => {
   const handleStop = () => runAction(() => stopTraining());
 
   const progressPercent = Math.round(((state?.progress.ratio ?? 0) * 1000) / 10);
+
+// Do not surface the expected 'latents not ready' message to the user
+const _filteredError = (err: string | null) => {
+  if (!err) return null;
+  const lower = err.toLowerCase();
+  if (
+    lower.includes("latents shape not provided") ||
+    lower.includes("latents not ready") ||
+    lower.includes("no latents available") ||
+    (lower.includes("400") && lower.includes("latents"))
+  )
+    return null;
+  return err;
+};
+
+const filteredError = _filteredError(errorMessage);
 
 return (
     <div className="app">
@@ -367,7 +417,7 @@ return (
             <button className="btn-danger" onClick={handleStop} disabled={isSubmitting}>Stop</button>
           </div>
 
-          {errorMessage && <div className="error">{errorMessage}</div>}
+          {filteredError && <div className="error">{filteredError}</div>}
         </aside>
 
         <div className="content">
@@ -388,7 +438,7 @@ return (
                 <button className={`chart-tab ${activeTab === "eval" ? "active" : ""}`} onClick={() => setActiveTab("eval")}>Eval</button>
                 <button className={`chart-tab ${activeTab === "viz" ? "active" : ""}`} onClick={() => setActiveTab("viz")}>Viz</button>
               </div>
-              {activeTab !== "loss" && (
+              {activeTab !== "loss" && activeTab !== "viz" && (
                 <select value={activeMetric} onChange={e => setActiveMetric(e.target.value)}>
                   {sortedMetricEntries.map(([n]) => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -396,48 +446,13 @@ return (
             </div>
             {activeTab === "viz" ? (
               <div className="viz-content">
-                 <div className="viz-inputs">
-                   <div className="viz-field">
-                     <label>Latents</label>
-                     <textarea
-                       value={latentsInput}
-                       readOnly
-                       placeholder="Latents will be loaded automatically when available"
-                     />
-                   </div>
-                  <div className="viz-field">
-                    <label>Labels (base64 numpy array, optional)</label>
-                    <textarea
-                      value={labelsInput}
-                      onChange={e => setLabelsInput(e.target.value)}
-                      placeholder="Enter base64 encoded labels array"
-                    />
-                  </div>
-                  <div className="viz-field">
-                    <label>Method</label>
-                    <select value={vizMethod} onChange={e => setVizMethod(e.target.value as "tsne" | "umap")}>
-                      <option value="tsne">t-SNE</option>
-                      <option value="umap">UMAP</option>
-                    </select>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await visualizeLatents(latentsInput, vizMethod, labelsInput);
-                        setVizHtml(res.html);
-                      } catch (e) {
-                        setErrorMessage((e as Error).message);
-                      }
-                    }}
-                  >
-                    Generate Visualization
-                  </button>
-                </div>
                 <div className="viz-display">
-                  {vizHtml ? (
+                  {vizLoading ? (
+                    <div className="viz-placeholder">Generating visualization...</div>
+                  ) : vizHtml ? (
                     <div dangerouslySetInnerHTML={{ __html: vizHtml }} />
                   ) : (
-                    <div className="viz-placeholder">No visualization generated</div>
+                    <div className="viz-placeholder">No visualization available. Ensure latents are generated from evaluations.</div>
                   )}
                 </div>
                 <div className="video-section">

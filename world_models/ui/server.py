@@ -1069,19 +1069,32 @@ def visualize_latents(
     ),
     perplexity: int = Query(30, description="Perplexity for t-SNE"),
     n_neighbors: int = Query(15, description="n_neighbors for UMAP"),
+    shape: str | None = Query(
+        None,
+        description="Optional latents shape as comma-separated ints, e.g. '100,64'",
+    ),
 ):
     try:
         import base64
 
         latents_data = base64.b64decode(latents)
         latents_array = np.frombuffer(latents_data, dtype=np.float32)
-        # Assume shape is (N, D), but need to know D or reshape
-        # For simplicity, assume latents is flattened, but need shape
-        # Perhaps pass shape as well
-        # For now, assume 2D and infer
-        if latents_array.ndim == 1:
-            # Assume square or something, but better to pass shape
-            raise HTTPException(status_code=400, detail="Latents shape not provided")
+        # If client passed a shape param, use it to reshape the 1D buffer into (N, D)
+        req_shape = None
+        if shape:
+            try:
+                req_shape = [int(x) for x in shape.split(",") if x.strip()]
+            except Exception:
+                req_shape = None
+
+        if req_shape is not None and len(req_shape) > 0:
+            try:
+                latents_array = latents_array.reshape(tuple(req_shape))
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid shape parameter")
+        elif latents_array.ndim == 1:
+            # If shape is missing, treat as 'not ready' case; return 204 No Content so client keeps polling silently
+            raise HTTPException(status_code=204, detail="Latents not ready")
 
         labels_array = None
         if labels:
@@ -1101,6 +1114,9 @@ def visualize_latents(
 
         html = fig.to_html(full_html=False)
         return {"html": html}
+    except HTTPException:
+        # Propagate FastAPI HTTPExceptions (204/400/etc.) unchanged
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

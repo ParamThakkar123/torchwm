@@ -242,25 +242,31 @@ class IRISTrainer:
         )
         return epsilon
 
-    def evaluate(self, num_episodes: int = 100) -> dict:
+    def evaluate(self, num_episodes: int = 100, render: bool = False):
         """Evaluate agent performance.
 
         Args:
             num_episodes: Number of evaluation episodes
+            render: If True, also return video frames and per-step latent vectors
 
         Returns:
-            Dictionary with evaluation metrics
+            If render is False (default): dict with evaluation metrics
+            If render is True: tuple (episode_returns_array, videos_list, latents_array)
         """
         episode_returns = []
+        videos: list[list[np.ndarray]] = []
+        latents_all: list[np.ndarray] = []
 
         for _ in range(num_episodes):
-            obs, _ = self.env.reset()
-            obs = self.preprocess_frame(obs)
+            raw_obs, _ = self.env.reset()
+            obs = self.preprocess_frame(raw_obs)
 
             episode_return = 0
             done = False
+            frames: list[np.ndarray] = []
 
             while not done:
+                # Prepare frame for policy (CHW, float32, 0-1)
                 frame_tensor = (
                     torch.tensor(obs, dtype=torch.float32).unsqueeze(0).to(self.device)
                 )
@@ -268,19 +274,64 @@ class IRISTrainer:
                     frame_tensor, epsilon=0.0, temperature=self.config.eval_temperature
                 ).item()
 
-                next_obs, reward, terminated, truncated, _ = self.env.step(action)
+                next_raw, reward, terminated, truncated, _ = self.env.step(action)
                 done = terminated or truncated
 
+                # Store raw frame for video (as HWC uint8 if possible)
+                try:
+                    frames.append(np.asarray(next_raw))
+                except Exception:
+                    # Fallback: convert processed obs back to HWC
+                    proc = np.asarray(obs)
+                    if proc.ndim == 3:
+                        # CHW -> HWC
+                        frames.append(proc.transpose(1, 2, 0))
+
+                # Compute latent embedding via encoder (quantized embeddings)
+                try:
+                    proc_frame = self.preprocess_frame(next_raw) if not done else obs
+                    with torch.no_grad():
+                        ft = (
+                            torch.tensor(proc_frame, dtype=torch.float32)
+                            .unsqueeze(0)
+                            .to(self.device)
+                        )
+                        z_q, _, _ = self.agent.encoder(ft)
+                        # z_q: (B, C, H', W') -> reduce spatial dims and take mean over channels
+                        latent = z_q.mean(dim=(2, 3)).squeeze(0).cpu().numpy()
+                        latents_all.append(latent.astype(np.float32))
+                except Exception:
+                    # If encoder fails, skip latent for this step
+                    pass
+
                 episode_return += reward
-                obs = self.preprocess_frame(next_obs) if not done else obs
+                obs = self.preprocess_frame(next_raw) if not done else obs
 
             episode_returns.append(episode_return)
+            videos.append(frames)
 
+        if render:
+            # Stack latents into (N, D) array if any
+            if latents_all:
+                latents_array = np.vstack(latents_all).astype(np.float32)
+            else:
+                latents_array = np.empty((0,), dtype=np.float32)
+            return np.array(episode_returns), videos, latents_array
+
+        # Non-render fallback: return simple metrics dict for compatibility
         return {
-            "eval_mean_return": np.mean(episode_returns),
-            "eval_std_return": np.std(episode_returns),
-            "eval_max_return": np.max(episode_returns),
-            "eval_min_return": np.min(episode_returns),
+            "eval_mean_return": float(
+                np.mean(episode_returns) if episode_returns else 0.0
+            ),
+            "eval_std_return": float(
+                np.std(episode_returns) if episode_returns else 0.0
+            ),
+            "eval_max_return": float(
+                np.max(episode_returns) if episode_returns else 0.0
+            ),
+            "eval_min_return": float(
+                np.min(episode_returns) if episode_returns else 0.0
+            ),
         }
 
     def train(

@@ -6,6 +6,7 @@ from tqdm import trange
 from torchvision.utils import make_grid
 
 from world_models.memory.planet_memory import Episode
+from world_models.utils.utils import StreamingVideoWriter
 
 
 class RolloutGenerator:
@@ -19,6 +20,10 @@ class RolloutGenerator:
         max_episode_steps=None,
         episode_gen=None,
         name=None,
+        enable_streaming_video=False,
+        streaming_video_path=None,
+        streaming_video_fps=20,
+        streaming_video_format="mp4",
     ):
         self.env = env
         self.device = device
@@ -28,6 +33,11 @@ class RolloutGenerator:
         self.max_episode_steps = max_episode_steps
         if self.max_episode_steps is None:
             self.max_episode_steps = self.env.max_episode_steps
+        self.enable_streaming_video = enable_streaming_video
+        self.streaming_video_path = streaming_video_path
+        self.streaming_video_fps = streaming_video_fps
+        self.streaming_video_format = streaming_video_format
+        self.video_writer = None
 
     def rollout_once(self, random_policy=False, explore=False) -> Episode:
         """Performs a single rollout of an environment given a policy
@@ -76,13 +86,20 @@ class RolloutGenerator:
                 metrics[k].append(v)
         return episodes, frames, metrics
 
-    def rollout_eval(self):
+    def rollout_eval(self, collect_latents=False):
         assert self.policy is not None, "Policy is None!!"
         self.policy.reset()
         eps = self.episode_gen()
         obs = self.env.reset()
         des = f"{self.name} Eval Ts"
         frames = []
+        latents_list = [] if collect_latents else None
+        if self.enable_streaming_video and self.streaming_video_path:
+            self.video_writer = StreamingVideoWriter(
+                self.streaming_video_path,
+                fps=self.streaming_video_fps,
+                format=self.streaming_video_format,
+            )
         metrics = {}
         rec_losses = []
         pred_r, act_r = [], []
@@ -97,7 +114,14 @@ class RolloutGenerator:
                     .clamp_(-0.5, 0.5)
                 )
                 rec_losses.append(((obs - dec).abs()).sum().item())
-                frames.append(make_grid([obs + 0.5, dec + 0.5], nrow=2).numpy())
+                frame = make_grid([obs + 0.5, dec + 0.5], nrow=2).numpy()
+                frames.append(frame)
+                if self.video_writer:
+                    self.video_writer.write_frame(frame)
+                if collect_latents:
+                    latents_list.append(
+                        torch.cat([self.policy.h, self.policy.s], dim=-1).cpu().numpy()
+                    )
                 pred_r.append(
                     self.policy.rssm.pred_reward(self.policy.h, self.policy.s)
                     .cpu()
@@ -110,9 +134,11 @@ class RolloutGenerator:
             eps_reward += reward
             obs = nobs
         eps.terminate(nobs)
+        if self.video_writer:
+            self.video_writer.close()
         metrics["eval/episode_reward"] = eps_reward
         metrics["eval/reconstruction_loss"] = rec_losses
         metrics["eval/reward_pred_loss"] = abs(
             np.array(act_r)[:-1] - np.array(pred_r)[1:]
         )
-        return eps, np.stack(frames), metrics
+        return eps, np.stack(frames), metrics, latents_list

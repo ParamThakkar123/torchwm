@@ -15,7 +15,6 @@ from plotly.graph_objs import Scatter, Line
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
 
-from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
@@ -24,6 +23,14 @@ import yaml
 
 import collections
 import collections.abc
+
+try:
+    from sklearn.manifold import TSNE
+    import umap
+
+    HAS_VIZ = True
+except ImportError:
+    HAS_VIZ = False
 
 try:
     from attrdict import AttrDict
@@ -462,23 +469,11 @@ class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
     def __init__(self, path):
-        self.writer = SummaryWriter(path)
         self.steps = defaultdict(lambda: 0)
         self.summary = {}
 
     def assign_type(self, key, val):
-        if isinstance(val, (list, tuple)):
-
-            def fun(k, x, s):
-                self.writer.add_histogram(k, np.array(x), s)
-
-            self.summary[key] = fun
-        elif isinstance(val, (np.ndarray, torch.Tensor)):
-            self.summary[key] = self.writer.add_histogram
-        elif isinstance(val, float) or isinstance(val, int):
-            self.summary[key] = self.writer.add_scalar
-        else:
-            raise ValueError(f"Datatype {type(val)} not allowed")
+        pass
 
     def update(self, metrics: dict):
         metrics = flatten_dict(metrics)
@@ -486,7 +481,6 @@ class TensorBoardMetrics:
             key = key_dots.replace(".", "/")
             if self.summary.get(key, None) is None:
                 self.assign_type(key, val)
-            self.summary[key](key, val, self.steps[key])
             self.steps[key] += 1
 
 
@@ -812,3 +806,162 @@ def apply_masks(x, masks):
         mask_keep = m.unsqueeze(-1).repeat(1, 1, x.shape[-1])
         all_x.append(torch.gather(x, 1, mask_keep))
     return torch.cat(all_x, dim=0)
+
+
+def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
+    """
+    Visualize latent representations using t-SNE.
+
+    Args:
+        latents: torch.Tensor of shape (N, D) or numpy array
+        labels: optional list or array of labels for coloring
+        save_path: path to save the plot (HTML for plotly)
+        perplexity: t-SNE perplexity parameter
+    """
+    if not HAS_VIZ:
+        print(
+            "t-SNE visualization requires sklearn. Install with: pip install scikit-learn"
+        )
+        return
+
+    if isinstance(latents, torch.Tensor):
+        latents = latents.detach().cpu().numpy()
+
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    latents_2d = tsne.fit_transform(latents)
+
+    fig = plotly.graph_objs.Figure()
+    if labels is not None:
+        unique_labels = np.unique(labels)
+        for label in unique_labels:
+            idx = labels == label
+            fig.add_trace(
+                Scatter(
+                    x=latents_2d[idx, 0],
+                    y=latents_2d[idx, 1],
+                    mode="markers",
+                    name=str(label),
+                    marker=dict(size=5),
+                )
+            )
+    else:
+        fig.add_trace(
+            Scatter(
+                x=latents_2d[:, 0],
+                y=latents_2d[:, 1],
+                mode="markers",
+                marker=dict(size=5),
+            )
+        )
+
+    fig.update_layout(
+        title="Latent Space t-SNE", xaxis_title="t-SNE 1", yaxis_title="t-SNE 2"
+    )
+
+    if save_path:
+        fig.write_html(save_path)
+    return fig
+
+
+def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
+    """
+    Visualize latent representations using UMAP.
+
+    Args:
+        latents: torch.Tensor of shape (N, D) or numpy array
+        labels: optional list or array of labels for coloring
+        save_path: path to save the plot (HTML for plotly)
+        n_neighbors: UMAP n_neighbors parameter
+    """
+    if not HAS_VIZ:
+        print(
+            "UMAP visualization requires umap-learn. Install with: pip install umap-learn"
+        )
+        return
+
+    if isinstance(latents, torch.Tensor):
+        latents = latents.detach().cpu().numpy()
+
+    reducer = umap.UMAP(n_neighbors=n_neighbors, random_state=42)
+    latents_2d = reducer.fit_transform(latents)
+
+    fig = plotly.graph_objs.Figure()
+    if labels is not None:
+        unique_labels = np.unique(labels)
+        for label in unique_labels:
+            idx = labels == label
+            fig.add_trace(
+                Scatter(
+                    x=latents_2d[idx, 0],
+                    y=latents_2d[idx, 1],
+                    mode="markers",
+                    name=str(label),
+                    marker=dict(size=5),
+                )
+            )
+    else:
+        fig.add_trace(
+            Scatter(
+                x=latents_2d[:, 0],
+                y=latents_2d[:, 1],
+                mode="markers",
+                marker=dict(size=5),
+            )
+        )
+
+    fig.update_layout(
+        title="Latent Space UMAP", xaxis_title="UMAP 1", yaxis_title="UMAP 2"
+    )
+
+    if save_path:
+        fig.write_html(save_path)
+    return fig
+
+
+class StreamingVideoWriter:
+    """
+    A class for streaming video writing to save frames in real-time.
+
+    Args:
+        path: output video file path
+        fps: frames per second
+        frame_shape: (height, width) of frames
+        format: 'mp4' or 'avi'
+    """
+
+    def __init__(self, path, fps=20, frame_shape=None, format="mp4"):
+        self.path = path
+        self.fps = fps
+        self.frame_shape = frame_shape
+        self.format = format.lower()
+        self.writer = None
+
+    def write_frame(self, frame):
+        """
+        Write a single frame to the video.
+
+        Args:
+            frame: numpy array of shape (H, W, C) or (H, W), uint8 or float in [0,1]
+        """
+        if self.writer is None:
+            if self.frame_shape is None:
+                self.frame_shape = frame.shape[:2][::-1]  # (W, H)
+            if self.format == "mp4":
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            elif self.format == "avi":
+                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            else:
+                raise ValueError("Unsupported format")
+            self.writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.frame_shape)
+
+        # Convert frame to uint8 HWC BGR
+        if frame.dtype != np.uint8:
+            frame = (frame * 255).astype(np.uint8)
+        if frame.shape[-1] == 3:  # RGB to BGR
+            frame = frame[..., ::-1]
+        self.writer.write(frame)
+
+    def close(self):
+        if self.writer is not None:
+            self.writer.release()
+            self.writer = None

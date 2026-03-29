@@ -1331,36 +1331,9 @@ utility for additive exploration noise.</p>
 </dd></dl>
 
 </section>
-<section id="module-world_models.models.jepa_agent">
-<span id="jepa-and-vit"></span><h2>JEPA and ViT<a class="headerlink" href="#module-world_models.models.jepa_agent" title="Link to this heading">#</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="world_models.models.jepa_agent.JEPAAgent">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.jepa_agent.</span></span><span class="sig-name descname"><span class="pre">JEPAAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/jepa_agent.html#JEPAAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.jepa_agent.JEPAAgent" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Convenience interface for configuring and launching JEPA training runs.</p>
-<p>Accepts a <cite>JEPAConfig</cite> plus keyword overrides, prepares output folders,
-and delegates execution to the JEPA training entrypoint.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.JEPAConfig" title="world_models.configs.jepa_config.JEPAConfig"><em>JEPAConfig</em></a><em> | </em><em>None</em>)</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.models.jepa_agent.JEPAAgent.train">
-<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/jepa_agent.html#JEPAAgent.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.jepa_agent.JEPAAgent.train" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function" id="module-world_models.training.train_jepa">
-<dt class="sig sig-object py" id="world_models.training.train_jepa.main">
-<span class="sig-prename descclassname"><span class="pre">world_models.training.train_jepa.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume_preempt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_jepa.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_jepa.main" title="Link to this definition">#</a></dt>
-<dd><p>Run JEPA training using a nested config dict or <cite>JEPAConfig</cite> instance.</p>
-<p>This entrypoint initializes distributed context, data pipeline, masking,
-models, optimizers/schedulers, checkpointing, and the full epoch loop.</p>
-</dd></dl>
-
-<dl class="py function" id="module-world_models.models.vit">
+<section id="module-world_models.models.vit">
+<span id="jepa-and-vit"></span><h2>JEPA and ViT<a class="headerlink" href="#module-world_models.models.vit" title="Link to this heading">#</a></h2>
+<dl class="py function">
 <dt class="sig sig-object py" id="world_models.models.vit.get_2d_sincos_pos_embed">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.vit.</span></span><span class="sig-name descname"><span class="pre">get_2d_sincos_pos_embed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/vit.html#get_2d_sincos_pos_embed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.vit.get_2d_sincos_pos_embed" title="Link to this definition">#</a></dt>
 <dd><p>Generate fixed 2D sine/cosine positional embeddings on a square patch grid.</p>
@@ -2803,17 +2776,21 @@ hidden_state: Updated (h, c) tuple</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.training.train_iris.IRISTrainer.evaluate">
-<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.evaluate" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_episodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#IRISTrainer.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.IRISTrainer.evaluate" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate agent performance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_episodes</strong> (<em>int</em>) – Number of evaluation episodes</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_episodes</strong> (<em>int</em>) – Number of evaluation episodes</p></li>
+<li><p><strong>render</strong> (<em>bool</em>) – If True, also return video frames and per-step latent vectors</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with evaluation metrics</p>
+<dd class="field-even"><p>dict with evaluation metrics
+If render is True: tuple (episode_returns_array, videos_list, latents_array)</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p>If render is False (default)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3231,9 +3208,9 @@ through certain components should be blocked for speed and correctness.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_wandb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'torchwm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_tensorboard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_wandb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'torchwm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gif'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Experiment logger for scalars and GIF rollouts using TensorBoardX and WandB.</p>
+<p>Experiment logger for scalars and GIF rollouts using WandB.</p>
 <p>Provides helpers to write scalar metrics, dump pickle snapshots, and save
 video previews during Dreamer training/evaluation.</p>
 <dl class="py method">
@@ -3248,7 +3225,7 @@ video previews during Dreamer training/evaluation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger.log_videos">
-<span class="sig-name descname"><span class="pre">log_videos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">videos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_videos_to_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'video'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.log_videos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.log_videos" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">log_videos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">videos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_videos_to_save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'video'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger.log_videos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger.log_videos" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -3628,6 +3605,71 @@ Also returns observations in image form.</p>
 along the batch dimension.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.utils.visualize_latent_tsne">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.utils.</span></span><span class="sig-name descname"><span class="pre">visualize_latent_tsne</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/utils.html#visualize_latent_tsne"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.utils.visualize_latent_tsne" title="Link to this definition">#</a></dt>
+<dd><p>Visualize latent representations using t-SNE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latents</strong> – torch.Tensor of shape (N, D) or numpy array</p></li>
+<li><p><strong>labels</strong> – optional list or array of labels for coloring</p></li>
+<li><p><strong>save_path</strong> – path to save the plot (HTML for plotly)</p></li>
+<li><p><strong>perplexity</strong> – t-SNE perplexity parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.utils.visualize_latent_umap">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.utils.</span></span><span class="sig-name descname"><span class="pre">visualize_latent_umap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/utils.html#visualize_latent_umap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.utils.visualize_latent_umap" title="Link to this definition">#</a></dt>
+<dd><p>Visualize latent representations using UMAP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latents</strong> – torch.Tensor of shape (N, D) or numpy array</p></li>
+<li><p><strong>labels</strong> – optional list or array of labels for coloring</p></li>
+<li><p><strong>save_path</strong> – path to save the plot (HTML for plotly)</p></li>
+<li><p><strong>n_neighbors</strong> – UMAP n_neighbors parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.utils.StreamingVideoWriter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.utils.</span></span><span class="sig-name descname"><span class="pre">StreamingVideoWriter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mp4'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/utils.html#StreamingVideoWriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.utils.StreamingVideoWriter" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class for streaming video writing to save frames in real-time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – output video file path</p></li>
+<li><p><strong>fps</strong> – frames per second</p></li>
+<li><p><strong>frame_shape</strong> – (height, width) of frames</p></li>
+<li><p><strong>format</strong> – ‘mp4’ or ‘avi’</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.utils.StreamingVideoWriter.write_frame">
+<span class="sig-name descname"><span class="pre">write_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/utils.html#StreamingVideoWriter.write_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.utils.StreamingVideoWriter.write_frame" title="Link to this definition">#</a></dt>
+<dd><p>Write a single frame to the video.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frame</strong> – numpy array of shape (H, W, C) or (H, W), uint8 or float in [0,1]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.utils.StreamingVideoWriter.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/utils.html#StreamingVideoWriter.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.utils.StreamingVideoWriter.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -3849,12 +3891,7 @@ along the batch dimension.</p>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.models.jepa_agent">JEPA and ViT</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.jepa_agent.JEPAAgent"><code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.jepa_agent.JEPAAgent.train"><code class="docutils literal notranslate"><span class="pre">JEPAAgent.train()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_jepa.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.models.vit">JEPA and ViT</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.vit.get_2d_sincos_pos_embed"><code class="docutils literal notranslate"><span class="pre">get_2d_sincos_pos_embed()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.vit.get_2d_sincos_pos_embed_from_grid"><code class="docutils literal notranslate"><span class="pre">get_2d_sincos_pos_embed_from_grid()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.vit.get_1d_sincos_pos_embed"><code class="docutils literal notranslate"><span class="pre">get_1d_sincos_pos_embed()</span></code></a></li>
@@ -4191,6 +4228,13 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.apply_masks"><code class="docutils literal notranslate"><span class="pre">apply_masks()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.visualize_latent_tsne"><code class="docutils literal notranslate"><span class="pre">visualize_latent_tsne()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.visualize_latent_umap"><code class="docutils literal notranslate"><span class="pre">visualize_latent_umap()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.StreamingVideoWriter"><code class="docutils literal notranslate"><span class="pre">StreamingVideoWriter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.StreamingVideoWriter.write_frame"><code class="docutils literal notranslate"><span class="pre">StreamingVideoWriter.write_frame()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.StreamingVideoWriter.close"><code class="docutils literal notranslate"><span class="pre">StreamingVideoWriter.close()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

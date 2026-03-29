@@ -433,7 +433,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.utils.dreamer_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">FreezeParameters</span><span class="p">,</span> <span class="n">compute_return</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dreamer_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MUJOCO_GL&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;egl&quot;</span>
+<span class="c1"># Only set MUJOCO_GL for non-Windows platforms. On Windows the &#39;egl&#39; value</span>
+<span class="c1"># causes mujoco to raise a RuntimeError during import. Respect an existing</span>
+<span class="c1"># environment value if present.</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;nt&quot;</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MUJOCO_GL&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MUJOCO_GL&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;egl&quot;</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_image_size</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
@@ -875,6 +879,7 @@
         <span class="n">episode_rew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">eval_episodes</span><span class="p">))</span>
 
         <span class="n">video_images</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">eval_episodes</span><span class="p">)]</span>
+        <span class="n">latents</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">render</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">eval_episodes</span><span class="p">):</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
@@ -905,8 +910,20 @@
 
                 <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
                     <span class="n">video_images</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">latents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">latents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">posterior</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                            <span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                        <span class="p">)</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="n">next_obs</span>
-        <span class="k">return</span> <span class="n">episode_rew</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">video_images</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">max_videos_to_save</span><span class="p">])</span></div>
+        <span class="k">if</span> <span class="n">latents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">latents</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">latents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">latents</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">episode_rew</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">video_images</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">max_videos_to_save</span><span class="p">]),</span>
+            <span class="n">latents</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dreamer.collect_random_episodes">
@@ -995,11 +1012,22 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">config</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;last_latents_ref&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;logdir&quot;</span><span class="p">:</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="c1"># Accept either `logdir` (server/legacy) and mirror into</span>
+                <span class="c1"># both `logdir` and `log_dir` so downstream code using either</span>
+                <span class="c1"># naming convention picks up the value.</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;log_dir&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;last_latents_ref&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid argument: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -1008,6 +1036,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_path</span><span class="p">)):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
 
+        <span class="c1"># Allow caller to pass an absolute `logdir`. If provided and absolute,</span>
+        <span class="c1"># use it verbatim. Otherwise keep the historical behavior of creating</span>
+        <span class="c1"># a subdir under the package data path so examples/tests remain stable.</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1020,7 +1051,10 @@
                 <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
                 <span class="o">+</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-%m-%Y-%H-%M-%S&quot;</span><span class="p">)</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
+
+        <span class="c1"># If `self.logdir` is not an absolute path, place it under package data_path</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
 
@@ -1048,7 +1082,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_api_key</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_project</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_entity</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">enable_tensorboard</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_format</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_fps</span><span class="p">,</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="DreamerAgent.train">
@@ -1104,9 +1139,11 @@
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">test_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+                <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span><span class="p">,</span> <span class="n">latents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">test_env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">test_episodes</span>
                 <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">latents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">latents</span>
 
                 <span class="n">logs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                     <span class="p">{</span>
@@ -1141,9 +1178,11 @@
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">logs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+        <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span><span class="p">,</span> <span class="n">latents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">test_env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">test_episodes</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">latents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_latents_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">latents</span>
         <span class="n">logs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s2">&quot;test_avg_reward&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_rews</span><span class="p">),</span>
@@ -1155,7 +1194,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">dump_scalars_to_pickle</span><span class="p">(</span><span class="n">logs</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">log_title</span><span class="o">=</span><span class="s2">&quot;test_scalars.pkl&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log_videos</span><span class="p">(</span>
             <span class="n">video_images</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_videos_to_save</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">max_videos_to_save</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span><span class="p">,</span> <span class="n">latents</span></div>
 </div>
 
 </pre></div>

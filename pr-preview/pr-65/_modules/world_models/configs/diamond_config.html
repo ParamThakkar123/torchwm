@@ -138,11 +138,49 @@
 
 
 <li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api_reference.html">
+  <a class="nav-link nav-internal" href="../../../dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../api_reference.html">
     API Reference
   </a>
 </li>
 
+                </ul>
+            </li>
+            
   </ul>
 </nav></div>
       
@@ -240,6 +278,34 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../package_overview.html">
     Package Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../dit.html">
+    DiT: Diffusion Transformer
   </a>
 </li>
 
@@ -345,13 +411,73 @@
                   
   <h1>Source code for world_models.configs.diamond_config</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelPreset</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model architecture preset for different hardware tiers.&quot;&quot;&quot;</span>
+
+    <span class="n">diffusion_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">diffusion_res_blocks</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">diffusion_cond_dim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">reward_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">reward_lstm_dim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">actor_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">actor_lstm_dim</span><span class="p">:</span> <span class="nb">int</span>
+
+
+<span class="n">MODEL_PRESETS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;small&quot;</span><span class="p">:</span> <span class="n">ModelPreset</span><span class="p">(</span>
+        <span class="n">diffusion_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
+        <span class="n">diffusion_res_blocks</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">diffusion_cond_dim</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="n">reward_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
+        <span class="n">reward_lstm_dim</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">actor_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
+        <span class="n">actor_lstm_dim</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;medium&quot;</span><span class="p">:</span> <span class="n">ModelPreset</span><span class="p">(</span>
+        <span class="n">diffusion_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="n">diffusion_res_blocks</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">diffusion_cond_dim</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+        <span class="n">reward_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
+        <span class="n">reward_lstm_dim</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">actor_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="n">actor_lstm_dim</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;large&quot;</span><span class="p">:</span> <span class="n">ModelPreset</span><span class="p">(</span>
+        <span class="n">diffusion_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
+        <span class="n">diffusion_res_blocks</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">diffusion_cond_dim</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+        <span class="n">reward_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="n">reward_lstm_dim</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+        <span class="n">actor_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
+        <span class="n">actor_lstm_dim</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
 
 
 <div class="viewcode-block" id="DiamondConfig">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.DiamondConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">DiamondConfig</span><span class="p">:</span>
+    <span class="c1"># Preset selection (overrides manual model config if set)</span>
+    <span class="n">preset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># &quot;small&quot;, &quot;medium&quot;, &quot;large&quot;, or None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preset</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preset</span> <span class="ow">in</span> <span class="n">MODEL_PRESETS</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">MODEL_PRESETS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">preset</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_channels</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">diffusion_channels</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_res_blocks</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">diffusion_res_blocks</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_cond_dim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">diffusion_cond_dim</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reward_channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">reward_channels</span>
+            <span class="p">)</span>  <span class="c1"># convert tuple for dataclass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reward_lstm_dim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">reward_lstm_dim</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">actor_channels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_lstm_dim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">actor_lstm_dim</span>
+
     <span class="c1"># Environment</span>
     <span class="n">game</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Breakout-v5&quot;</span>
     <span class="n">obs_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span>
@@ -363,7 +489,7 @@
     <span class="c1"># Frame stacking (observation conditioning)</span>
     <span class="n">num_conditioning_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
 
-    <span class="c1"># Diffusion model (Dθ)</span>
+    <span class="c1"># Diffusion model (Dθ) - used if preset is None</span>
     <span class="n">diffusion_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
     <span class="n">diffusion_res_blocks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">diffusion_cond_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
@@ -380,14 +506,14 @@
     <span class="n">sampling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;euler&quot;</span>
     <span class="n">num_sampling_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
 
-    <span class="c1"># Reward/Termination model (Rψ)</span>
+    <span class="c1"># Reward/Termination model (Rψ) - used if preset is None</span>
     <span class="n">reward_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">])</span>
     <span class="n">reward_res_blocks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">reward_cond_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span>
     <span class="n">reward_lstm_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>
     <span class="n">burn_in_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
 
-    <span class="c1"># RL Agent (actor-critic)</span>
+    <span class="c1"># RL Agent (actor-critic) - used if preset is None</span>
     <span class="n">actor_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
     <span class="n">actor_res_blocks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">actor_lstm_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>

@@ -66,7 +66,6 @@ class JEPAConfig:
         )
         self.wandb_project: str = "torchwm"
         self.wandb_entity: str = ""
-        self.enable_tensorboard: bool = True
         self.enable_sweep: bool = False
         self.sweep_config: Dict[str, Any] = {}
 
@@ -125,7 +124,6 @@ class JEPAConfig:
                 "wandb_api_key": self.wandb_api_key,
                 "wandb_project": self.wandb_project,
                 "wandb_entity": self.wandb_entity,
-                "enable_tensorboard": self.enable_tensorboard,
                 "enable_sweep": self.enable_sweep,
                 "sweep_config": self.sweep_config,
             },

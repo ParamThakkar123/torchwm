@@ -7,7 +7,6 @@ import cv2
 
 from typing import Iterable
 from torch.nn import Module
-from tensorboardX import SummaryWriter
 
 try:
     import wandb
@@ -58,7 +57,7 @@ class FreezeParameters:
 
 
 class Logger:
-    """Experiment logger for scalars and GIF rollouts using TensorBoardX and WandB.
+    """Experiment logger for scalars and GIF rollouts using WandB.
 
     Provides helpers to write scalar metrics, dump pickle snapshots, and save
     video previews during Dreamer training/evaluation.
@@ -71,7 +70,6 @@ class Logger:
         wandb_api_key="",
         wandb_project="torchwm",
         wandb_entity="",
-        enable_tensorboard=True,
         video_format="gif",
         video_fps=20,
     ):
@@ -81,15 +79,9 @@ class Logger:
         print("########################")
         self._n_logged_samples = 10
         self.enable_wandb = enable_wandb
-        self.enable_tensorboard = enable_tensorboard
         self.video_format = video_format
         self.video_fps = video_fps
         self._wandb_run = None
-
-        if self.enable_tensorboard:
-            self._summ_writer = SummaryWriter(log_dir, flush_secs=1, max_queue=1)
-        else:
-            self._summ_writer = None
 
         if self.enable_wandb:
             if not wandb_api_key:
@@ -105,8 +97,6 @@ class Logger:
             )
 
     def log_scalar(self, scalar, name, step_):
-        if self.enable_tensorboard and self._summ_writer:
-            self._summ_writer.add_scalar("{}".format(name), scalar, step_)
         if self.enable_wandb and self._wandb_run:
             self._wandb_run.log({name: scalar}, step=step_)
 
@@ -173,8 +163,7 @@ class Logger:
             pickle.dump({"step": step, **dict(metrics)}, f)
 
     def flush(self):
-        if self.enable_tensorboard and self._summ_writer:
-            self._summ_writer.flush()
+        pass
 
 
 def compute_return(rewards, values, discounts, td_lam, last_value):

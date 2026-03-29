@@ -99,6 +99,22 @@ body {
   position: relative;
 }
 
+.tb-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(0,0,0,0.3);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+.tb-badge.tb-off {
+  opacity: 0.5;
+  color: var(--text-secondary);
+}
+
 .dependencies-toggle {
   display: flex;
   align-items: center;
@@ -281,8 +297,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-height: 200px;
-  overflow-y: auto;
+  max-height: none; /* show all config fields without scroll */
+  overflow-y: visible;
   padding-right: 0.25rem;
 }
 
@@ -294,7 +310,7 @@ body {
 }
 
 .config-label {
-  font-size: 0.7rem;
+  font-size: 0.9rem; /* larger label text */
   color: var(--text-secondary);
 }
 
@@ -306,7 +322,7 @@ body {
   background: rgba(0, 0, 0, 0.3);
   color: var(--text-primary);
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.8rem;
+  font-size: 1rem; /* increase input text size */
   text-align: right;
 }
 

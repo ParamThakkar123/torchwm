@@ -83,5 +83,4 @@ class DreamerConfig:
         )
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
-        self.enable_tensorboard = True
         self.log_dir = "runs"

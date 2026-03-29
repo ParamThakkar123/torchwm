@@ -14,6 +14,7 @@ export interface StateResponse {
   traceback: string | null;
   started_at: number | null;
   finished_at: number | null;
+  last_update_at: number | null;
   results_dir: string | null;
   progress: {
     current: number;

@@ -15,7 +15,6 @@ from plotly.graph_objs import Scatter, Line
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
 
-from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
@@ -470,23 +469,11 @@ class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
     def __init__(self, path):
-        self.writer = SummaryWriter(path)
         self.steps = defaultdict(lambda: 0)
         self.summary = {}
 
     def assign_type(self, key, val):
-        if isinstance(val, (list, tuple)):
-
-            def fun(k, x, s):
-                self.writer.add_histogram(k, np.array(x), s)
-
-            self.summary[key] = fun
-        elif isinstance(val, (np.ndarray, torch.Tensor)):
-            self.summary[key] = self.writer.add_histogram
-        elif isinstance(val, float) or isinstance(val, int):
-            self.summary[key] = self.writer.add_scalar
-        else:
-            raise ValueError(f"Datatype {type(val)} not allowed")
+        pass
 
     def update(self, metrics: dict):
         metrics = flatten_dict(metrics)
@@ -494,7 +481,6 @@ class TensorBoardMetrics:
             key = key_dots.replace(".", "/")
             if self.summary.get(key, None) is None:
                 self.assign_type(key, val)
-            self.summary[key](key, val, self.steps[key])
             self.steps[key] += 1
 
 

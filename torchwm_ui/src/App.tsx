@@ -11,15 +11,18 @@ import {
   YAxis
 } from "recharts";
 import {
+  API_BASE,
   fetchCatalog,
   fetchDependencies,
   fetchFrame,
+  fetchLatents,
   fetchMetrics,
   fetchState,
   loadEnvironment,
   loadModel,
   startTraining,
-  stopTraining
+  stopTraining,
+  visualizeLatents,
 } from "./api";
 import type { CatalogResponse, Dependency, MetricPoint, MetricsResponse, StateResponse } from "./types";
 
@@ -29,6 +32,17 @@ function formatNumber(num: number): string {
   return num.toFixed(4);
 }
 
+function formatRelativeTime(timestamp: number | null): string {
+  if (!timestamp) return "Waiting for updates";
+  const seconds = Math.max(0, Math.round(Date.now() / 1000 - timestamp));
+  if (seconds <= 1) return "Updated just now";
+  if (seconds < 60) return `Updated ${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `Updated ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return `Updated ${hours}h ago`;
+}
+
 interface ConfigField {
   name: string;
   label: string;
@@ -36,16 +50,16 @@ interface ConfigField {
 }
 
 const DREAMER_CONFIG_FIELDS: ConfigField[] = [
-  { name: "total_steps", label: "Total Steps", type: "number" },
-  { name: "seed_steps", label: "Seed Steps", type: "number" },
-  { name: "update_steps", label: "Update Steps", type: "number" },
-  { name: "collect_steps", label: "Collect Steps", type: "number" },
-  { name: "test_interval", label: "Test Interval", type: "number" },
-  { name: "enable_wandb", label: "Enable WandB", type: "boolean" },
-  { name: "wandb_api_key", label: "WandB API Key", type: "string" },
-  { name: "wandb_project", label: "WandB Project", type: "string" },
+    { name: "total_steps", label: "Total Steps", type: "number" },
+    { name: "seed_steps", label: "Seed Steps", type: "number" },
+    { name: "update_steps", label: "Update Steps", type: "number" },
+    { name: "collect_steps", label: "Collect Steps", type: "number" },
+    { name: "test_interval", label: "Test Interval", type: "number" },
+    { name: "realtime_eval_interval", label: "Realtime Eval Interval", type: "number" },
+    { name: "enable_wandb", label: "Enable WandB", type: "boolean" },
+    { name: "wandb_api_key", label: "WandB API Key", type: "string" },
+    { name: "wandb_project", label: "WandB Project", type: "string" },
   { name: "wandb_entity", label: "WandB Entity", type: "string" },
-  { name: "enable_tensorboard", label: "Enable TensorBoard", type: "boolean" },
 ];
 
 const PLANET_CONFIG_FIELDS: ConfigField[] = [
@@ -55,6 +69,12 @@ const PLANET_CONFIG_FIELDS: ConfigField[] = [
   { name: "batch_size", label: "Batch Size", type: "number" },
   { name: "horizon", label: "Horizon", type: "number" },
   { name: "beta", label: "Beta", type: "number" },
+];
+
+const IRIS_CONFIG_FIELDS: ConfigField[] = [
+  { name: "total_epochs", label: "Total Epochs", type: "number" },
+  { name: "seed_steps", label: "Seed Steps", type: "number" },
+  { name: "test_interval", label: "Test Interval", type: "number" },
 ];
 
 function MetricCard({ name, points }: { name: string; points: MetricPoint[] }) {
@@ -97,16 +117,26 @@ export default function App() {
   const [selectedEnvironment, setSelectedEnvironment] = useState("");
   const [trainingConfig, setTrainingConfig] = useState<Record<string, unknown>>({});
   const [activeMetric, setActiveMetric] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "loss" | "reward" | "eval" | "viz">("all");
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<"image" | "gif">("image");
 
-const [errorMessage, setErrorMessage] = useState<string | null>(null);
+const [vizHtml, setVizHtml] = useState<string>("");
+const [latentsInput, setLatentsInput] = useState("");
+const [latentsShape, setLatentsShape] = useState<number[] | null>(null);
+const [labelsInput, setLabelsInput] = useState("");
+const [vizMethod, setVizMethod] = useState<"tsne" | "umap">("tsne");
+
+const [latentsFetched, setLatentsFetched] = useState(false);
+const [vizGenerated, setVizGenerated] = useState(false);
+const [vizLoading, setVizLoading] = useState(false);
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dependencies, setDependencies] = useState<Dependency[]>([]);
   const [showDependencies, setShowDependencies] = useState(false);
 
-  const configFields = selectedModel === "planet" ? PLANET_CONFIG_FIELDS : DREAMER_CONFIG_FIELDS;
+  const configFields = selectedModel === "planet" ? PLANET_CONFIG_FIELDS : selectedModel === "iris" ? IRIS_CONFIG_FIELDS : DREAMER_CONFIG_FIELDS;
   const envBackends = catalog?.env_backends ?? {};
   const availableEnvironments = envBackends[selectedBackend]?.environments ?? [];
   const sortedMetricEntries = useMemo(() => Object.entries(metrics.series).sort((a, b) => a[0].localeCompare(b[0])), [metrics.series]);
@@ -177,6 +207,17 @@ const [errorMessage, setErrorMessage] = useState<string | null>(null);
     if (!catalog) return;
     const defaults = catalog.default_training_configs[selectedModel] ?? {};
     setTrainingConfig(Object.fromEntries(Object.entries(defaults).map(([k, v]) => [k, Number(v)])));
+    
+    const modelToBackend: Record<string, string> = {
+      dreamerv1: "dm_control",
+      dreamerv2: "dm_control",
+      planet: "gym",
+      iris: "atari",
+    };
+    const defaultBackend = modelToBackend[selectedModel] || Object.keys(catalog.env_backends)[0];
+    if (selectedBackend !== defaultBackend) {
+      setSelectedBackend(defaultBackend);
+    }
   }, [catalog, selectedModel]);
 
   useEffect(() => {
@@ -198,6 +239,36 @@ useEffect(() => {
   }, [state?.status]);
 
   useEffect(() => {
+    let sse: EventSource | null = null;
+    let refreshPending = false;
+
+    const refreshFromEvent = () => {
+      if (refreshPending) return;
+      refreshPending = true;
+      window.setTimeout(() => {
+        refreshPending = false;
+        void refreshState();
+      }, 50);
+    };
+
+    try {
+      sse = new EventSource(`${API_BASE}/api/events`);
+      sse.addEventListener("message", () => {
+        refreshFromEvent();
+      });
+      sse.onerror = () => {
+        sse?.close();
+      };
+    } catch {
+      return undefined;
+    }
+
+    return () => {
+      sse?.close();
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchDeps = async () => {
       try {
         const deps = await fetchDependencies();
@@ -208,17 +279,75 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.dependencies-wrapper')) {
-        setShowDependencies(false);
+    if (activeTab === "viz" && !latentsFetched) {
+      // If viz tab is open, fetch latents and also open SSE to receive instant updates
+      let sse: EventSource | null = null;
+      const fetchAndRetry = () => {
+        fetchLatents()
+          .then((res: any) => {
+            setLatentsInput(res.latents);
+            if (res.shape && Array.isArray(res.shape)) setLatentsShape(res.shape as number[]);
+            setLatentsFetched(true);
+          })
+          .catch((e) => {
+            // Suppress expected 'latents not ready' errors until latents actually arrive.
+            const msg = (e as Error)?.message ?? String(e);
+            const lower = msg.toLowerCase();
+            const isLatentsNotReady =
+              lower.includes("latents shape not provided") ||
+              lower.includes("latents not ready") ||
+              lower.includes("no latents available") ||
+              (lower.includes("400") && lower.includes("latents"));
+            if (!isLatentsNotReady) {
+              setErrorMessage(msg);
+            }
+            // otherwise keep polling silently
+          });
+      };
+      fetchAndRetry();
+      const interval = setInterval(fetchAndRetry, 2000);
+
+      try {
+        sse = new EventSource(`${API_BASE}/api/events`);
+        sse.addEventListener("message", (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            if (data && data.keys && data.keys.includes("latents")) {
+              // Immediately fetch latents when notified
+              void fetchLatents().then((res: any) => {
+                setLatentsInput(res.latents);
+                if (res.shape && Array.isArray(res.shape)) setLatentsShape(res.shape as number[]);
+                setLatentsFetched(true);
+              }).catch(() => {});
+            }
+          } catch {}
+        });
+      } catch (e) {
+        // SSE not available; continue polling
       }
-    };
-    if (showDependencies) {
-      document.addEventListener('click', handleClickOutside);
+
+      return () => {
+        clearInterval(interval);
+        if (sse) sse.close();
+      };
     }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [showDependencies]);
+  }, [activeTab, latentsFetched]);
+
+  useEffect(() => {
+      if (latentsFetched && !vizGenerated && !vizLoading) {
+        setVizLoading(true);
+        visualizeLatents(latentsInput, vizMethod, labelsInput, 30, 15, latentsShape ?? undefined)
+          .then((res) => {
+            setVizHtml(res.html);
+            setVizGenerated(true);
+            setVizLoading(false);
+          })
+        .catch((e) => {
+          setErrorMessage((e as Error).message);
+          setVizLoading(false);
+        });
+    }
+  }, [latentsFetched, vizGenerated, vizLoading, latentsInput, vizMethod, labelsInput]);
 
   const handleConfigChange = (key: string, value: unknown) => {
     setTrainingConfig(prev => ({ ...prev, [key]: value }));
@@ -254,9 +383,59 @@ const handleLoadModel = () => {
       .then(() => toast.success("Training started!", { id: "startTraining" }))
       .catch(() => {});
   };
-  const handleStop = () => runAction(() => stopTraining());
+  const handleStop = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      // send stop request and immediately apply returned snapshot (may still be 'running')
+      const res = await stopTraining();
+      // stopTraining returns { stop_requested: boolean, ...state }
+      // apply the snapshot portion to the UI so the user sees the stop acknowledged
+      const { stop_requested, ...snapshot } = res as unknown as { stop_requested: boolean } & StateResponse;
+      setState(snapshot as StateResponse);
+
+      if (!stop_requested) {
+        // server didn't accept stop (not running)
+        setErrorMessage("Stop request was not accepted (training not running).");
+        return;
+      }
+
+      // Poll state until training actually stops or a timeout elapses
+      const start = Date.now();
+      const timeoutMs = 30_000; // 30s
+      while (Date.now() - start < timeoutMs) {
+        // small delay
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((r) => setTimeout(r, 500));
+        // eslint-disable-next-line no-await-in-loop
+        const s = await fetchState();
+        setState(s);
+        if (s.status !== "running") break;
+      }
+    } catch (e) {
+      setErrorMessage((e as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const progressPercent = Math.round(((state?.progress.ratio ?? 0) * 1000) / 10);
+
+// Do not surface the expected 'latents not ready' message to the user
+const _filteredError = (err: string | null) => {
+  if (!err) return null;
+  const lower = err.toLowerCase();
+  if (
+    lower.includes("latents shape not provided") ||
+    lower.includes("latents not ready") ||
+    lower.includes("no latents available") ||
+    (lower.includes("400") && lower.includes("latents"))
+  )
+    return null;
+  return err;
+};
+
+const filteredError = _filteredError(errorMessage);
 
 return (
     <div className="app">
@@ -355,12 +534,14 @@ return (
             <button className="btn-danger" onClick={handleStop} disabled={isSubmitting}>Stop</button>
           </div>
 
-          {errorMessage && <div className="error">{errorMessage}</div>}
+          {filteredError && <div className="error">{filteredError}</div>}
         </aside>
 
         <div className="content">
           <div className="stats-row">
             <div className="stat-box"><span className="stat-label">Step</span><span className="stat-value">{state?.progress.current ?? 0} / {state?.progress.total ?? 0}</span></div>
+            <div className="stat-box"><span className="stat-label">Status</span><span className="stat-value">{state?.message ?? "Ready."}</span></div>
+            <div className="stat-box"><span className="stat-label">Heartbeat</span><span className="stat-value">{formatRelativeTime(state?.last_update_at ?? null)}</span></div>
             <div className="stat-box"><span className="stat-label">Model Loss</span><span className="stat-value stat-loss">{latestMetrics["train/model_loss"]?.toFixed(4) ?? "—"}</span></div>
             <div className="stat-box"><span className="stat-label">Actor Loss</span><span className="stat-value stat-actor">{latestMetrics["train/actor_loss"]?.toFixed(4) ?? "—"}</span></div>
             <div className="stat-box"><span className="stat-label">Value Loss</span><span className="stat-value stat-value">{latestMetrics["train/value_loss"]?.toFixed(4) ?? "—"}</span></div>
@@ -374,38 +555,63 @@ return (
                 <button className={`chart-tab ${activeTab === "loss" ? "active" : ""}`} onClick={() => setActiveTab("loss")}>Loss</button>
                 <button className={`chart-tab ${activeTab === "reward" ? "active" : ""}`} onClick={() => setActiveTab("reward")}>Reward</button>
                 <button className={`chart-tab ${activeTab === "eval" ? "active" : ""}`} onClick={() => setActiveTab("eval")}>Eval</button>
+                <button className={`chart-tab ${activeTab === "viz" ? "active" : ""}`} onClick={() => setActiveTab("viz")}>Viz</button>
               </div>
-              {activeTab !== "loss" && (
+              {activeTab !== "loss" && activeTab !== "viz" && (
                 <select value={activeMetric} onChange={e => setActiveMetric(e.target.value)}>
                   {sortedMetricEntries.map(([n]) => <option key={n} value={n}>{n}</option>)}
                 </select>
               )}
             </div>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activeMetricData}>
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="lossGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="actorGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="valueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="rewardGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="step" stroke="#606078" fontSize={11} />
-                <YAxis stroke="#606078" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#1c1c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} />
-                {activeTab === "loss" ? (
-                  <>
-                    <Area type="monotone" dataKey="train_model_loss" stroke="#f43f5e" strokeWidth={2} fill="url(#lossGrad)" isAnimationActive={false} name="Model Loss" />
-                    <Area type="monotone" dataKey="train_actor_loss" stroke="#8b5cf6" strokeWidth={2} fill="url(#actorGrad)" isAnimationActive={false} name="Actor Loss" />
-                    <Area type="monotone" dataKey="train_value_loss" stroke="#f59e0b" strokeWidth={2} fill="url(#valueGrad)" isAnimationActive={false} name="Value Loss" />
-                    <Legend />
-                  </>
-                ) : (
-                  <Area type="monotone" dataKey="value" stroke="#00d4ff" strokeWidth={2} fill="url(#chartGrad)" isAnimationActive={false} />
-                )}
-              </AreaChart>
-            </ResponsiveContainer>
+            {activeTab === "viz" ? (
+              <div className="viz-content">
+                <div className="viz-display">
+                  {vizLoading ? (
+                    <div className="viz-placeholder">Generating visualization...</div>
+                  ) : vizHtml ? (
+                    <div dangerouslySetInnerHTML={{ __html: vizHtml }} />
+                  ) : (
+                    <div className="viz-placeholder">No visualization available. Ensure latents are generated from evaluations.</div>
+                  )}
+                </div>
+                <div className="video-section">
+                  {gif ? (
+                    <div>
+                      <label>Evaluation Rollout (GIF)</label>
+                      <img src={gif} alt="evaluation rollout" style={{ width: '100%', maxHeight: '300px' }} />
+                    </div>
+                  ) : (
+                    <div className="viz-placeholder">No video available. Run evaluations to generate preview.</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeMetricData}>
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="lossGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} /><stop offset="95%" stopColor="#f43f5e" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="actorGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="valueGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} /><stop offset="95%" stopColor="#f59e0b" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="rewardGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="step" stroke="#606078" fontSize={11} />
+                  <YAxis stroke="#606078" fontSize={11} />
+                  <Tooltip contentStyle={{ background: "#1c1c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} />
+                  {activeTab === "loss" ? (
+                    <>
+                      <Area type="monotone" dataKey="train_model_loss" stroke="#f43f5e" strokeWidth={2} fill="url(#lossGrad)" isAnimationActive={false} name="Model Loss" />
+                      <Area type="monotone" dataKey="train_actor_loss" stroke="#8b5cf6" strokeWidth={2} fill="url(#actorGrad)" isAnimationActive={false} name="Actor Loss" />
+                      <Area type="monotone" dataKey="train_value_loss" stroke="#f59e0b" strokeWidth={2} fill="url(#valueGrad)" isAnimationActive={false} name="Value Loss" />
+                      <Legend />
+                    </>
+                  ) : (
+                    <Area type="monotone" dataKey="value" stroke="#00d4ff" strokeWidth={2} fill="url(#chartGrad)" isAnimationActive={false} />
+                  )}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           <div className="preview-row">

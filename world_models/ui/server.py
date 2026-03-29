@@ -3,8 +3,11 @@ from __future__ import annotations
 import base64
 import importlib
 import importlib.util
+import socket
 import logging
+import webbrowser
 import os
+import shutil
 import sys
 import threading
 import time
@@ -16,8 +19,11 @@ from typing import Any
 
 import cv2
 import numpy as np
+import asyncio
+import json
 import torch
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Body, Request
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -40,14 +46,19 @@ if "world_models" not in sys.modules:
                 pass
 
 from ..configs.dreamer_config import DreamerConfig
+from ..configs.iris_config import IRISConfig
 from ..envs import list_available_atari_envs
 from ..models.dreamer import DreamerAgent
 from ..models.planet import Planet
 from ..training.train_planet import train as planet_train
-from ..utils.utils import flatten_dict
+from ..training.train_iris import IRISTrainer
+from ..utils.utils import flatten_dict, visualize_latent_tsne, visualize_latent_umap
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Global storage for last latents
+last_latents = None
 
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
@@ -62,6 +73,10 @@ SUPPORTED_MODELS: dict[str, dict[str, str]] = {
     "planet": {
         "label": "Planet",
         "description": "PlaNet-style recurrent state-space world model with MPC planning.",
+    },
+    "iris": {
+        "label": "IRIS",
+        "description": "IRIS - Transformers are Sample-Efficient World Models",
     },
 }
 
@@ -99,9 +114,32 @@ GYM_ENVS = [
     "Reacher-v4",
     "Pusher-v4",
     "Manipulator-v4",
+    "LunarLander-v3",
+    "LunarLanderContinuous-v3",
+    "BipedalWalker-v3",
+    "BipedalWalkerHardcore-v3",
+    "CarRacing-v3",
+    "Blackjack-v1",
+    "FrozenLake-v1",
+    "FrozenLake8x8-v1",
+    "Taxi-v3",
+    "InvertedPendulum-v4",
+    "InvertedDoublePendulum-v4",
+    "HalfCheetah-v2",
+    "Hopper-v2",
+    "Swimmer-v2",
+    "Walker2d-v2",
+    "Reacher-v2",
+    "Pusher-v2",
 ]
 
 UNITY_ENVS = []
+
+ATARI_ENVS: list[str] = []
+try:
+    ATARI_ENVS = list_available_atari_envs()
+except Exception:
+    ATARI_ENVS = []
 
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
     "dm_control": {
@@ -123,6 +161,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "label": "Unity ML Agents",
         "description": "Unity ML Agents environments",
         "environments": UNITY_ENVS,
+    },
+    "atari": {
+        "label": "Atari",
+        "description": "Atari 2600 environments via ALE",
+        "environments": ATARI_ENVS,
     },
 }
 
@@ -147,6 +190,9 @@ DEFAULT_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
         "bit_depth": 5,
         "memory_size": 100,
         "action_repeats": 1,
+    },
+    "iris": {
+        "env_backend": "atari",
     },
 }
 
@@ -179,6 +225,11 @@ DEFAULT_TRAINING_CONFIGS: dict[str, dict[str, Any]] = {
         "save_every": 10,
         "record_grads": False,
     },
+    "iris": {
+        "total_epochs": 100,
+        "seed_steps": 1000,
+        "test_interval": 10,
+    },
 }
 
 
@@ -192,6 +243,7 @@ def _build_env_catalog() -> dict[str, list[str]]:
         "dreamerv1": DREAMER_ENVS + GYM_ENVS,
         "dreamerv2": DREAMER_ENVS + GYM_ENVS,
         "planet": PLANET_BASE_ENVS + atari_envs[:80],
+        "iris": atari_envs[:80],
     }
 
 
@@ -361,8 +413,11 @@ class TrainingController:
 
         self._started_at: float | None = None
         self._finished_at: float | None = None
+        self._last_update_at: float | None = None
 
         self._latest_metrics: dict[str, float] = {}
+
+        self.last_latents_ref = [last_latents]
 
     def available_environments(self, model_name: str | None) -> list[str]:
         if model_name is None:
@@ -394,6 +449,7 @@ class TrainingController:
             self._status = "idle"
             self._message = f"Model '{key}' loaded."
             self._traceback = None
+            self._last_update_at = time.time()
 
     def load_environment(
         self,
@@ -429,6 +485,7 @@ class TrainingController:
             self._status = "idle"
             self._message = f"Environment '{env}' loaded (backend: {backend_key})."
             self._traceback = None
+            self._last_update_at = time.time()
 
     def start_training(self, config: dict[str, Any] | None = None) -> None:
         with self._lock:
@@ -457,12 +514,19 @@ class TrainingController:
             self._message = "Training started."
             self._started_at = time.time()
             self._finished_at = None
+            self._last_update_at = self._started_at
             self._stop_event = threading.Event()
 
             self._thread = threading.Thread(
                 target=self._run_training, name="torchwm-ui-trainer", daemon=True
             )
             self._thread.start()
+            logger.info(
+                "Training started: model=%s environment=%s results_dir=%s",
+                self._model_name,
+                self._environment_name,
+                self._results_dir,
+            )
 
     def stop_training(self) -> bool:
         with self._lock:
@@ -470,6 +534,7 @@ class TrainingController:
                 return False
             self._stop_event.set()
             self._message = "Stop requested. Waiting for current step to finish."
+            self._last_update_at = time.time()
             return True
 
     def snapshot_state(self) -> dict[str, Any]:
@@ -487,6 +552,7 @@ class TrainingController:
                 "traceback": self._traceback,
                 "started_at": self._started_at,
                 "finished_at": self._finished_at,
+                "last_update_at": self._last_update_at,
                 "results_dir": self._results_dir,
                 "progress": {
                     "current": self._progress_current,
@@ -523,10 +589,29 @@ class TrainingController:
             self._progress_current = int(max(0, current))
             self._progress_total = int(max(1, total))
             self._progress_unit = unit
+            self._last_update_at = time.time()
+            try:
+                # Log a concise progress message for observability
+                pct = (
+                    100.0 * float(self._progress_current) / float(self._progress_total)
+                )
+            except Exception:
+                pct = 0.0
+            logger.info(
+                "Progress: model=%s env=%s results=%s %d/%d %s (%.1f%%)",
+                self._model_name,
+                self._environment_name,
+                self._results_dir,
+                self._progress_current,
+                self._progress_total,
+                self._progress_unit,
+                pct,
+            )
 
     def _set_message(self, message: str) -> None:
         with self._lock:
             self._message = message
+            self._last_update_at = time.time()
 
     def _append_metrics(self, step: int, metrics: dict[str, Any]) -> None:
         now = time.time()
@@ -541,6 +626,7 @@ class TrainingController:
                 self._latest_metrics[key] = numeric
                 if len(self._metrics[key]) > 3000:
                     self._metrics[key] = self._metrics[key][-3000:]
+            self._last_update_at = now
 
     def _set_frame(self, frame: Any) -> None:
         encoded = _encode_frame_as_data_url(frame)
@@ -548,12 +634,14 @@ class TrainingController:
             return
         with self._lock:
             self._latest_frame_data_url = encoded
+            self._last_update_at = time.time()
 
     def _set_gif(self, frames: list[Any]) -> None:
         if not frames:
             return
         with self._lock:
             self._latest_gif_data_url = _encode_frames_as_gif(frames)
+            self._last_update_at = time.time()
 
     def _run_training(self) -> None:
         try:
@@ -562,6 +650,8 @@ class TrainingController:
                 self._run_dreamer()
             elif model_name == "planet":
                 self._run_planet()
+            elif model_name == "iris":
+                self._run_iris()
             else:
                 raise ValueError(
                     f"No training implementation for model '{model_name}'."
@@ -569,18 +659,45 @@ class TrainingController:
 
             with self._lock:
                 self._finished_at = time.time()
-                if self._stop_event.is_set():
-                    self._status = "stopped"
-                    self._message = "Training stopped by user."
-                else:
-                    self._status = "completed"
-                    self._message = "Training completed."
+            if self._stop_event.is_set():
+                self._status = "stopped"
+                self._message = "Training stopped by user."
+            else:
+                self._status = "completed"
+                self._message = "Training completed."
+            self._last_update_at = self._finished_at
+            logger.info(
+                "Training finished: model=%s environment=%s results_dir=%s status=%s",
+                model_name,
+                getattr(self, "_environment_name", None),
+                getattr(self, "_results_dir", None),
+                self._status,
+            )
         except Exception as exc:
+            # Capture full traceback and persist it so UI clients and logs
+            # have a clear explanation for failures instead of silent
+            # swallow. Also write a probe file into the results directory
+            # when available to aid debugging across processes.
+            full_tb = traceback.format_exc()
+            logger.error("Training thread crashed", exc_info=True)
             with self._lock:
                 self._status = "failed"
-                self._message = f"{type(exc).__name__}: {exc}"
-                self._traceback = traceback.format_exc(limit=12)
+                # Use repr(exc) to ensure useful string even when str(exc) is empty
+                self._message = f"{type(exc).__name__}: {exc!r}"
+                self._traceback = full_tb
                 self._finished_at = time.time()
+                self._last_update_at = self._finished_at
+            try:
+                # Best-effort: write the traceback into the controller-managed
+                # results dir so external tools (TensorBoard, UI) can inspect it.
+                results_dir = getattr(self, "_results_dir", None)
+                if results_dir:
+                    err_path = Path(results_dir) / "training_exception.txt"
+                    err_path.write_text(
+                        f"{time.strftime('%Y-%m-%d %H:%M:%S')}\n{full_tb}"
+                    )
+            except Exception:
+                logger.exception("Failed to write training exception to file")
 
     def _run_dreamer(self) -> None:
         with self._lock:
@@ -593,14 +710,19 @@ class TrainingController:
         if env_name is None:
             raise ValueError("Dreamer requires an environment.")
 
+        default_root = Path(__file__).resolve().parent.parent.parent / "results"
         results_dir = str(
             train_cfg.get(
-                "results_dir", Path("results") / f"ui_dreamer_{int(time.time())}"
+                "results_dir", default_root / f"ui_dreamer_{int(time.time())}"
             )
         )
+        # Ensure directory exists and resolve to an absolute path so downstream
+        # loggers/TensorBoard see the exact same location.
         Path(results_dir).mkdir(parents=True, exist_ok=True)
+        results_dir = str(Path(results_dir).resolve())
         with self._lock:
             self._results_dir = results_dir
+        logger.info(f"Training results_dir resolved: {results_dir}")
 
         cfg = DreamerConfig()
         cfg.env = env_name
@@ -612,7 +734,12 @@ class TrainingController:
         cfg.log_video_freq = -1
         cfg.restore = False
 
-        agent = DreamerAgent(cfg)
+        # Ensure DreamerAgent writes logs into the controller-managed results_dir
+        # (by default DreamerAgent used a package-local data path, which meant
+        # TensorBoard started against the controller results_dir saw no events).
+        agent = DreamerAgent(
+            cfg, last_latents_ref=self.last_latents_ref, logdir=results_dir
+        )
         total_steps = int(cfg.total_steps)
         self._set_progress(0, total_steps, "steps")
 
@@ -620,26 +747,60 @@ class TrainingController:
         seed_rewards = agent.dreamer.collect_random_episodes(
             agent.train_env, seed_steps
         )
-        self._append_metrics(0, _reward_stats(seed_rewards, "seed"))
+        seed_logs = _reward_stats(seed_rewards, "seed")
+        self._append_metrics(0, seed_logs)
+        agent.logger.log_scalars(seed_logs, 0)
+        agent.logger.flush()
+        try:
+            broadcast_update(["state", "metrics"])
+        except Exception:
+            pass
 
         global_step = int(agent.dreamer.data_buffer.steps * cfg.action_repeat)
         self._set_progress(global_step, total_steps, "steps")
 
+        print(
+            f"[Dreamer] Starting training loop at global_step={global_step}, total_steps={total_steps}"
+        )
         while global_step <= total_steps:
             if self._stop_event.is_set():
+                print("[Dreamer] Training stopped by user")
                 return
 
             model_loss = 0.0
             actor_loss = 0.0
             value_loss = 0.0
-            for _ in range(int(cfg.update_steps)):
+            print(f"[Dreamer] Running {int(cfg.update_steps)} training steps...")
+            update_steps = max(1, int(cfg.update_steps))
+            heartbeat_every = max(1, min(5, update_steps))
+            for update_idx in range(update_steps):
                 if self._stop_event.is_set():
                     return
+                if update_idx == 0 or (update_idx + 1) % heartbeat_every == 0:
+                    self._set_message(
+                        f"Optimizing model {update_idx + 1}/{update_steps} at env step {global_step}/{total_steps}"
+                    )
+                    try:
+                        broadcast_update(["state"])
+                    except Exception:
+                        pass
                 model_loss, actor_loss, value_loss = agent.dreamer.train_one_batch()
+            print(f"[Dreamer] Training steps done, model_loss={model_loss:.4f}")
 
             collect_steps = max(1, int(cfg.collect_steps // max(1, cfg.action_repeat)))
+            self._set_message(
+                f"Collecting {collect_steps} environment steps from env step {global_step}/{total_steps}"
+            )
+            try:
+                broadcast_update(["state"])
+            except Exception:
+                pass
+            print(f"[Dreamer] Collecting {collect_steps} env steps...")
             train_rewards = agent.dreamer.act_and_collect_data(
                 agent.train_env, collect_steps
+            )
+            print(
+                f"[Dreamer] Data collected, buffer has {agent.dreamer.data_buffer.steps} steps"
             )
 
             if global_step % 100 == 0:
@@ -675,17 +836,54 @@ class TrainingController:
             logs.update(_reward_stats(train_rewards, "train"))
 
             self._append_metrics(global_step, logs)
+            agent.logger.log_scalars(logs, global_step)
+            agent.logger.flush()
 
+            print(f"[Dreamer] Metrics logged at step {global_step}")
+
+            # Allow more frequent realtime evaluations for visualizations.
+            # Use `realtime_eval_interval` from training config if provided; default to 50 steps for Dreamer.
             eval_interval = max(1, int(cfg.test_interval))
-            should_eval = (global_step % eval_interval == 0) or (
-                global_step >= total_steps
+            realtime_interval = max(0, int(train_cfg.get("realtime_eval_interval", 50)))
+            should_eval = (
+                (realtime_interval > 0 and global_step % realtime_interval == 0)
+                or (global_step % eval_interval == 0)
+                or (global_step >= total_steps)
             )
             if should_eval:
                 eval_episodes = max(1, int(train_cfg.get("preview_eval_episodes", 1)))
-                eval_rewards, eval_videos = agent.dreamer.evaluate(
+                self._set_message(
+                    f"Running realtime evaluation at env step {global_step}/{total_steps}"
+                )
+                try:
+                    broadcast_update(["state"])
+                except Exception:
+                    pass
+                eval_rewards, eval_videos, eval_latents = agent.dreamer.evaluate(
                     agent.test_env, eval_episodes, render=True
                 )
-                logs.update(_reward_stats(eval_rewards, "eval"))
+                try:
+                    if getattr(self, "last_latents_ref", None) is not None:
+                        self.last_latents_ref[0] = eval_latents
+                except Exception:
+                    pass
+
+                eval_logs = _reward_stats(eval_rewards, "eval")
+                logs.update(eval_logs)
+                agent.logger.log_scalars(eval_logs, global_step)
+                if (
+                    eval_videos is not None
+                    and hasattr(eval_videos, "__len__")
+                    and len(eval_videos) > 0
+                ):
+                    agent.logger.log_videos(
+                        eval_videos,
+                        global_step,
+                        max_videos_to_save=min(
+                            int(getattr(agent.args, "max_videos_to_save", 1)),
+                            len(eval_videos),
+                        ),
+                    )
                 frame = self._extract_dreamer_preview_frame(eval_videos)
                 if frame is not None:
                     self._set_frame(frame)
@@ -694,6 +892,11 @@ class TrainingController:
 
             global_step = int(agent.dreamer.data_buffer.steps * cfg.action_repeat)
             self._set_progress(min(global_step, total_steps), total_steps, "steps")
+            # Notify clients that progress/frame/latents may have updated
+            try:
+                broadcast_update(["state", "metrics", "frame", "latents"])
+            except Exception:
+                pass
 
     def _run_planet(self) -> None:
         with self._lock:
@@ -705,14 +908,15 @@ class TrainingController:
         if env_name is None:
             raise ValueError("Planet requires an environment.")
 
+        default_root = Path(__file__).resolve().parent.parent.parent / "results"
         results_dir = str(
-            train_cfg.get(
-                "results_dir", Path("results") / f"ui_planet_{int(time.time())}"
-            )
+            train_cfg.get("results_dir", default_root / f"ui_planet_{int(time.time())}")
         )
         Path(results_dir).mkdir(parents=True, exist_ok=True)
+        results_dir = str(Path(results_dir).resolve())
         with self._lock:
             self._results_dir = results_dir
+        logger.info(f"Training results_dir resolved: {results_dir}")
 
         planet = Planet(
             env=env_name,
@@ -794,6 +998,105 @@ class TrainingController:
                 ckpt = Path(results_dir) / f"ckpt_{epoch}.pth"
                 torch.save(planet.rssm.state_dict(), ckpt)
 
+    def _run_iris(self) -> None:
+        with self._lock:
+            env_name = self._environment_name
+            train_cfg = dict(self._training_config)
+
+        if env_name is None:
+            raise ValueError("IRIS requires an environment.")
+
+        default_root = Path(__file__).resolve().parent.parent.parent / "results"
+        results_dir = str(
+            train_cfg.get("results_dir", default_root / f"ui_iris_{int(time.time())}")
+        )
+        Path(results_dir).mkdir(parents=True, exist_ok=True)
+        results_dir = str(Path(results_dir).resolve())
+        with self._lock:
+            self._results_dir = results_dir
+        logger.info(f"Training results_dir resolved: {results_dir}")
+
+        config = IRISConfig()
+        total_epochs = int(train_cfg.get("total_epochs", 100))
+        self._set_progress(0, total_epochs, "epochs")
+
+        trainer = IRISTrainer(
+            game=env_name,
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            config=config,
+        )
+
+        seed_steps = int(train_cfg.get("seed_steps", 1000))
+        self._set_message(f"Collecting {seed_steps} seed steps...")
+        try:
+            broadcast_update(["state"])
+        except Exception:
+            pass
+        seed_return = trainer.collect_experience(seed_steps, epsilon=1.0)
+        self._append_metrics(0, {"seed_return": seed_return})
+
+        test_interval = int(train_cfg.get("test_interval", 10))
+
+        for epoch in range(total_epochs):
+            if self._stop_event.is_set():
+                print("[IRIS] Training stopped by user")
+                return
+
+            self._set_message(f"IRIS epoch {epoch}/{total_epochs}")
+            try:
+                broadcast_update(["state"])
+            except Exception:
+                pass
+
+            train_metrics = trainer.train_epoch(epoch)
+            self._append_metrics(epoch, train_metrics)
+
+            self._set_progress(epoch, total_epochs, "epochs")
+
+            if epoch % test_interval == 0 and epoch > 0:
+                logger.info("IRIS evaluation start: epoch=%d", epoch)
+                try:
+                    # Request rendered evaluation so we get videos and latents
+                    eval_rewards, eval_videos, eval_latents = trainer.evaluate(
+                        num_episodes=1, render=True
+                    )
+                    # Record latents for frontend visualization
+                    try:
+                        if getattr(self, "last_latents_ref", None) is not None:
+                            # eval_latents may be empty array
+                            self.last_latents_ref[0] = eval_latents
+                    except Exception:
+                        logger.exception("Failed to set last_latents_ref for IRIS")
+
+                    # Append scalar metrics
+                    eval_logs = _reward_stats(eval_rewards, "eval")
+                    self._append_metrics(epoch, eval_logs)
+
+                    # If we have video frames, set preview frame/gif and save preview
+                    if (
+                        eval_videos is not None
+                        and hasattr(eval_videos, "__len__")
+                        and len(eval_videos) > 0
+                    ):
+                        frame = self._extract_dreamer_preview_frame(eval_videos)
+                        if frame is not None:
+                            self._set_frame(frame)
+                            self._set_gif(
+                                self._extract_dreamer_preview_frames(eval_videos)
+                            )
+                            self._save_preview_image(frame, epoch, results_dir)
+
+                    # Notify SSE clients that state/metrics/frame/latents updated
+                    try:
+                        broadcast_update(["state", "metrics", "frame", "latents"])
+                    except Exception:
+                        pass
+                except Exception:
+                    logger.exception("IRIS evaluation failed at epoch=%d", epoch)
+
+        ckpt = Path(results_dir) / "iris_final.pth"
+        torch.save(trainer.agent.state_dict(), ckpt)
+
     @staticmethod
     def _extract_dreamer_preview_frame(videos: Any) -> np.ndarray | None:
         if videos is None:
@@ -855,6 +1158,56 @@ class TrainingController:
 controller = TrainingController()
 app = FastAPI(title="TorchWM UI Backend", version="0.1.0")
 
+# Simple subscriber list for Server-Sent Events (SSE) notifications.
+# Each entry is a tuple (asyncio.Queue, loop) so background threads can push
+# updates into the event loop with loop.call_soon_threadsafe(q.put_nowait, msg).
+SUBSCRIBERS: list[tuple[asyncio.Queue, asyncio.AbstractEventLoop]] = []
+
+
+def broadcast_update(keys: list[str], extra: dict | None = None) -> None:
+    """Notify all connected SSE subscribers that resources updated.
+
+    keys: list of strings like 'latents', 'frame', 'gif', 'state'.
+    extra: optional small metadata.
+    """
+    payload = {"type": "update", "keys": keys, "extra": extra or {}}
+    text = json.dumps(payload)
+    for q, loop in list(SUBSCRIBERS):
+        try:
+            loop.call_soon_threadsafe(q.put_nowait, text)
+        except Exception:
+            # ignore per-subscriber failures
+            pass
+
+
+@app.get("/api/events")
+async def sse_events():
+    """Server-Sent Events endpoint that streams simple JSON update notifications.
+
+    Clients should connect and listen for `data: {...}` lines. Each message is a JSON
+    object with keys: type, keys, extra.
+    """
+    q: asyncio.Queue = asyncio.Queue()
+    loop = asyncio.get_event_loop()
+    SUBSCRIBERS.append((q, loop))
+
+    async def event_generator():
+        try:
+            while True:
+                msg = await q.get()
+                yield f"data: {msg}\n\n"
+        except asyncio.CancelledError:
+            return
+        finally:
+            # remove subscriber
+            try:
+                SUBSCRIBERS.remove((q, loop))
+            except Exception:
+                pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 cors_origins = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
@@ -883,6 +1236,9 @@ app.add_middleware(
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DIST_DIR = BASE_DIR / "torchwm_ui" / "dist"
+# Central results root for UI-launched trainings and TensorBoard default.
+BASE_RESULTS_DIR = BASE_DIR / "results"
+BASE_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 if DIST_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(DIST_DIR)), name="static")
@@ -1008,34 +1364,19 @@ TRAINING_DEPENDENCIES = [
     {"name": "mujoco", "label": "MuJoCo", "required": False},
     {"name": "ale_py", "label": "ALE Py", "required": False},
     {"name": "mlagents", "label": "ML Agents", "required": False},
-    {"name": "tensorboard", "label": "TensorBoard", "required": False},
 ]
 
 
 def _check_dependency(name: str) -> bool:
+    # Prefer a lightweight presence check before importing to avoid triggering
+    # heavy runtime errors during import (e.g. mujoco expecting GL config).
     try:
-        if name == "cv2":
-            importlib.import_module("cv2")
-        elif name == "PIL":
-            importlib.import_module("PIL")
-        elif name == "gym":
-            importlib.import_module("gym")
-        elif name == "gymnasium":
-            importlib.import_module("gymnasium")
-        elif name == "dm_control":
-            importlib.import_module("dm_control")
-        elif name == "mujoco":
-            importlib.import_module("mujoco")
-        elif name == "ale_py":
-            importlib.import_module("ale_py")
-        elif name == "mlagents":
-            importlib.import_module("mlagents_envs")
-        elif name == "tensorboard":
-            importlib.import_module("tensorboard")
-        else:
-            importlib.import_module(name)
-        return True
-    except ImportError:
+        # Map some friendly names to actual module specs
+        special_map = {"mlagents": "mlagents_envs", "PIL": "PIL"}
+        real_name = special_map.get(name, name)
+        spec = importlib.util.find_spec(real_name)
+        return spec is not None
+    except Exception:
         return False
 
 
@@ -1053,3 +1394,141 @@ def get_dependencies() -> dict[str, Any]:
             }
         )
     return {"dependencies": deps}
+
+
+@app.post("/api/visualize")
+async def visualize_latents(
+    request: Request,
+    latents: str | None = Query(
+        None, description="Base64 encoded numpy array of latents"
+    ),
+    method: str = Query("tsne", description="Visualization method: 'tsne' or 'umap'"),
+    labels: str | None = Query(
+        None, description="Base64 encoded numpy array of labels"
+    ),
+    perplexity: int = Query(30, description="Perplexity for t-SNE"),
+    n_neighbors: int = Query(15, description="n_neighbors for UMAP"),
+    shape: str | None = Query(
+        None,
+        description="Optional latents shape as comma-separated ints, e.g. '100,64'",
+    ),
+):
+    try:
+        import base64 as _base64
+
+        # Allow clients to POST a JSON body with the latents to avoid URL length
+        # limits. If latents not provided as query param, try to read JSON body.
+        if not latents:
+            try:
+                body = await request.json()
+                # body may contain keys: latents, labels, method, shape
+                latents = body.get("latents") or body.get("latents_b64")
+                if labels is None:
+                    labels = body.get("labels")
+                if method is None:
+                    method = body.get("method", method)
+                if shape is None:
+                    shape = body.get("shape")
+                # allow numeric params in body
+                try:
+                    perplexity = int(body.get("perplexity", perplexity))
+                except Exception:
+                    pass
+                try:
+                    n_neighbors = int(body.get("n_neighbors", n_neighbors))
+                except Exception:
+                    pass
+            except Exception:
+                # ignore body parsing failures here and fall through
+                pass
+
+        if not latents:
+            raise HTTPException(status_code=400, detail="Missing 'latents' parameter")
+
+        latents_data = _base64.b64decode(latents)
+        latents_array = np.frombuffer(latents_data, dtype=np.float32)
+
+        # If client passed a shape param, use it to reshape the 1D buffer into (N, D)
+        req_shape = None
+        if shape:
+            try:
+                req_shape = [int(x) for x in str(shape).split(",") if x.strip()]
+            except Exception:
+                req_shape = None
+
+        if req_shape is not None and len(req_shape) > 0:
+            try:
+                latents_array = latents_array.reshape(tuple(req_shape))
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid shape parameter")
+        elif latents_array.ndim == 1:
+            # If shape is missing, treat as 'not ready' case; return 204 No Content so client keeps polling silently
+            raise HTTPException(status_code=204, detail="Latents not ready")
+
+        labels_array = None
+        if labels:
+            labels_data = _base64.b64decode(labels)
+            labels_array = np.frombuffer(labels_data, dtype=np.int32)
+
+        if method.lower() == "tsne":
+            fig = visualize_latent_tsne(
+                latents_array, labels_array, perplexity=perplexity
+            )
+        elif method.lower() == "umap":
+            fig = visualize_latent_umap(
+                latents_array, labels_array, n_neighbors=n_neighbors
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Invalid method")
+
+        if fig is None:
+            # Likely missing visualization dependencies (scikit-learn / umap)
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "Visualization unavailable: missing python dependencies. "
+                    "Install scikit-learn (for t-SNE) and umap-learn (for UMAP): "
+                    "pip install scikit-learn umap-learn"
+                ),
+            )
+
+        html = fig.to_html(full_html=False)
+        return {"html": html}
+    except HTTPException:
+        # Propagate FastAPI HTTPExceptions (204/400/etc.) unchanged
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/latents")
+def get_latents():
+    """Get recent latents from the current model (if available)."""
+    # Prefer controller-held latents reference (updated by training/eval routines).
+    latents_obj = None
+    try:
+        if "controller" in globals() and getattr(controller, "last_latents_ref", None):
+            latents_obj = controller.last_latents_ref[0]
+    except Exception:
+        latents_obj = None
+
+    # Fall back to module-level last_latents if present
+    if latents_obj is None:
+        latents_obj = last_latents
+
+    if latents_obj is None:
+        # No latents yet: return 204 so client keeps polling silently
+        raise HTTPException(status_code=204, detail="Latents not ready")
+
+    # Ensure it's a numpy array-like with bytes
+    try:
+        import base64
+
+        # Convert to numpy array if possible
+        if hasattr(latents_obj, "tobytes") and hasattr(latents_obj, "shape"):
+            latents_b64 = base64.b64encode(latents_obj.tobytes()).decode("utf-8")
+            return {"latents": latents_b64, "shape": list(latents_obj.shape)}
+        else:
+            raise HTTPException(status_code=204, detail="Latents not ready")
+    except Exception:
+        raise HTTPException(status_code=204, detail="Latents not ready")

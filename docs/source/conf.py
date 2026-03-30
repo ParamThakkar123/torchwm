@@ -56,17 +56,15 @@ autodoc_mock_imports = [
     "pygame",
     "hydra",
     "omegaconf",
+    "torch",
+    "wandb",
 ]
 
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "show_nav_level": 2,
-    "pygments_light_style": "default",
-    "pygments_dark_style": "github-dark",
-    "navigation_depth": 3,
-    "navbar_align": "left",
-    "navbar_start": ["navbar-logo", "navbar-nav"],
+    "navigation_depth": 4,
     "navbar_end": ["navbar-icon-links", "theme-switcher"],
     "secondary_sidebar_items": ["page-toc"],
     "footer_start": ["copyright"],

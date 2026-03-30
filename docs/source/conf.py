@@ -68,11 +68,10 @@ html_theme_options = {
     "navbar_align": "left",
     "navbar_start": ["navbar-logo", "navbar-nav"],
     "navbar_end": ["navbar-icon-links", "theme-switcher"],
-    "secondary_sidebar_items": ["page-toc", "edit-on-github"],
+    "secondary_sidebar_items": ["page-toc"],
     "footer_start": ["copyright"],
     "footer_center": [],
     "footer_end": [],
-    "toc_title": "On this page",
 }
 html_static_path = ["_static"]
 

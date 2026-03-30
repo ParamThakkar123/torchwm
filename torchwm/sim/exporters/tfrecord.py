@@ -10,11 +10,11 @@ import os
 from typing import Any, Dict, Optional, Sequence
 
 try:
-    import tensorflow as tf
-    import numpy as np
+    import tensorflow as tf  # type: ignore[assignment]
+    import numpy as np  # type: ignore[assignment]
 except Exception:  # pragma: no cover - optional dependency
-    tf = None
-    np = None
+    tf = None  # type: ignore[assignment]
+    np = None  # type: ignore[assignment]
 
 
 class TFRecordExporter:
@@ -105,11 +105,7 @@ class TFRecordExporter:
             meta_str = json.dumps(metadata)
             feature["metadata"] = self._bytes_feature(meta_str.encode("utf-8"))
 
-        example = tf.train.Example(
-            features=tf.train.Features(
-                feature=self._bytes_feature(example.SerializeToString())
-            )
-        )
+        example = tf.train.Example(features=tf.train.Features(feature=feature))
         self._writer.write(example.SerializeToString())
         self._writer.flush()
 

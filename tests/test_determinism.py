@@ -18,6 +18,7 @@ def run_episode(seed: int, steps: int):
             "substeps": 1,
             "num_solver_iterations": 50,
             "gravity_z": -9.81,
+            "ground": True,
         },
         "generator": {
             "objects": [

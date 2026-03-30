@@ -18,11 +18,11 @@ from typing import Any, Dict, Optional, Sequence
 import os
 
 try:
-    import h5py
+    import h5py  # type: ignore[import]
     import numpy as np
 except Exception:  # pragma: no cover - optional dependency
-    h5py = None
-    np = None
+    h5py = None  # type: ignore[assignment]
+    np = None  # type: ignore[assignment, misc]
 
 
 class HDF5Exporter:
@@ -50,7 +50,7 @@ class HDF5Exporter:
         ]
         return max(existing) + 1 if existing else 0
 
-    def add_episode(
+    def add_episode(  # type: ignore[misc]
         self,
         frames: Sequence[Any],
         actions: Optional[Sequence[Any]] = None,
@@ -62,13 +62,13 @@ class HDF5Exporter:
         idx = self._next_episode_index()
         grp = self._f.create_group(f"episode_{idx}")
 
-        frames_arr = np.asarray(frames)
+        frames_arr = np.asarray(frames)  # type: ignore
         # store frames as uint8 if possible
-        if frames_arr.dtype != np.uint8:
-            if np.issubdtype(frames_arr.dtype, np.floating):
-                frames_arr = np.clip(frames_arr * 255.0, 0, 255).astype(np.uint8)
+        if frames_arr.dtype != np.uint8:  # type: ignore
+            if np.issubdtype(frames_arr.dtype, np.floating):  # type: ignore
+                frames_arr = np.clip(frames_arr * 255.0, 0, 255).astype(np.uint8)  # type: ignore
             else:
-                frames_arr = frames_arr.astype(np.uint8)
+                frames_arr = frames_arr.astype(np.uint8)  # type: ignore
 
         grp.create_dataset(
             "frames", data=frames_arr, compression="gzip", compression_opts=4
@@ -77,21 +77,21 @@ class HDF5Exporter:
         T = frames_arr.shape[0]
 
         if actions is None:
-            actions_arr = np.zeros((T, 0), dtype=np.float32)
+            actions_arr = np.zeros((T, 0), dtype=np.float32)  # type: ignore
         else:
-            actions_arr = np.asarray(actions, dtype=np.float32)
+            actions_arr = np.asarray(actions, dtype=np.float32)  # type: ignore
         grp.create_dataset("actions", data=actions_arr, compression="gzip")
 
         if rewards is None:
-            rewards_arr = np.zeros((T,), dtype=np.float32)
+            rewards_arr = np.zeros((T,), dtype=np.float32)  # type: ignore
         else:
-            rewards_arr = np.asarray(rewards, dtype=np.float32)
+            rewards_arr = np.asarray(rewards, dtype=np.float32)  # type: ignore
         grp.create_dataset("rewards", data=rewards_arr, compression="gzip")
 
         if dones is None:
-            dones_arr = np.zeros((T,), dtype=np.uint8)
+            dones_arr = np.zeros((T,), dtype=np.uint8)  # type: ignore
         else:
-            dones_arr = np.asarray(dones, dtype=np.uint8)
+            dones_arr = np.asarray(dones, dtype=np.uint8)  # type: ignore
         grp.create_dataset("dones", data=dones_arr, compression="gzip")
 
         meta = metadata or {}

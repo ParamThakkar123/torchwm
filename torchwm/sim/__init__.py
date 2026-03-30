@@ -3,7 +3,7 @@
 Public surface for the simulator package.
 """
 
-from .api import BaseEnv, GymWrapper, VectorEnv, RNGManager, RNGStreams
+from .api import BaseEnv, GymWrapper, RNGManager, RNGStreams
 from .gym_wrapper import GymWrapperEnv, make_gym_env
 from .vector_env import VectorEnv, DeterministicVectorEnv
 from .envs.basic_env import BasicEnv

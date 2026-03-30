@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 try:
-    import torch
+    import torch  # type: ignore[assignment]
 except Exception:
-    torch = None
+    torch = None  # type: ignore[assignment]
 
 
 class ObservationWrapper:
@@ -131,11 +131,11 @@ class ResizeWrapper(ObservationWrapper):
         super().__init__(env)
         self.target_size = target_size
         try:
-            from PIL import Image
+            from PIL import Image  # type: ignore[assignment]
 
             self._Image = Image
         except Exception:
-            self._Image = None
+            self._Image = None  # type: ignore[assignment]
 
     def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None):
         obs, info = self.env.reset(seed=seed, options=options)
@@ -153,7 +153,7 @@ class ResizeWrapper(ObservationWrapper):
         h, w = self.target_size
         if obs.ndim == 3 and obs.shape[2] in [1, 3, 4]:
             img = self._Image.fromarray(obs)
-            img = img.resize((w, h), self._Image.BILINEAR)
+            img = img.resize((w, h), self._Image.BILINEAR)  # type: ignore[attr-defined]
             return np.array(img)
         return obs
 

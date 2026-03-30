@@ -52,3 +52,16 @@ extra-index-url = ["https://pypi.org/simple"]
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+ignore_missing_imports = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["gym.*", "gymnasium.*", "pybullet.*", "h5py.*", "tensorflow.*", "numpy.*", "PIL.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["torchwm.sim.*"]
+disable_error_code = ["assignment", "return-value", "valid-type", "misc", "attr-defined", "has-type", "var-annotated", "arg-type"]

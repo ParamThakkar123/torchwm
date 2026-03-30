@@ -10,7 +10,7 @@ import argparse
 import json
 import os
 import pickle
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from torchwm.sim.envs.basic_env import BasicEnv
 from torchwm.sim.exporters.hdf5 import HDF5Exporter
@@ -48,6 +48,7 @@ def run_generate(
 
     env = BasicEnv(config)
 
+    exporter: Union[HDF5Exporter, ImageJSONExporter]
     if mode == "hdf5":
         exporter = HDF5Exporter(out_path, mode="w")
     elif mode == "image_json":
@@ -59,13 +60,13 @@ def run_generate(
         for ep in range(episodes):
             seed = seed_start + ep
             obs, info = env.reset(seed=seed)
-            frames = []
-            actions = []
-            rewards = []
-            dones = []
+            frames: List[Any] = []
+            actions: List[List[float]] = []
+            rewards: List[float] = []
+            dones: List[bool] = []
 
             for t in range(steps):
-                action = []
+                action: List[float] = []
                 obs, reward, done, info = env.step(action)
                 frames.append(obs)
                 actions.append(action)

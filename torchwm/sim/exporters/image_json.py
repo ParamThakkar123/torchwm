@@ -12,11 +12,11 @@ import os
 from typing import Any, Dict, Optional, Sequence
 
 try:
-    from PIL import Image
-    import numpy as np
+    from PIL import Image  # type: ignore[assignment]
+    import numpy as np  # type: ignore[assignment]
 except Exception:  # pragma: no cover - optional dependency
-    Image = None
-    np = None
+    Image = None  # type: ignore[assignment]
+    np = None  # type: ignore[assignment]
 
 
 class ImageJSONExporter:

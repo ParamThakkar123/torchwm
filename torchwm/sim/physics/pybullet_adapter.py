@@ -97,6 +97,11 @@ class PyBulletAdapter(PhysicsAdapter):
         self._spawned_protos = []
         self._body_uids = []
 
+        # Optionally create ground plane
+        if config.get("ground", False):
+            plane_id = p.loadURDF("plane.urdf")
+            self._body_uids.append(plane_id)
+
         # optionally use backend_seed from rng to control any backend-specific
         # determinism; pybullet itself doesn't provide a seed entrypoint for
         # physics RNG, so we rely on deterministic placement from the caller.

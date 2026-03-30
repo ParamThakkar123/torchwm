@@ -1,35 +1,17 @@
 TorchWM Simulator
 ================
 
-.. grid:: 1 1 2 2
+TorchWM includes a deterministic PyBullet-based simulator for generating training data, training RL agents, and creating environments for world model research.
 
-   .. grid-item::
+Key Features
+-----------
 
-      .. card:: 🔬 Deterministic Simulation
-         :class: shadow-sm
-         
-         Full control over randomness for reproducible results. Same seed = identical runs every time.
-
-   .. grid-item::
-
-      .. card:: 🎮 Multi-Purpose
-         :class: shadow-sm
-         
-         RL training, world model generation, robotics simulation, and game environment creation.
-
-   .. grid-item::
-
-      .. card:: ⚡ Fast & Scalable
-         :class: shadow-sm
-         
-         Multi-worker generation, batch processing, and optimized for large-scale datasets.
-
-   .. grid-item::
-
-      .. card:: 🔗 Easy Integration
-         :class: shadow-sm
-         
-         Works with Stable-Baselines3, PyTorch, Dreamer, JEPA, and your existing world models.
+* **Deterministic** - Full control over randomness for reproducible results
+* **PyBullet Backend** - Accurate physics simulation
+* **Multiple Export Formats** - HDF5, images+JSON, TFRecord
+* **Gymnasium Compatible** - Works with Stable-Baselines3, TorchRL
+* **World Model Ready** - Generate datasets for Dreamer, JEPA, IRIS
+* **Multi-Worker** - Parallel episode generation with deterministic seeding
 
 Quick Start
 -----------
@@ -44,12 +26,15 @@ Generate your first environment in seconds:
     # Or use Python
     from torchwm.sim.envs.basic_env import BasicEnv
     
+    config = {...}
     env = BasicEnv(config)
     obs, info = env.reset(seed=0)
 
+Documentation
+------------
+
 .. toctree::
-   :maxdepth: 1
-   :hidden:
+   :maxdepth: 2
 
    simulator/quickstart
    simulator/configuration

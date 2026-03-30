@@ -14,11 +14,11 @@ try:
     import gymnasium as gym
     from gymnasium import spaces
 except Exception:  # pragma: no cover - gym optional
-    import gym
-    from gym import spaces
+    import gym  # type: ignore[no-redef]
+    from gym import spaces  # type: ignore[no-redef]
 
 
-class GymWrapperEnv(gym.Env):
+class GymWrapperEnv(gym.Env):  # type: ignore[valid-type, misc]
     """Wrap a BasicEnv into a Gymnasium-compatible Env.
 
     Args:
@@ -52,28 +52,28 @@ class GymWrapperEnv(gym.Env):
         # Build action space
         self.action_space = self._build_action_space()
 
-    def _build_observation_space(self) -> spaces.Space:
+    def _build_observation_space(self) -> "spaces.Space":  # type: ignore[return-value]
         """Build observation space from configured sensors."""
         cam_cfg = getattr(self._env, "config", {}).get("camera", {})
         h = int(cam_cfg.get("height", 64))
         w = int(cam_cfg.get("width", 64))
         c = 3
 
-        cam_space = spaces.Box(low=0, high=255, shape=(h, w, c), dtype=np.uint8)
+        cam_space = spaces.Box(low=0, high=255, shape=(h, w, c), dtype=np.uint8)  # type: ignore[assignment]
 
         if len(self.sensors) == 1 and self.sensors[0] == "camera":
-            return cam_space
+            return cam_space  # type: ignore[return-value]
         else:
-            obs_spaces = {}
+            obs_spaces: Dict[str, Any] = {}
             if "camera" in self.sensors:
-                obs_spaces["camera"] = cam_space
+                obs_spaces["camera"] = cam_space  # type: ignore[index]
             # Add more sensors here as they are implemented
-            return spaces.Dict(obs_spaces)
+            return spaces.Dict(obs_spaces)  # type: ignore[arg-type]
 
-    def _build_action_space(self) -> spaces.Space:
+    def _build_action_space(self) -> "spaces.Space":  # type: ignore[return-value]
         """Build action space from action_config."""
         if self.action_config is None:
-            return spaces.Discrete(1)
+            return spaces.Discrete(1)  # type: ignore[return-value]
 
         act_type = self.action_config.get("type", "torque")
         low = float(self.action_config.get("low", -1.0))
@@ -84,7 +84,7 @@ class GymWrapperEnv(gym.Env):
         if n_joints is None or n_joints == 0:
             n_joints = 1
 
-        return spaces.Box(low=low, high=high, shape=(n_joints,), dtype=np.float32)
+        return spaces.Box(low=low, high=high, shape=(n_joints,), dtype=np.float32)  # type: ignore[return-value]
 
     def _get_num_joints(self) -> Optional[int]:
         """Query physics adapter for number of controllable joints."""

@@ -19,9 +19,9 @@ import base64
 import numpy as np
 
 try:
-    import torch
+    import torch  # type: ignore[assignment]
 except Exception:  # pragma: no cover - torch optional
-    torch = None
+    torch = None  # type: ignore[assignment]
 from dataclasses import dataclass
 
 Observation = Any
@@ -369,37 +369,4 @@ class GymWrapper:
         return self._env.close()
 
 
-class VectorEnv:
-    """Minimal vectorized environment wrapper for batching multiple BaseEnv
-    instances. The wrapper should present a tensor-first API for efficient
-    integration with PyTorch training code.
-
-    This is intentionally lightweight; later we can add multiprocessing,
-    async stepping, and shared memory optimizations.
-    """
-
-    def __init__(self, envs: Sequence[BaseEnv]):
-        self.envs = list(envs)
-
-    def reset(
-        self, seeds: Optional[Sequence[Optional[int]]] = None
-    ) -> Tuple[Observation, Info]:
-        """Reset all envs; seeds can be a sequence with one entry per env."""
-        obs = []
-        infos = []
-        for i, env in enumerate(self.envs):
-            seed = None
-            if seeds is not None:
-                seed = seeds[i]
-            o, info = env.reset(seed=seed)
-            obs.append(o)
-            infos.append(info)
-        return obs, {"infos": infos}
-
-    def step(
-        self, actions: Sequence[Action]
-    ) -> Tuple[Sequence[Observation], Sequence[float], Sequence[bool], Sequence[Info]]:
-        """Step each env with the corresponding action."""
-        results = [env.step(a) for env, a in zip(self.envs, actions)]
-        obs, rews, dones, infos = zip(*results)
-        return list(obs), list(rews), list(dones), list(infos)
+# VectorEnv is now in torchwm/sim/vector_env.py

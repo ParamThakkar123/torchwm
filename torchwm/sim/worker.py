@@ -29,7 +29,7 @@ def worker_loop(
     # Derive deterministic seed for this worker
     rng = RNGManager(master_seed)
     worker_seed = rng.split(f"worker_{worker_id}").backend_seed
-    worker_seed = int(worker_seed)
+    worker_seed = int(worker_seed)  # type: ignore[arg-type]
 
     env = BasicEnv(config)
     exporter = None
@@ -57,7 +57,7 @@ def worker_loop(
         dones = []
 
         for t in range(steps):
-            action = []
+            action: List[float] = []
             obs, reward, done, info = env.step(action)
             frames.append(obs)
             actions.append(action)

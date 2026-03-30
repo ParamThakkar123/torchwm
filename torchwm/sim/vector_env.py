@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import numpy as np
 
 try:
-    import torch
+    import torch  # type: ignore[assignment]
 except Exception:  # pragma: no cover - torch optional
-    torch = None
+    torch = None  # type: ignore[assignment]
 
 from .api import BaseEnv
 

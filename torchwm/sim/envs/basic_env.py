@@ -84,7 +84,7 @@ class BasicEnv(BaseEnv):
     def snapshot(self) -> Dict[str, Any]:
         """Return a snapshot that includes physics state and serialized RNG states."""
         phys_state = self._physics.get_state()
-        rng_states = {}
+        rng_states: Dict[str, Any] = {}
         for k, stream in self._rngs.items():
             try:
                 rng_states[k] = stream.to_state()

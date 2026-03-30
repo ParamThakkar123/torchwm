@@ -21,6 +21,8 @@ extensions = [
     "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
+    "sphinx_design",
+    "sphinx.ext.intersphinx",
 ]
 
 templates_path = ["_templates"]
@@ -60,11 +62,18 @@ autodoc_mock_imports = [
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
-    "show_nav_level": 1,
+    "show_nav_level": 2,
     "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
-    "navbar_center": ["navbar-nav"],
-    "navigation_depth": 2,
+    "navigation_depth": 3,
+    "navbar_align": "left",
+    "navbar_start": ["navbar-logo", "navbar-nav"],
+    "navbar_end": ["navbar-icon-links", "theme-switcher"],
+    "secondary_sidebar_items": ["page-toc", "edit-on-github"],
+    "footer_start": ["copyright"],
+    "footer_center": [],
+    "footer_end": [],
+    "toc_title": "On this page",
 }
 html_static_path = ["_static"]
 

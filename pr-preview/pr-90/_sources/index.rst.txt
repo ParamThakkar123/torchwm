@@ -26,30 +26,13 @@ Quick Links
    :maxdepth: 2
    :caption: Documentation
    :hidden:
+   :includehidden:
 
    getting_started
    package_overview
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Simulator
-   :hidden:
-
    simulator
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Algorithms
-   :hidden:
-
    dreamer
    jepa
    iris
    dit
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Reference
-   :hidden:
-
    api_reference

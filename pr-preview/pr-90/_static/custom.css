@@ -1,0 +1,331 @@
+@import 'pydata_sphinx_theme' show_logo;
+
+:root {
+    --pst-font-family-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --pst-font-family-monospace: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --pst-color-link: #2563eb;
+    --pst-color-link-hover: #1d4ed8;
+    --pst-color-primary: #2563eb;
+    --pst-color-secondary: #64748b;
+    --pst-headerbar-color: #f8fafc;
+    --pst-headerbar-text-color: #1e293b;
+    --pst-headerbar-link-color: #475569;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    line-height: 1.7;
+}
+
+/* Header and Navigation */
+.navbar {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    backdrop-filter: blur(8px);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+/* Sidebar */
+.sidebar-tree {
+    font-size: 0.9rem;
+}
+
+.sidebar-tree .toctree-l0 > a {
+    font-weight: 600;
+    color: #1e293b;
+    padding: 0.5rem 0;
+}
+
+.sidebar-tree .current {
+    background: linear-gradient(90deg, #eff6ff 0%, transparent 100%);
+    border-left: 3px solid #2563eb;
+}
+
+/* Cards and Content */
+.card {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Admonitions */
+.admonition {
+    border-radius: 0.5rem;
+    border-left-width: 4px;
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+}
+
+.admonition.note {
+    border-left-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.admonition.tip {
+    border-left-color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.admonition.warning {
+    border-left-color: #ea580c;
+    background-color: #fff7ed;
+}
+
+.admonition.important {
+    border-left-color: #9333ea;
+    background-color: #faf5ff;
+}
+
+.admonition > .admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Code Blocks */
+pre {
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    background-color: #f6f8fa;
+    color: #24292f;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    padding: 1rem;
+}
+
+code {
+    font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.875em;
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2.25rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.25rem;
+}
+
+h3 {
+    font-size: 1.35rem;
+}
+
+/* Lists */
+ul, ol {
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+table th {
+    background-color: #f8fafc;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+table tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Blockquotes */
+blockquote {
+    border-left-width: 4px;
+    border-left-color: #d1d5db;
+    background-color: #f9fafb;
+    padding: 1rem 1.5rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #475569;
+}
+
+/* Search */
+.search-button {
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* Footer */
+footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 2rem 0;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --pst-color-link: #60a5fa;
+        --pst-color-link-hover: #93c5fd;
+        --pst-color-primary: #60a5fa;
+        --pst-headerbar-color: #1e293b;
+        --pst-headerbar-text-color: #f1f5f9;
+    }
+    
+    html {
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+    
+    pre {
+        border-color: #334155;
+        background-color: #1e293b;
+        color: #cbd5e1;
+    }
+    
+    code {
+        background-color: #334155;
+        color: #f1f5f9;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: #f1f5f9;
+    }
+    
+    h1, h2 {
+        border-bottom-color: #334155;
+    }
+    
+    blockquote {
+        border-left-color: #475569;
+        background-color: #1e293b;
+        color: #94a3b8;
+    }
+    
+    table th {
+        background-color: #1e293b;
+        border-bottom-color: #334155;
+    }
+    
+    table td {
+        border-bottom-color: #334155;
+    }
+    
+    table tr:hover {
+        background-color: #1e293b;
+    }
+    
+    .card {
+        border-color: #334155;
+        background-color: #1e293b;
+    }
+    
+    .admonition.note {
+        background-color: #1e3a5f;
+    }
+    
+    .admonition.tip {
+        background-color: #14532d;
+    }
+    
+    .admonition.warning {
+        background-color: #431407;
+    }
+    
+    .admonition.important {
+        background-color: #3b0764;
+    }
+    
+    footer {
+        background-color: #1e293b;
+        border-top-color: #334155;
+    }
+}
+
+/* Smooth Transitions */
+* {
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-in-out;
+}
+
+/* Highlight targeted links */
+a:hover {
+    text-decoration: underline;
+}
+
+/* Nice scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+}

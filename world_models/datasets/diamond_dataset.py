@@ -147,10 +147,18 @@ class SequenceDataset(torch.utils.data.Dataset):
         action_seq = self.replay_buffer.actions[indices[:-1]]
         next_obs = self.replay_buffer.next_observations[indices[-1]]
 
+        # Get rewards and dones for the sequence
+        rewards = self.replay_buffer.rewards[indices[:-1]]
+        dones = self.replay_buffer.dones[indices[:-1]]
+
         return {
             "obs_seq": torch.from_numpy(obs_seq).float() / 255.0,
             "action_seq": torch.from_numpy(action_seq).long(),
             "next_obs": torch.from_numpy(next_obs).float() / 255.0,
+            "rewards": torch.from_numpy(rewards).float(),
+            "dones": torch.from_numpy(dones).bool(),
+            # Include actions separately for actor-critic
+            "actions": torch.from_numpy(action_seq).long(),
         }
 
 
@@ -159,9 +167,13 @@ def collate_fn(batch: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
     obs_seq = torch.stack([item["obs_seq"] for item in batch])
     action_seq = torch.stack([item["action_seq"] for item in batch])
     next_obs = torch.stack([item["next_obs"] for item in batch])
+    rewards = torch.stack([item["rewards"] for item in batch])
+    dones = torch.stack([item["dones"] for item in batch])
 
     return {
         "obs_seq": obs_seq,
         "action_seq": action_seq,
         "next_obs": next_obs,
+        "rewards": rewards,
+        "dones": dones,
     }

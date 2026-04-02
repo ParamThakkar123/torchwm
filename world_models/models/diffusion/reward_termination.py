@@ -187,11 +187,12 @@ class RewardTerminationLoss(nn.Module):
         """
         reward_targets = (rewards + 1).long()
 
+        # use reshape to avoid issues when tensors are non-contiguous
         reward_loss = self.reward_criterion(
-            reward_logits.view(-1, 3), reward_targets.view(-1)
+            reward_logits.reshape(-1, 3), reward_targets.view(-1)
         )
         termination_loss = self.termination_criterion(
-            termination_logits.view(-1, 2), terminated.long().view(-1)
+            termination_logits.reshape(-1, 2), terminated.long().view(-1)
         )
 
         total_loss = reward_loss + termination_loss

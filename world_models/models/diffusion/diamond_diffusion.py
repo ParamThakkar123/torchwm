@@ -266,8 +266,47 @@ class DiffusionUNet(nn.Module):
         """
         B = x.shape[0]
 
-        obs_history = obs_history.view(B, -1, *obs_history.shape[-2:])
-        x = torch.cat([x, obs_history], dim=1)
+        # Normalize obs_history to [B, L, C, H, W]
+        if obs_history.ndim == 5:
+            # possible layouts: [B, L, C, H, W] or [B, L, H, W, C]
+            if obs_history.shape[2] == self.obs_channels:
+                bh = obs_history
+            elif obs_history.shape[-1] == self.obs_channels:
+                bh = obs_history.permute(0, 1, 4, 2, 3).contiguous()
+            else:
+                # fallback: try to reshape if already flattened
+                bh = obs_history.contiguous()
+        else:
+            bh = obs_history.contiguous()
+
+        # bh is [B, L, C, H, W] -> reshape to [B, L*C, H, W]
+        if bh.ndim == 5:
+            L = bh.shape[1]
+            C = bh.shape[2]
+            H = bh.shape[3]
+            W = bh.shape[4]
+            bh_flat = bh.reshape(B, L * C, H, W)
+        else:
+            bh_flat = bh.reshape(B, -1, bh.shape[-2], bh.shape[-1])
+
+        # ensure x is [B, C, H, W]
+        if (
+            x.ndim == 4
+            and x.shape[1] != self.obs_channels
+            and x.shape[-1] == self.obs_channels
+        ):
+            # maybe x is [B, H, W, C]
+            x = x.permute(0, 3, 1, 2).contiguous()
+
+        # concat: channels should equal obs_channels * (L + 1)
+        x = torch.cat([x, bh_flat], dim=1)
+
+        # final sanity check
+        expected_in = self.input_conv.in_channels
+        if x.shape[1] != expected_in:
+            raise RuntimeError(
+                f"DiffusionUNet input channel mismatch: got {x.shape[1]}, expected {expected_in}"
+            )
 
         h = self.input_conv(x)
 

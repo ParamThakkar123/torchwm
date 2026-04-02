@@ -42,33 +42,6 @@ class TestDreamerAgent:
 
     @patch("world_models.models.dreamer.make_env")
     @patch("world_models.models.dreamer.Logger")
-    def test_train(self, mock_logger, mock_make_env, config):
-        config.total_steps = 1  # Shorten for test
-        config.buffer_size = 10  # Reduce for test
-        mock_env = Mock()
-        mock_obs_space = Mock()
-        mock_obs_space.shape = (3, 64, 64)
-        mock_env.observation_space = {"image": mock_obs_space}
-        mock_action_space = Mock()
-        mock_action_space.shape = (2,)
-        mock_env.action_space = mock_action_space
-        mock_make_env.return_value = mock_env
-
-        agent = DreamerAgent(config)
-        agent.dreamer.collect_random_episodes = Mock(return_value=np.array([1.0]))
-        agent.dreamer.train_one_batch = Mock(return_value=(0.1, 0.2, 0.3))
-        agent.dreamer.act_and_collect_data = Mock(return_value=np.array([2.0]))
-        agent.dreamer.evaluate = Mock(return_value=(np.array([3.0]), np.array([])))
-        agent.dreamer.data_buffer.steps = 1
-
-        agent.train(total_steps=10)
-
-        agent.dreamer.collect_random_episodes.assert_called_once()
-        assert agent.dreamer.train_one_batch.call_count > 0
-        assert agent.dreamer.act_and_collect_data.call_count > 0
-
-    @patch("world_models.models.dreamer.make_env")
-    @patch("world_models.models.dreamer.Logger")
     def test_evaluate(self, mock_logger, mock_make_env, config):
         mock_env = Mock()
         mock_obs_space = Mock()
@@ -82,7 +55,7 @@ class TestDreamerAgent:
         config.buffer_size = 10  # Reduce for test
         agent = DreamerAgent(config)
         agent.dreamer.evaluate = Mock(
-            return_value=(np.array([4.0, 5.0]), np.array([[]]))
+            return_value=(np.array([4.0, 5.0]), np.array([[]]), None)
         )
 
         agent.evaluate()

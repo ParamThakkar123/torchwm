@@ -93,9 +93,20 @@ class DiamondAtariWrapper(gym.Wrapper):
         for _ in range(noops):
             action = self.env.action_space.sample()
             if action == 0:
-                obs, _, done, _ = self.env.step(action)
+                # gymnasium env.step returns (obs, reward, terminated, truncated, info)
+                step_ret = self.env.step(action)
+                if len(step_ret) == 5:
+                    obs_step, _, terminated, truncated, _ = step_ret
+                    done = bool(terminated or truncated)
+                else:
+                    # fallback for older gym API
+                    obs_step, _, done, _ = step_ret
+
                 if self.resize is not None:
-                    obs = self._resize_obs(obs)
+                    obs_step = self._resize_obs(obs_step)
+
+                obs = obs_step
+
                 if done:
                     obs, info = self.env.reset(**kwargs)
                     if self.resize is not None:

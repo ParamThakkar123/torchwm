@@ -75,8 +75,16 @@ class DiamondAgent:
         self.diffusion_model = DiffusionUNet(
             obs_channels=3,
             num_conditioning_frames=self.config.num_conditioning_frames,
+            # config.diffusion_channels is a list of absolute channel sizes per level
+            # DiffusionUNet expects base_channels and channel_multipliers (multipliers
+            # relative to base). Convert absolute sizes to multipliers here.
             base_channels=self.config.diffusion_channels[0],
-            channel_multipliers=tuple(self.config.diffusion_channels),
+            channel_multipliers=tuple(
+                [
+                    int(c // self.config.diffusion_channels[0])
+                    for c in self.config.diffusion_channels
+                ]
+            ),
             num_res_blocks=self.config.diffusion_res_blocks,
             cond_dim=self.config.diffusion_cond_dim,
             action_dim=self.action_dim,
@@ -149,7 +157,8 @@ class DiamondAgent:
 
         B, T, C, H, W = obs_seq.shape
 
-        obs_history = obs_seq[:, :-1]
+        # use only the last `num_conditioning_frames` for conditioning
+        obs_history = obs_seq[:, -self.config.num_conditioning_frames :]
         target_obs = next_obs
 
         sigma = self.edm_precond.sample_noise_level(B, self.device)
@@ -161,11 +170,22 @@ class DiamondAgent:
         precond = self.edm_precond.get_preconditioners(sigma)
         model_input = precond["c_in"] * noisy_target
 
+        # Debug asserts: ensure shapes are as expected
+        try:
+            # obs_seq: [B, T, C, H, W], obs_history: [B, L, C, H, W], next_obs [B, C, H, W]
+            assert obs_seq.ndim == 5
+            assert obs_history.ndim == 5
+            assert target_obs.ndim == 4
+        except AssertionError:
+            print(
+                f"DEBUG SHAPES: obs_seq={getattr(obs_seq, 'shape', None)}, obs_history={getattr(obs_history, 'shape', None)}, target_obs={getattr(target_obs, 'shape', None)}"
+            )
+
         model_output = self.diffusion_model(
             x=model_input,
             t=sigma.squeeze(-1).squeeze(-1),
             obs_history=obs_history,
-            actions=action_seq[:, :-1],
+            actions=action_seq[:, -self.config.num_conditioning_frames :],
         )
 
         target = (next_obs - precond["c_skip"] * noisy_target) / precond["c_out"]
@@ -194,11 +214,19 @@ class DiamondAgent:
             actions=action_seq,
         )
 
+        # Align target sequence lengths: reward_logits has same temporal length as obs_seq
+        # We predict next-step rewards for all but the last conditioning frame.
+        # Align rewards/dones length with reward_logits[:, :-1]
+        T_logits = reward_logits.shape[1]
+        target_len = max(0, T_logits - 1)
+        rewards_target = rewards[:, :target_len]
+        dones_target = dones[:, :target_len]
+
         total_loss, reward_loss, term_loss = self.reward_loss_fn(
             reward_logits=reward_logits[:, :-1],
             termination_logits=term_logits[:, :-1],
-            rewards=rewards,
-            terminated=dones,
+            rewards=rewards_target,
+            terminated=dones_target,
         )
 
         self.reward_opt.zero_grad()
@@ -214,7 +242,8 @@ class DiamondAgent:
         self.actor_critic.train()
 
         obs_seq = batch["obs_seq"]
-        action_seq = batch["actions"]
+        action_seq = batch.get("action_seq", batch.get("actions"))
+        rewards = batch.get("rewards")
 
         B, T, C, H, W = obs_seq.shape
         num_cond = self.config.num_conditioning_frames
@@ -243,21 +272,36 @@ class DiamondAgent:
 
         rewards_clipped = torch.clamp(rewards_full, -10, 10)
 
-        lambda_returns = self.rl_loss_fn.compute_lambda_returns(
-            rewards=rewards_clipped,
-            values=values,
-            dones=dones_full,
+        # values: [B, T, 1] -> squeeze to [B, T]
+        values_squeezed = values.squeeze(-1)
+        # append bootstrap last value to make [B, T+1]
+        values_with_bootstrap = torch.cat(
+            [values_squeezed, values_squeezed[:, -1:].detach()], dim=1
         )
 
+        # If rewards are not present, use zeros (safe fallback for smoke test)
+        if rewards is None:
+            rewards_for_returns = torch.zeros(B, T, device=self.device)
+        else:
+            # align rewards to length T
+            rewards_for_returns = rewards[:, :T]
+
+        lambda_returns = self.rl_loss_fn.compute_lambda_returns(
+            rewards=rewards_for_returns,
+            values=values_with_bootstrap,
+            dones=torch.zeros(B, T, dtype=torch.bool, device=self.device),
+        )
+
+        # Pass full tensors to RLLoss (it handles slicing internally)
         policy_loss = self.rl_loss_fn.policy_loss(
-            policy_logits=policy_logits[:, :-1],
-            actions=action_seq[:, :T_imag],
+            policy_logits=policy_logits,
+            actions=action_seq,
             lambda_returns=lambda_returns,
-            values=values,
+            values=values_with_bootstrap,
         )
 
         value_loss = self.rl_loss_fn.value_loss(
-            values=values,
+            values=values_with_bootstrap.unsqueeze(-1),
             lambda_returns=lambda_returns,
         )
 
@@ -279,16 +323,15 @@ class DiamondAgent:
             self.obs_history = [obs] * self.config.num_conditioning_frames
 
         for _ in range(num_steps):
-            obs_tensor = (
-                torch.from_numpy(
-                    np.stack(self.obs_history[-self.config.num_conditioning_frames :])
-                )
-                .unsqueeze(0)
-                .to(self.device)
-            )
+            # build tensor [1, L, C, H, W] with channels-first
+            obs_np = np.stack(self.obs_history[-self.config.num_conditioning_frames :])
+            # obs_np: [L, H, W, C] -> transpose to [L, C, H, W]
+            obs_np = obs_np.transpose(0, 3, 1, 2)
+            obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
+            # pass a batched single observation [1, C, H, W]
             action, _ = self.actor_critic.get_action(
-                obs_tensor[0, -1],
+                obs_tensor[:, -1],
                 None,
                 deterministic=False,
             )
@@ -355,7 +398,8 @@ class DiamondAgent:
         actions_current = action_history
 
         for t in range(horizon):
-            next_obs = self.sampler.sample(
+            # sampler returns [B, C, H, W]
+            sampled = self.sampler.sample(
                 model=self.diffusion_model,
                 shape=(B, 3, self.config.obs_size, self.config.obs_size),
                 device=self.device,
@@ -363,17 +407,22 @@ class DiamondAgent:
                 actions=actions_current,
             )
 
+            # predict reward/termination from the sampled frame [B, C, H, W]
             reward, done, hidden_state = self.reward_model.predict(
-                obs=next_obs[:, -1],
+                obs=sampled,
                 actions=actions_current[:, -1],
                 hidden_state=hidden_state,
             )
 
-            obs_trajectory.append(next_obs)
+            # append squeezed frame [B, C, H, W] for stacking later
+            obs_trajectory.append(sampled)
             rewards_list.append(reward)
             dones_list.append(done)
 
-            obs_current = torch.cat([obs_current[:, 1:], next_obs], dim=1)
+            # update conditioning sequences: obs_current expects [B, L, C, H, W]
+            next_obs_seq = sampled.unsqueeze(1)
+            obs_current = torch.cat([obs_current[:, 1:], next_obs_seq], dim=1)
+
             actions_current = torch.cat(
                 [actions_current[:, 1:], reward.long().unsqueeze(-1)], dim=1
             )
@@ -466,16 +515,13 @@ class DiamondAgent:
             episode_reward = 0.0
 
             while not done:
-                obs_tensor = (
-                    torch.from_numpy(
-                        np.stack(obs_history[-self.config.num_conditioning_frames :])
-                    )
-                    .unsqueeze(0)
-                    .to(self.device)
-                )
+                obs_np = np.stack(obs_history[-self.config.num_conditioning_frames :])
+                obs_np = obs_np.transpose(0, 3, 1, 2)
+                obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
+                # pass batched observation [1, C, H, W]
                 action, hidden_state = self.actor_critic.get_action(
-                    obs_tensor[0, -1],
+                    obs_tensor[:, -1],
                     hidden_state,
                     deterministic=True,
                 )

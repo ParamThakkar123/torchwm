@@ -52,16 +52,28 @@ class ReplayBuffer:
         """Sample a random batch of transitions."""
         indices = np.random.randint(0, self.size, size=batch_size)
 
+        obs = (
+            torch.from_numpy(self.observations[indices]).float().to(self.device) / 255.0
+        )
+        # observations stored as H,W,C -> convert to C,H,W
+        obs = obs.permute(0, 3, 1, 2)
+
+        next_obs = (
+            torch.from_numpy(self.next_observations[indices]).float().to(self.device)
+            / 255.0
+        )
+        next_obs = next_obs.permute(0, 3, 1, 2)
+
+        actions = torch.from_numpy(self.actions[indices]).long().to(self.device)
+        if actions.ndim > 1 and actions.shape[-1] == 1:
+            actions = actions.squeeze(-1)
+
         return {
-            "obs": torch.from_numpy(self.observations[indices]).float().to(self.device)
-            / 255.0,
-            "actions": torch.from_numpy(self.actions[indices]).long().to(self.device),
+            "obs": obs,
+            "actions": actions,
             "rewards": torch.from_numpy(self.rewards[indices]).float().to(self.device),
             "dones": torch.from_numpy(self.dones[indices]).bool().to(self.device),
-            "next_obs": torch.from_numpy(self.next_observations[indices])
-            .float()
-            .to(self.device)
-            / 255.0,
+            "next_obs": next_obs,
         }
 
     def sample_sequence(
@@ -103,13 +115,25 @@ class ReplayBuffer:
             done_seq.append(self.dones[indices[:-1]])
             next_obs_seq.append(self.next_observations[indices[:-1]])
 
+        obs = torch.from_numpy(np.stack(obs_seq)).float().to(self.device) / 255.0
+        # obs: (B, T, H, W, C) -> (B, T, C, H, W)
+        obs = obs.permute(0, 1, 4, 2, 3)
+
+        next_obs = (
+            torch.from_numpy(np.stack(next_obs_seq)).float().to(self.device) / 255.0
+        )
+        next_obs = next_obs.permute(0, 1, 4, 2, 3)
+
+        actions = torch.from_numpy(np.stack(action_seq)).long().to(self.device)
+        if actions.ndim > 2 and actions.shape[-1] == 1:
+            actions = actions.squeeze(-1)
+
         return {
-            "obs": torch.from_numpy(np.stack(obs_seq)).float().to(self.device) / 255.0,
-            "actions": torch.from_numpy(np.stack(action_seq)).long().to(self.device),
+            "obs": obs,
+            "actions": actions,
             "rewards": torch.from_numpy(np.stack(reward_seq)).float().to(self.device),
             "dones": torch.from_numpy(np.stack(done_seq)).bool().to(self.device),
-            "next_obs": torch.from_numpy(np.stack(next_obs_seq)).float().to(self.device)
-            / 255.0,
+            "next_obs": next_obs,
         }
 
     def __len__(self):
@@ -142,23 +166,36 @@ class SequenceDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         """Get a sequence starting at idx."""
         indices = np.arange(idx, idx + self.sequence_length + 1)
-
         obs_seq = self.replay_buffer.observations[indices[:-1]]
         action_seq = self.replay_buffer.actions[indices[:-1]]
+        reward_seq = self.replay_buffer.rewards[indices[:-1]]
+        done_seq = self.replay_buffer.dones[indices[:-1]]
         next_obs = self.replay_buffer.next_observations[indices[-1]]
 
-        # Get rewards and dones for the sequence
-        rewards = self.replay_buffer.rewards[indices[:-1]]
-        dones = self.replay_buffer.dones[indices[:-1]]
+        # convert and move to device
+        device = self.replay_buffer.device
+
+        obs_seq = torch.from_numpy(obs_seq).float().to(device) / 255.0
+        # (T, H, W, C) -> (T, C, H, W)
+        obs_seq = obs_seq.permute(0, 3, 1, 2)
+
+        next_obs = torch.from_numpy(next_obs).float().to(device) / 255.0
+        next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
+
+        action_seq = torch.from_numpy(action_seq).long().to(device)
+        if action_seq.ndim > 1 and action_seq.shape[-1] == 1:
+            action_seq = action_seq.squeeze(-1)
+
+        rewards = torch.from_numpy(reward_seq).float().to(device)
+        dones = torch.from_numpy(done_seq).bool().to(device)
 
         return {
-            "obs_seq": torch.from_numpy(obs_seq).float() / 255.0,
-            "action_seq": torch.from_numpy(action_seq).long(),
-            "next_obs": torch.from_numpy(next_obs).float() / 255.0,
-            "rewards": torch.from_numpy(rewards).float(),
-            "dones": torch.from_numpy(dones).bool(),
-            # Include actions separately for actor-critic
-            "actions": torch.from_numpy(action_seq).long(),
+            "obs_seq": obs_seq,
+            "action_seq": action_seq,
+            "actions": action_seq,  # duplicate key for compatibility
+            "rewards": rewards,
+            "dones": dones,
+            "next_obs": next_obs,
         }
 
 

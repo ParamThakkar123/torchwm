@@ -33,36 +33,41 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=154cb7d9" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
 
     <script src="_static/documentation_options.js?v=37f418d5"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-66/getting_started.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
@@ -94,7 +99,7 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
   <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
@@ -130,6 +135,40 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api_reference.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -221,6 +260,40 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api_reference.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -359,33 +432,33 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 <section id="quick-start-dreamer">
 <h2>Quick Start: Dreamer<a class="headerlink" href="#quick-start-dreamer" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">10_000</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<section id="quick-start-jepa">
-<h2>Quick Start: JEPA<a class="headerlink" href="#quick-start-jepa" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagefolder&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">image_folder</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">10</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">JEPAAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-</pre></div>
+<p>TorchWM implements multiple world model algorithms. Click on each to see detailed documentation:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Quick Start</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Dreamer</strong></p></td>
+<td><p>Model-based RL with latent dynamics</p></td>
+<td><p><a class="reference internal" href="dreamer.html"><span class="doc">Dreamer: Model-Based RL with Latent Dynamics</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>JEPA</strong></p></td>
+<td><p>Self-supervised visual representations</p></td>
+<td><p><a class="reference internal" href="jepa.html"><span class="doc">JEPA: Joint Embedding Predictive Architecture</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>IRIS</strong></p></td>
+<td><p>Sample-efficient RL with Transformers</p></td>
+<td><p><a class="reference internal" href="iris.html"><span class="doc">IRIS: Transformers for Sample-Efficient World Models</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>DiT</strong></p></td>
+<td><p>Diffusion models with Transformers</p></td>
+<td><p><a class="reference internal" href="dit.html"><span class="doc">DiT: Diffusion Transformer</span></a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
 <section id="quick-start-modular-rssm">
@@ -421,21 +494,15 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><p><code class="docutils literal notranslate"><span class="pre">gym</span></code>: Gym/Gymnasium environment IDs or an existing environment instance</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unity_mlagents</span></code>: Unity ML-Agents executable environments</p></li>
 </ul>
-<p>Important Unity settings are available in <code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_file_name</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_behavior_name</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_no_graphics</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_time_scale</span></code></p></li>
-</ul>
 </section>
 <section id="typical-training-flow">
 <h2>Typical Training Flow<a class="headerlink" href="#typical-training-flow" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Create a config object (<code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code> or <code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code>).</p></li>
-<li><p>Override dataset/environment and optimization fields.</p></li>
-<li><p>Instantiate the corresponding agent (<code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>).</p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">train()</span></code> and monitor logs/checkpoints.</p></li>
+<li><p>Choose an algorithm (Dreamer, JEPA, IRIS, or DiT)</p></li>
+<li><p>Create a config object for that algorithm</p></li>
+<li><p>Override dataset/environment and optimization fields</p></li>
+<li><p>Instantiate the corresponding agent</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">train()</span></code> and monitor logs/checkpoints</p></li>
 </ol>
 <p>For complete API details, see <a class="reference internal" href="api_reference.html"><span class="doc">API Reference</span></a>.</p>
 </section>
@@ -468,8 +535,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
     class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installation">Installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#logging-with-weights-biases-and-tensorboard">Logging with Weights &amp; Biases and TensorBoard</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weights-biases">Weights &amp; Biases</a></li>
@@ -477,7 +544,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-dreamer">Quick Start: Dreamer</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-jepa">Quick Start: JEPA</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-modular-rssm">Quick Start: Modular RSSM</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-backends">Environment Backends</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#typical-training-flow">Typical Training Flow</a></li>
@@ -485,13 +551,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   </nav></div>
 
   <div class="sidebar-secondary-item">
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/getting_started.md.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div></div>
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/getting_started.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
 
 </div></div>
               
@@ -506,8 +572,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -541,7 +607,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
 </p></div>
       
     </div>

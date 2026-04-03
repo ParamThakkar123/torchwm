@@ -68,6 +68,8 @@ class DreamerConfig:
         self.scalar_freq = int(1e3)
         self.log_video_freq = -1
         self.max_videos_to_save = 2
+        self.video_format = "gif"  # "gif" or "mp4"
+        self.video_fps = 20
         self.checkpoint_interval = 10000
         self.checkpoint_path = ""
         self.restore = False
@@ -81,5 +83,4 @@ class DreamerConfig:
         )
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
-        self.enable_tensorboard = True
         self.log_dir = "runs"

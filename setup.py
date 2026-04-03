@@ -31,8 +31,6 @@ setup(
         "plotly>=6.5.0",
         "pre-commit>=4.5.0",
         "pygame>=2.6.1",
-        "tensorboard>=2.20.0",
-        "tensorboardx>=2.6.4",
         "wandb>=0.16.0",
         "tqdm>=4.67.1",
         "torch>=1.13.0",

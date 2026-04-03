@@ -21,7 +21,11 @@ from world_models.vision.dreamer_encoder import ConvEncoder
 from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
 from world_models.configs.dreamer_config import DreamerConfig
 
-os.environ["MUJOCO_GL"] = "egl"
+# Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
+# causes mujoco to raise a RuntimeError during import. Respect an existing
+# environment value if present.
+if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
+    os.environ["MUJOCO_GL"] = "egl"
 
 
 def _resolve_image_size(args):
@@ -435,6 +439,7 @@ class Dreamer:
         episode_rew = np.zeros((eval_episodes))
 
         video_images = [[] for _ in range(eval_episodes)]
+        latents = [] if render else None
 
         for i in range(eval_episodes):
             obs = env.reset()
@@ -465,8 +470,20 @@ class Dreamer:
 
                 if render:
                     video_images[i].append(obs["image"].transpose(1, 2, 0).copy())
+                    if latents is not None:
+                        latents.append(
+                            torch.cat([posterior[0], posterior[1]], dim=-1)
+                            .cpu()
+                            .numpy()
+                        )
                 obs = next_obs
-        return episode_rew, np.array(video_images[: self.args.max_videos_to_save])
+        if latents is not None and len(latents) > 0:
+            latents = np.array(latents)
+        return (
+            episode_rew,
+            np.array(video_images[: self.args.max_videos_to_save]),
+            latents,
+        )
 
     def collect_random_episodes(self, env, seed_steps):
         obs = env.reset()
@@ -542,11 +559,22 @@ class DreamerAgent:
         else:
             self.args = config
 
+        self.last_latents_ref = kwargs.get("last_latents_ref", None)
+
         for key, value in kwargs.items():
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             elif key == "logdir":
-                setattr(self.args, key, value)
+                # Accept either `logdir` (server/legacy) and mirror into
+                # both `logdir` and `log_dir` so downstream code using either
+                # naming convention picks up the value.
+                setattr(self.args, "logdir", value)
+                try:
+                    setattr(self.args, "log_dir", value)
+                except Exception:
+                    pass
+            elif key == "last_latents_ref":
+                self.last_latents_ref = value
             else:
                 raise ValueError(f"Invalid argument: {key}")
 
@@ -555,6 +583,9 @@ class DreamerAgent:
         if not (os.path.exists(data_path)):
             os.makedirs(data_path)
 
+        # Allow caller to pass an absolute `logdir`. If provided and absolute,
+        # use it verbatim. Otherwise keep the historical behavior of creating
+        # a subdir under the package data path so examples/tests remain stable.
         if hasattr(self.args, "logdir") and self.args.logdir is not None:
             self.logdir = self.args.logdir
         else:
@@ -567,7 +598,10 @@ class DreamerAgent:
                 + "_"
                 + time.strftime("%d-%m-%Y-%H-%M-%S")
             )
-        self.logdir = os.path.join(data_path, self.logdir)
+
+        # If `self.logdir` is not an absolute path, place it under package data_path
+        if not os.path.isabs(self.logdir):
+            self.logdir = os.path.join(data_path, self.logdir)
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
 
@@ -595,7 +629,8 @@ class DreamerAgent:
             self.args.wandb_api_key,
             self.args.wandb_project,
             self.args.wandb_entity,
-            self.args.enable_tensorboard,
+            self.args.video_format,
+            self.args.video_fps,
         )
 
     def train(self, total_steps=None):
@@ -649,9 +684,11 @@ class DreamerAgent:
             )
 
             if global_step % self.args.test_interval == 0:
-                episode_rews, video_images = self.dreamer.evaluate(
+                episode_rews, video_images, latents = self.dreamer.evaluate(
                     self.test_env, self.args.test_episodes
                 )
+                if self.last_latents_ref is not None and latents is not None:
+                    self.last_latents_ref[0] = latents
 
                 logs.update(
                     {
@@ -683,9 +720,11 @@ class DreamerAgent:
 
     def evaluate(self):
         logs = OrderedDict()
-        episode_rews, video_images = self.dreamer.evaluate(
+        episode_rews, video_images, latents = self.dreamer.evaluate(
             self.test_env, self.args.test_episodes, render=True
         )
+        if self.last_latents_ref is not None and latents is not None:
+            self.last_latents_ref[0] = latents
         logs.update(
             {
                 "test_avg_reward": np.mean(episode_rews),
@@ -698,3 +737,5 @@ class DreamerAgent:
         self.logger.log_videos(
             video_images, 0, max_videos_to_save=self.args.max_videos_to_save
         )
+        self.logger.flush()
+        return episode_rews, video_images, latents

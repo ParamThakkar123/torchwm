@@ -11,7 +11,7 @@ export interface DependenciesResponse {
   dependencies: Dependency[];
 }
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -34,7 +34,24 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(detail);
   }
 
-  return (await response.json()) as T;
+  // Some endpoints may return an empty body (204 No Content) or a non-JSON response.
+  // Calling `response.json()` on an empty body throws "Unexpected end of JSON input",
+  // so handle empty/non-JSON bodies gracefully here.
+  const contentType = response.headers.get("content-type") || "";
+
+  // If there's no JSON content-type or the status explicitly indicates no content,
+  // return an empty object as a safe default for callers expecting a JSON-like value.
+  if (response.status === 204 || !contentType.includes("application/json")) {
+    return {} as T;
+  }
+
+  // Read text first so we can detect an empty string (which would make response.json() fail).
+  const text = await response.text();
+  if (!text) {
+    return {} as T;
+  }
+
+  return JSON.parse(text) as T;
 }
 
 export function fetchCatalog(): Promise<CatalogResponse> {
@@ -86,4 +103,54 @@ export function stopTraining(): Promise<{ stop_requested: boolean } & StateRespo
 
 export function fetchDependencies(): Promise<DependenciesResponse> {
   return request<DependenciesResponse>("/api/dependencies");
+}
+
+export function visualizeLatents(
+  latents: string,
+  method: "tsne" | "umap" = "tsne",
+  labels?: string,
+  perplexity = 30,
+  nNeighbors = 15,
+  shape?: number[]
+): Promise<{ html: string }> {
+  const params = new URLSearchParams({
+    latents,
+    method,
+    perplexity: perplexity.toString(),
+    n_neighbors: nNeighbors.toString(),
+  });
+  if (labels) {
+    params.append("labels", labels);
+  }
+  if (shape && shape.length > 0) {
+    params.append("shape", shape.join(","));
+  }
+  return request<{ html: string }>(`/api/visualize?${params}`, { method: "POST" });
+}
+
+export function fetchLatents(): Promise<{ latents: string; shape?: number[] }> {
+  // fetchLatents needs to handle 204 No Content (latents not ready) specially
+  return fetch(`${API_BASE}/api/latents`).then(async (response) => {
+    if (response.status === 204) {
+      throw new Error("Latents not ready");
+    }
+    if (!response.ok) {
+      let detail = `${response.status} ${response.statusText}`;
+      try {
+        const body = await response.json();
+        if (body.detail) detail = body.detail;
+      } catch {}
+      throw new Error(detail);
+    }
+    // Some endpoints may return empty body; handle gracefully
+    try {
+      return (await response.json()) as { latents: string; shape?: number[] };
+    } catch {
+      throw new Error("Latents not ready");
+    }
+  });
+}
+
+export function fetchVideo(filename: string): string {
+  return `${API_BASE}/api/video/${filename}`;
 }

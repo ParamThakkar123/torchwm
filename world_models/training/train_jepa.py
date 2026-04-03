@@ -12,10 +12,7 @@ import yaml
 
 import numpy as np
 
-import torch
-import torch.multiprocessing as mp
-import torch.nn.functional as F
-from torch.nn.parallel import DistributedDataParallel
+import wandb
 
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator
 from world_models.utils.utils import apply_masks
@@ -450,3 +447,26 @@ def main(args, resume_preempt=False):
 
         logger.info("avg. loss %.3f" % loss_meter.avg)
         save_checkpoint(epoch + 1)
+
+
+def sweep_train():
+    """Function for WandB sweep agent."""
+    with wandb.init() as run:
+        cfg = JEPAConfig()
+        # Update config with sweep parameters
+        for key, value in wandb.config.items():
+            if hasattr(cfg, key):
+                setattr(cfg, key, value)
+        main(cfg.to_dict())
+
+
+if __name__ == "__main__":
+    cfg = JEPAConfig()
+    # TODO: Load config from file if needed
+    if cfg.enable_sweep:
+        sweep_id = wandb.sweep(
+            cfg.sweep_config, project=cfg.wandb_project, entity=cfg.wandb_entity
+        )
+        wandb.agent(sweep_id, function=sweep_train)
+    else:
+        main(cfg.to_dict())

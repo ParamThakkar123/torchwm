@@ -170,6 +170,8 @@ class RLLoss(nn.Module):
         """
         B, T = rewards.shape
 
+        rewards = torch.clamp(rewards, -10, 10)
+
         lambda_returns = torch.zeros_like(rewards)
 
         returns = values[:, -1]
@@ -207,7 +209,7 @@ class RLLoss(nn.Module):
         log_probs = F.log_softmax(policy_logits, dim=-1)
         action_log_probs = log_probs.gather(-1, actions.unsqueeze(-1)).squeeze(-1)
 
-        advantages = lambda_returns - values[:, :-1]
+        advantages = lambda_returns - values[:, :-1].detach()
 
         policy_loss = -(action_log_probs * advantages.detach()).mean()
 

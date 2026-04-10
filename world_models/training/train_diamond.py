@@ -238,7 +238,7 @@ class DiamondAgent:
     def _update_actor_critic(
         self, batch: Dict[str, torch.Tensor]
     ) -> Tuple[float, float]:
-        """Update actor-critic in imagination."""
+        """Update actor-critic using imagined trajectories from the world model."""
         self.actor_critic.train()
 
         obs_seq = batch["obs_seq"]
@@ -246,8 +246,31 @@ class DiamondAgent:
         rewards = batch.get("rewards")
 
         B, T, C, H, W = obs_seq.shape
+        num_cond = self.config.num_conditioning_frames
+        H_horizon = self.config.imagination_horizon
 
-        policy_logits, values, _ = self.actor_critic(obs_seq)
+        obs_history = obs_seq[:, :num_cond]
+        actions_init = action_seq[:, :num_cond]
+
+        hidden_state = self.reward_model.init_hidden(B, self.device)
+
+        obs_traj, rewards_imag, dones_imag, hidden_state = self._imagine_trajectory(
+            obs_history, actions_init, hidden_state
+        )
+
+        obs_full = torch.cat([obs_history, obs_traj], dim=1)
+
+        policy_logits, values, _ = self.actor_critic(obs_full)
+
+        T_imag = num_cond + H_horizon
+
+        rewards_imag = rewards_imag.squeeze(-1)
+        dones_imag = dones_imag.squeeze(-1).squeeze(-1)
+
+        rewards_full = torch.cat([torch.zeros(B, num_cond, device=self.device), rewards_imag], dim=1)
+        dones_full = torch.cat([torch.zeros(B, num_cond, device=torch.bool, device=self.device), dones_imag], dim=1)
+
+        rewards_clipped = torch.clamp(rewards_full, -10, 10)
 
         # values: [B, T, 1] -> squeeze to [B, T]
         values_squeezed = values.squeeze(-1)

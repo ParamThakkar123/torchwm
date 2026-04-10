@@ -1,6 +1,6 @@
 [project]
 name = "torchwm"
-version = "0.3.0"
+version = "0.3.1"
 description = "A Modular Pytorch Based library for training world models"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -42,6 +42,7 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "umap-learn>=0.5.11",
     "mypy>=1.19.1",
+    "pybullet>=3.2.7",
     "autorom>=0.6.1",
     "pytest-cov>=7.1.0",
 ]
@@ -53,3 +54,16 @@ extra-index-url = ["https://pypi.org/simple"]
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+ignore_missing_imports = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["gym.*", "gymnasium.*", "pybullet.*", "h5py.*", "tensorflow.*", "numpy.*", "PIL.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["torchwm.sim.*"]
+disable_error_code = ["assignment", "return-value", "valid-type", "misc", "attr-defined", "has-type", "var-annotated", "arg-type"]

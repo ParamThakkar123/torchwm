@@ -19,9 +19,13 @@ class AdaptiveGroupNorm(nn.Module):
         """
         Args:
             x: Input tensor [B, C, H, W]
-            cond: Conditioning tensor [B, cond_dim]
+            cond: Conditioning tensor [B, cond_dim] or [B, L, cond_dim]
         """
         x = self.norm(x)
+        # Handle both [B, cond_dim] and [B, L, cond_dim] conditioning
+        if cond.dim() == 3:
+            # Use the last timestep's conditioning
+            cond = cond[:, -1, :]  # [B, cond_dim]
         scale, bias = self.linear(cond).chunk(2, dim=-1)
         scale = scale.unsqueeze(-1).unsqueeze(-1)
         bias = bias.unsqueeze(-1).unsqueeze(-1)
@@ -216,19 +220,24 @@ class DiffusionUNet(nn.Module):
             ]
         )
 
+        # Upsampling path - account for skip connections
         self.up_blocks = nn.ModuleList()
+        in_ch_up = (
+            base_channels * channel_multipliers[-1]
+        )  # Start with middle output channels
         for i, mult in enumerate(reversed(channel_multipliers)):
             out_ch = base_channels * mult
+            # Input: upsampled features (in_ch_up) + skip connection (base_channels * mult)
             self.up_blocks.append(
                 UpBlock(
-                    in_ch,
+                    in_ch_up + base_channels * mult,  # Concat upsampled + skip
                     out_ch,
                     cond_dim,
                     num_res_blocks,
                     attention=False,
                 )
             )
-            in_ch = out_ch
+            in_ch_up = out_ch
 
         self.output_conv = nn.Sequential(
             nn.Conv2d(base_channels, base_channels, 3, padding=1),
@@ -249,7 +258,7 @@ class DiffusionUNet(nn.Module):
         Args:
             x: Noised observation at timestep t [B, C, H, W]
             t: Diffusion timestep [B]
-            obs_history: Past observations for conditioning [B, L, C, H, W]
+            obs_history: Past observations for conditioning [B, L, C, H, W] or [B, C', H, W]
             actions: Past actions [B, L]
 
         Returns:
@@ -302,8 +311,9 @@ class DiffusionUNet(nn.Module):
         h = self.input_conv(x)
 
         t_emb = self.time_embed(t)
-        action_emb = self.action_embed(actions.long())
-        cond = t_emb + action_emb.sum(dim=1)
+        # Sum over action sequence dimension to get [B, cond_dim]
+        action_emb = self.action_embed(actions.long()).sum(dim=1)
+        cond = t_emb + action_emb  # [B, cond_dim]
 
         skip_connections = []
         for down_block in self.down_blocks:
@@ -317,8 +327,12 @@ class DiffusionUNet(nn.Module):
             else:
                 h = block(h, cond)
 
-        for up_block in self.up_blocks:
+        # Upsampling with skip connections
+        for i, up_block in enumerate(self.up_blocks):
             h = F.interpolate(h, scale_factor=2, mode="nearest")
+            # Concatenate with skip connection (skip_connections stored in reverse order)
+            skip_idx = len(skip_connections) - 1 - i
+            h = torch.cat([h, skip_connections[skip_idx]], dim=1)
             h = up_block(h, cond)
 
         return self.output_conv(h)

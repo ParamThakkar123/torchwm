@@ -1,6 +1,17 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 
+# Check for CUDA availability
+try:
+    import torch
+
+    cuda_available = True  # Force for testing
+    from torch.utils.cpp_extension import CUDAExtension, BuildExtension
+except ImportError:
+    cuda_available = False
+    CUDAExtension = None
+    BuildExtension = None
+
 HERE = Path(__file__).parent
 
 README = (
@@ -8,6 +19,19 @@ README = (
     if (HERE / "README.md").exists()
     else ""
 )
+
+# Define extensions
+ext_modules = []
+cmdclass = {}
+if cuda_available and CUDAExtension:
+    ext_modules.append(
+        CUDAExtension(
+            name="torchwm_cuda_kernels",
+            sources=["world_models/cuda/kernels.cu"],
+            extra_compile_args={"cxx": ["-O3"], "nvcc": ["-O3"]},
+        )
+    )
+    cmdclass["build_ext"] = BuildExtension
 
 setup(
     name="torchwm",
@@ -43,5 +67,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     keywords="world-models pytorch",
+    ext_modules=ext_modules,
+    cmdclass=cmdclass,
     zip_safe=False,
 )

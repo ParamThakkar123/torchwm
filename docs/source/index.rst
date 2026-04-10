@@ -13,6 +13,13 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
 
 .. toctree::
    :maxdepth: 2
+   :caption: Tutorials
+
+   isaaclab_tutorial
+   brax_tutorial
+
+.. toctree::
+   :maxdepth: 2
    :caption: Algorithms
 
    dreamer

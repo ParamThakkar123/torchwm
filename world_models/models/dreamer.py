@@ -7,13 +7,22 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.distributions as distributions
+from torch.cuda.amp import autocast, GradScaler
 
 from collections import OrderedDict
 
 import world_models.envs.wrappers as env_wrapper
+import importlib.util
+
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
+
+_isaaclab_available = importlib.util.find_spec("isaaclab") is not None
+if _isaaclab_available:
+    from world_models.envs.isaaclab_env import IsaacLabImageEnv
+else:
+    IsaacLabImageEnv = None
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
@@ -81,9 +90,20 @@ def make_env(args):
             quality_level=int(getattr(args, "unity_quality_level", 1)),
             max_episode_steps=int(getattr(args, "time_limit", 1000)),
         )
+    elif backend == "isaaclab":
+        if IsaacLabImageEnv is None:
+            raise ImportError(
+                "IsaacLab not available. Install isaaclab to use IsaacLab environments."
+            )
+        env = IsaacLabImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, unity_mlagents, isaaclab."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
@@ -111,13 +131,16 @@ class Dreamer:
     loss computation, optimization steps, evaluation loops, and checkpoint I/O.
     """
 
-    def __init__(self, args, obs_shape, action_size, device, restore=False):
+    def __init__(
+        self, args, obs_shape, action_size, device, restore=False, scaler=None
+    ):
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
         self.device = device
         self.restore = args.restore
         self.restore_path = args.checkpoint_path
+        self.scaler = scaler
         self.data_buffer = ReplayBuffer(
             self.args.buffer_size,
             self.obs_shape,
@@ -359,25 +382,54 @@ class Dreamer:
             .unsqueeze(-1)
         )
 
-        model_loss = self.world_model_loss(obs, acs, rews, nonterms)
-        self.world_model_opt.zero_grad()
-        model_loss.backward()
-        nn.utils.clip_grad_norm_(self.world_model_params, self.args.grad_clip_norm)
-        self.world_model_opt.step()
+        with autocast(enabled=self.scaler is not None):
+            model_loss = self.world_model_loss(obs, acs, rews, nonterms)
+        if self.scaler:
+            self.world_model_opt.zero_grad()
+            self.scaler.scale(model_loss).backward()
+            self.scaler.unscale_(self.world_model_opt)
+            nn.utils.clip_grad_norm_(self.world_model_params, self.args.grad_clip_norm)
+            self.scaler.step(self.world_model_opt)
+            self.scaler.update()
+        else:
+            self.world_model_opt.zero_grad()
+            model_loss.backward()
+            nn.utils.clip_grad_norm_(self.world_model_params, self.args.grad_clip_norm)
+            self.world_model_opt.step()
 
-        actor_loss = self.actor_loss()
-        self.actor_opt.zero_grad()
-        actor_loss.backward()
-        nn.utils.clip_grad_norm_(self.actor.parameters(), self.args.grad_clip_norm)
-        self.actor_opt.step()
+        with autocast(enabled=self.scaler is not None):
+            actor_loss = self.actor_loss()
+        if self.scaler:
+            self.actor_opt.zero_grad()
+            self.scaler.scale(actor_loss).backward()
+            self.scaler.unscale_(self.actor_opt)
+            nn.utils.clip_grad_norm_(self.actor.parameters(), self.args.grad_clip_norm)
+            self.scaler.step(self.actor_opt)
+            self.scaler.update()
+        else:
+            self.actor_opt.zero_grad()
+            actor_loss.backward()
+            nn.utils.clip_grad_norm_(self.actor.parameters(), self.args.grad_clip_norm)
+            self.actor_opt.step()
 
-        value_loss = self.value_loss()
-        self.value_opt.zero_grad()
-        value_loss.backward()
-        nn.utils.clip_grad_norm_(
-            self.value_model.parameters(), self.args.grad_clip_norm
-        )
-        self.value_opt.step()
+        with autocast(enabled=self.scaler is not None):
+            value_loss = self.value_loss()
+        if self.scaler:
+            self.value_opt.zero_grad()
+            self.scaler.scale(value_loss).backward()
+            self.scaler.unscale_(self.value_opt)
+            nn.utils.clip_grad_norm_(
+                self.value_model.parameters(), self.args.grad_clip_norm
+            )
+            self.scaler.step(self.value_opt)
+            self.scaler.update()
+        else:
+            self.value_opt.zero_grad()
+            value_loss.backward()
+            nn.utils.clip_grad_norm_(
+                self.value_model.parameters(), self.args.grad_clip_norm
+            )
+            self.value_opt.step()
 
         return model_loss.item(), actor_loss.item(), value_loss.item()
 
@@ -614,13 +666,17 @@ class DreamerAgent:
         else:
             device = torch.device("cpu")
 
+        self.scaler = (
+            GradScaler() if self.args.use_amp and device.type == "cuda" else None
+        )
+
         self.train_env = make_env(self.args)
         self.test_env = make_env(self.args)
 
         obs_shape = self.train_env.observation_space["image"].shape
         action_size = self.train_env.action_space.shape[0]
         self.dreamer = Dreamer(
-            self.args, obs_shape, action_size, device, self.args.restore
+            self.args, obs_shape, action_size, device, self.args.restore, self.scaler
         )
 
         self.logger = Logger(

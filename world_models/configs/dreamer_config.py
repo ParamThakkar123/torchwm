@@ -84,3 +84,4 @@ class DreamerConfig:
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        self.use_amp = False

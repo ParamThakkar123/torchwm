@@ -4,6 +4,16 @@ import torch.optim as optim
 from typing import Tuple, Optional
 import torch.nn.functional as F
 
+try:
+    import torch.cuda.amp as amp
+
+    HAS_AMP = True
+except ImportError:
+    import contextlib
+
+    amp = contextlib.nullcontext
+    HAS_AMP = False
+
 from world_models.configs.iris_config import IRISConfig
 from world_models.vision.iris_encoder import IRISEncoder
 from world_models.vision.iris_decoder import IRISDecoder
@@ -311,11 +321,12 @@ class IRISAgent(nn.Module):
             ),
         }
 
-    def update_autoencoder(self, frames: torch.Tensor) -> dict:
+    def update_autoencoder(self, frames: torch.Tensor, scaler=None) -> dict:
         """Update discrete autoencoder.
 
         Args:
             frames: Training frames (B, C, H, W)
+            scaler: GradScaler for AMP, if None uses regular backward
 
         Returns:
             losses: Dictionary of loss values
@@ -323,24 +334,38 @@ class IRISAgent(nn.Module):
         self.encoder.train()
         self.decoder.train()
 
-        # Encode
-        z_q, indices, vq_loss = self.encoder(frames)
+        # Forward pass with autocast if scaler provided
+        with torch.amp.autocast(
+            device_type="cuda", dtype=torch.float16, enabled=scaler is not None
+        ):
+            # Encode
+            z_q, indices, vq_loss = self.encoder(frames)
 
-        # Decode
-        reconstruction = self.decoder(z_q)
+            # Decode
+            reconstruction = self.decoder(z_q)
 
-        # Compute losses
-        recon_loss = F.l1_loss(reconstruction, frames)
-        loss = recon_loss + vq_loss["vq_loss"]
+            # Compute losses
+            recon_loss = F.l1_loss(reconstruction, frames)
+            loss = recon_loss + vq_loss["vq_loss"]
 
-        # Update
-        self.autoencoder_opt.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(
-            list(self.encoder.parameters()) + list(self.decoder.parameters()),
-            self.config.grad_clip_norm,
-        )
-        self.autoencoder_opt.step()
+        # Backward pass
+        if scaler:
+            scaler.scale(loss).backward()
+            scaler.unscale_(self.autoencoder_opt)
+            nn.utils.clip_grad_norm_(
+                list(self.encoder.parameters()) + list(self.decoder.parameters()),
+                self.config.grad_clip_norm,
+            )
+            scaler.step(self.autoencoder_opt)
+            scaler.update()
+        else:
+            self.autoencoder_opt.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(
+                list(self.encoder.parameters()) + list(self.decoder.parameters()),
+                self.config.grad_clip_norm,
+            )
+            self.autoencoder_opt.step()
 
         return {
             "recon_loss": recon_loss.item(),
@@ -355,6 +380,7 @@ class IRISAgent(nn.Module):
         actions: torch.Tensor,  # (B, T)
         rewards: torch.Tensor,  # (B, T)
         terminals: torch.Tensor,  # (B, T)
+        scaler=None,
     ) -> dict:
         """Update transformer world model.
 
@@ -363,6 +389,7 @@ class IRISAgent(nn.Module):
             actions: Actions taken
             rewards: Rewards received
             terminals: Terminal flags
+            scaler: GradScaler for AMP
 
         Returns:
             losses: Dictionary of loss values
@@ -371,51 +398,65 @@ class IRISAgent(nn.Module):
 
         B, T_plus_1, C, H, W = frames.shape
 
-        # Encode all frames to tokens
-        tokens_list = []
-        for t in range(T_plus_1):
-            _, indices_t, _ = self.encoder(frames[:, t])
-            indices_t = indices_t.reshape(B, -1)  # (B, K) flatten spatial dimensions
-            tokens_list.append(indices_t)
+        with torch.amp.autocast(
+            device_type="cuda", dtype=torch.float16, enabled=scaler is not None
+        ):
+            # Encode all frames to tokens
+            tokens_list = []
+            for t in range(T_plus_1):
+                _, indices_t, _ = self.encoder(frames[:, t])
+                indices_t = indices_t.reshape(
+                    B, -1
+                )  # (B, K) flatten spatial dimensions
+                tokens_list.append(indices_t)
 
-        tokens = torch.stack(tokens_list, dim=1)  # (B, T+1, K)
+            tokens = torch.stack(tokens_list, dim=1)  # (B, T+1, K)
 
-        # Convert actions from (B, T, action_size) to (B, T) scalar indices
-        if actions.dim() == 3:
-            actions = actions.argmax(dim=-1)  # (B, T)
+            # Convert actions from (B, T, action_size) to (B, T) scalar indices
+            if actions.dim() == 3:
+                actions = actions.argmax(dim=-1)  # (B, T)
 
-        # Get predictions
-        token_logits, rewards_pred, terms_pred = self.transformer(
-            tokens[:, :-1],  # (B, T, K)
-            actions,  # (B, T)
-        )
+            # Get predictions
+            token_logits, rewards_pred, terms_pred = self.transformer(
+                tokens[:, :-1],  # (B, T, K)
+                actions,  # (B, T)
+            )
 
-        # Token prediction loss
-        next_tokens = tokens[:, 1:]  # (B, T, K)
-        token_loss = F.cross_entropy(
-            token_logits.reshape(-1, self.config.vocab_size),
-            next_tokens.reshape(-1),
-        )
+            # Token prediction loss
+            next_tokens = tokens[:, 1:]  # (B, T, K)
+            token_loss = F.cross_entropy(
+                token_logits.reshape(-1, self.config.vocab_size),
+                next_tokens.reshape(-1),
+            )
 
-        # Reward loss (MSE)
-        reward_loss = F.mse_loss(rewards_pred, rewards)
+            # Reward loss (MSE)
+            reward_loss = F.mse_loss(rewards_pred, rewards)
 
-        # Termination loss (cross-entropy)
-        term_loss = F.cross_entropy(
-            terms_pred.reshape(-1, 2),
-            terminals.reshape(-1),
-        )
+            # Termination loss (cross-entropy)
+            term_loss = F.cross_entropy(
+                terms_pred.reshape(-1, 2),
+                terminals.reshape(-1),
+            )
 
-        # Total loss
-        loss = token_loss + 0.1 * reward_loss + 0.1 * term_loss
+            # Total loss
+            loss = token_loss + 0.1 * reward_loss + 0.1 * term_loss
 
-        # Update
-        self.transformer_opt.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(
-            self.transformer.parameters(), self.config.grad_clip_norm
-        )
-        self.transformer_opt.step()
+        # Backward
+        if scaler:
+            scaler.scale(loss).backward()
+            scaler.unscale_(self.transformer_opt)
+            nn.utils.clip_grad_norm_(
+                self.transformer.parameters(), self.config.grad_clip_norm
+            )
+            scaler.step(self.transformer_opt)
+            scaler.update()
+        else:
+            self.transformer_opt.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(
+                self.transformer.parameters(), self.config.grad_clip_norm
+            )
+            self.transformer_opt.step()
 
         return {
             "token_loss": token_loss.item(),
@@ -427,11 +468,13 @@ class IRISAgent(nn.Module):
     def update_actor_critic(
         self,
         imagined_trajectory: dict,
+        scaler=None,
     ) -> dict:
         """Update actor-critic in imagination.
 
         Args:
             imagined_trajectory: Dictionary from imagine_rollout
+            scaler: GradScaler for AMP
 
         Returns:
             losses: Dictionary of loss values
@@ -444,55 +487,71 @@ class IRISAgent(nn.Module):
 
         B, T_plus_1, C, H, W = frames.shape
 
-        # Forward pass
-        action_logits, values, _ = self.forward_actor_critic(
-            frames[:, :-1]
-        )  # (B, T, A), (B, T)
+        with torch.amp.autocast(
+            device_type="cuda", dtype=torch.float16, enabled=scaler is not None
+        ):
+            # Forward pass
+            action_logits, values, _ = self.forward_actor_critic(
+                frames[:, :-1]
+            )  # (B, T, A), (B, T)
 
-        # Compute log probabilities
-        action_dist = torch.softmax(action_logits, dim=-1)
-        action_log_probs = torch.log(action_dist + 1e-8)
+            # Compute log probabilities
+            action_dist = torch.softmax(action_logits, dim=-1)
+            action_log_probs = torch.log(action_dist + 1e-8)
 
-        # Gather log probs for taken actions
-        actions_one_hot = F.one_hot(actions, self.action_size).float()
-        taken_log_probs = (action_log_probs * actions_one_hot).sum(dim=-1)  # (B, T)
+            # Gather log probs for taken actions
+            actions_one_hot = F.one_hot(actions, self.action_size).float()
+            taken_log_probs = (action_log_probs * actions_one_hot).sum(dim=-1)  # (B, T)
 
-        # Compute λ-returns
-        discounts = torch.full_like(rewards, self.config.discount)
-        lambda_returns = compute_lambda_return(
-            rewards,
-            torch.cat([values, torch.zeros(B, 1, device=self.device)], dim=1),
-            discounts,
-            self.config.td_lambda,
-        )
+            # Compute λ-returns
+            discounts = torch.full_like(rewards, self.config.discount)
+            lambda_returns = compute_lambda_return(
+                rewards,
+                torch.cat([values, torch.zeros(B, 1, device=self.device)], dim=1),
+                discounts,
+                self.config.td_lambda,
+            )
 
-        # Advantage
-        advantages = lambda_returns - values  # (B, T)
+            # Advantage
+            advantages = lambda_returns - values  # (B, T)
 
-        # Actor loss (REINFORCE with baseline)
-        actor_loss = -(taken_log_probs * advantages.detach()).mean()
+            # Actor loss (REINFORCE with baseline)
+            actor_loss = -(taken_log_probs * advantages.detach()).mean()
 
-        # Entropy bonus
-        entropy = -(action_dist * action_log_probs).sum(dim=-1).mean()
-        actor_loss -= self.config.entropy_coef * entropy
+            # Entropy bonus
+            entropy = -(action_dist * action_log_probs).sum(dim=-1).mean()
+            actor_loss -= self.config.entropy_coef * entropy
 
-        # Critic loss
-        value_loss = F.mse_loss(values, lambda_returns.detach())
+            # Critic loss
+            value_loss = F.mse_loss(values, lambda_returns.detach())
 
-        # Total loss
-        loss = actor_loss + 0.5 * value_loss
+            # Total loss
+            loss = actor_loss + 0.5 * value_loss
 
-        # Update
-        self.ac_opt.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(
-            list(self.cnn.parameters())
-            + list(self.lstm.parameters())
-            + list(self.actor_head.parameters())
-            + list(self.critic_head.parameters()),
-            self.config.grad_clip_norm,
-        )
-        self.ac_opt.step()
+        # Backward
+        if scaler:
+            scaler.scale(loss).backward()
+            scaler.unscale_(self.ac_opt)
+            nn.utils.clip_grad_norm_(
+                list(self.cnn.parameters())
+                + list(self.lstm.parameters())
+                + list(self.actor_head.parameters())
+                + list(self.critic_head.parameters()),
+                self.config.grad_clip_norm,
+            )
+            scaler.step(self.ac_opt)
+            scaler.update()
+        else:
+            self.ac_opt.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(
+                list(self.cnn.parameters())
+                + list(self.lstm.parameters())
+                + list(self.actor_head.parameters())
+                + list(self.critic_head.parameters()),
+                self.config.grad_clip_norm,
+            )
+            self.ac_opt.step()
 
         return {
             "actor_loss": actor_loss.item(),

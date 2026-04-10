@@ -4,6 +4,15 @@ from collections import defaultdict
 import os
 from tqdm import tqdm
 import random
+import importlib.util
+
+if importlib.util.find_spec("torch.cuda") and torch.cuda.is_available():
+    import torch.cuda.amp as amp
+
+    HAS_AMP = True
+else:
+    amp = None
+    HAS_AMP = False
 
 from world_models.configs.iris_config import IRISConfig
 from world_models.models.iris_agent import IRISAgent
@@ -33,13 +42,20 @@ class IRISTrainer:
         # Config
         self.config = config if config is not None else IRISConfig()
 
+        # AMP setup
+        self.use_amp = self.config.use_amp and torch.cuda.is_available()
+        self.scaler = amp.GradScaler() if self.use_amp else None
+
         # Create environment
-        self.env = make_atari_env(
-            game,
-            obs_type="rgb",
-            frameskip=4,
-            max_episode_steps=27000,  # Standard Atari limit
-        )
+        if isinstance(game, str):
+            self.env = make_atari_env(
+                game,
+                obs_type="rgb",
+                frameskip=4,
+                max_episode_steps=27000,  # Standard Atari limit
+            )
+        else:
+            self.env = game
 
         # Get action space
         self.action_size = self.env.action_space.n
@@ -171,7 +187,7 @@ class IRISTrainer:
                     / 255.0
                 )
 
-                ae_metrics = self.agent.update_autoencoder(frames)
+                ae_metrics = self.agent.update_autoencoder(frames, self.scaler)
 
             metrics["recon_loss"] = ae_metrics.get("recon_loss", 0)
             metrics["vq_loss"] = ae_metrics.get("vq_loss", 0)
@@ -190,7 +206,7 @@ class IRISTrainer:
             terms_tensor = torch.tensor(terms, dtype=torch.long).to(self.device)
 
             tf_metrics = self.agent.update_transformer(
-                obs_tensor, acts_tensor, rews_tensor, terms_tensor
+                obs_tensor, acts_tensor, rews_tensor, terms_tensor, self.scaler
             )
 
             metrics["token_loss"] = tf_metrics.get("token_loss", 0)
@@ -220,7 +236,7 @@ class IRISTrainer:
             )
 
             # Update policy
-            ac_metrics = self.agent.update_actor_critic(imagined)
+            ac_metrics = self.agent.update_actor_critic(imagined, self.scaler)
 
             metrics["actor_loss"] = ac_metrics.get("actor_loss", 0)
             metrics["value_loss"] = ac_metrics.get("value_loss", 0)

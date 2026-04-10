@@ -1,5 +1,12 @@
 import gym
 import numpy as np
+import importlib.util
+
+# Conditional import for dm_control
+if importlib.util.find_spec("dm_control"):
+    from dm_control import suite
+else:
+    suite = None
 
 
 class DeepMindControlEnv:
@@ -11,13 +18,14 @@ class DeepMindControlEnv:
     """
 
     def __init__(self, name, seed, size=(64, 64), camera=None):
-
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
         if isinstance(domain, str):
-            from dm_control import suite
-
+            if suite is None:
+                raise ImportError(
+                    "dm_control not installed. Please install dm_control to use DeepMind Control environments."
+                )
             self._env = suite.load(domain, task, task_kwargs={"random": seed})
         else:
             assert task is None

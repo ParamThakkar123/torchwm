@@ -167,6 +167,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "Atari 2600 environments via ALE",
         "environments": ATARI_ENVS,
     },
+    "isaaclab": {
+        "label": "IsaacLab",
+        "description": "NVIDIA Isaac Lab environments",
+        "environments": [],
+    },
 }
 
 DEFAULT_MODEL_CONFIGS: dict[str, dict[str, Any]] = {
@@ -465,6 +470,7 @@ class TrainingController:
             "mujoco": "gym",
             "gym": "gym",
             "unity": "unity_mlagents",
+            "isaaclab": "isaaclab",
         }
 
         with self._lock:
@@ -919,7 +925,7 @@ class TrainingController:
         logger.info(f"Training results_dir resolved: {results_dir}")
 
         planet = Planet(
-            env=env_name,
+            env=make_env(args) if backend_key == "isaaclab" else env_name,
             bit_depth=int(model_cfg.get("bit_depth", 5)),
             memory_size=int(model_cfg.get("memory_size", 100)),
             action_repeats=int(model_cfg.get("action_repeats", 1)),
@@ -1021,7 +1027,7 @@ class TrainingController:
         self._set_progress(0, total_epochs, "epochs")
 
         trainer = IRISTrainer(
-            game=env_name,
+            game=make_env(args) if backend_key == "isaaclab" else env_name,
             device="cuda" if torch.cuda.is_available() else "cpu",
             config=config,
         )

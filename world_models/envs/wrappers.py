@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import datetime
 import uuid
+from typing import Any, Tuple, Dict, Union, Optional
 
 
 class TimeLimit:
@@ -12,15 +13,15 @@ class TimeLimit:
     the wrapper injects a default discount of `1.0` for downstream learners.
     """
 
-    def __init__(self, env, duration):
+    def __init__(self, env: Any, duration: int) -> None:
         self._env = env
         self._duration = duration
-        self._step = None
+        self._step: Optional[int] = None
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._env, name)
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[Any, float, bool, Dict[str, Any]]:
         assert self._step is not None, "Must reset environment."
         obs, reward, done, info = self._env.step(action)
         self._step += 1
@@ -31,7 +32,7 @@ class TimeLimit:
             self._step = None
         return obs, reward, done, info
 
-    def reset(self):
+    def reset(self) -> Any:
         self._step = 0
         return self._env.reset()
 
@@ -43,21 +44,27 @@ class ActionRepeat:
     terminates, mirroring common action-repeat behavior in world model papers.
     """
 
-    def __init__(self, env, amount):
+    def __init__(self, env: Any, amount: int) -> None:
         self._env = env
         self._amount = amount
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._env, name)
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[Any, float, bool, Dict[str, Any]]:
+        if self._amount <= 0:
+            raise ValueError("Action repeat amount must be positive")
         done = False
-        total_reward = 0
+        total_reward = 0.0
         current_step = 0
+        obs = None
+        info = {}
         while current_step < self._amount and not done:
             obs, reward, done, info = self._env.step(action)
             total_reward += reward
             current_step += 1
+        if obs is None:
+            raise RuntimeError("Environment did not return observation in step")
         return obs, total_reward, done, info
 
 
@@ -211,9 +218,8 @@ class ResizeImage:
             for k, v in env.obs_space.items()
             if len(v.shape) > 1 and v.shape[:2] != size
         ]
-        print(f'Resizing keys {",".join(self._keys)} to {self._size}.')
+        print(f"Resizing keys {','.join(self._keys)} to {self._size}.")
         if self._keys:
-
             self._Image = Image
 
     def __getattr__(self, name):

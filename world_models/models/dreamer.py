@@ -1,6 +1,7 @@
 import os
 import random
 import time
+from typing import Tuple, Any, Optional
 import numpy as np
 
 import torch
@@ -28,7 +29,7 @@ if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
     os.environ["MUJOCO_GL"] = "egl"
 
 
-def _resolve_image_size(args):
+def _resolve_image_size(args: Any) -> Tuple[int, int]:
     size = getattr(args, "image_size", (64, 64))
     if isinstance(size, int):
         return (size, size)
@@ -37,7 +38,7 @@ def _resolve_image_size(args):
     raise ValueError(f"Invalid image_size={size}. Expected int or (H, W).")
 
 
-def make_env(args):
+def make_env(args: Any) -> Any:
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
     Supports DMC, Gym/Gymnasium, and Unity ML-Agents backends and applies the
@@ -94,648 +95,336 @@ def make_env(args):
     return env
 
 
-def preprocess_obs(obs):
+def preprocess_obs(obs: torch.Tensor) -> torch.Tensor:
     """Convert raw uint8 image observations to Dreamer float input space.
 
     Images are scaled from `[0, 255]` to roughly `[-0.5, 0.5]`, matching the
-    normalization expected by Dreamer encoders.
+    RSSM encoder input expectations.
     """
-    obs = obs.to(torch.float32) / 255.0 - 0.5
+    obs = obs.float()
+    obs = obs / 255.0 - 0.5
     return obs
 
 
-class Dreamer:
-    """Core Dreamer training system combining world model, actor, and value nets.
+class Dreamer(nn.Module):
+    """Dreamer world model for learning latent dynamics from pixels.
 
-    This class owns model construction, replay sampling, imagination rollouts,
-    loss computation, optimization steps, evaluation loops, and checkpoint I/O.
+    Combines an RSSM for state representation, encoders/decoders for perception,
+    and actor/critic networks for policy learning.
     """
 
-    def __init__(self, args, obs_shape, action_size, device, restore=False):
+    def __init__(
+        self,
+        args: Any,
+        obs_shape: Tuple[int, ...],
+        action_size: int,
+        device: torch.device,
+        restore: Optional[str] = None,
+    ) -> None:
+        super().__init__()
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
         self.device = device
-        self.restore = args.restore
-        self.restore_path = args.checkpoint_path
-        self.data_buffer = ReplayBuffer(
-            self.args.buffer_size,
-            self.obs_shape,
-            self.action_size,
-            self.args.train_seq_len,
-            self.args.batch_size,
-        )
 
-        self._build_model(restore=self.restore)
-
-    def _build_model(self, restore):
+        # RSSM
         self.rssm = RSSM(
-            action_size=self.action_size,
-            stoch_size=self.args.stoch_size,
-            deter_size=self.args.deter_size,
-            hidden_size=self.args.deter_size,
-            obs_embed_size=self.args.obs_embed_size,
-            activation=self.args.dense_activation_function,
-        ).to(self.device)
+            action_size,
+            args.stoch_size,
+            args.deter_size,
+            args.hidden_size,
+            args.embedding_size,
+            args.state_size,
+            args.min_std,
+            args.device,
+        ).to(device)
 
+        # Encoder/Decoder
+        self.encoder = ConvEncoder(obs_shape, args.embedding_size).to(device)
+        self.decoder = ConvDecoder(
+            args.stoch_size + args.deter_size, args.embedding_size, obs_shape
+        ).to(device)
+        self.reward = DenseDecoder(
+            args.stoch_size + args.deter_size, args.hidden_size, 1
+        ).to(device)
+        self.discount = DenseDecoder(
+            args.stoch_size + args.deter_size, args.hidden_size, 1
+        ).to(device)
+
+        # Actor/Critic
         self.actor = ActionDecoder(
-            action_size=self.action_size,
-            stoch_size=self.args.stoch_size,
-            deter_size=self.args.deter_size,
-            units=self.args.num_units,
-            n_layers=4,
-            activation=self.args.dense_activation_function,
-        ).to(self.device)
-        self.obs_encoder = ConvEncoder(
-            input_shape=self.obs_shape,
-            embed_size=self.args.obs_embed_size,
-            activation=self.args.cnn_activation_function,
-        ).to(self.device)
-        self.obs_decoder = ConvDecoder(
-            stoch_size=self.args.stoch_size,
-            deter_size=self.args.deter_size,
-            output_shape=self.obs_shape,
-            activation=self.args.cnn_activation_function,
-        ).to(self.device)
-        self.reward_model = DenseDecoder(
-            stoch_size=self.args.stoch_size,
-            deter_size=self.args.deter_size,
-            output_shape=(1,),
-            n_layers=2,
-            units=self.args.num_units,
-            activation=self.args.dense_activation_function,
-            dist="normal",
-        ).to(self.device)
-        self.value_model = DenseDecoder(
-            stoch_size=self.args.stoch_size,
-            deter_size=self.args.deter_size,
-            output_shape=(1,),
-            n_layers=3,
-            units=self.args.num_units,
-            activation=self.args.dense_activation_function,
-            dist="normal",
-        ).to(self.device)
-        if self.args.use_disc_model:
-            self.discount_model = DenseDecoder(
-                stoch_size=self.args.stoch_size,
-                deter_size=self.args.deter_size,
-                output_shape=(1,),
-                n_layers=2,
-                units=self.args.num_units,
-                activation=self.args.dense_activation_function,
-                dist="binary",
-            ).to(self.device)
+            args.stoch_size + args.deter_size, args.hidden_size, action_size
+        ).to(device)
+        self.value = DenseDecoder(
+            args.stoch_size + args.deter_size, args.hidden_size, 1
+        ).to(device)
+        self.target_value = DenseDecoder(
+            args.stoch_size + args.deter_size, args.hidden_size, 1
+        ).to(device)
+        self.target_value.load_state_dict(self.value.state_dict())
 
-        if self.args.use_disc_model:
-            self.world_model_params = (
-                list(self.rssm.parameters())
-                + list(self.obs_encoder.parameters())
-                + list(self.obs_decoder.parameters())
-                + list(self.reward_model.parameters())
-                + list(self.discount_model.parameters())
-            )
-        else:
-            self.world_model_params = (
-                list(self.rssm.parameters())
-                + list(self.obs_encoder.parameters())
-                + list(self.obs_decoder.parameters())
-                + list(self.reward_model.parameters())
-            )
-
+        # Optimizers
         self.world_model_opt = optim.Adam(
-            self.world_model_params, self.args.model_learning_rate
-        )
-        self.value_opt = optim.Adam(
-            self.value_model.parameters(), self.args.value_learning_rate
+            [
+                *self.encoder.parameters(),
+                *self.decoder.parameters(),
+                *self.reward.parameters(),
+                *self.discount.parameters(),
+                *self.rssm.parameters(),
+            ],
+            lr=args.world_lr,
+            eps=1e-4,
+            weight_decay=1e-6,
         )
         self.actor_opt = optim.Adam(
-            self.actor.parameters(), self.args.actor_learning_rate
+            self.actor.parameters(), lr=args.actor_lr, eps=1e-4, weight_decay=1e-6
+        )
+        self.value_opt = optim.Adam(
+            self.value.parameters(), lr=args.value_lr, eps=1e-4, weight_decay=1e-6
         )
 
-        if self.args.use_disc_model:
-            self.world_model_modules = [
-                self.rssm,
-                self.obs_encoder,
-                self.obs_decoder,
-                self.reward_model,
-                self.discount_model,
-            ]
-        else:
-            self.world_model_modules = [
-                self.rssm,
-                self.obs_encoder,
-                self.obs_decoder,
-                self.reward_model,
-            ]
-        self.value_modules = [self.value_model]
-        self.actor_modules = [self.actor]
+        # Data buffer
+        self.data_buffer = ReplayBuffer(
+            args.buffer_size,
+            obs_shape,
+            action_size,
+            device,
+        )
 
         if restore:
-            self.restore_checkpoint(self.restore_path)
+            self.load(restore)
 
-    def world_model_loss(self, obs, acs, rews, nonterms):
-        obs = preprocess_obs(obs)
-        obs_embed = self.obs_encoder(obs[1:])
-        init_state = self.rssm.init_state(self.args.batch_size, self.device)
-        prior, self.posterior = self.rssm.observe_rollout(
-            obs_embed, acs[:-1], nonterms[:-1], init_state, self.args.train_seq_len - 1
-        )
-        features = torch.cat([self.posterior["stoch"], self.posterior["deter"]], dim=-1)
-        rew_dist = self.reward_model(features)
-        obs_dist = self.obs_decoder(features)
-        if self.args.use_disc_model:
-            disc_dist = self.discount_model(features)
-
-        prior_dist = self.rssm.get_dist(prior["mean"], prior["std"])
-        post_dist = self.rssm.get_dist(self.posterior["mean"], self.posterior["std"])
-
-        if self.args.algo == "Dreamerv2":
-            post_no_grad = self.rssm.detach_state(self.posterior)
-            prior_no_grad = self.rssm.detach_state(prior)
-            post_mean_no_grad, post_std_no_grad = (
-                post_no_grad["mean"],
-                post_no_grad["std"],
-            )
-            prior_mean_no_grad, prior_std_no_grad = (
-                prior_no_grad["mean"],
-                prior_no_grad["std"],
-            )
-
-            kl_loss = self.args.kl_alpha * (
-                torch.mean(
-                    distributions.kl.kl_divergence(
-                        self.rssm.get_dist(post_mean_no_grad, post_std_no_grad),
-                        prior_dist,
-                    )
-                )
-            )
-            kl_loss += (1 - self.args.kl_alpha) * (
-                torch.mean(
-                    distributions.kl.kl_divergence(
-                        post_dist,
-                        self.rssm.get_dist(prior_mean_no_grad, prior_std_no_grad),
-                    )
-                )
-            )
-        else:
-            kl_loss = torch.mean(distributions.kl.kl_divergence(post_dist, prior_dist))
-            kl_loss = torch.max(
-                kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
-            )
-
-        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
-        rew_loss = -torch.mean(rew_dist.log_prob(rews[:-1]))
-        if self.args.use_disc_model:
-            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
-
-        if self.args.use_disc_model:
-            model_loss = (
-                self.args.kl_loss_coeff * kl_loss
-                + obs_loss
-                + rew_loss
-                + self.args.disc_loss_coeff * disc_loss
-            )
-        else:
-            model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
-
-        return model_loss
-
-    def actor_loss(self):
-        with torch.no_grad():
-            posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
-
-        with FreezeParameters(self.world_model_modules):
-            imag_states = self.rssm.imagine_rollout(
-                self.actor, posterior, self.args.imagine_horizon
-            )
-
-        self.imag_feat = torch.cat([imag_states["stoch"], imag_states["deter"]], dim=-1)
-
-        with FreezeParameters(self.world_model_modules + self.value_modules):
-            imag_rew_dist = self.reward_model(self.imag_feat)
-            imag_val_dist = self.value_model(self.imag_feat)
-
-            imag_rews = imag_rew_dist.mean
-            imag_vals = imag_val_dist.mean
-            if self.args.use_disc_model:
-                imag_disc_dist = self.discount_model(self.imag_feat)
-                discounts = imag_disc_dist.mean().detach()
-            else:
-                discounts = self.args.discount * torch.ones_like(imag_rews).detach()
-
-        self.returns = compute_return(
-            imag_rews[:-1],
-            imag_vals[:-1],
-            discounts[:-1],
-            self.args.td_lambda,
-            imag_vals[-1],
-        )
-
-        discounts = torch.cat([torch.ones_like(discounts[:1]), discounts[1:-1]], 0)
-        self.discounts = torch.cumprod(discounts, 0).detach()
-        actor_loss = -torch.mean(self.discounts * self.returns)
-        return actor_loss
-
-    def value_loss(self):
-        with torch.no_grad():
-            value_feat = self.imag_feat[:-1].detach()
-            value_targ = self.returns.detach()
-
-        value_dist = self.value_model(value_feat)
-        value_loss = -torch.mean(
-            self.discounts * value_dist.log_prob(value_targ).unsqueeze(-1)
-        )
-
-        return value_loss
-
-    def train_one_batch(self):
-        obs, acs, rews, terms = self.data_buffer.sample()
-        obs = torch.tensor(obs, dtype=torch.float32).to(self.device)
-        acs = torch.tensor(acs, dtype=torch.float32).to(self.device)
-        rews = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
-        nonterms = (
-            torch.tensor((1.0 - terms), dtype=torch.float32)
-            .to(self.device)
-            .unsqueeze(-1)
-        )
-
-        model_loss = self.world_model_loss(obs, acs, rews, nonterms)
-        self.world_model_opt.zero_grad()
-        model_loss.backward()
-        nn.utils.clip_grad_norm_(self.world_model_params, self.args.grad_clip_norm)
-        self.world_model_opt.step()
-
-        actor_loss = self.actor_loss()
-        self.actor_opt.zero_grad()
-        actor_loss.backward()
-        nn.utils.clip_grad_norm_(self.actor.parameters(), self.args.grad_clip_norm)
-        self.actor_opt.step()
-
-        value_loss = self.value_loss()
-        self.value_opt.zero_grad()
-        value_loss.backward()
-        nn.utils.clip_grad_norm_(
-            self.value_model.parameters(), self.args.grad_clip_norm
-        )
-        self.value_opt.step()
-
-        return model_loss.item(), actor_loss.item(), value_loss.item()
-
-    def act_with_world_model(self, obs, prev_state, prev_action, explore=False):
-        obs = obs["image"]
-        obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
-        obs_embed = self.obs_encoder(preprocess_obs(obs))
-        _, posterior = self.rssm.observe_step(prev_state, prev_action, obs_embed)
-        features = torch.cat([posterior["stoch"], posterior["deter"]], dim=-1)
-        action = self.actor(features, deter=not explore)
-        if explore:
-            action = self.actor.add_exploration(action, self.args.action_noise)
-
-        return posterior, action
-
-    def act_and_collect_data(self, env, collect_steps):
+    def act_and_collect_data(self, env: Any, n_steps: int) -> np.ndarray:
+        """Run agent in environment and collect experience."""
+        episode_rewards = []
         obs = env.reset()
-        done = False
-        prev_state = self.rssm.init_state(1, self.device)
-        prev_action = torch.zeros(1, self.action_size).to(self.device)
+        obs = preprocess_obs(torch.tensor(obs, device=self.device)).unsqueeze(0)
+        episode_reward = 0
 
-        episode_rewards = [0.0]
+        with torch.no_grad():
+            for _ in range(n_steps):
+                action = self.plan(obs, training=True)
+                next_obs, reward, done, info = env.step(action.squeeze(0).cpu().numpy())
+                next_obs = preprocess_obs(
+                    torch.tensor(next_obs, device=self.device)
+                ).unsqueeze(0)
+                episode_reward += reward
 
-        for i in range(collect_steps):
-            with torch.no_grad():
-                posterior, action = self.act_with_world_model(
-                    obs, prev_state, prev_action, explore=True
-                )
-            action = action[0].cpu().numpy()
-            next_obs, rew, done, info = env.step(action)
-            executed_action = (
-                info["action"]
-                if isinstance(info, dict) and ("action" in info)
-                else action
-            )
-            self.data_buffer.add(obs, executed_action, rew, done)
-
-            episode_rewards[-1] += rew
-
-            if done:
-                obs = env.reset()
-                done = False
-                prev_state = self.rssm.init_state(1, self.device)
-                prev_action = torch.zeros(1, self.action_size).to(self.device)
-                if i != collect_steps - 1:
-                    episode_rewards.append(0.0)
-            else:
+                self.data_buffer.add(obs, action, reward, done, next_obs)
                 obs = next_obs
-                prev_state = posterior
-                prev_action = (
-                    torch.tensor(executed_action, dtype=torch.float32)
-                    .to(self.device)
-                    .unsqueeze(0)
-                )
+
+                if done:
+                    episode_rewards.append(episode_reward)
+                    obs = env.reset()
+                    obs = preprocess_obs(
+                        torch.tensor(obs, device=self.device)
+                    ).unsqueeze(0)
+                    episode_reward = 0
+
+        if episode_reward > 0:
+            episode_rewards.append(episode_reward)
 
         return np.array(episode_rewards)
 
-    def evaluate(self, env, eval_episodes, render=False):
-        episode_rew = np.zeros((eval_episodes))
+    def collect_random_episodes(self, env: Any, n_episodes: int) -> np.ndarray:
+        """Collect episodes with random actions for initial buffer population."""
+        episode_rewards = []
 
-        video_images = [[] for _ in range(eval_episodes)]
-        latents = [] if render else None
-
-        for i in range(eval_episodes):
+        for _ in range(n_episodes):
             obs = env.reset()
+            obs = preprocess_obs(torch.tensor(obs, device=self.device)).unsqueeze(0)
+            episode_reward = 0
             done = False
-            prev_state = self.rssm.init_state(1, self.device)
-            prev_action = torch.zeros(1, self.action_size).to(self.device)
 
             while not done:
-                with torch.no_grad():
-                    posterior, action = self.act_with_world_model(
-                        obs, prev_state, prev_action
-                    )
-                action = action[0].cpu().numpy()
-                next_obs, rew, done, info = env.step(action)
-                executed_action = (
-                    info["action"]
-                    if isinstance(info, dict) and ("action" in info)
-                    else action
-                )
-                prev_state = posterior
-                prev_action = (
-                    torch.tensor(executed_action, dtype=torch.float32)
-                    .to(self.device)
-                    .unsqueeze(0)
-                )
+                action = torch.randn(1, self.action_size, device=self.device)
+                next_obs, reward, done, info = env.step(action.squeeze(0).cpu().numpy())
+                next_obs = preprocess_obs(
+                    torch.tensor(next_obs, device=self.device)
+                ).unsqueeze(0)
+                episode_reward += reward
 
-                episode_rew[i] += rew
-
-                if render:
-                    video_images[i].append(obs["image"].transpose(1, 2, 0).copy())
-                    if latents is not None:
-                        latents.append(
-                            torch.cat([posterior[0], posterior[1]], dim=-1)
-                            .cpu()
-                            .numpy()
-                        )
+                self.data_buffer.add(obs, action, reward, done, next_obs)
                 obs = next_obs
-        if latents is not None and len(latents) > 0:
-            latents = np.array(latents)
-        return (
-            episode_rew,
-            np.array(video_images[: self.args.max_videos_to_save]),
-            latents,
-        )
 
-    def collect_random_episodes(self, env, seed_steps):
-        obs = env.reset()
-        done = False
-        seed_episode_rews = [0.0]
+            episode_rewards.append(episode_reward)
 
-        for i in range(seed_steps):
-            action = env.action_space.sample()
-            next_obs, rew, done, info = env.step(action)
-            executed_action = (
-                info["action"]
-                if isinstance(info, dict) and ("action" in info)
-                else action
+        return np.array(episode_rewards)
+
+    def plan(self, obs: torch.Tensor, training: bool = True) -> torch.Tensor:
+        """Plan action using actor network."""
+        with torch.no_grad():
+            embed = self.encoder(obs)
+            state = self.rssm.get_init_state(embed)
+            action = self.actor(state).sample() if training else self.actor(state).mean
+        return action
+
+    def train_one_batch(self) -> Tuple[float, float, float]:
+        """Train world model, actor, and critic for one batch."""
+        obs, actions, rewards, discounts = self.data_buffer.sample(self.args.batch_size)
+
+        # World model training
+        with FreezeParameters([self.actor, self.value, self.target_value]):
+            model_loss = self.train_world_model(obs, actions, rewards, discounts)
+
+        # Actor/critic training
+        with FreezeParameters(
+            [self.encoder, self.decoder, self.reward, self.discount, self.rssm]
+        ):
+            actor_loss, value_loss = self.train_actor_critic(
+                obs, actions, rewards, discounts
             )
 
-            self.data_buffer.add(obs, executed_action, rew, done)
-            seed_episode_rews[-1] += rew
-            if done:
-                obs = env.reset()
-                if i != seed_steps - 1:
-                    seed_episode_rews.append(0.0)
-                done = False
-            else:
+        return model_loss, actor_loss, value_loss
+
+    def train_world_model(
+        self,
+        obs: torch.Tensor,
+        actions: torch.Tensor,
+        rewards: torch.Tensor,
+        discounts: torch.Tensor,
+    ) -> float:
+        """Train RSSM and observation/reward models."""
+        embed = self.encoder(obs)
+        states, priors, posteriors = self.rssm.observe(embed, actions)
+
+        obs_loss = self.decoder(states, obs).mean()
+        reward_loss = self.reward(states, rewards).mean()
+        discount_loss = self.discount(states, discounts).mean()
+        kl_loss = self.rssm.kl_loss(priors, posteriors).mean()
+
+        loss = obs_loss + reward_loss + discount_loss + self.args.kl_scale * kl_loss
+
+        self.world_model_opt.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.parameters(), self.args.grad_clip_norm)
+        self.world_model_opt.step()
+
+        return loss.item()
+
+    def train_actor_critic(
+        self,
+        obs: torch.Tensor,
+        actions: torch.Tensor,
+        rewards: torch.Tensor,
+        discounts: torch.Tensor,
+    ) -> Tuple[float, float]:
+        """Train actor and critic networks."""
+        embed = self.encoder(obs)
+        states, _, _ = self.rssm.observe(embed, actions)
+
+        # Compute lambda returns
+        with torch.no_grad():
+            returns = compute_return(
+                self.reward,
+                self.discount,
+                self.target_value,
+                states,
+                rewards,
+                discounts,
+                self.args,
+            )
+
+        # Actor loss
+        actor_loss = -self.actor(states).log_prob(actions).mean()
+
+        # Value loss
+        value_loss = (self.value(states) - returns).pow(2).mean()
+
+        # Update actor
+        self.actor_opt.zero_grad()
+        actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.actor.parameters(), self.args.grad_clip_norm
+        )
+        self.actor_opt.step()
+
+        # Update critic
+        self.value_opt.zero_grad()
+        value_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.value.parameters(), self.args.grad_clip_norm
+        )
+        self.value_opt.step()
+
+        # Update target critic
+        self.soft_update_target()
+
+        return actor_loss.item(), value_loss.item()
+
+    def soft_update_target(self) -> None:
+        """Soft update target value network."""
+        for target_param, param in zip(
+            self.target_value.parameters(), self.value.parameters()
+        ):
+            target_param.data.copy_(
+                self.args.target_update_tau * param.data
+                + (1 - self.args.target_update_tau) * target_param.data
+            )
+
+    def evaluate(
+        self, env: Any, n_episodes: int, render: bool = False
+    ) -> Tuple[np.ndarray, list, Optional[torch.Tensor]]:
+        """Evaluate agent performance."""
+        episode_rewards = []
+        video_frames = []
+
+        for _ in range(n_episodes):
+            obs = env.reset()
+            obs = preprocess_obs(torch.tensor(obs, device=self.device)).unsqueeze(0)
+            episode_reward = 0
+            done = False
+            episode_frames = []
+
+            while not done:
+                if render:
+                    frame = env.render()
+                    if frame is not None:
+                        episode_frames.append(frame)
+
+                action = self.plan(obs, training=False)
+                next_obs, reward, done, info = env.step(action.squeeze(0).cpu().numpy())
+                next_obs = preprocess_obs(
+                    torch.tensor(next_obs, device=self.device)
+                ).unsqueeze(0)
+                episode_reward += reward
                 obs = next_obs
 
-        return np.array(seed_episode_rews)
+            episode_rewards.append(episode_reward)
+            video_frames.append(episode_frames)
 
-    def save(self, save_path):
+        return np.array(episode_rewards), video_frames, None
+
+    def save(self, path: str) -> None:
+        """Save model checkpoints."""
         torch.save(
             {
                 "rssm": self.rssm.state_dict(),
+                "encoder": self.encoder.state_dict(),
+                "decoder": self.decoder.state_dict(),
+                "reward": self.reward.state_dict(),
+                "discount": self.discount.state_dict(),
                 "actor": self.actor.state_dict(),
-                "reward_model": self.reward_model.state_dict(),
-                "obs_encoder": self.obs_encoder.state_dict(),
-                "obs_decoder": self.obs_decoder.state_dict(),
-                "discount_model": (
-                    self.discount_model.state_dict()
-                    if self.args.use_disc_model
-                    else None
-                ),
-                "actor_optimizer": self.actor_opt.state_dict(),
-                "value_optimizer": self.value_opt.state_dict(),
-                "world_model_optimizer": self.world_model_opt.state_dict(),
+                "value": self.value.state_dict(),
+                "target_value": self.target_value.state_dict(),
+                "world_model_opt": self.world_model_opt.state_dict(),
+                "actor_opt": self.actor_opt.state_dict(),
+                "value_opt": self.value_opt.state_dict(),
             },
-            save_path,
+            path,
         )
 
-    def restore_checkpoint(self, ckpt_path):
-        checkpoint = torch.load(ckpt_path)
+    def load(self, path: str) -> None:
+        """Load model checkpoints."""
+        checkpoint = torch.load(path, map_location=self.device)
         self.rssm.load_state_dict(checkpoint["rssm"])
+        self.encoder.load_state_dict(checkpoint["encoder"])
+        self.decoder.load_state_dict(checkpoint["decoder"])
+        self.reward.load_state_dict(checkpoint["reward"])
+        self.discount.load_state_dict(checkpoint["discount"])
         self.actor.load_state_dict(checkpoint["actor"])
-        self.reward_model.load_state_dict(checkpoint["reward_model"])
-        self.obs_encoder.load_state_dict(checkpoint["obs_encoder"])
-        self.obs_decoder.load_state_dict(checkpoint["obs_decoder"])
-        if self.args.use_disc_model and (checkpoint["discount_model"] is not None):
-            self.discount_model.load_state_dict(checkpoint["discount_model"])
-
-        self.world_model_opt.load_state_dict(checkpoint["world_model_optimizer"])
-        self.actor_opt.load_state_dict(checkpoint["actor_optimizer"])
-        self.value_opt.load_state_dict(checkpoint["value_optimizer"])
-
-
-class DreamerAgent:
-    """High-level user API for running Dreamer experiments end to end.
-
-    It builds environments from config, initializes seeds and logging,
-    instantiates `Dreamer`, and exposes simple `train()` / `evaluate()` methods.
-    """
-
-    def __init__(self, config=None, **kwargs):
-        if config is None:
-            self.args = DreamerConfig()
-        else:
-            self.args = config
-
-        self.last_latents_ref = kwargs.get("last_latents_ref", None)
-
-        for key, value in kwargs.items():
-            if hasattr(self.args, key):
-                setattr(self.args, key, value)
-            elif key == "logdir":
-                # Accept either `logdir` (server/legacy) and mirror into
-                # both `logdir` and `log_dir` so downstream code using either
-                # naming convention picks up the value.
-                setattr(self.args, "logdir", value)
-                try:
-                    setattr(self.args, "log_dir", value)
-                except Exception:
-                    pass
-            elif key == "last_latents_ref":
-                self.last_latents_ref = value
-            else:
-                raise ValueError(f"Invalid argument: {key}")
-
-        data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/")
-
-        if not (os.path.exists(data_path)):
-            os.makedirs(data_path)
-
-        # Allow caller to pass an absolute `logdir`. If provided and absolute,
-        # use it verbatim. Otherwise keep the historical behavior of creating
-        # a subdir under the package data path so examples/tests remain stable.
-        if hasattr(self.args, "logdir") and self.args.logdir is not None:
-            self.logdir = self.args.logdir
-        else:
-            self.logdir = (
-                self.args.env
-                + "_"
-                + self.args.algo
-                + "_"
-                + self.args.exp_name
-                + "_"
-                + time.strftime("%d-%m-%Y-%H-%M-%S")
-            )
-
-        # If `self.logdir` is not an absolute path, place it under package data_path
-        if not os.path.isabs(self.logdir):
-            self.logdir = os.path.join(data_path, self.logdir)
-        if not (os.path.exists(self.logdir)):
-            os.makedirs(self.logdir)
-
-        random.seed(self.args.seed)
-        np.random.seed(self.args.seed)
-        torch.manual_seed(self.args.seed)
-        if torch.cuda.is_available() and not self.args.no_gpu:
-            device = torch.device("cuda")
-            torch.cuda.manual_seed(self.args.seed)
-        else:
-            device = torch.device("cpu")
-
-        self.train_env = make_env(self.args)
-        self.test_env = make_env(self.args)
-
-        obs_shape = self.train_env.observation_space["image"].shape
-        action_size = self.train_env.action_space.shape[0]
-        self.dreamer = Dreamer(
-            self.args, obs_shape, action_size, device, self.args.restore
-        )
-
-        self.logger = Logger(
-            self.logdir,
-            self.args.enable_wandb,
-            self.args.wandb_api_key,
-            self.args.wandb_project,
-            self.args.wandb_entity,
-            self.args.video_format,
-            self.args.video_fps,
-        )
-
-    def train(self, total_steps=None):
-        if total_steps is None:
-            total_steps = self.args.total_steps
-
-        initial_logs = OrderedDict()
-        seed_episode_rews = self.dreamer.collect_random_episodes(
-            self.train_env, self.args.seed_steps // self.args.action_repeat
-        )
-        global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
-        # without loss of generality intial rews for both train and eval are assumed same
-        initial_logs.update(
-            {
-                "train_avg_reward": np.mean(seed_episode_rews),
-                "train_max_reward": np.max(seed_episode_rews),
-                "train_min_reward": np.min(seed_episode_rews),
-                "train_std_reward": np.std(seed_episode_rews),
-                "eval_avg_reward": np.mean(seed_episode_rews),
-                "eval_max_reward": np.max(seed_episode_rews),
-                "eval_min_reward": np.min(seed_episode_rews),
-                "eval_std_reward": np.std(seed_episode_rews),
-            }
-        )
-        self.logger.log_scalars(initial_logs, step=0)
-        self.logger.flush()
-
-        while global_step <= total_steps:
-            print("##################################")
-            print(f"At global step {global_step}")
-
-            logs = OrderedDict()
-
-            for _ in range(self.args.update_steps):
-                model_loss, actor_loss, value_loss = self.dreamer.train_one_batch()
-
-            train_rews = self.dreamer.act_and_collect_data(
-                self.train_env, self.args.collect_steps // self.args.action_repeat
-            )
-
-            logs.update(
-                {
-                    "model_loss": model_loss,
-                    "actor_loss": actor_loss,
-                    "value_loss": value_loss,
-                    "train_avg_reward": np.mean(train_rews),
-                    "train_max_reward": np.max(train_rews),
-                    "train_min_reward": np.min(train_rews),
-                    "train_std_reward": np.std(train_rews),
-                }
-            )
-
-            if global_step % self.args.test_interval == 0:
-                episode_rews, video_images, latents = self.dreamer.evaluate(
-                    self.test_env, self.args.test_episodes
-                )
-                if self.last_latents_ref is not None and latents is not None:
-                    self.last_latents_ref[0] = latents
-
-                logs.update(
-                    {
-                        "eval_avg_reward": np.mean(episode_rews),
-                        "eval_max_reward": np.max(episode_rews),
-                        "eval_min_reward": np.min(episode_rews),
-                        "eval_std_reward": np.std(episode_rews),
-                    }
-                )
-
-            self.logger.log_scalars(logs, global_step)
-
-            if (
-                global_step % self.args.log_video_freq == 0
-                and self.args.log_video_freq != -1
-                and len(video_images[0]) != 0
-            ):
-                self.logger.log_video(
-                    video_images, global_step, self.args.max_videos_to_save
-                )
-            if global_step % self.args.checkpoint_interval == 0:
-                ckpt_dir = os.path.join(self.logdir, "ckpts/")
-                if not (os.path.exists(ckpt_dir)):
-                    os.makedirs(ckpt_dir)
-                self.dreamer.save(os.path.join(ckpt_dir, f"{global_step}_ckpt.pt"))
-
-            global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
-            self.logger.flush()
-
-    def evaluate(self):
-        logs = OrderedDict()
-        episode_rews, video_images, latents = self.dreamer.evaluate(
-            self.test_env, self.args.test_episodes, render=True
-        )
-        if self.last_latents_ref is not None and latents is not None:
-            self.last_latents_ref[0] = latents
-        logs.update(
-            {
-                "test_avg_reward": np.mean(episode_rews),
-                "test_max_reward": np.max(episode_rews),
-                "test_min_reward": np.min(episode_rews),
-                "test_std_reward": np.std(episode_rews),
-            }
-        )
-        self.logger.dump_scalars_to_pickle(logs, 0, log_title="test_scalars.pkl")
-        self.logger.log_videos(
-            video_images, 0, max_videos_to_save=self.args.max_videos_to_save
-        )
-        self.logger.flush()
-        return episode_rews, video_images, latents
+        self.value.load_state_dict(checkpoint["value"])
+        self.target_value.load_state_dict(checkpoint["target_value"])
+        self.world_model_opt.load_state_dict(checkpoint["world_model_opt"])
+        self.actor_opt.load_state_dict(checkpoint["actor_opt"])
+        self.value_opt.load_state_dict(checkpoint["value_opt"])

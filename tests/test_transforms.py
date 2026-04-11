@@ -10,7 +10,8 @@ class TestMakeTransforms:
     def test_make_transforms_default(self):
         transform = make_transforms()
         assert transform is not None
-        assert isinstance(transform, torch.nn.Module)
+        # torchvision Compose is not a torch.nn.Module
+        assert hasattr(transform, "transforms")
 
     def test_make_transforms_with_options(self):
         transform = make_transforms(

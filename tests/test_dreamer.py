@@ -10,7 +10,7 @@ class TestDreamerAgent:
     @pytest.fixture
     def config(self):
         config = DreamerConfig()
-        config.env = "cartpole_balance"
+        config.env = "cartpole-balance"
         config.seed = 42
         config.total_steps = 1000
         config.seed_steps = 1

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from unittest.mock import Mock, patch
-from world_models.models.dreamer import DreamerAgent
+from world_models.models.dreamer_agent import DreamerAgent
 from world_models.models.dreamer_rssm import RSSM
 from world_models.configs.dreamer_config import DreamerConfig
 

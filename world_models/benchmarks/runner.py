@@ -82,6 +82,8 @@ class BenchmarkRunner:
 
         # Compute aggregate metrics across seeds
         aggregate = metrics.compute_aggregate_metrics(per_seed_returns)
+        # include raw per-seed means so reporters can compute bootstrap CIs
+        aggregate["per_seed_means"] = list(per_seed_returns)
         all_results["aggregate"] = aggregate
 
         # Save results

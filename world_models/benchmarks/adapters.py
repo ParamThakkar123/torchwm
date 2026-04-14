@@ -8,6 +8,8 @@ from world_models.configs.diamond_config import DiamondConfig
 from world_models.configs.iris_config import IRISConfig
 from world_models.training.train_diamond import DiamondAgent
 from world_models.training.train_iris import IRISTrainer
+from world_models.configs.dreamer_config import DreamerConfig
+from world_models.models.dreamer import DreamerAgent
 
 
 class BaseAdapter:
@@ -133,3 +135,90 @@ class IRISAdapter(BaseAdapter):
                     ]
                 }
             return {"episode_returns": []}
+
+
+class DreamerAdapter(BaseAdapter):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+        super().__init__(env_spec, seed)
+        # env_spec can be dict or string. DreamerConfig expects env_backend and env.
+        if isinstance(env_spec, dict):
+            game = env_spec.get("game")
+            env_backend = env_spec.get("env_backend", None)
+        elif isinstance(env_spec, str):
+            game = env_spec
+            env_backend = None
+        else:
+            game = getattr(env_spec, "game", None)
+            env_backend = getattr(env_spec, "env_backend", None)
+
+        algo = kwargs.get("algo", "dreamerv1")
+        device = kwargs.get("device", "cpu")
+        config = kwargs.get("config", None)
+        if config is None:
+            cfg = DreamerConfig()
+        else:
+            cfg = config
+
+        # If a gym-style game string was provided, set backend accordingly
+        if game:
+            cfg.env = game
+            # If the game looks like an Atari id, prefer gym backend
+            if isinstance(game, str) and (
+                "ALE/" in game or "-v" in game or "-v5" in game
+            ):
+                cfg.env_backend = "gym"
+        if env_backend:
+            cfg.env_backend = env_backend
+
+        cfg.algo = (
+            "Dreamerv1"
+            if algo.lower().startswith("dreamer") and "v2" not in algo.lower()
+            else "Dreamerv2"
+        )
+        cfg.seed = seed
+
+        # Construct DreamerAgent (it will build envs internally)
+        self.agent = DreamerAgent(config=cfg)
+
+    def load_checkpoint(self, path: str):
+        try:
+            if hasattr(self.agent, "dreamer") and hasattr(
+                self.agent.dreamer, "restore_checkpoint"
+            ):
+                self.agent.dreamer.restore_checkpoint(path)
+            else:
+                raise AttributeError("Dreamer agent does not expose restore_checkpoint")
+        except Exception:
+            raise
+
+    def evaluate(self, num_episodes: int = 1, render: bool = False):
+        # Configure agent's test episodes
+        try:
+            self.agent.args.test_episodes = int(num_episodes)
+        except Exception:
+            pass
+
+        # Dreamer exposes dreamer.evaluate(env, eval_episodes, render=False)
+        ep_rews, videos, latents = self.agent.dreamer.evaluate(
+            self.agent.test_env, int(num_episodes), render=render
+        )
+
+        out = {"episode_returns": list(ep_rews)}
+        if render:
+            out["videos"] = videos
+            out["latents"] = latents
+        return out
+
+
+class DreamerV1Adapter(DreamerAdapter):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+        kwargs = dict(kwargs)
+        kwargs.setdefault("algo", "dreamerv1")
+        super().__init__(env_spec=env_spec, seed=seed, **kwargs)
+
+
+class DreamerV2Adapter(DreamerAdapter):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+        kwargs = dict(kwargs)
+        kwargs.setdefault("algo", "dreamerv2")
+        super().__init__(env_spec=env_spec, seed=seed, **kwargs)

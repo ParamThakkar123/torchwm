@@ -10,6 +10,8 @@ from world_models.benchmarks import adapters
 AGENTS = {
     "diamond": adapters.DiamondAdapter,
     "iris": adapters.IRISAdapter,
+    "dreamerv1": adapters.DreamerV1Adapter,
+    "dreamerv2": adapters.DreamerV2Adapter,
 }
 
 

@@ -56,6 +56,27 @@ Outputs
   - `benchmark_results.json` (raw structured results)
   - `benchmark_results.csv` (seed rows)
   - `benchmark_results.md` (human readable markdown table)
+  - `benchmark_results.tex` (LaTeX table ready for papers)
+
+Computing IQM and bootstrap CIs
+-------------------------------
+
+The runner stores per-seed means in the JSON under `aggregate.per_seed_means`. Use
+the provided metrics helpers to compute IQM and bootstrap confidence intervals:
+
+```py
+from world_models.benchmarks import metrics, reporting
+import json
+
+res = json.load(open('results/bench/benchmark_results.json'))
+per_seed = res['aggregate']['per_seed_means']
+iqm = metrics.iqm_of_array(per_seed)
+lower, upper = metrics.bootstrap_iqm_ci(per_seed, num_samples=2000, alpha=0.05)
+print(f"IQM={iqm:.3f} (95% CI {lower:.3f} - {upper:.3f})")
+
+# export LaTeX table from results
+reporting.export_latex(res, 'results/bench/benchmark_results.tex')
+```
 
 Extending the harness
 ---------------------

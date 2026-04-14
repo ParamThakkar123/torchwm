@@ -98,6 +98,11 @@ class BenchmarkRunner:
         reporting.export_markdown(
             all_results, os.path.join(self.out_dir, "benchmark_results.md")
         )
+        reporting.export_latex(
+            all_results,
+            os.path.join(self.out_dir, "benchmark_results.tex"),
+            caption="Benchmark results",
+        )
 
         return all_results
 

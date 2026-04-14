@@ -10,6 +10,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
 
    getting_started
    package_overview
+   benchmarks
 
 .. toctree::
    :maxdepth: 2

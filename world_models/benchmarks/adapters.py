@@ -52,9 +52,33 @@ class DiamondAdapter(BaseAdapter):
             raise
 
     def evaluate(self, num_episodes: int = 1, render: bool = False):
-        # DiamondAgent.evaluate returns a float mean reward per episode by default
-        avg = self.agent.evaluate(num_episodes=num_episodes)
-        return {"episode_returns": [float(avg)]}
+        # DiamondAgent.evaluate returns a float mean reward per episode by default.
+        # To produce per-episode returns we run single-episode evaluations repeatedly.
+        episode_returns: List[float] = []
+        for _ in range(num_episodes):
+            try:
+                r = self.agent.evaluate(num_episodes=1)
+                # If evaluate returns an average scalar, treat as single-episode reward
+                if isinstance(r, (int, float)):
+                    episode_returns.append(float(r))
+                elif isinstance(r, dict) and "episode_returns" in r:
+                    vals = r["episode_returns"]
+                    if isinstance(vals, (list, tuple)) and len(vals) > 0:
+                        episode_returns.extend([float(v) for v in vals])
+                    else:
+                        # fallback: use mean
+                        episode_returns.append(float(np.mean(vals) if vals else 0.0))
+                else:
+                    # Unknown format: try to coerce
+                    try:
+                        episode_returns.append(float(r))
+                    except Exception:
+                        episode_returns.append(0.0)
+            except Exception:
+                # If per-episode evaluation fails, append zero as safe fallback
+                episode_returns.append(0.0)
+
+        return {"episode_returns": episode_returns}
 
 
 class IRISAdapter(BaseAdapter):

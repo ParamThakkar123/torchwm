@@ -27,9 +27,12 @@ def export_markdown(results: Dict[str, Any], path: str):
     lines.append("| seed | mean | std | episode_returns |")
     lines.append("|---:|---:|---:|:---|")
     for seed, data in seeds.items():
-        lines.append(
-            f"| {seed} | {data.get('mean', ''):.3f} | {data.get('std', ''):.3f} | {data.get('episode_returns', [])} |"
-        )
+        # format episode returns compactly
+        er = data.get("episode_returns", [])
+        er_str = ", ".join([f"{v:.1f}" for v in er]) if er else "[]"
+        mean = data.get("mean", 0.0)
+        std = data.get("std", 0.0)
+        lines.append(f"| {seed} | {mean:.3f} | {std:.3f} | {er_str} |")
 
     agg = results.get("aggregate", {})
     lines.append("")

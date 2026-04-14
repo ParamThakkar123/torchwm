@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from world_models.configs.diamond_config import DiamondConfig
+from world_models.configs.iris_config import IRISConfig
 from world_models.training.train_diamond import DiamondAgent
 from world_models.training.train_iris import IRISTrainer
 
@@ -24,16 +26,24 @@ class BaseAdapter:
 class DiamondAdapter(BaseAdapter):
     def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
         super().__init__(env_spec, seed)
-        game = (
-            env_spec.get("game")
-            if isinstance(env_spec, dict)
-            else getattr(env_spec, "game", None)
-        )
-        self.agent = DiamondAgent(
-            DiamondAgent.__init__.__annotations__.get("config") or {}
-        )
-        # The above is a minimal placeholder; create config via DiamondConfig in runner if needed
-        # To avoid circular imports/config complexities, defer user to pass full adapter kwargs.
+        # env_spec can be a dict with keys like 'game', or a simple string game name
+        if isinstance(env_spec, dict):
+            game = env_spec.get("game", None)
+        elif isinstance(env_spec, str):
+            game = env_spec
+        else:
+            game = getattr(env_spec, "game", None)
+
+        preset = kwargs.get("preset", None)
+        device = kwargs.get("device", "cuda")
+
+        cfg = DiamondConfig(preset=preset)
+        if game:
+            cfg.game = game
+        cfg.seed = seed
+        cfg.device = device
+
+        self.agent = DiamondAgent(cfg)
 
     def load_checkpoint(self, path: str):
         try:
@@ -53,12 +63,29 @@ class IRISAdapter(BaseAdapter):
         game = None
         if isinstance(env_spec, dict):
             game = env_spec.get("game")
-        self.trainer = IRISTrainer(game=game or "ALE/Pong-v5", seed=seed)
+        elif isinstance(env_spec, str):
+            game = env_spec
+
+        device = kwargs.get("device", "cuda")
+        config = kwargs.get("config", None)
+        if config is None:
+            cfg = IRISConfig()
+        else:
+            cfg = config
+
+        # IRISTrainer accepts (game, device, seed, config)
+        self.trainer = IRISTrainer(
+            game=game or cfg.env, device=device, seed=seed, config=cfg
+        )
 
     def load_checkpoint(self, path: str):
         # IRIS agent provides save/load on agent; delegate if trainer has agent
         try:
-            self.trainer.agent.load(path)
+            # IRISAgent implements load(path)
+            if hasattr(self.trainer, "agent") and hasattr(self.trainer.agent, "load"):
+                self.trainer.agent.load(path)
+            else:
+                raise AttributeError("IRIS agent does not expose load(path)")
         except Exception:
             raise
 

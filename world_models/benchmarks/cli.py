@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+import argparse
+from typing import List
+
+from world_models.benchmarks.runner import BenchmarkRunner
+from world_models.benchmarks import adapters
+
+
+AGENTS = {
+    "diamond": adapters.DiamondAdapter,
+    "iris": adapters.IRISAdapter,
+}
+
+
+def parse_seeds(s: str) -> List[int]:
+    if "," in s:
+        return [int(x.strip()) for x in s.split(",") if x.strip()]
+    if s.isdigit():
+        return list(range(int(s)))
+    return [int(s)]
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run benchmark for an agent on an environment"
+    )
+    parser.add_argument("--agent", type=str, choices=list(AGENTS.keys()), required=True)
+    parser.add_argument("--game", type=str, required=False, default=None)
+    parser.add_argument(
+        "--seeds",
+        type=str,
+        default="1",
+        help="Either N (creates seeds 0..N-1) or comma list",
+    )
+    parser.add_argument("--episodes", type=int, default=5)
+    parser.add_argument("--checkpoint", type=str, default=None)
+    parser.add_argument("--out_dir", type=str, default="results/bench")
+    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--preset", type=str, default=None)
+
+    args = parser.parse_args()
+
+    seeds = parse_seeds(args.seeds)
+
+    adapter_cls = AGENTS[args.agent]
+
+    runner = BenchmarkRunner(adapter_cls=adapter_cls, out_dir=args.out_dir)
+
+    env_spec = {"game": args.game} if args.game else {"game": None}
+
+    res = runner.run(
+        env_spec=env_spec,
+        seeds=seeds,
+        num_episodes=args.episodes,
+        checkpoint=args.checkpoint,
+        extra_kwargs={"device": args.device, "preset": args.preset},
+    )
+
+    print("Benchmark finished. Results written to:", args.out_dir)
+
+
+if __name__ == "__main__":
+    main()

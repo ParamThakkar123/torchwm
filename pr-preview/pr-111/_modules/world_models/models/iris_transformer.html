@@ -486,7 +486,7 @@
             <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;gelu&quot;</span><span class="p">,</span>
             <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">norm_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">norm_first</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">TransformerEncoder</span><span class="p">(</span><span class="n">encoder_layer</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="n">num_layers</span><span class="p">)</span>
 
@@ -773,7 +773,9 @@
         <span class="n">decoded_frames</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
             <span class="n">next_tokens_pred</span> <span class="o">=</span> <span class="n">token_logits</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Greedy</span>
-            <span class="n">decoded_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">decode_from_embeddings</span><span class="p">(</span><span class="n">next_tokens_pred</span><span class="p">))</span>
+            <span class="n">decoded_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">,</span> <span class="s2">&quot;decode_from_embeddings&quot;</span><span class="p">)(</span><span class="n">next_tokens_pred</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="n">decoded_frames</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">decoded_frames</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">decoded_frames</span> <span class="k">else</span> <span class="kc">None</span>
 
@@ -837,8 +839,10 @@
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">horizon</span><span class="p">):</span>
             <span class="c1"># Get action from policy (using decoded frame)</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="n">decoded_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">decode_from_embeddings</span><span class="p">(</span><span class="n">current_tokens</span><span class="p">)</span>
-                <span class="n">action</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">decoded_frame</span><span class="p">)</span>
+                <span class="n">decoded_frame</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">,</span> <span class="s2">&quot;decode_from_embeddings&quot;</span><span class="p">)(</span>
+                    <span class="n">current_tokens</span>
+                <span class="p">)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">)(</span><span class="n">decoded_frame</span><span class="p">)</span>
                 <span class="n">actions_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
             <span class="c1"># Predict next tokens</span>

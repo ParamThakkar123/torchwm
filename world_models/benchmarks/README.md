@@ -16,6 +16,9 @@ Quickstart
    
    # run DIAMOND on Breakout with two seeds
    python -m world_models.benchmarks.cli --agent diamond --game Breakout-v5 --seeds 0,1 --episodes 5
+   
+   # run ALL agents on the same game for comparison
+   python -m world_models.benchmarks.cli --all-agents --game ALE/Pong-v5 --seeds 2 --episodes 5
    ```
 
 2. Outputs are written to `results/bench` by default (change with `--out_dir`).

@@ -143,6 +143,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks.html">
+    Benchmarking World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../dreamer.html">
     Dreamer: Model-Based RL with Latent Dynamics
   </a>
@@ -155,13 +162,6 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../iris.html">
-    IRIS: Transformers for Sample-Efficient World Models
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button"
                 data-bs-toggle="dropdown" aria-expanded="false"
@@ -170,6 +170,13 @@
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../../../dit.html">
     DiT: Diffusion Transformer
@@ -283,6 +290,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../package_overview.html">
     Package Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../benchmarks.html">
+    Benchmarking World Models
   </a>
 </li>
 
@@ -419,6 +433,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ctypes</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
@@ -443,6 +458,51 @@
 <span class="c1"># environment value if present.</span>
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;nt&quot;</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MUJOCO_GL&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MUJOCO_GL&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;egl&quot;</span>
+
+
+<div class="viewcode-block" id="get_available_memory">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.get_available_memory">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_available_memory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get available physical memory in bytes.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>  <span class="c1"># Windows</span>
+
+        <span class="k">class</span><span class="w"> </span><span class="nc">MEMORYSTATUSEX</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">Structure</span><span class="p">):</span>
+            <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;dwLength&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;dwMemoryLoad&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullTotalPhys&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullAvailPhys&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullTotalPageFile&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullAvailPageFile&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullTotalVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullAvailVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;ullAvailExtendedVirtual&quot;</span><span class="p">,</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_ulonglong</span><span class="p">),</span>
+            <span class="p">]</span>
+
+        <span class="n">memory_status</span> <span class="o">=</span> <span class="n">MEMORYSTATUSEX</span><span class="p">()</span>
+        <span class="n">memory_status</span><span class="o">.</span><span class="n">dwLength</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">MEMORYSTATUSEX</span><span class="p">)</span>
+        <span class="n">kernel32</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">WinDLL</span><span class="p">(</span><span class="s2">&quot;kernel32&quot;</span><span class="p">,</span> <span class="n">use_last_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kernel32</span><span class="o">.</span><span class="n">GlobalMemoryStatusEx</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">memory_status</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Failed to get memory status&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">memory_status</span><span class="o">.</span><span class="n">ullAvailPhys</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Linux/Mac</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+
+            <span class="k">return</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">available</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="c1"># Fallback: read /proc/meminfo on Linux</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/proc/meminfo&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;MemAvailable:&quot;</span><span class="p">):</span>
+                            <span class="n">avail_kb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="k">return</span> <span class="n">avail_kb</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c1"># Convert KB to bytes</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="c1"># Ultimate fallback: assume 8GB available</span>
+            <span class="k">return</span> <span class="mi">8</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_image_size</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
@@ -543,8 +603,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">restore</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">restore_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">checkpoint_path</span>
+
+        <span class="c1"># Calculate memory per sample</span>
+        <span class="n">obs_bytes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span>  <span class="c1"># uint8</span>
+        <span class="n">action_bytes</span> <span class="o">=</span> <span class="n">action_size</span> <span class="o">*</span> <span class="mi">4</span>  <span class="c1"># float32</span>
+        <span class="n">reward_bytes</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># float32</span>
+        <span class="n">terminal_bytes</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># float32</span>
+        <span class="n">bytes_per_sample</span> <span class="o">=</span> <span class="n">obs_bytes</span> <span class="o">+</span> <span class="n">action_bytes</span> <span class="o">+</span> <span class="n">reward_bytes</span> <span class="o">+</span> <span class="n">terminal_bytes</span>
+
+        <span class="c1"># Get available memory</span>
+        <span class="n">available_memory</span> <span class="o">=</span> <span class="n">get_available_memory</span><span class="p">()</span>
+        <span class="c1"># Use 80% of available memory for buffer to leave margin for other processes</span>
+        <span class="n">max_buffer_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">available_memory</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">)</span> <span class="o">//</span> <span class="n">bytes_per_sample</span><span class="p">)</span>
+        <span class="n">adaptive_buffer_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">adaptive_buffer_size</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Reducing buffer size from </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">adaptive_buffer_size</span><span class="si">}</span><span class="s2"> due to memory constraints.&quot;</span>
+            <span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span> <span class="o">=</span> <span class="n">ReplayBuffer</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">,</span>
+            <span class="n">adaptive_buffer_size</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">train_seq_len</span><span class="p">,</span>

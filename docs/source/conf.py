@@ -45,7 +45,6 @@ myst_enable_extensions = [
     "amsmath",
     "deflist",
     "fieldlist",
-    "mermaid",
 ]
 
 autodoc_mock_imports = [

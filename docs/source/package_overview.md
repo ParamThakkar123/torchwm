@@ -37,6 +37,7 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 - `world_models.utils.dreamer_utils`: Logging, parameter freezing, and TD(lambda) return computation
 - `world_models.utils.jepa_utils`: Optimizer schedules, distributed helpers, and training meters
 - `world_models.transforms`: Data augmentation pipelines used by JEPA/vision training
+- `world_models.benchmarks`: Lightweight benchmarking harness and adapters for DIAMOND, IRIS, and Dreamer; includes a CLI and reporting utilities for CSV/Markdown/JSON exports
 
 ## Which API Should I Use?
 

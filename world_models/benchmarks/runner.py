@@ -151,6 +151,7 @@ class MultiAgentBenchmarkRunner:
             )
         if checkpoints is None:
             # Train models first
+            assert train_epochs is not None
             checkpoints = self._train_all_agents(env_spec, extra_kwargs, train_epochs)
         if not checkpoints:
             raise ValueError(
@@ -202,9 +203,13 @@ class MultiAgentBenchmarkRunner:
         return all_results
 
     def _train_all_agents(
-        self, env_spec: Dict[str, Any], extra_kwargs: Dict[str, Any], train_epochs: int
+        self,
+        env_spec: Dict[str, Any],
+        extra_kwargs: Dict[str, Any],
+        train_epochs: Optional[int],
     ) -> Dict[str, str]:
         """Train all agents and return checkpoint paths."""
+        assert train_epochs is not None
         import os
 
         checkpoints = {}
@@ -248,7 +253,7 @@ class MultiAgentBenchmarkRunner:
                     "Dreamerv1" if adapter_name == "dreamerv1" else "Dreamerv2"
                 )
                 config.total_steps = train_epochs * 1000  # Approximate conversion
-                config.device = device
+                # config.device = device  # DreamerConfig does not have device attribute
                 config.checkpoint_path = f"checkpoints/{adapter_name}/checkpoint.pt"
                 agent = DreamerAgent(config)
                 agent.train(total_steps=config.total_steps)

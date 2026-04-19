@@ -9,10 +9,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
-copyright = f"""{datetime.now().year}, <a href="https://www.linkedin.com/in/paramthakkar2307/" target="_blank">Param Thakkar</a> | 
-<a href="https://github.com/ParamThakkar123" target="_blank">GitHub</a> | 
-<a href="https://x.com/Param23072004" target="_blank">X</a> | 
-<a href="https://scholar.google.com/citations?user=BZpTuDMAAAAJ&hl=en" target="_blank">Google Scholar</a>"""
+copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
 release = "0.2.1"
 
@@ -80,6 +77,28 @@ html_theme_options = {
     "navbar_align": "content",
     "footer_start": ["copyright"],
     "footer_end": ["last-updated"],
+    "footer_items": [
+        {
+            "name": "LinkedIn",
+            "url": "https://www.linkedin.com/in/paramthakkar2307/",
+            "icon": "fa-brands fa-linkedin",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/ParamThakkar123",
+            "icon": "fa-brands fa-github",
+        },
+        {
+            "name": "X",
+            "url": "https://x.com/Param23072004",
+            "icon": "fa-brands fa-twitter",
+        },
+        {
+            "name": "Google Scholar",
+            "url": "https://scholar.google.com/citations?user=BZpTuDMAAAAJ&hl=en",
+            "icon": "fa-solid fa-graduation-cap",
+        },
+    ],
     "switcher": {
         "json_url": "https://paramthakkar123.github.io/torchwm/switcher.json",
         "version_match": "stable",

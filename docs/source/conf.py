@@ -77,28 +77,6 @@ html_theme_options = {
     "navbar_align": "content",
     "footer_start": ["copyright"],
     "footer_end": ["last-updated"],
-    "footer_items": [
-        {
-            "name": "LinkedIn",
-            "url": "https://www.linkedin.com/in/paramthakkar2307/",
-            "icon": "fa-brands fa-linkedin",
-        },
-        {
-            "name": "GitHub",
-            "url": "https://github.com/ParamThakkar123",
-            "icon": "fa-brands fa-github",
-        },
-        {
-            "name": "X",
-            "url": "https://x.com/Param23072004",
-            "icon": "fa-brands fa-twitter",
-        },
-        {
-            "name": "Google Scholar",
-            "url": "https://scholar.google.com/citations?user=BZpTuDMAAAAJ&hl=en",
-            "icon": "fa-solid fa-graduation-cap",
-        },
-    ],
     "switcher": {
         "json_url": "https://paramthakkar123.github.io/torchwm/switcher.json",
         "version_match": "stable",

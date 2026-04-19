@@ -5,78 +5,269 @@
     --pst-font-family-monospace: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
     --pst-color-link: #2563eb;
     --pst-color-link-hover: #1d4ed8;
+    --pst-color-primary: #2563eb;
+    --pst-color-secondary: #64748b;
+    --pst-color-success: #16a34a;
+    --pst-color-warning: #ea580c;
+    --pst-color-danger: #dc2626;
+    --pst-color-info: #0891b2;
 }
 
-.admonition {
-    border-radius: 0.5rem;
-    border-left-width: 4px;
-}
-
-.admonition.note {
-    border-left-color: #2563eb;
-    background-color: #eff6ff;
-}
-
-.admonition.tip {
-    border-left-color: #16a34a;
-    background-color: #f0fdf4;
-}
-
-.admonition.warning {
-    border-left-color: #ea580c;
-    background-color: #fff7ed;
-}
-
-.admonition.important {
-    border-left-color: #9333ea;
-    background-color: #faf5ff;
-}
-
-.math {
-    font-size: 1.1em;
-}
-
-.eq-noindent {
-    margin-left: 2em;
-    text-indent: -2em;
-}
-
-pre {
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    background-color: #f6f8fa;
-    color: #24292f;
-}
-
-@media (prefers-color-scheme: dark) {
-    pre {
-        border-color: #374151;
-        background-color: #161b22;
-        color: #c9d1d9;
-    }
-}
-
-blockquote {
-    border-left-width: 4px;
-    border-left-color: #d1d5db;
-    background-color: #f9fafb;
-    padding: 1rem;
-    border-radius: 0 0.5rem 0.5rem 0;
+/* Typography improvements */
+body {
+    font-family: var(--pst-font-family-base);
+    line-height: 1.7;
+    font-size: 16px;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    color: var(--pst-color-text-base);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
 }
 
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+/* Code blocks */
+.highlight pre {
+    border-radius: 8px;
+    border: 1px solid var(--pst-color-border);
+    background-color: var(--pst-color-surface);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Cards for sections */
+.card {
+    border: 1px solid var(--pst-color-border);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    transition: all 0.3s ease;
+    background-color: var(--pst-color-background);
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-color: var(--pst-color-surface);
+    border-bottom: 1px solid var(--pst-color-border);
+    padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Tables */
+table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+table thead th {
+    background: linear-gradient(135deg, var(--pst-color-primary), var(--pst-color-link-hover));
+    color: white;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+}
+
+table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--pst-color-border);
+}
+
+table tbody tr:hover {
+    background-color: var(--pst-color-surface);
+}
+
+/* Admonitions */
+.admonition {
+    border-radius: 8px;
+    border-left: 4px solid var(--pst-color-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 1.5rem 0;
+}
+
+.admonition-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.admonition.note {
+    border-left-color: var(--pst-color-info);
+    background-color: rgba(8, 145, 178, 0.1);
+}
+
+.admonition.tip {
+    border-left-color: var(--pst-color-success);
+    background-color: rgba(22, 163, 74, 0.1);
+}
+
+.admonition.warning {
+    border-left-color: var(--pst-color-warning);
+    background-color: rgba(234, 88, 12, 0.1);
+}
+
+.admonition.important {
+    border-left-color: var(--pst-color-danger);
+    background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background-color: var(--pst-color-primary);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: var(--pst-color-secondary);
+    color: white;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--pst-color-primary) !important;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: var(--pst-color-surface);
+    color: var(--pst-color-link);
+}
+
+/* API reference */
+.class dt, .function dt, .method dt {
+    background-color: var(--pst-color-surface);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--pst-color-primary);
+    font-family: var(--pst-font-family-monospace);
+    font-size: 0.9rem;
+}
+
+.class dt:before {
+    content: "🏗️ ";
+    font-size: 1rem;
+}
+
+.function dt:before {
+    content: "⚡ ";
+    font-size: 1rem;
+}
+
+.method dt:before {
+    content: "🔧 ";
+    font-size: 1rem;
+}
+
+/* Math */
+.math {
+    font-size: 1.1em;
+    color: var(--pst-color-text-muted);
+}
+
+/* Footer */
+.footer {
+    border-top: 1px solid var(--pst-color-border);
+    margin-top: 3rem;
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--pst-color-text-muted);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+
+    .highlight pre {
+        font-size: 12px;
+    }
+}
+
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
     :root {
         --pst-color-link: #60a5fa;
         --pst-color-link-hover: #93c5fd;
+        --pst-color-text-base: #e2e8f0;
+        --pst-color-text-muted: #94a3b8;
+        --pst-color-background: #0f172a;
+        --pst-color-surface: #1e293b;
+        --pst-color-border: #334155;
+    }
+
+    .card {
+        background-color: var(--pst-color-surface);
+        border-color: var(--pst-color-border);
     }
 
     blockquote {
-        border-left-color: #4b5563;
-        background-color: #1f2937;
+        border-left-color: var(--pst-color-border);
+        background-color: var(--pst-color-surface);
     }
+
+    .admonition {
+        background-color: var(--pst-color-surface);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.admonition, .card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Logo */
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    margin-right: 0.5rem;
 }

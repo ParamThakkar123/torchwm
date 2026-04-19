@@ -22,6 +22,7 @@ extensions = [
     "myst_parser",
     "sphinxext.opengraph",
     "sphinxcontrib.mermaid",
+    "sphinx_thebe",
 ]
 
 templates_path = ["_templates"]
@@ -92,6 +93,22 @@ html_theme_options = {
             "icon": "fa-brands fa-github",
         },
     ],
+}
+
+# Thebe configuration for interactive code execution
+thebe_config = {
+    "repository_url": "https://github.com/paramthakkar123/torchwm",
+    "repository_branch": "main",
+    "selector": ".thebe, .cell",
+    "always_load": False,
+    "pre_execute": "",
+    "post_execute": "",
+    "request_kernel": True,
+    "binder_options": {
+        "repo": "paramthakkar123/torchwm",
+        "ref": "main",
+        "binder_url": "https://mybinder.org",
+    },
 }
 html_static_path = ["_static"]
 

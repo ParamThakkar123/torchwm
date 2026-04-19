@@ -78,7 +78,7 @@ Final layer predicting noise (ε) same dimension as input:
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.configs import DiTConfig, get_dit_config
 
 cfg = get_dit_config(

@@ -382,20 +382,19 @@ future representations in latent space, without relying on generative modeling.<
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <p>.. mermaid::</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>graph TD
-    subgraph &quot;JEPA Architecture&quot;
-        A[Frame t] --&gt; B[Enc_s&lt;br/&gt;Target Encoder]
-        C[Frame t+k] --&gt; D[Enc_s&lt;br/&gt;Target Encoder&lt;br/&gt;Frozen]
-        B --&gt; E[Target&lt;br/&gt;z_t]
-        D --&gt; E
-        F[Predictor&lt;br/&gt;token] --&gt; G[Predict&lt;br/&gt;z_t&#39;]
-        G --&gt; H[Loss&lt;br/&gt;||z_t&#39; - z_t||²]
-        E --&gt; H
-    end
-    
-    style B fill:#fff3cd
-    style D fill:#fff3cd
-    style H fill:#f8d7da
+<p>graph TD
+subgraph “JEPA Architecture”
+A[Frame t] –&gt; B[Enc_s<br/>Target Encoder]
+C[Frame t+k] –&gt; D[Enc_s<br/>Target Encoder<br/>Frozen]
+B –&gt; E[Target<br/>z_t]
+D –&gt; E
+F[Predictor<br/>token] –&gt; G[Predict<br/>z_t’]
+G –&gt; H[Loss<br/>||z_t’ - z_t||²]
+E –&gt; H
+end</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   style B fill:#fff3cd
+   style D fill:#fff3cd
+   style H fill:#f8d7da
 </pre></div>
 </div>
 </section>

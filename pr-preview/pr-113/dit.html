@@ -385,19 +385,18 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 <p>.. mermaid::</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>graph TD
-    A[Input: x_t&lt;br/&gt;noisy image] --&gt; B[Patch Embedding&lt;br/&gt;+ Positional Encoding]
-    C[Timestep Embedding] --&gt; D[Linear Projection&lt;br/&gt;to tokens]
-    E[Condition Embedding&lt;br/&gt;optional] --&gt; D
-    B --&gt; D
-    D --&gt; F[DiT Block 1&lt;br/&gt;Self-Attention + MLP&lt;br/&gt;Adaptive Layer Norm]
-    F --&gt; G[DiT Block 2&lt;br/&gt;...]
-    G --&gt; H[DiT Block N]
-    H --&gt; I[Output Head&lt;br/&gt;Linear Projection&lt;br/&gt;Predicted Noise ε]
-    I --&gt; J[Output: ε_pred]
-    
-    style A fill:#e1f5fe
-    style J fill:#e8f5e8
+<p>graph TD
+A[Input: x_t<br/>noisy image] –&gt; B[Patch Embedding<br/>+ Positional Encoding]
+C[Timestep Embedding] –&gt; D[Linear Projection<br/>to tokens]
+E[Condition Embedding<br/>optional] –&gt; D
+B –&gt; D
+D –&gt; F[DiT Block 1<br/>Self-Attention + MLP<br/>Adaptive Layer Norm]
+F –&gt; G[DiT Block 2<br/>…]
+G –&gt; H[DiT Block N]
+H –&gt; I[Output Head<br/>Linear Projection<br/>Predicted Noise ε]
+I –&gt; J[Output: ε_pred]</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   style A fill:#e1f5fe
+   style J fill:#e8f5e8
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>

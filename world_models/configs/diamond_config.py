@@ -3,6 +3,13 @@ from typing import List, Optional
 import torch
 
 
+def get_default_device() -> str:
+    try:
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except AttributeError:
+        return "cpu"
+
+
 @dataclass
 class ModelPreset:
     """Model architecture preset for different hardware tiers."""
@@ -126,7 +133,7 @@ class DiamondConfig:
     weight_decay_actor: float = 0.0
 
     # Device
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    device: str = field(default_factory=get_default_device)
 
     # Logging
     log_interval: int = 10

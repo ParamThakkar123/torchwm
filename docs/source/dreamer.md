@@ -59,9 +59,23 @@ The core world model combining:
 - **Deterministic hidden state** (h_t): Recurrent state (GRU)
 - **Stochastic latent state** (s_t): Discrete or continuous latent variables
 
-**Dynamics**: `h_t = f(h_{t-1}, s_{t-1}, a_{t-1})`
-**Posterior**: `s_t ~ q(s_t | h_t, x_t)`
-**Prior**: `s_t ~ p(s_t | h_t)`
+**Dynamics**:
+
+```{math}
+\mathbf{h}_t = f(\mathbf{h}_{t-1}, \mathbf{s}_{t-1}, \mathbf{a}_{t-1})
+```
+
+**Posterior**:
+
+```{math}
+\mathbf{s}_t \sim q(\mathbf{s}_t | \mathbf{h}_t, \mathbf{x}_t)
+```
+
+**Prior**:
+
+```{math}
+\mathbf{s}_t \sim p(\mathbf{s}_t | \mathbf{h}_t)
+```
 
 ### 2. Encoder/Decoder
 
@@ -104,18 +118,21 @@ agent.train()
 ### Learning Objectives
 
 **World Model Loss**:
-```
-L_world = L_reconstruction + L_reward + β * L_KL
+
+```{math}
+\mathcal{L}_\mathrm{world} = \mathcal{L}_\mathrm{reconstruction} + \mathcal{L}_\mathrm{reward} + \beta \cdot \mathcal{L}_\mathrm{KL}
 ```
 
 **Actor Loss** (REINFORCE):
-```
-L_actor = -E[log π(a|s) * (G - V(s))]
+
+```{math}
+\mathcal{L}_\mathrm{actor} = -\mathbb{E}[\log \pi(\mathbf{a} | \mathbf{s}) \cdot (G - V(\mathbf{s}))]
 ```
 
 **Critic Loss** (MSE):
-```
-L_critic = E[(G - V(s))²]
+
+```{math}
+\mathcal{L}_\mathrm{critic} = \mathbb{E}[(G - V(\mathbf{s}))^2]
 ```
 
 ## DreamerV2 Enhancements

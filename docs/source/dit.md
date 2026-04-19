@@ -48,7 +48,8 @@ Converts input image into a sequence of tokens:
 - Add positional embeddings
 
 ```
-x ∈ ℝ^{C×H×W} → tokens ∈ ℝ^{(H/P × W/P) × D}
+{math}
+\mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
 ```
 
 ### 2. Timestep & Condition Embeddings
@@ -73,7 +74,8 @@ Variants:
 
 Final layer predicting noise (ε) same dimension as input:
 ```
-ε_pred = Linear(tokens) → ℝ^{C×H×W}
+{math}
+\hat{\epsilon} = \mathrm{Linear}(\mathbf{tokens}) \rightarrow \mathbb{R}^{C \times H \times W}
 ```
 
 ## Training
@@ -91,8 +93,14 @@ cfg = get_dit_config(
 )
 
 # Training uses DDPM noise scheduling
-# Forward: q(x_t | x_0) = N(√ᾱ_t x_0, (1-ᾱ_t)I)
-# Reverse: p(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)
+```
+
+```{math}
+q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
+```
+
+```{math}
+p(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2 \mathbf{I})
 ```
 
 ### Key Hyperparameters
@@ -112,8 +120,6 @@ cfg = get_dit_config(
 
 ```python :class: thebe
 # Start from random noise
-x_T ~ N(0, I)
-
 # Iteratively denoise
 for t in reversed(range(T)):
     ε = model(x_t, t)  # Predict noise
@@ -122,11 +128,24 @@ for t in reversed(range(T)):
 # Output: x_0 (generated image)
 ```
 
+```{math}
+\mathbf{x}_T \sim \mathcal{N}(0, \mathbf{I})
+```
+
+```{math}
+\epsilon = \mathrm{model}(\mathbf{x}_t, t)
+```
+
+```{math}
+\mathbf{x}_{t-1} = \mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \cdot \epsilon
+```
+
 ### Classifier-Free Guidance
 
 For conditional generation, use classifier-free guidance:
 ```
-ε_cond = (1+w)·ε_model(x_t, c) - w·ε_model(x_t, ∅)
+{math}
+\epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
 ```
 where `w` is guidance weight (typically 1-10).
 

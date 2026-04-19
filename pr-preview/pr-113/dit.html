@@ -390,7 +390,7 @@ It treats diffusion as a sequence modeling problem where the transformer predict
   <img src="images/dit_architecture.png" alt="DiT Architecture" />
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
-<div class="mermaid">
+<script type="text/vnd.mermaid">
 graph TD
     A[Input: x_t<br/>noisy image] --> B[Patch Embedding<br/>+ Positional Encoding]
     C[Timestep Embedding] --> D[Linear Projection<br/>to tokens]
@@ -401,11 +401,10 @@ graph TD
     G --> H[DiT Block N]
     H --> I[Output Head<br/>Linear Projection<br/>Predicted Noise ε]
     I --> J[Output: ε_pred]
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>style A fill:#e1f5fe
-style J fill:#e8f5e8
-</pre></div>
-</div>
-</div>
+
+    style A fill:#e1f5fe
+    style J fill:#e8f5e8
+</script>
 </section>
 <section id="components">
 <h2>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h2>
@@ -417,10 +416,8 @@ style J fill:#e8f5e8
 <li><p>Each patch linearly embedded to dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
 <li><p>Add positional embeddings</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">math</span><span class="p">}</span>
-\<span class="n">mathbf</span><span class="p">{</span><span class="n">x</span><span class="p">}</span> \<span class="ow">in</span> \<span class="n">mathbb</span><span class="p">{</span><span class="n">R</span><span class="p">}</span><span class="o">^</span><span class="p">{</span><span class="n">C</span> \<span class="n">times</span> <span class="n">H</span> \<span class="n">times</span> <span class="n">W</span><span class="p">}</span> \<span class="n">rightarrow</span> \<span class="n">mathbf</span><span class="p">{</span><span class="n">tokens</span><span class="p">}</span> \<span class="ow">in</span> \<span class="n">mathbb</span><span class="p">{</span><span class="n">R</span><span class="p">}</span><span class="o">^</span><span class="p">{(</span><span class="n">H</span><span class="o">/</span><span class="n">P</span> \<span class="n">times</span> <span class="n">W</span><span class="o">/</span><span class="n">P</span><span class="p">)</span> \<span class="n">times</span> <span class="n">D</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}\]</div>
 </section>
 <section id="timestep-condition-embeddings">
 <h3>2. Timestep &amp; Condition Embeddings<a class="headerlink" href="#timestep-condition-embeddings" title="Link to this heading">#</a></h3>
@@ -448,10 +445,8 @@ style J fill:#e8f5e8
 <section id="output-head">
 <h3>4. Output Head<a class="headerlink" href="#output-head" title="Link to this heading">#</a></h3>
 <p>Final layer predicting noise (ε) same dimension as input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">math</span><span class="p">}</span>
-\<span class="n">hat</span><span class="p">{</span>\<span class="n">epsilon</span><span class="p">}</span> <span class="o">=</span> \<span class="n">mathrm</span><span class="p">{</span><span class="n">Linear</span><span class="p">}(</span>\<span class="n">mathbf</span><span class="p">{</span><span class="n">tokens</span><span class="p">})</span> \<span class="n">rightarrow</span> \<span class="n">mathbb</span><span class="p">{</span><span class="n">R</span><span class="p">}</span><span class="o">^</span><span class="p">{</span><span class="n">C</span> \<span class="n">times</span> <span class="n">H</span> \<span class="n">times</span> <span class="n">W</span><span class="p">}</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\hat{\epsilon} = \mathrm{Linear}(\mathbf{tokens}) \rightarrow \mathbb{R}^{C \times H \times W}\]</div>
 </section>
 </section>
 <section id="training">
@@ -541,10 +536,8 @@ style J fill:#e8f5e8
 <section id="classifier-free-guidance">
 <h3>Classifier-Free Guidance<a class="headerlink" href="#classifier-free-guidance" title="Link to this heading">#</a></h3>
 <p>For conditional generation, use classifier-free guidance:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">math</span><span class="p">}</span>
-\<span class="n">epsilon_</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">cond</span><span class="p">}</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">w</span><span class="p">)</span> \<span class="n">cdot</span> \<span class="n">epsilon_</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">model</span><span class="p">}(</span>\<span class="n">mathbf</span><span class="p">{</span><span class="n">x</span><span class="p">}</span><span class="n">_t</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">-</span> <span class="n">w</span> \<span class="n">cdot</span> \<span class="n">epsilon_</span>\<span class="n">mathrm</span><span class="p">{</span><span class="n">model</span><span class="p">}(</span>\<span class="n">mathbf</span><span class="p">{</span><span class="n">x</span><span class="p">}</span><span class="n">_t</span><span class="p">,</span> \<span class="n">emptyset</span><span class="p">)</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)\]</div>
 <p>where <code class="docutils literal notranslate"><span class="pre">w</span></code> is guidance weight (typically 1-10).</p>
 </section>
 </section>

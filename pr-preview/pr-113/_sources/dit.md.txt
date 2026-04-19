@@ -21,7 +21,7 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 
-<div class="mermaid">
+<script type="text/vnd.mermaid">
 graph TD
     A[Input: x_t<br/>noisy image] --> B[Patch Embedding<br/>+ Positional Encoding]
     C[Timestep Embedding] --> D[Linear Projection<br/>to tokens]
@@ -35,7 +35,7 @@ graph TD
 
     style A fill:#e1f5fe
     style J fill:#e8f5e8
-</div>
+</script>
 
 ## Components
 
@@ -46,8 +46,7 @@ Converts input image into a sequence of tokens:
 - Each patch linearly embedded to dimension `D`
 - Add positional embeddings
 
-```
-{math}
+```{math}
 \mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
 ```
 
@@ -72,8 +71,7 @@ Variants:
 ### 4. Output Head
 
 Final layer predicting noise (ε) same dimension as input:
-```
-{math}
+```{math}
 \hat{\epsilon} = \mathrm{Linear}(\mathbf{tokens}) \rightarrow \mathbb{R}^{C \times H \times W}
 ```
 
@@ -142,8 +140,7 @@ for t in reversed(range(T)):
 ### Classifier-Free Guidance
 
 For conditional generation, use classifier-free guidance:
-```
-{math}
+```{math}
 \epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
 ```
 where `w` is guidance weight (typically 1-10).

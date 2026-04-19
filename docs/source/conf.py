@@ -25,8 +25,11 @@ extensions = [
     "myst_parser",
     "sphinxext.opengraph",
     "sphinxcontrib.mermaid",
-    "sphinx_thebe",
 ]
+
+# Prevent myst_parser from auto-inserting MathJax runtime; we manage MathJax
+# inclusion/order manually via html_js_files so config can be applied first.
+myst_update_mathjax = False
 
 templates_path = ["_templates"]
 exclude_patterns = []
@@ -101,39 +104,30 @@ html_js_files = [
     # MathJax config (local) and runtime (CDN)
     # Load MathJax config and runtime locally to avoid runtime ordering issues
     "mathjax_config.js",
-    # Use official MathJax CDN fallback; if your hosting blocks this CDN we can
-    # vendor the runtime into `_static` as well.
-    "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js",
-    # Load Mermaid from jsDelivr CDN
-    "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js",
+    # Local loader that will load a vendored runtime (mathjax_runtime.js)
+    # when present. Do NOT prefix with `_static/` here; Sphinx will copy the
+    # referenced files into the built `_static/` dir and reference them as
+    # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
+    # paths in the output which break file:// viewing.
+    "mathjax_local.js",
+    # Load Mermaid runtime from our vendored copy in `_static` so docs work
+    # even when CDN access is unreliable.
+    "mermaid.min.js",
     # Local init file that converts script blocks to .mermaid divs then runs Mermaid
     "mermaid_init.js",
     # Small script to tidy duplicated navbar elements caused by theme options
     "fix_navbar.js",
     # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded
     "mathjax_init.js",
-    # Thebe (Thebe client) for runnable code blocks via Binder
-    "https://unpkg.com/thebe@latest/lib/index.js",
-    # Local small initializer to configure Thebe using `thebe_config`
-    "thebe_init.js",
-    "thebe_autoclass.js",
+    # (Thebe assets removed — Thebe integration disabled to avoid runtime
+    # kernel/build attempts and to keep the static site lightweight.)
 ]
 
 # Thebe configuration for interactive code execution
-thebe_config = {
-    "repository_url": "https://github.com/paramthakkar123/torchwm",
-    "repository_branch": "main",
-    "selector": ".thebe, .cell",
-    "always_load": False,
-    "pre_execute": "",
-    "post_execute": "",
-    "request_kernel": True,
-    "binder_options": {
-        "repo": "paramthakkar123/torchwm",
-        "ref": "main",
-        "binder_url": "https://mybinder.org",
-    },
-}
+# Thebe integration has been removed from html_js_files and extensions to
+# prevent the client from attempting to start kernels or trigger remote
+# builds. If you want to re-enable Thebe in the future, re-add the
+# "sphinx_thebe" extension and the corresponding JS entries above.
 # Copy both our _static assets and the `images/` dir so images referenced
 # from pages are available at build time (placed under _static/).
 html_static_path = ["_static", "images"]

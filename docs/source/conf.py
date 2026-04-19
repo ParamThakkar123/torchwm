@@ -9,7 +9,10 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
-copyright = f"{datetime.now().year}, Param Thakkar"
+copyright = f"""{datetime.now().year}, <a href="https://www.linkedin.com/in/paramthakkar2307/" target="_blank">Param Thakkar</a> | 
+<a href="https://github.com/ParamThakkar123" target="_blank">GitHub</a> | 
+<a href="https://x.com/Param23072004" target="_blank">X</a> | 
+<a href="https://scholar.google.com/citations?user=BZpTuDMAAAAJ&hl=en" target="_blank">Google Scholar</a>"""
 author = "Param Thakkar"
 release = "0.2.1"
 

@@ -74,6 +74,8 @@ html_theme_options = {
     "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
     "navbar_center": [],
+    # Keep only the theme icon links in the navbar end; the theme will render a single
+    # primary search field by default to avoid duplicate search boxes.
     "navbar_end": ["search-button-field", "navbar-icon-links"],
     "icon_links": [
         {
@@ -115,7 +117,9 @@ thebe_config = {
         "binder_url": "https://mybinder.org",
     },
 }
-html_static_path = ["_static"]
+# Copy both our _static assets and the `images/` dir so images referenced
+# from pages are available at build time (placed under _static/).
+html_static_path = ["_static", "images"]
 
 html_css_files = [
     "custom.css",

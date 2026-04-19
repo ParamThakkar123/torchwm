@@ -18,10 +18,10 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    # Enable the MathJax extension so Sphinx emits math nodes correctly. We also
-    # include a small MathJax config file + runtime via `html_js_files` so the
-    # client can render math reliably.
-    "sphinx.ext.mathjax",
+    # We load MathJax manually (config + runtime) so we control ordering and
+    # avoid Sphinx injecting the runtime before our config. Do NOT enable the
+    # built-in mathjax extension because it inserts its own script tag which
+    # can cause a race between the config and the runtime.
     "myst_parser",
     "sphinxext.opengraph",
     "sphinxcontrib.mermaid",
@@ -99,12 +99,19 @@ mermaid_output_format = "raw"
 # 3) Thebe for runnable code blocks
 html_js_files = [
     # MathJax config (local) and runtime (CDN)
+    # Load MathJax config and runtime locally to avoid runtime ordering issues
     "mathjax_config.js",
+    # Use official MathJax CDN fallback; if your hosting blocks this CDN we can
+    # vendor the runtime into `_static` as well.
     "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js",
     # Load Mermaid from jsDelivr CDN
     "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js",
     # Local init file that converts script blocks to .mermaid divs then runs Mermaid
     "mermaid_init.js",
+    # Small script to tidy duplicated navbar elements caused by theme options
+    "fix_navbar.js",
+    # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded
+    "mathjax_init.js",
     # Thebe (Thebe client) for runnable code blocks via Binder
     "https://unpkg.com/thebe@latest/lib/index.js",
     # Local small initializer to configure Thebe using `thebe_config`

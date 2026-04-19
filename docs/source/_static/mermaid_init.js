@@ -21,14 +21,22 @@
           // ignore conversion errors
         }
         // Use loose security to allow HTML labels; don't auto-start (we'll run)
-        window.mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
-        // Render existing mermaid blocks
+        // Configure theme based on document theme attribute (light/dark)
+        const dark = document.documentElement.dataset.theme === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
+        window.mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: dark ? 'dark' : 'default' });
+        // Render existing mermaid blocks after a short delay so MathJax (if
+        // present) can process page elements first. This avoids conflicts
+        // where MathJax rewrites nodes that Mermaid targets.
         try {
-          if (typeof window.mermaid.run === 'function') {
-            window.mermaid.run(document.querySelectorAll('.mermaid'));
-          } else if (typeof window.mermaid.init === 'function') {
-            window.mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-          }
+          const render = () => {
+            if (typeof window.mermaid.run === 'function') {
+              window.mermaid.run(document.querySelectorAll('.mermaid'));
+            } else if (typeof window.mermaid.init === 'function') {
+              window.mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            }
+          };
+          // Give MathJax a moment to typeset (if present), then render mermaid.
+          setTimeout(render, 50);
         } catch (e) {
           console.warn('Mermaid render failed', e);
         }

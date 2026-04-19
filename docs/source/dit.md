@@ -17,22 +17,20 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 ## Architecture
 
 <p align="center">
-  <img src="images/dit_architecture.png" alt="DiT Architecture" />
+  <img src="_static/dit_architecture.png" alt="DiT Architecture" />
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 
-<!-- Use a script tag so the source keeps the mermaid text; our mermaid_init.js
-     will convert these to <div class="mermaid"> elements at runtime. -->
 <script type="text/vnd.mermaid">
 graph TD
-A[Input: x_t<br/>noisy image] --> B[Patch Embedding<br/>+ Positional Encoding]
-C[Timestep Embedding] --> D[Linear Projection<br/>to tokens]
-E[Condition Embedding<br/>optional] --> D
+A[Input: x_t\nnoisy image] --> B[Patch Embedding\n+ Positional Encoding]
+C[Timestep Embedding] --> D[Linear Projection\nto tokens]
+E[Condition Embedding\noptional] --> D
 B --> D
-D --> F[DiT Block 1<br/>Self-Attention + MLP<br/>Adaptive Layer Norm]
-F --> G[DiT Block 2<br/>...]
+D --> F[DiT Block 1\nSelf-Attention + MLP\nAdaptive Layer Norm]
+F --> G[DiT Block 2\n...]
 G --> H[DiT Block N]
-H --> I[Output Head<br/>Linear Projection<br/>Predicted Noise ε]
+H --> I[Output Head\nLinear Projection\nPredicted Noise ε]
 I --> J[Output: ε_pred]
 
 style A fill:#e1f5fe

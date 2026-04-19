@@ -55,6 +55,11 @@ autodoc_mock_imports = [
     "pygame",
     "hydra",
     "omegaconf",
+    "torchvision",
+    "gym",
+    "gymnasium",
+    "wandb",
+    "PIL",
 ]
 
 html_theme = "pydata_sphinx_theme"

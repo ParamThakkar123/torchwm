@@ -158,7 +158,7 @@ class IRISAgent(nn.Module):
         self,
         frames: torch.Tensor,  # (B, T, C, H, W)
         hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """Forward pass through actor-critic.
 
         Args:

@@ -133,9 +133,9 @@ class DiamondConfig:
     eval_interval: int = 50
     save_interval: int = 100
 
-    # Seeds
-    num_seeds: int = 5
-    seed: int = 0
+    # Operator parameters (added for systematization)
+    operator_state_dim: int = 32
+    operator_action_dim: int = 4
 
 
 # Atari 100k benchmark games

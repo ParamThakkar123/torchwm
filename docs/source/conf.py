@@ -76,21 +76,9 @@ autodoc_mock_imports = [
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
+    "navigation_depth": 2,
     "show_nav_level": 1,
-    "pygments_light_style": "default",
-    "pygments_dark_style": "github-dark",
-    "navbar_center": [],
-    # Keep only the theme icon links in the navbar end; the theme will render a
-    # single primary search field by default. Removing the explicit search button
-    # here avoids duplicate search controls in the header.
-    "navbar_end": ["navbar-icon-links"],
-    "icon_links": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/paramthakkar123/torchwm",
-            "icon": "fa-brands fa-github",
-        },
-    ],
+    "navbar_end": ["navbar-icon-links", "search-field"],
 }
 
 # sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render

@@ -15,7 +15,7 @@ TorchWM supports training multiple world model algorithms with a unified interfa
 
 ## Dreamer Training
 
-```python
+```python :class: thebe
 from world_models.models import DreamerAgent
 from world_models.configs import DreamerConfig
 
@@ -32,7 +32,7 @@ agent.train()
 
 ## JEPA Training
 
-```python
+```python :class: thebe
 from world_models.models import JEPAAgent
 from world_models.configs import JEPAConfig
 
@@ -47,7 +47,7 @@ agent.train()
 
 ## IRIS Training
 
-```python
+```python :class: thebe
 from world_models.models import IRISAgent
 from world_models.configs import IRISConfig
 
@@ -63,7 +63,7 @@ agent.train()
 
 For advanced users, implement custom training:
 
-```python
+```python :class: thebe
 from world_models.memory import DreamerMemory
 from world_models.models import DreamerAgent
 
@@ -105,19 +105,19 @@ All training is controlled via config objects:
 ## Environment Setup
 
 ### DMC
-```python
+```python :class: thebe
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 ```
 
 ### Gym
-```python
+```python :class: thebe
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
 ```
 
 ### Unity ML-Agents
-```python
+```python :class: thebe
 cfg.env_backend = "unity_mlagents"
 cfg.unity_file_name = "path/to/env.exe"
 ```
@@ -130,7 +130,7 @@ tensorboard --logdir runs
 ```
 
 ### Weights & Biases
-```python
+```python :class: thebe
 cfg.enable_wandb = True
 cfg.wandb_project = "torchwm"
 cfg.wandb_entity = "your-entity"
@@ -140,7 +140,7 @@ cfg.wandb_entity = "your-entity"
 
 Models are automatically saved:
 
-```python
+```python :class: thebe
 # Resume training
 cfg.restore = True
 cfg.checkpoint_path = "path/to/checkpoint"
@@ -150,7 +150,7 @@ cfg.checkpoint_path = "path/to/checkpoint"
 
 For multi-GPU training:
 
-```python
+```python :class: thebe
 cfg.num_gpus = 4
 # TorchWM handles distributed setup automatically
 ```

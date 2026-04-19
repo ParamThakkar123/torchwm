@@ -6,7 +6,7 @@ This page documents all configuration classes in TorchWM.
 
 Configuration for Dreamer agent training.
 
-```python
+```python :class: thebe
 @dataclass
 class DreamerConfig:
     # Environment
@@ -101,7 +101,7 @@ class DreamerConfig:
 
 Configuration for JEPA training.
 
-```python
+```python :class: thebe
 @dataclass
 class JEPAConfig:
     # Meta
@@ -184,7 +184,7 @@ class JEPAConfig:
 
 Configuration for IRIS training.
 
-```python
+```python :class: thebe
 @dataclass
 class IRISConfig:
     # Discrete Autoencoder (VQVAE)
@@ -269,7 +269,7 @@ class IRISConfig:
 
 Configuration for Diamond (Diffusion + RL) training.
 
-```python
+```python :class: thebe
 @dataclass
 class DiamondConfig:
     # Preset
@@ -344,7 +344,7 @@ class DiamondConfig:
 
 ### Basic Configuration
 
-```python
+```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
@@ -354,7 +354,7 @@ cfg.total_steps = 1_000_000
 
 ### Environment-Specific Configs
 
-```python
+```python :class: thebe
 # DMC
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
@@ -370,7 +370,7 @@ cfg.unity_file_name = "env.exe"
 
 ### Training Configs
 
-```python
+```python :class: thebe
 # Basic training
 cfg.batch_size = 50
 cfg.learning_rate = 6e-4
@@ -386,7 +386,7 @@ cfg.save_every = 100_000
 
 ### Advanced Configs
 
-```python
+```python :class: thebe
 # Custom model sizes
 cfg.obs_embed_size = 2048
 cfg.num_units = 600

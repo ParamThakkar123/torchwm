@@ -64,7 +64,7 @@ L = ||predict(target) - target||²
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.models import JEPAAgent
 from world_models.configs import JEPAConfig
 

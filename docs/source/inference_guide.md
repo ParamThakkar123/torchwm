@@ -8,7 +8,7 @@ TorchWM provides standardized inference through operators and future pipelines.
 
 ## Loading Trained Models
 
-```python
+```python :class: thebe
 from world_models.models import DreamerAgent
 
 # Load from checkpoint
@@ -24,7 +24,7 @@ See {doc}`operators_guide` for detailed operator usage.
 
 ### Dreamer
 
-```python
+```python :class: thebe
 import torch
 from world_models.inference.operators import DreamerOperator
 
@@ -42,7 +42,7 @@ with torch.no_grad():
 
 ### JEPA
 
-```python
+```python :class: thebe
 from world_models.models import JEPAAgent
 from world_models.inference.operators import JEPAOperator
 
@@ -61,7 +61,7 @@ with torch.no_grad():
 
 Generate imagined trajectories:
 
-```python
+```python :class: thebe
 # Dreamer imagination
 from world_models.models import DreamerAgent
 
@@ -78,7 +78,7 @@ imagined_trajectory = agent.imagine_rollout(initial_obs, horizon)
 
 Process multiple inputs efficiently:
 
-```python
+```python :class: thebe
 batch_size = 32
 obs_batch = torch.randn(batch_size, 3, 64, 64)
 action_batch = torch.randn(batch_size, 6)
@@ -93,7 +93,7 @@ with torch.no_grad():
 
 Move to GPU for faster inference:
 
-```python
+```python :class: thebe
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 agent = agent.to(device)
@@ -107,7 +107,7 @@ with torch.no_grad():
 
 For interactive applications:
 
-```python
+```python :class: thebe
 class InferenceServer:
     def __init__(self):
         self.agent = DreamerAgent.from_pretrained("checkpoint").eval()
@@ -125,7 +125,7 @@ server = InferenceServer()
 
 ### JIT Compilation
 
-```python
+```python :class: thebe
 from world_models.utils.jit_utils import jit_compile_module
 
 agent = jit_compile_module(agent)
@@ -133,7 +133,7 @@ agent = jit_compile_module(agent)
 
 ### Memory Efficient Inference
 
-```python
+```python :class: thebe
 from world_models.utils.memory_utils import optimize_memory_efficient_ops
 
 optimize_memory_efficient_ops()
@@ -143,7 +143,7 @@ optimize_memory_efficient_ops()
 
 Export to ONNX or TorchScript:
 
-```python
+```python :class: thebe
 # TorchScript
 scripted = torch.jit.script(agent)
 torch.jit.save(scripted, "model.pt")
@@ -157,7 +157,7 @@ torch.onnx.export(agent, dummy_input, "model.onnx")
 
 ### With Gym Environments
 
-```python
+```python :class: thebe
 import gymnasium as gym
 
 env = gym.make("Pendulum-v1")
@@ -174,7 +174,7 @@ while not done:
 
 ### With Custom Environments
 
-```python
+```python :class: thebe
 class CustomEnv:
     def step(self, action):
         # Your environment logic

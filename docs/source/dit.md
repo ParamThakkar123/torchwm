@@ -110,7 +110,7 @@ cfg = get_dit_config(
 
 ## Sampling (Generation)
 
-```python
+```python :class: thebe
 # Start from random noise
 x_T ~ N(0, I)
 

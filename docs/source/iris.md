@@ -69,7 +69,7 @@ by learning entirely in the imagination of a world model:
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.training.train_iris import IRISTrainer
 from world_models.configs.iris_config import IRISConfig
 
@@ -120,7 +120,7 @@ python -m benchmarks.atari_100k --device cuda --num_seeds 5
 
 ### Configuration
 
-```python
+```python :class: thebe
 from world_models.configs.iris_config import IRISConfig
 
 config = IRISConfig()

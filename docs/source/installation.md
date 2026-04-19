@@ -76,7 +76,7 @@ docker run -it torchwm
 
 Verify your installation:
 
-```python
+```python :class: thebe
 import torch
 import world_models
 

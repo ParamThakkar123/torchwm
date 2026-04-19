@@ -33,7 +33,7 @@ To use WandB logging, you must provide an API key as anonymous logins are no lon
 1. Get your WandB API key from [wandb.ai](https://wandb.ai/settings).
 2. Set the key in your config:
 
-```python
+```python :class: thebe
 cfg.enable_wandb = True
 cfg.wandb_api_key = "your-api-key-here"
 cfg.wandb_project = "torchwm"
@@ -44,7 +44,7 @@ cfg.wandb_entity = "your-entity"
 
 Enable TensorBoard logging:
 
-```python
+```python :class: thebe
 cfg.enable_tensorboard = True
 cfg.log_dir = "runs"
 ```
@@ -72,7 +72,7 @@ Operators handle input preprocessing: normalizing images, encoding actions, toke
 
 ### Basic Usage
 
-```python
+```python :class: thebe
 from world_models.inference.operators import DreamerOperator
 
 # Create operator with config parameters
@@ -103,7 +103,7 @@ processed = op.process(raw_inputs)
 
 ### JEPA Example (Self-Supervised)
 
-```python
+```python :class: thebe
 from world_models.inference.operators import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
@@ -115,7 +115,7 @@ result = op(inputs)
 
 ### IRIS Example (Sequence Processing)
 
-```python
+```python :class: thebe
 from world_models.inference.operators import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
@@ -129,7 +129,7 @@ result = op(inputs)
 
 Operators use parameters from config classes:
 
-```python
+```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
@@ -143,7 +143,7 @@ op = DreamerOperator(
 
 Common preprocessing functions are available in `world_models.inference.operators.utils`:
 
-```python
+```python :class: thebe
 from world_models.inference.operators.utils import normalize_image, tokenize_text
 
 normalized_img = normalize_image(pil_image, size=(224, 224))

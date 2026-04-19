@@ -76,7 +76,7 @@ The core world model combining:
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.models import DreamerAgent
 from world_models.configs import DreamerConfig
 
@@ -131,7 +131,7 @@ DreamerV2 introduces several improvements:
 
 Dreamer supports multiple backends:
 
-```python
+```python :class: thebe
 cfg = DreamerConfig()
 cfg.env_backend = "dmc"      # DeepMind Control Suite
 cfg.env = "walker-walk"

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+import torch
 
 
 @dataclass
@@ -125,7 +126,7 @@ class DiamondConfig:
     weight_decay_actor: float = 0.0
 
     # Device
-    device: str = "cuda"
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Logging
     log_interval: int = 10

@@ -18,7 +18,7 @@ pip install dm-control
 
 ### Configuration
 
-```python
+```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
@@ -46,7 +46,7 @@ pip install gymnasium[classic-control,atari,box2d]  # optional extras
 
 ### Configuration
 
-```python
+```python :class: thebe
 cfg = DreamerConfig()
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
@@ -55,7 +55,7 @@ cfg.gym_render_mode = "rgb_array"  # for rendering
 
 ### Custom Environments
 
-```python
+```python :class: thebe
 import gymnasium as gym
 from world_models.envs import GymWrapper
 
@@ -81,7 +81,7 @@ For complex 3D environments and simulations.
 
 ### Configuration
 
-```python
+```python :class: thebe
 cfg = DreamerConfig()
 cfg.env_backend = "unity_mlagents"
 cfg.unity_file_name = r"C:\Path\To\Env.exe"
@@ -96,7 +96,7 @@ Implement your own environments using the TorchWM interface.
 
 ### Environment Interface
 
-```python
+```python :class: thebe
 from world_models.envs.base import BaseEnvironment
 
 class MyEnvironment(BaseEnvironment):
@@ -124,7 +124,7 @@ class MyEnvironment(BaseEnvironment):
 
 ### Registration
 
-```python
+```python :class: thebe
 from world_models.envs import register_environment
 
 register_environment("my_env", MyEnvironment)
@@ -138,7 +138,7 @@ cfg.env = "my_env"
 
 Apply transformations to environments:
 
-```python
+```python :class: thebe
 from world_models.envs.wrappers import (
     FrameStackWrapper,
     ActionRepeatWrapper,
@@ -159,7 +159,7 @@ env = RewardScaleWrapper(env, scale=0.1)
 
 Train on multiple environments simultaneously:
 
-```python
+```python :class: thebe
 cfg = DreamerConfig()
 cfg.envs = ["walker-walk", "cheetah-run", "finger-turn_hard"]
 cfg.env_sampling = "uniform"  # or "weighted"
@@ -169,7 +169,7 @@ cfg.env_sampling = "uniform"  # or "weighted"
 
 Use separate environments for evaluation:
 
-```python
+```python :class: thebe
 cfg = DreamerConfig()
 cfg.eval_env = "walker-run"  # different from training env
 cfg.eval_episodes = 10
@@ -180,7 +180,7 @@ cfg.eval_freq = 10000
 
 ### Visualization
 
-```python
+```python :class: thebe
 from world_models.envs.utils import play_environment
 
 # Play environment interactively
@@ -189,7 +189,7 @@ play_environment(cfg, num_episodes=5)
 
 ### Recording
 
-```python
+```python :class: thebe
 from world_models.envs.utils import record_environment
 
 # Record episodes

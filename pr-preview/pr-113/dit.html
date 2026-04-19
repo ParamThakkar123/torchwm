@@ -37,6 +37,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=26a46ee4" />
   
   <!-- So that users can add custom icons -->
@@ -48,6 +49,8 @@
     <script src="_static/documentation_options.js?v=37f418d5"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe, .cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dit';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.17.0';
@@ -655,7 +658,8 @@ It treats diffusion as a sequence modeling problem where the transformer predict
   <img src="images/dit_architecture.png" alt="DiT Architecture" />
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
-<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+<p>.. mermaid::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>graph TD
     A[Input: x_t&lt;br/&gt;noisy image] --&gt; B[Patch Embedding&lt;br/&gt;+ Positional Encoding]
     C[Timestep Embedding] --&gt; D[Linear Projection&lt;br/&gt;to tokens]
     E[Condition Embedding&lt;br/&gt;optional] --&gt; D
@@ -711,7 +715,7 @@ Final layer predicting noise (ε) same dimension as input:
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 ## Training
 
-```python
+```python :class: thebe
 from world_models.configs import DiTConfig, get_dit_config
 
 cfg = get_dit_config(
@@ -848,6 +852,25 @@ cfg = get_dit_config(
 </section>
 </section>
 
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "paramthakkar123/torchwm",
+            ref: "main",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
 
                 </article>
               

@@ -15,7 +15,7 @@ Operators provide a consistent interface for preprocessing inputs before feeding
 
 All operators inherit from `OperatorABC`:
 
-```python
+```python :class: thebe
 from world_models.inference.operators.base import OperatorABC
 
 class MyOperator(OperatorABC):
@@ -28,7 +28,7 @@ class MyOperator(OperatorABC):
 
 For Dreamer model's image and action processing:
 
-```python
+```python :class: thebe
 from world_models.inference.operators import DreamerOperator
 from PIL import Image
 import torch
@@ -52,7 +52,7 @@ result = op.process({'image': obs_tensor, 'action': torch.tensor(action)})
 
 For JEPA's self-supervised image processing with masking:
 
-```python
+```python :class: thebe
 from world_models.inference.operators import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
@@ -73,7 +73,7 @@ result = op.process({'images': images, 'mask': custom_mask})
 
 For IRIS's sequence processing:
 
-```python
+```python :class: thebe
 from world_models.inference.operators import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
@@ -94,7 +94,7 @@ result = op.process({'tokens': tokens, 'embeddings': embeddings})
 
 For PlaNet's environment state processing:
 
-```python
+```python :class: thebe
 from world_models.inference.operators import PlaNetOperator
 
 op = PlaNetOperator(state_dim=32, action_dim=4)
@@ -118,7 +118,7 @@ print(result['done'].shape)   # torch.Size([1])
 
 Operators work seamlessly with config classes:
 
-```python
+```python :class: thebe
 from world_models.configs import DreamerConfig, JEPAConfig, IRISConfig
 
 # Dreamer
@@ -148,7 +148,7 @@ iris_op = IrisOperator(
 
 Common preprocessing functions in `world_models.inference.operators.utils`:
 
-```python
+```python :class: thebe
 from world_models.inference.operators.utils import (
     normalize_image,
     tokenize_text,
@@ -167,7 +167,7 @@ tokens = tokenize_text("Hello world", max_length=512)
 
 Operators validate inputs and provide helpful error messages:
 
-```python
+```python :class: thebe
 try:
     result = op.process(invalid_inputs)
 except ValueError as e:

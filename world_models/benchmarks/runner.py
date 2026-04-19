@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from typing import Any, Callable, Dict, List, Optional
+import torch
 
 import numpy as np
 
@@ -131,11 +132,12 @@ class MultiAgentBenchmarkRunner:
 
     def run_all(
         self,
-        env_spec: Any | None = None,
+        env_spec: Dict[str, Any],
         seeds: List[int] | None = None,
         num_episodes: int = 5,
         checkpoints: Optional[Dict[str, str]] = None,
         extra_kwargs: Optional[Dict[str, Any]] = None,
+        train_epochs: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Run benchmarks for all adapters on the same environment.
 
@@ -143,10 +145,14 @@ class MultiAgentBenchmarkRunner:
         """
         seeds = seeds or [0]
         extra_kwargs = extra_kwargs or {}
-        if checkpoints is None:
+        if checkpoints is None and train_epochs is None:
             raise ValueError(
-                "Checkpoints dict is required for benchmarking. Only trained models should be benchmarked."
+                "Checkpoints dict is required for benchmarking, or provide --train-epochs to train models first. Only trained models should be benchmarked."
             )
+        if checkpoints is None:
+            # Train models first
+            assert train_epochs is not None
+            checkpoints = self._train_all_agents(env_spec, extra_kwargs, train_epochs)
         if not checkpoints:
             raise ValueError(
                 "Checkpoints dict cannot be empty. Provide checkpoint paths for all agents."
@@ -195,6 +201,69 @@ class MultiAgentBenchmarkRunner:
         )
 
         return all_results
+
+    def _train_all_agents(
+        self,
+        env_spec: Dict[str, Any],
+        extra_kwargs: Dict[str, Any],
+        train_epochs: Optional[int],
+    ) -> Dict[str, str]:
+        """Train all agents and return checkpoint paths."""
+        assert train_epochs is not None
+        import os
+
+        checkpoints = {}
+        device = extra_kwargs.get(
+            "device", "cuda" if torch.cuda.is_available() else "cpu"
+        )
+        preset = extra_kwargs.get("preset", None)
+
+        for adapter_cls in self.adapters:
+            adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
+            print(f"Training {adapter_name}...")
+
+            if adapter_name == "iris":
+                from world_models.training.train_iris import IRISTrainer
+
+                trainer = IRISTrainer(game=env_spec["game"], device=device)
+                save_dir = f"checkpoints/{adapter_name}"
+                trainer.train(total_epochs=train_epochs, save_dir=save_dir)
+                checkpoint_path = f"{save_dir}/checkpoint_{train_epochs - 1}.pt"
+            elif adapter_name == "diamond":
+                from world_models.training.train_diamond import DiamondAgent
+                from world_models.configs.diamond_config import DiamondConfig
+
+                config = DiamondConfig(
+                    game=env_spec["game"], preset=preset, device=device
+                )
+                config.num_epochs = train_epochs
+                agent = DiamondAgent(config)
+                agent.train()
+                checkpoint_path = (
+                    f"checkpoints/{adapter_name}/checkpoint_{train_epochs}.pt"
+                )
+            elif adapter_name in ["dreamerv1", "dreamerv2"]:
+                from world_models.models.dreamer import DreamerAgent
+                from world_models.configs.dreamer_config import DreamerConfig
+
+                config = DreamerConfig()
+                config.env = env_spec["game"]
+                config.env_backend = "gym"
+                config.algo = (
+                    "Dreamerv1" if adapter_name == "dreamerv1" else "Dreamerv2"
+                )
+                config.total_steps = train_epochs * 1000  # Approximate conversion
+                # config.device = device  # DreamerConfig does not have device attribute
+                config.checkpoint_path = f"checkpoints/{adapter_name}/checkpoint.pt"
+                agent = DreamerAgent(config)
+                agent.train(total_steps=config.total_steps)
+                checkpoint_path = config.checkpoint_path
+            else:
+                raise ValueError(f"Unknown adapter: {adapter_name}")
+
+            checkpoints[adapter_name] = checkpoint_path
+
+        return checkpoints
 
     def _export_combined_csv(self, results: Dict[str, Any], filepath: str):
         """Export combined results to CSV."""

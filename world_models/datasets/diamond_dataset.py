@@ -14,7 +14,7 @@ class ReplayBuffer:
         capacity: int = 100000,
         obs_shape: Tuple[int, int, int] = (64, 64, 3),
         action_dim: int = 1,
-        device: str = "cuda",
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
     ):
         self.capacity = capacity
         self.obs_shape = obs_shape

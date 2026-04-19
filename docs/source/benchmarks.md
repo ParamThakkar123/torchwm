@@ -36,6 +36,25 @@ python -m world_models.benchmarks.cli --agent diamond --game Breakout-v5 --seeds
 python -m world_models.benchmarks.cli --agent dreamerv2 --game Pong-v5 --seeds 1 --episodes 10
 ```
 
+- Run all agents on Pong for 3 episodes using seed 0:
+
+```
+python -m world_models.benchmarks.cli --all-agents --game ALE/Pong-v5 --seeds 1 --episodes 3
+```
+
+Python API Example
+------------------
+
+Use the `BenchmarkRunner` when you need programmatic control:
+
+```py
+from world_models.benchmarks.runner import BenchmarkRunner
+from world_models.benchmarks import adapters
+
+runner = BenchmarkRunner(adapter_cls=adapters.IRISAdapter, out_dir="results/bench")
+res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0,1], num_episodes=5)
+print(res)
+```
 Python API Example
 ------------------
 
@@ -50,6 +69,24 @@ res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0,1], num_episodes=5)
 print(res)
 ```
 
+Running the Atari 100k Benchmark
+---------------------------------
+
+To run the full Atari 100k benchmark on all 26 games using IRIS:
+
+```
+python benchmarks/atari_100k.py
+```
+
+This will train IRIS on each game for 100k environment steps with 5 random seeds per game, compute human-normalized scores, and compare to baselines.
+
+Outputs
+-------
+- The runner saves results into the `out_dir` (default `results/bench`):
+  - `benchmark_results.json` (raw structured results)
+  - `benchmark_results.csv` (seed rows)
+  - `benchmark_results.md` (human readable markdown table)
+  - `benchmark_results.tex` (LaTeX table ready for papers)
 Outputs
 -------
 - The runner saves results into the `out_dir` (default `results/bench`):

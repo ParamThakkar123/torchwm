@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from typing import List
+import torch
 
 from world_models.benchmarks.runner import BenchmarkRunner, MultiAgentBenchmarkRunner
 from world_models.benchmarks import adapters
@@ -43,8 +44,11 @@ def main():
     parser.add_argument("--episodes", type=int, default=5)
     parser.add_argument("--checkpoint", type=str, default=None)
     parser.add_argument("--out_dir", type=str, default="results/bench")
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument(
+        "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
+    )
     parser.add_argument("--preset", type=str, default=None)
+    parser.add_argument("--train-epochs", type=int, default=None)
 
     args = parser.parse_args()
 
@@ -72,6 +76,7 @@ def main():
             num_episodes=args.episodes,
             checkpoints=None,  # Could extend to support per-agent checkpoints
             extra_kwargs={"device": args.device, "preset": args.preset},
+            train_epochs=args.train_epochs,
         )
 
         print("Multi-agent benchmark finished. Results written to:", args.out_dir)

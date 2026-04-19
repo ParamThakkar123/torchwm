@@ -18,6 +18,9 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    # Enable the MathJax extension so Sphinx emits math nodes correctly. We also
+    # include a small MathJax config file + runtime via `html_js_files` so the
+    # client can render math reliably.
     "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
@@ -74,9 +77,10 @@ html_theme_options = {
     "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
     "navbar_center": [],
-    # Keep only the theme icon links in the navbar end; the theme will render a single
-    # primary search field by default to avoid duplicate search boxes.
-    "navbar_end": ["search-button-field", "navbar-icon-links"],
+    # Keep only the theme icon links in the navbar end; the theme will render a
+    # single primary search field by default. Removing the explicit search button
+    # here avoids duplicate search controls in the header.
+    "navbar_end": ["navbar-icon-links"],
     "icon_links": [
         {
             "name": "GitHub",
@@ -89,11 +93,17 @@ html_theme_options = {
 # sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render
 mermaid_output_format = "raw"
 
-# Include mermaid runtime from CDN and an initialization script so diagrams render on the client
+# Include client-side assets in a controlled order:
+# 1) MathJax config + runtime so math renders reliably
+# 2) Mermaid runtime + init so diagrams convert and render client-side
+# 3) Thebe for runnable code blocks
 html_js_files = [
+    # MathJax config (local) and runtime (CDN)
+    "mathjax_config.js",
+    "https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js",
     # Load Mermaid from jsDelivr CDN
     "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js",
-    # Local init file that calls mermaid.initialize()
+    # Local init file that converts script blocks to .mermaid divs then runs Mermaid
     "mermaid_init.js",
     # Thebe (Thebe client) for runnable code blocks via Binder
     "https://unpkg.com/thebe@latest/lib/index.js",

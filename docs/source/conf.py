@@ -62,6 +62,9 @@ autodoc_mock_imports = [
     "gymnasium",
     "wandb",
     "PIL",
+    "torch",
+    "torch.nn",
+    "torch._C",
 ]
 
 html_theme = "pydata_sphinx_theme"
@@ -71,6 +74,7 @@ html_theme_options = {
     "pygments_light_style": "default",
     "pygments_dark_style": "github-dark",
     "navbar_center": [],
+    "navbar_end": ["search-button-field", "navbar-icon-links"],
     "icon_links": [
         {
             "name": "GitHub",
@@ -79,6 +83,22 @@ html_theme_options = {
         },
     ],
 }
+
+# sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render
+mermaid_output_format = "raw"
+
+# Include mermaid runtime from CDN and an initialization script so diagrams render on the client
+html_js_files = [
+    # Load Mermaid from jsDelivr CDN
+    "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.min.js",
+    # Local init file that calls mermaid.initialize()
+    "mermaid_init.js",
+    # Thebe (Thebe client) for runnable code blocks via Binder
+    "https://unpkg.com/thebe@latest/lib/index.js",
+    # Local small initializer to configure Thebe using `thebe_config`
+    "thebe_init.js",
+    "thebe_autoclass.js",
+]
 
 # Thebe configuration for interactive code execution
 thebe_config = {

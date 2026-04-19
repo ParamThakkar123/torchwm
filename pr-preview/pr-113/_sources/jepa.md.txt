@@ -54,8 +54,9 @@ Predicts future latent representations from current encoding:
 ### 3. Loss Functions
 
 **Main Loss**: MSE between predicted and target representations
-```
-L = ||predict(target) - target||²
+
+```{math}
+\mathcal{L} = \left\| \mathrm{predict}(\mathrm{target}) - \mathrm{target} \right\|^2
 ```
 
 **Additional Losses** (configurable):

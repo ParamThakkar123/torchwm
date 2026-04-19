@@ -51,6 +51,7 @@
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe, .cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dreamer';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-113/dreamer.html" />
@@ -426,9 +427,15 @@ end</p>
 <li><p><strong>Deterministic hidden state</strong> (h_t): Recurrent state (GRU)</p></li>
 <li><p><strong>Stochastic latent state</strong> (s_t): Discrete or continuous latent variables</p></li>
 </ul>
-<p><strong>Dynamics</strong>: <code class="docutils literal notranslate"><span class="pre">h_t</span> <span class="pre">=</span> <span class="pre">f(h_{t-1},</span> <span class="pre">s_{t-1},</span> <span class="pre">a_{t-1})</span></code>
-<strong>Posterior</strong>: <code class="docutils literal notranslate"><span class="pre">s_t</span> <span class="pre">~</span> <span class="pre">q(s_t</span> <span class="pre">|</span> <span class="pre">h_t,</span> <span class="pre">x_t)</span></code>
-<strong>Prior</strong>: <code class="docutils literal notranslate"><span class="pre">s_t</span> <span class="pre">~</span> <span class="pre">p(s_t</span> <span class="pre">|</span> <span class="pre">h_t)</span></code></p>
+<p><strong>Dynamics</strong>:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{h}_t = f(\mathbf{h}_{t-1}, \mathbf{s}_{t-1}, \mathbf{a}_{t-1})\]</div>
+<p><strong>Posterior</strong>:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{s}_t \sim q(\mathbf{s}_t | \mathbf{h}_t, \mathbf{x}_t)\]</div>
+<p><strong>Prior</strong>:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{s}_t \sim p(\mathbf{s}_t | \mathbf{h}_t)\]</div>
 </section>
 <section id="encoder-decoder">
 <h3>2. Encoder/Decoder<a class="headerlink" href="#encoder-decoder" title="Link to this heading">#</a></h3>
@@ -505,17 +512,14 @@ end</p>
 <section id="learning-objectives">
 <h3>Learning Objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h3>
 <p><strong>World Model Loss</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">L_world</span> <span class="o">=</span> <span class="n">L_reconstruction</span> <span class="o">+</span> <span class="n">L_reward</span> <span class="o">+</span> <span class="n">β</span> <span class="o">*</span> <span class="n">L_KL</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_\mathrm{world} = \mathcal{L}_\mathrm{reconstruction} + \mathcal{L}_\mathrm{reward} + \beta \cdot \mathcal{L}_\mathrm{KL}\]</div>
 <p><strong>Actor Loss</strong> (REINFORCE):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">L_actor</span> <span class="o">=</span> <span class="o">-</span><span class="n">E</span><span class="p">[</span><span class="n">log</span> <span class="n">π</span><span class="p">(</span><span class="n">a</span><span class="o">|</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">G</span> <span class="o">-</span> <span class="n">V</span><span class="p">(</span><span class="n">s</span><span class="p">))]</span>
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_\mathrm{actor} = -\mathbb{E}[\log \pi(\mathbf{a} | \mathbf{s}) \cdot (G - V(\mathbf{s}))]\]</div>
 <p><strong>Critic Loss</strong> (MSE):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>L_critic = E[(G - V(s))²]
-</pre></div>
-</div>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_\mathrm{critic} = \mathbb{E}[(G - V(\mathbf{s}))^2]\]</div>
 </section>
 </section>
 <section id="dreamerv2-enhancements">

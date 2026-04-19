@@ -18,41 +18,37 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         World Model (RSSM)                          │
-│                                                                      │
-│  ┌─────────┐    ┌───────────────────┐    ┌────────────────────────┐ │
-│  │Encoder  │    │    Latent Model   │    │       Decoder          │ │
-│  │ (CNN)   │ -> │  (GRU + Stoch)    │ -> │    (Transposed CNN)    │ │
-│  │ 64x64   │    │ h_t = f(h_{t-1},  │    │                        │ │
-│  │         │    │        s_{t-1}, a)│    │  p(x_t | s_t, h_t)    │ │
-│  └─────────┘    └───────────────────┘    └────────────────────────┘ │
-│                                                                      │
-│        s_t ~ p(s_t | h_t)       h_t ~ p(h_t | s_{t-1}, a_{t-1})    │
-└─────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Imagination Rollout                         │
-│                                                                      │
-│  s_0 ──► a_0 ──► s_1 ──► a_1 ──► s_2 ──► ... ──► s_H               │
-│  │        │                                                            │
-│  └────────┴──────────────────────────────────────┐                  │
-│                                               ▼                     │
-│                      ┌─────────────────────────────┐                │
-│                      │      λ-return target        │                │
-│                      │  G_t = r_t + γ(1-λ)v + λG_{t+1}               │
-│                      └─────────────────────────────┘                │
-└─────────────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Actor-Critic Learning                        │
-│                                                                      │
-│  Actor: π(a_t | s_t, h_t)  ──►  REINFORCE with baseline             │
-│  Critic: v(s_t, h_t)       ──►  MSE on λ-returns                   │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "World Model (RSSM)"
+        A[Encoder<br/>CNN 64x64] --> B[Latent Model<br/>GRU + Stochastic]
+        B --> C[Decoder<br/>Transposed CNN]
+        B --> D[s_t ~ p(s_t | h_t)]
+        E[h_t = f(h_{t-1}, s_{t-1}, a)]
+    end
+    
+    subgraph "Imagination Rollout"
+        F[s_0] --> G[a_0]
+        G --> H[s_1]
+        H --> I[a_1]
+        I --> J[s_2]
+        J --> K[...]
+        K --> L[s_H]
+        L --> M[λ-return target<br/>G_t = r_t + γ(1-λ)v + λG_{t+1}]
+    end
+    
+    subgraph "Actor-Critic Learning"
+        N[Actor: π(a_t | s_t, h_t)<br/>REINFORCE with baseline]
+        O[Critic: v(s_t, h_t)<br/>MSE on λ-returns]
+    end
+    
+    C --> F
+    M --> N
+    M --> O
+    
+    style A fill:#e1f5fe
+    style N fill:#e8f5e8
+    style O fill:#e8f5e8
 ```
 
 ## Components

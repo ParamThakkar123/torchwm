@@ -21,6 +21,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
+    "sphinxcontrib.mermaid",
 ]
 
 templates_path = ["_templates"]
@@ -44,6 +45,7 @@ myst_enable_extensions = [
     "amsmath",
     "deflist",
     "fieldlist",
+    "mermaid",
 ]
 
 autodoc_mock_imports = [
@@ -70,6 +72,27 @@ html_theme_options = {
     "pygments_dark_style": "github-dark",
     "navbar_center": ["navbar-nav"],
     "navigation_depth": 2,
+    "show_version_warning_banner": True,
+    "navbar_start": ["navbar-logo"],
+    "navbar_align": "content",
+    "footer_start": ["copyright"],
+    "footer_end": ["last-updated"],
+    "switcher": {
+        "json_url": "https://paramthakkar123.github.io/torchwm/switcher.json",
+        "version_match": "stable",
+    },
+    "icon_links": [
+        {
+            "name": "PyPI",
+            "url": "https://pypi.org/project/torchwm/",
+            "icon": "fa-solid fa-box",
+        },
+        {
+            "name": "GitHub",
+            "url": "https://github.com/paramthakkar123/torchwm",
+            "icon": "fa-brands fa-github",
+        },
+    ],
 }
 html_static_path = ["_static"]
 

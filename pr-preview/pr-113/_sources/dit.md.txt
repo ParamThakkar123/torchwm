@@ -123,7 +123,7 @@ p(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mu_\theta(\mathbf{x}_t, t), \s
 # Iteratively denoise
 for t in reversed(range(T)):
     ε = model(x_t, t)  # Predict noise
-    x_{t-1} = x_t - √(1-ᾱ_t) * ε  # Remove predicted noise
+    x_{t-1} = x_t - sqrt(1-alpha_bar_t) * ε  # Remove predicted noise
 
 # Output: x_0 (generated image)
 ```

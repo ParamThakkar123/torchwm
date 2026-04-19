@@ -53,7 +53,7 @@ class IRISTransformer(nn.Module):
             dropout=dropout,
             activation="gelu",
             batch_first=True,
-            norm_first=True,
+            norm_first=False,
         )
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
 
@@ -326,7 +326,9 @@ class IRISWorldModel(nn.Module):
         decoded_frames = []
         for t in range(T):
             next_tokens_pred = token_logits[:, t, :, :].argmax(dim=-1)  # Greedy
-            decoded_frames.append(self.decoder.decode_from_embeddings(next_tokens_pred))
+            decoded_frames.append(
+                getattr(self.decoder, "decode_from_embeddings")(next_tokens_pred)
+            )
 
         decoded_frames = torch.stack(decoded_frames, dim=1) if decoded_frames else None
 
@@ -387,8 +389,10 @@ class IRISWorldModel(nn.Module):
         for step in range(horizon):
             # Get action from policy (using decoded frame)
             with torch.no_grad():
-                decoded_frame = self.decoder.decode_from_embeddings(current_tokens)
-                action = policy(decoded_frame)
+                decoded_frame = getattr(self.decoder, "decode_from_embeddings")(
+                    current_tokens
+                )
+                action = getattr(policy, "forward")(decoded_frame)
                 actions_history.append(action)
 
             # Predict next tokens

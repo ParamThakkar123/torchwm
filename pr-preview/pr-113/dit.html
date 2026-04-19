@@ -596,7 +596,9 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────────────────┐
+<p><img alt="DiT Architecture" src="images/dit_architecture.png" />
+<em>Figure 1: DiT architecture overview from the DiT paper (Peebles &amp; Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.</em>
+┌─────────────────────────────────────────────────────────────────────┐
 │                      DiT Architecture                                │
 │                                                                      │
 │  Input: x_t (noisy image at timestep t)                             │
@@ -623,71 +625,63 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 │  │                   Output Head                                    │  │
 │  │            Linear → predicted noise ε                           │  │
 │  └────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-</pre></div>
-</div>
-</section>
-<section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h2>
-<section id="patch-embedding">
-<h3>1. Patch Embedding<a class="headerlink" href="#patch-embedding" title="Link to this heading">#</a></h3>
-<p>Converts input image into a sequence of tokens:</p>
-<ul class="simple">
-<li><p>Image of size <code class="docutils literal notranslate"><span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> split into <code class="docutils literal notranslate"><span class="pre">(H/P</span> <span class="pre">×</span> <span class="pre">W/P)</span></code> patches</p></li>
-<li><p>Each patch linearly embedded to dimension <code class="docutils literal notranslate"><span class="pre">D</span></code></p></li>
-<li><p>Add positional embeddings</p></li>
-</ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>x ∈ ℝ^{C×H×W} → tokens ∈ ℝ^{(H/P × W/P) × D}
-</pre></div>
-</div>
-</section>
-<section id="timestep-condition-embeddings">
-<h3>2. Timestep &amp; Condition Embeddings<a class="headerlink" href="#timestep-condition-embeddings" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p><strong>Timestep</strong>: sinusoial positional encoding for diffusion timestep <code class="docutils literal notranslate"><span class="pre">t</span></code></p></li>
-<li><p><strong>Class label</strong>: Optional conditioning for class-conditional generation</p></li>
-<li><p>Both added to each token</p></li>
-</ul>
-</section>
-<section id="dit-blocks">
-<h3>3. DiT Blocks<a class="headerlink" href="#dit-blocks" title="Link to this heading">#</a></h3>
-<p>Transformer blocks with:</p>
-<ul class="simple">
-<li><p><strong>Self-attention</strong>: Capture relationships between patches</p></li>
-<li><p><strong>MLP</strong>: Process each patch independently</p></li>
-<li><p><strong>Adaptive Layer Norm (AdaLN)</strong>: Condition on timestep/class</p></li>
-</ul>
-<p>Variants:</p>
-<ul class="simple">
-<li><p><strong>AdaLN</strong>: Adaptive Layer Norm</p></li>
-<li><p><strong>AdaLN-Single</strong>: More parameter-efficient</p></li>
-<li><p><strong>AdaLN-Diagonal</strong>: Condition variance too</p></li>
-</ul>
-</section>
-<section id="output-head">
-<h3>4. Output Head<a class="headerlink" href="#output-head" title="Link to this heading">#</a></h3>
-<p>Final layer predicting noise (ε) same dimension as input:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ε_pred = Linear(tokens) → ℝ^{C×H×W}
-</pre></div>
-</div>
-</section>
-</section>
-<section id="training">
-<h2>Training<a class="headerlink" href="#training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiTConfig</span><span class="p">,</span> <span class="n">get_dit_config</span>
+└─────────────────────────────────────────────────────────────────────┘</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+## Components
 
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">get_dit_config</span><span class="p">(</span>
-    <span class="n">DATASET</span><span class="o">=</span><span class="s2">&quot;CIFAR10&quot;</span><span class="p">,</span>
-    <span class="n">BATCH</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
-    <span class="n">EPOCHS</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">IMG_SIZE</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-    <span class="n">WIDTH</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
-    <span class="n">DEPTH</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-<span class="p">)</span>
+### 1. Patch Embedding
 
-<span class="c1"># Training uses DDPM noise scheduling</span>
-<span class="c1"># Forward: q(x_t | x_0) = N(√ᾱ_t x_0, (1-ᾱ_t)I)</span>
-<span class="c1"># Reverse: p(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</span>
+Converts input image into a sequence of tokens:
+- Image of size `(C, H, W)` split into `(H/P × W/P)` patches
+- Each patch linearly embedded to dimension `D`
+- Add positional embeddings
+
+</pre></div>
+</div>
+<p>x ∈ ℝ^{C×H×W} → tokens ∈ ℝ^{(H/P × W/P) × D}</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+### 2. Timestep &amp; Condition Embeddings
+
+- **Timestep**: sinusoial positional encoding for diffusion timestep `t`
+- **Class label**: Optional conditioning for class-conditional generation
+- Both added to each token
+
+### 3. DiT Blocks
+
+Transformer blocks with:
+- **Self-attention**: Capture relationships between patches
+- **MLP**: Process each patch independently
+- **Adaptive Layer Norm (AdaLN)**: Condition on timestep/class
+
+Variants:
+- **AdaLN**: Adaptive Layer Norm
+- **AdaLN-Single**: More parameter-efficient
+- **AdaLN-Diagonal**: Condition variance too
+
+### 4. Output Head
+
+Final layer predicting noise (ε) same dimension as input:
+</pre></div>
+</div>
+<p>ε_pred = Linear(tokens) → ℝ^{C×H×W}</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+## Training
+
+```python
+from world_models.configs import DiTConfig, get_dit_config
+
+cfg = get_dit_config(
+    DATASET=&quot;CIFAR10&quot;,
+    BATCH=128,
+    EPOCHS=100,
+    IMG_SIZE=32,
+    WIDTH=384,
+    DEPTH=6,
+)
+
+# Training uses DDPM noise scheduling
+# Forward: q(x_t | x_0) = N(√ᾱ_t x_0, (1-ᾱ_t)I)
+# Reverse: p(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)
 </pre></div>
 </div>
 <section id="key-hyperparameters">
@@ -858,15 +852,7 @@ It treats diffusion as a sequence modeling problem where the transformer predict
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-idea">Key Idea</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components">Components</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#patch-embedding">1. Patch Embedding</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timestep-condition-embeddings">2. Timestep &amp; Condition Embeddings</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dit-blocks">3. DiT Blocks</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#output-head">4. Output Head</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training">Training</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-hyperparameters">Key Hyperparameters</a></li>
 </ul>
 </li>

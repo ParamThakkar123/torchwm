@@ -16,7 +16,8 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 
 ## Architecture
 
-```
+![DiT Architecture](images/dit_architecture.png)
+*Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      DiT Architecture                                │
 │                                                                      │

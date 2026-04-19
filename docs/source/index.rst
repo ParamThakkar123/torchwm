@@ -9,6 +9,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    :caption: Documentation
 
    getting_started
+   operators_guide
    package_overview
    benchmarks
 

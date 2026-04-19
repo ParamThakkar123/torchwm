@@ -16,36 +16,26 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 
 ## Architecture
 
-![DiT Architecture](images/dit_architecture.png)
+<p align="center">
+  <img src="images/dit_architecture.png" alt="DiT Architecture" />
+</p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
-┌─────────────────────────────────────────────────────────────────────┐
-│                      DiT Architecture                                │
-│                                                                      │
-│  Input: x_t (noisy image at timestep t)                             │
-│                                                                      │
-│  ┌─────┐    ┌─────────────────────────────────────────────────────┐  │
-│  │Patch│    │      Linear Embedding                               │  │
-│  │Embed│ ──►│  x -> patch tokens + t_emb + c_emb                 │  │
-│  └─────┘    └─────────────────────────────────────────────────────┘  │
-│                          │                                           │
-│                          ▼                                           │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │                   Transformer Blocks                            │  │
-│  │                                                                 │  │
-│  │   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │  │
-│  │   │   Block 1   │───►│   Block 2   │───►│   Block N   │        │  │
-│  │   │ (self-att)  │    │ (self-att)  │    │ (self-att)  │        │  │
-│  │   │  + MLP      │    │  + MLP      │    │  + MLP      │        │  │
-│  │   └─────────────┘    └─────────────┘    └─────────────┘        │  │
-│  │                                                                 │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                          │                                           │
-│                          ▼                                           │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │                   Output Head                                    │  │
-│  │            Linear → predicted noise ε                           │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+
+```mermaid
+graph TD
+    A[Input: x_t<br/>noisy image] --> B[Patch Embedding<br/>+ Positional Encoding]
+    C[Timestep Embedding] --> D[Linear Projection<br/>to tokens]
+    E[Condition Embedding<br/>optional] --> D
+    B --> D
+    D --> F[DiT Block 1<br/>Self-Attention + MLP<br/>Adaptive Layer Norm]
+    F --> G[DiT Block 2<br/>...]
+    G --> H[DiT Block N]
+    H --> I[Output Head<br/>Linear Projection<br/>Predicted Noise ε]
+    I --> J[Output: ε_pred]
+    
+    style A fill:#e1f5fe
+    style J fill:#e8f5e8
+```
 ```
 
 ## Components

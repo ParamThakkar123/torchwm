@@ -49,6 +49,13 @@
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'jepa';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.17.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://paramthakkar123.github.io/torchwm/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'stable';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-113/jepa.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -292,6 +299,30 @@
           <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/torchwm/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
 </ul></div>
       
     </div>
@@ -476,6 +507,30 @@
           <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
             <span class="sr-only">GitHub</span></a>
         </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/torchwm/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
 </ul></div>
         
       </div>
@@ -597,34 +652,20 @@ future representations in latent space, without relying on generative modeling.<
 </section>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────────────────┐
-│                         JEPA Architecture                            │
-│                                                                      │
-│   Frame t          Frame t+k                                          │
-│      │                │                                               │
-│      ▼                ▼                                               │
-│  ┌───────┐         ┌───────┐                                         │
-│  │Enc_s  │         │Enc_s  │                                         │
-│  │(target)│         │(target)│                                        │
-│  └───┬───┘         └───┬───┘                                         │
-│      │                │                                               │
-│      ▼                │                                               │
-│  ┌───────┐            │                                               │
-│  │ Target│ ◄──────────┤ (freeze)                                      │
-│  │  z_t  │            │                                               │
-│  └───┬───┘            │                                               │
-│      │                │                                               │
-│      ▼                │                                               │
-│  ┌───────┐       ┌────▼────┐                                         │
-│  │Predic │       │ Predict │                                         │
-│  │ token │ ────► │   z_t&#39;  │                                         │
-│  └───┬───┘       └────┬────┘                                         │
-│      │                │                                               │
-│      │                ▼                                               │
-│      │           ┌────────┐                                          │
-│      └──────────► │  Loss  │ = ||z_t&#39; - z_t||²                        │
-│                  └────────┘                                          │
-└─────────────────────────────────────────────────────────────────────┘
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>graph TD
+    subgraph &quot;JEPA Architecture&quot;
+        A[Frame t] --&gt; B[Enc_s&lt;br/&gt;Target Encoder]
+        C[Frame t+k] --&gt; D[Enc_s&lt;br/&gt;Target Encoder&lt;br/&gt;Frozen]
+        B --&gt; E[Target&lt;br/&gt;z_t]
+        D --&gt; E
+        F[Predictor&lt;br/&gt;token] --&gt; G[Predict&lt;br/&gt;z_t&#39;]
+        G --&gt; H[Loss&lt;br/&gt;||z_t&#39; - z_t||²]
+        E --&gt; H
+    end
+    
+    style B fill:#fff3cd
+    style D fill:#fff3cd
+    style H fill:#f8d7da
 </pre></div>
 </div>
 </section>
@@ -909,27 +950,9 @@ future representations in latent space, without relying on generative modeling.<
   </p>
 </div>
       
-        <div class="footer-item">
-
-  <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
-  </p>
-</div>
-      
     </div>
   
   
-  
-    <div class="footer-items__end">
-      
-        <div class="footer-item">
-<p class="theme-version">
-  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
-</p></div>
-      
-    </div>
   
 </div>
 

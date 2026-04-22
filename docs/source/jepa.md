@@ -18,36 +18,22 @@ This approach avoids the complexity of pixel-level generation while learning ric
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         JEPA Architecture                            │
-│                                                                      │
-│   Frame t          Frame t+k                                          │
-│      │                │                                               │
-│      ▼                ▼                                               │
-│  ┌───────┐         ┌───────┐                                         │
-│  │Enc_s  │         │Enc_s  │                                         │
-│  │(target)│         │(target)│                                        │
-│  └───┬───┘         └───┬───┘                                         │
-│      │                │                                               │
-│      ▼                │                                               │
-│  ┌───────┐            │                                               │
-│  │ Target│ ◄──────────┤ (freeze)                                      │
-│  │  z_t  │            │                                               │
-│  └───┬───┘            │                                               │
-│      │                │                                               │
-│      ▼                │                                               │
-│  ┌───────┐       ┌────▼────┐                                         │
-│  │Predic │       │ Predict │                                         │
-│  │ token │ ────► │   z_t'  │                                         │
-│  └───┬───┘       └────┬────┘                                         │
-│      │                │                                               │
-│      │                ▼                                               │
-│      │           ┌────────┐                                          │
-│      └──────────► │  Loss  │ = ||z_t' - z_t||²                        │
-│                  └────────┘                                          │
-└─────────────────────────────────────────────────────────────────────┘
-```
+.. mermaid::
+
+   graph TD
+       subgraph "JEPA Architecture"
+           A[Frame t] --> B[Enc_s<br/>Target Encoder]
+           C[Frame t+k] --> D[Enc_s<br/>Target Encoder<br/>Frozen]
+           B --> E[Target<br/>z_t]
+           D --> E
+           F[Predictor<br/>token] --> G[Predict<br/>z_t']
+           G --> H[Loss<br/>||z_t' - z_t||²]
+           E --> H
+       end
+       
+       style B fill:#fff3cd
+       style D fill:#fff3cd
+       style H fill:#f8d7da
 
 ## Components
 
@@ -68,8 +54,9 @@ Predicts future latent representations from current encoding:
 ### 3. Loss Functions
 
 **Main Loss**: MSE between predicted and target representations
-```
-L = ||predict(target) - target||²
+
+```{math}
+\mathcal{L} = \left\| \mathrm{predict}(\mathrm{target}) - \mathrm{target} \right\|^2
 ```
 
 **Additional Losses** (configurable):
@@ -78,7 +65,7 @@ L = ||predict(target) - target||²
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.models import JEPAAgent
 from world_models.configs import JEPAConfig
 

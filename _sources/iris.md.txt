@@ -14,39 +14,35 @@ by learning entirely in the imagination of a world model:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Discrete Autoencoder                      │
-│  ┌─────────┐    ┌────────────┐    ┌─────────────┐               │
-│  │ Encoder │ -> │   VQVAE    │ -> │   Decoder   │               │
-│  │ (CNN)   │    │ (512 vocab)│    │ (Transposed │               │
-│  │ 64x64   │    │  16 tokens │    │   CNN)      │               │
-│  └─────────┘    └────────────┘    └─────────────┘               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Autoregressive Transformer                    │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  z_t (16 tokens) ──► a_t ──► z_{t+1} (16 tokens)         │   │
-│  │         ↓              ↓              ↓                  │   │
-│  │      Reward        Termination     Reward...             │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│  GPT-style: 10 layers, 4 heads, 256 embedding dim              │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     Actor-Critic in Imagination                  │
-│  ┌─────────────┐    ┌──────────────────┐                       │
-│  │   Actor     │    │     Critic       │                       │
-│  │ (CNN+LSTM)  │    │  (CNN+LSTM)      │                       │
-│  │             │    │                  │                       │
-│  │ λ-return    │    │   MSE loss       │                       │
-│  │ REINFORCE   │    │                  │                       │
-│  └─────────────┘    └──────────────────┘                       │
-└─────────────────────────────────────────────────────────────────┘
-```
+.. mermaid::
+
+   graph TD
+       subgraph "Discrete Autoencoder"
+           A[Encoder<br/>CNN 64x64] --> B[VQVAE<br/>512 vocab<br/>16 tokens]
+           B --> C[Decoder<br/>Transposed CNN]
+       end
+       
+       subgraph "Autoregressive Transformer"
+           D[z_t<br/>16 tokens] --> E[a_t]
+           E --> F[z_{t+1}<br/>16 tokens]
+           D --> G[Reward]
+           E --> H[Termination]
+           F --> I[Reward...]
+           J[GPT-style<br/>10 layers, 4 heads<br/>256 embedding dim]
+       end
+       
+       subgraph "Actor-Critic in Imagination"
+           K[Actor<br/>CNN+LSTM<br/>λ-return<br/>REINFORCE]
+           L[Critic<br/>CNN+LSTM<br/>MSE loss]
+       end
+       
+       C --> D
+       F --> K
+       F --> L
+       
+       style A fill:#e1f5fe
+       style K fill:#e8f5e8
+       style L fill:#e8f5e8
 
 ## Key Components
 
@@ -73,7 +69,7 @@ by learning entirely in the imagination of a world model:
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.training.train_iris import IRISTrainer
 from world_models.configs.iris_config import IRISConfig
 
@@ -124,7 +120,7 @@ python -m benchmarks.atari_100k --device cuda --num_seeds 5
 
 ### Configuration
 
-```python
+```python :class: thebe
 from world_models.configs.iris_config import IRISConfig
 
 config = IRISConfig()

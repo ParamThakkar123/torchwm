@@ -88,8 +88,8 @@ class VectorQuantizer(nn.Module):
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
 
         # Reshape back to original spatial dimensions
-        if len(original_shape) == 4:
-            z_q = z_q.permute(0, 2, 3, 1).reshape(B, C, H, W)
+        if z.dim() == 4:
+            z_q = z_q.reshape(B, H, W, C).permute(0, 3, 1, 2)
         else:
             z_q = z_q.squeeze(1)
 

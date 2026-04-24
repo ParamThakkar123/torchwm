@@ -74,6 +74,7 @@ class DiamondConfig:
 
     # Environment
     game: str = "Breakout-v5"
+    seed: int = 0
     obs_size: int = 64
     frameskip: int = 4
     max_noop: int = 30

@@ -3,6 +3,7 @@ import random
 import time
 from typing import Tuple, Any, Optional
 import numpy as np
+import ctypes
 
 import torch
 import torch.nn as nn
@@ -27,6 +28,48 @@ from world_models.configs.dreamer_config import DreamerConfig
 # environment value if present.
 if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
     os.environ["MUJOCO_GL"] = "egl"
+
+
+def get_available_memory():
+    """Get available physical memory in bytes."""
+    if os.name == "nt":  # Windows
+
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        memory_status = MEMORYSTATUSEX()
+        memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
+            raise OSError("Failed to get memory status")
+        return memory_status.ullAvailPhys
+    else:  # Linux/Mac
+        try:
+            import psutil
+
+            return psutil.virtual_memory().available
+        except ImportError:
+            # Fallback: read /proc/meminfo on Linux
+            try:
+                with open("/proc/meminfo", "r") as f:
+                    for line in f:
+                        if line.startswith("MemAvailable:"):
+                            avail_kb = int(line.split()[1])
+                            return avail_kb * 1024  # Convert KB to bytes
+            except (FileNotFoundError, ValueError, IndexError):
+                pass
+            # Ultimate fallback: assume 8GB available
+            return 8 * 1024 * 1024 * 1024
 
 
 def _resolve_image_size(args: Any) -> Tuple[int, int]:
@@ -127,6 +170,24 @@ class Dreamer(nn.Module):
         self.action_size = action_size
         self.device = device
 
+        # Calculate memory per sample
+        obs_bytes = np.prod(obs_shape) * 1  # uint8
+        action_bytes = action_size * 4  # float32
+        reward_bytes = 4  # float32
+        terminal_bytes = 4  # float32
+        bytes_per_sample = obs_bytes + action_bytes + reward_bytes + terminal_bytes
+
+        # Get available memory
+        available_memory = get_available_memory()
+        # Use 80% of available memory for buffer to leave margin for other processes
+        max_buffer_size = int((available_memory * 0.8) // bytes_per_sample)
+        adaptive_buffer_size = min(args.buffer_size, max_buffer_size)
+
+        if adaptive_buffer_size < args.buffer_size:
+            print(
+                f"Reducing buffer size from {args.buffer_size} to {adaptive_buffer_size} due to memory constraints."
+            )
+
         # RSSM
         self.rssm = RSSM(
             action_size,
@@ -185,10 +246,11 @@ class Dreamer(nn.Module):
 
         # Data buffer
         self.data_buffer = ReplayBuffer(
-            args.buffer_size,
+            adaptive_buffer_size,
             obs_shape,
             action_size,
-            device,
+            args.train_seq_len,
+            args.batch_size,
         )
 
         if restore:

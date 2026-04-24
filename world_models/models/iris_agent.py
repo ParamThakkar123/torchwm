@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from typing import Tuple, Optional
 import torch.nn.functional as F
+from world_models.utils.logging_utils import setup_logging
 
 from world_models.configs.iris_config import IRISConfig
 from world_models.vision.iris_encoder import IRISEncoder
@@ -66,6 +67,7 @@ class IRISAgent(nn.Module):
         self.config = config
         self.action_size = action_size
         self.device = device
+        self.logger = setup_logging("IRISAgent")
 
         # === Discrete Autoencoder ===
         self.encoder = IRISEncoder(
@@ -342,12 +344,14 @@ class IRISAgent(nn.Module):
         )
         self.autoencoder_opt.step()
 
-        return {
+        losses = {
             "recon_loss": recon_loss.item(),
             "vq_loss": vq_loss["vq_loss"].item(),
             "perplexity": vq_loss["perplexity"].item(),
             "total_loss": loss.item(),
         }
+        self.logger.debug(f"Autoencoder update: {losses}")
+        return losses
 
     def update_transformer(
         self,
@@ -417,12 +421,14 @@ class IRISAgent(nn.Module):
         )
         self.transformer_opt.step()
 
-        return {
+        losses = {
             "token_loss": token_loss.item(),
             "reward_loss": reward_loss.item(),
             "term_loss": term_loss.item(),
             "total_loss": loss.item(),
         }
+        self.logger.debug(f"Transformer update: {losses}")
+        return losses
 
     def update_actor_critic(
         self,
@@ -494,12 +500,14 @@ class IRISAgent(nn.Module):
         )
         self.ac_opt.step()
 
-        return {
+        losses = {
             "actor_loss": actor_loss.item(),
             "value_loss": value_loss.item(),
             "entropy": entropy.item(),
             "total_loss": loss.item(),
         }
+        self.logger.debug(f"Actor-critic update: {losses}")
+        return losses
 
     def save(self, path: str):
         """Save agent state."""

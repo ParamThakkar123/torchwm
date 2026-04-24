@@ -551,7 +551,10 @@ class DiamondAgent:
 
 
 def train_diamond(
-    game: str, seed: int = 0, preset: Optional[str] = None, device: str = "cuda"
+    game: str,
+    seed: int = 0,
+    preset: Optional[str] = None,
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
 ):
     """Train DIAMOND on a specific game."""
     config = DiamondConfig(
@@ -574,7 +577,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--preset", type=str, default=None, choices=["small", "medium", "large"]
     )
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument(
+        "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
+    )
     args = parser.parse_args()
 
     train_diamond(args.game, args.seed, args.preset, args.device)

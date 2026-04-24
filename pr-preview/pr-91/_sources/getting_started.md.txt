@@ -33,7 +33,7 @@ To use WandB logging, you must provide an API key as anonymous logins are no lon
 1. Get your WandB API key from [wandb.ai](https://wandb.ai/settings).
 2. Set the key in your config:
 
-```python
+```python :class: thebe
 cfg.enable_wandb = True
 cfg.wandb_api_key = "your-api-key-here"
 cfg.wandb_project = "torchwm"
@@ -44,7 +44,7 @@ cfg.wandb_entity = "your-entity"
 
 Enable TensorBoard logging:
 
-```python
+```python :class: thebe
 cfg.enable_tensorboard = True
 cfg.log_dir = "runs"
 ```
@@ -62,30 +62,92 @@ TorchWM implements multiple world model algorithms. Click on each to see detaile
 | **IRIS** | Sample-efficient RL with Transformers | {doc}`iris` |
 | **DiT** | Diffusion models with Transformers | {doc}`dit` |
 
-## Quick Start: Modular RSSM
+## Quick Start: Inference with Operators
 
-The modular RSSM allows researchers to swap encoders, decoders, and backbones for experimentation:
+TorchWM now includes standardized operators for preprocessing inputs during inference, making it easy to deploy models consistently.
 
-```python
-from world_models.models.modular_rssm import create_modular_rssm, ModularRSSM
-from world_models.models.modular_rssm import ConvEncoder, ViTEncoder, GRUBackbone, LSTMBackbone
+### What are Operators?
 
-# Factory function for quick setup
-rssm = create_modular_rssm(
-    encoder_type="conv",      # "conv", "mlp", or "vit"
-    decoder_type="conv",       # "conv" or "mlp"
-    backbone_type="gru",      # "gru", "lstm", or "transformer"
-    obs_shape=(3, 64, 64),
-    action_size=6,
-    stoch_size=32,
-    deter_size=200,
-    embed_size=1024,
+Operators handle input preprocessing: normalizing images, encoding actions, tokenizing text, and generating masks. Each model has a dedicated operator that ensures inputs are in the correct format.
+
+### Basic Usage
+
+```python :class: thebe
+from world_models.inference.operators import DreamerOperator
+
+# Create operator with config parameters
+op = DreamerOperator(
+    image_size=64,  # Image size for Dreamer
+    action_dim=6    # Action dimension
 )
 
-# Or build manually with custom components
-encoder = ViTEncoder(input_shape=(3, 64, 64), embed_size=1024, patch_size=8, depth=6)
-backbone = LSTMBackbone(action_size=6, stoch_size=32, deter_size=200, hidden_size=200, embed_size=1024)
-rssm = ModularRSSM(encoder=encoder, decoder=decoder, backbone=backbone, reward_decoder=reward_decoder)
+# Process raw inputs
+raw_inputs = {
+    'image': your_pil_image_or_tensor,  # PIL Image or torch.Tensor
+    'action': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]  # Action as list
+}
+
+# Get processed tensors
+processed = op.process(raw_inputs)
+# Returns: {'obs': tensor(B, 3, 64, 64), 'action': tensor(B, 6)}
+```
+
+### Available Operators
+
+| Operator | Model | Purpose | Key Parameters |
+|----------|-------|---------|----------------|
+| `DreamerOperator` | Dreamer | Image/action preprocessing | `image_size`, `action_dim` |
+| `JEPAOperator` | JEPA | Image masking and patching | `image_size`, `patch_size`, `mask_ratio` |
+| `IrisOperator` | IRIS | Sequence tokenization | `seq_length`, `vocab_size` |
+| `PlaNetOperator` | PlaNet | State/action transitions | `state_dim`, `action_dim` |
+
+### JEPA Example (Self-Supervised)
+
+```python :class: thebe
+from world_models.inference.operators import JEPAOperator
+
+op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
+inputs = {'images': [image1, image2]}
+result = op(inputs)
+# result['images']: stacked normalized images
+# result['mask']: random mask for self-supervised learning
+```
+
+### IRIS Example (Sequence Processing)
+
+```python :class: thebe
+from world_models.inference.operators import IrisOperator
+
+op = IrisOperator(seq_length=512, vocab_size=32000)
+inputs = {'tokens': [101, 2054, 2003, 102]}  # Token sequence
+result = op(inputs)
+# result['input_ids']: padded token tensor
+# result['attention_mask']: attention mask
+```
+
+### Integration with Configs
+
+Operators use parameters from config classes:
+
+```python :class: thebe
+from world_models.configs import DreamerConfig
+
+cfg = DreamerConfig()
+op = DreamerOperator(
+    image_size=cfg.operator_image_size,
+    action_dim=cfg.operator_action_dim
+)
+```
+
+### Utilities
+
+Common preprocessing functions are available in `world_models.inference.operators.utils`:
+
+```python :class: thebe
+from world_models.inference.operators.utils import normalize_image, tokenize_text
+
+normalized_img = normalize_image(pil_image, size=(224, 224))
+tokens = tokenize_text("Hello world", max_length=512)
 ```
 
 ## Environment Backends

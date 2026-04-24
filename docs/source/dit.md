@@ -16,36 +16,26 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      DiT Architecture                                │
-│                                                                      │
-│  Input: x_t (noisy image at timestep t)                             │
-│                                                                      │
-│  ┌─────┐    ┌─────────────────────────────────────────────────────┐  │
-│  │Patch│    │      Linear Embedding                               │  │
-│  │Embed│ ──►│  x -> patch tokens + t_emb + c_emb                 │  │
-│  └─────┘    └─────────────────────────────────────────────────────┘  │
-│                          │                                           │
-│                          ▼                                           │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │                   Transformer Blocks                            │  │
-│  │                                                                 │  │
-│  │   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │  │
-│  │   │   Block 1   │───►│   Block 2   │───►│   Block N   │        │  │
-│  │   │ (self-att)  │    │ (self-att)  │    │ (self-att)  │        │  │
-│  │   │  + MLP      │    │  + MLP      │    │  + MLP      │        │  │
-│  │   └─────────────┘    └─────────────┘    └─────────────┘        │  │
-│  │                                                                 │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                          │                                           │
-│                          ▼                                           │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │                   Output Head                                    │  │
-│  │            Linear → predicted noise ε                           │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="_static/dit_architecture.png" alt="DiT Architecture" />
+</p>
+*Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
+
+<script type="text/vnd.mermaid">
+graph TD
+A[Input: x_t\nnoisy image] --> B[Patch Embedding\n+ Positional Encoding]
+C[Timestep Embedding] --> D[Linear Projection\nto tokens]
+E[Condition Embedding\noptional] --> D
+B --> D
+D --> F[DiT Block 1\nSelf-Attention + MLP\nAdaptive Layer Norm]
+F --> G[DiT Block 2\n...]
+G --> H[DiT Block N]
+H --> I[Output Head\nLinear Projection\nPredicted Noise ε]
+I --> J[Output: ε_pred]
+
+style A fill:#e1f5fe
+style J fill:#e8f5e8
+</script>
 
 ## Components
 
@@ -56,8 +46,8 @@ Converts input image into a sequence of tokens:
 - Each patch linearly embedded to dimension `D`
 - Add positional embeddings
 
-```
-x ∈ ℝ^{C×H×W} → tokens ∈ ℝ^{(H/P × W/P) × D}
+```{math}
+\mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
 ```
 
 ### 2. Timestep & Condition Embeddings
@@ -81,13 +71,13 @@ Variants:
 ### 4. Output Head
 
 Final layer predicting noise (ε) same dimension as input:
-```
-ε_pred = Linear(tokens) → ℝ^{C×H×W}
+```{math}
+\hat{\epsilon} = \mathrm{Linear}(\mathbf{tokens}) \rightarrow \mathbb{R}^{C \times H \times W}
 ```
 
 ## Training
 
-```python
+```python :class: thebe
 from world_models.configs import DiTConfig, get_dit_config
 
 cfg = get_dit_config(
@@ -100,8 +90,14 @@ cfg = get_dit_config(
 )
 
 # Training uses DDPM noise scheduling
-# Forward: q(x_t | x_0) = N(√ᾱ_t x_0, (1-ᾱ_t)I)
-# Reverse: p(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)
+```
+
+```{math}
+q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
+```
+
+```{math}
+p(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2 \mathbf{I})
 ```
 
 ### Key Hyperparameters
@@ -119,23 +115,33 @@ cfg = get_dit_config(
 
 ## Sampling (Generation)
 
-```python
+```python :class: thebe
 # Start from random noise
-x_T ~ N(0, I)
-
 # Iteratively denoise
 for t in reversed(range(T)):
     ε = model(x_t, t)  # Predict noise
-    x_{t-1} = x_t - √(1-ᾱ_t) * ε  # Remove predicted noise
+    x_{t-1} = x_t - sqrt(1-alpha_bar_t) * ε  # Remove predicted noise
 
 # Output: x_0 (generated image)
+```
+
+```{math}
+\mathbf{x}_T \sim \mathcal{N}(0, \mathbf{I})
+```
+
+```{math}
+\epsilon = \mathrm{model}(\mathbf{x}_t, t)
+```
+
+```{math}
+\mathbf{x}_{t-1} = \mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \cdot \epsilon
 ```
 
 ### Classifier-Free Guidance
 
 For conditional generation, use classifier-free guidance:
-```
-ε_cond = (1+w)·ε_model(x_t, c) - w·ε_model(x_t, ∅)
+```{math}
+\epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
 ```
 where `w` is guidance weight (typically 1-10).
 

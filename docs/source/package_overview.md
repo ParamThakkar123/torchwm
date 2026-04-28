@@ -71,5 +71,14 @@ processed = op.process({'image': image, 'action': action})
 
 ## Utilities
 
-- `world_models.utils`: Logging, transforms, benchmarks
-- `world_models.benchmarks`: CLI and reporting
+- `world_models.utils`: Logging, parameter freezing, transforms
+- `world_models.transforms`: Data augmentation pipelines
+- `world_models.benchmarks`: CLI and reporting utilities
+
+## Which API Should I Use?
+
+- End-to-end Dreamer training: `DreamerAgent`
+- End-to-end JEPA training: `JEPAAgent`
+- Low-level model experimentation: `Dreamer`, `RSSM`, decoder/encoder modules
+- Custom world model architectures: `ModularRSSM` with swappable encoder/decoder/backbone
+- Custom data pipelines: `make_cifar10`, `make_imagenet1k`, `make_imagefolder`

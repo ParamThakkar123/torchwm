@@ -1,0 +1,1542 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>benchmarks.atari_100k &#8212; TorchWM 0.3.2 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=55c26ed414f5f8a31ebb" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=d0e80981" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=55c26ed414f5f8a31ebb"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
+
+    <script src="../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/benchmarks/atari_100k';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../_static/mathjax_config.js?v=90e9db6d"></script>
+    <script src="../../_static/mathjax_local.js?v=3f4cc662"></script>
+    <script src="../../_static/mermaid.min.js?v=890a76c0"></script>
+    <script src="../../_static/mermaid_init.js?v=0e8aefc0"></script>
+    <script src="../../_static/fix_navbar.js?v=7c5a5e10"></script>
+    <script src="../../_static/mathjax_init.js?v=795fead4"></script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-116/_modules/benchmarks/atari_100k.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../operators_guide.html">
+    Using Operators for Inference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../training_guide.html">
+    Training Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../inference_guide.html">
+    Inference Guide
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../environments_guide.html">
+    Environments Guide
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../configs_reference.html">
+    Configs Reference
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../benchmarks.html">
+    Benchmarking World Models
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../operators_guide.html">
+    Using Operators for Inference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../training_guide.html">
+    Training Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../inference_guide.html">
+    Inference Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../environments_guide.html">
+    Environments Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../package_overview.html">
+    Package Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dreamer.html">
+    Dreamer: Model-Based RL with Latent Dynamics
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../jepa.html">
+    JEPA: Joint Embedding Predictive Architecture
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../iris.html">
+    IRIS: Transformers for Sample-Efficient World Models
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../dit.html">
+    DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api_reference.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../configs_reference.html">
+    Configs Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../benchmarks.html">
+    Benchmarking World Models
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">benchmarks.atari_100k</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for benchmarks.atari_100k</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">IRIS Atari 100k Benchmark Runner</span>
+
+<span class="sd">Runs IRIS on all 26 Atari games from the Atari 100k benchmark.</span>
+<span class="sd">Computes human-normalized scores and compares to baselines.</span>
+
+<span class="sd">Based on paper: &quot;Transformers are Sample-Efficient World Models&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_iris</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISTrainer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.iris_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISConfig</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+
+
+<span class="c1"># Atari 100k benchmark games</span>
+<span class="n">ATARI_100K_GAMES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ALE/Alien-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Amidar-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Assault-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Asterix-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/BankHeist-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/BattleZone-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Boxing-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Breakout-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/ChopperCommand-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/CrazyClimber-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/DemonAttack-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Freeway-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Frostbite-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Gopher-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Hero-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Jamesbond-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Kangaroo-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Krull-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/KungFuMaster-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/MsPacman-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/PrivateEye-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Qbert-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/RoadRunner-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/Seaquest-v5&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ALE/UpNDown-v5&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># Human scores for computing human-normalized score</span>
+<span class="c1"># These are from the paper (Wang et al., 2016)</span>
+<span class="n">HUMAN_SCORES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">7127.7</span><span class="p">,</span>
+    <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">1719.5</span><span class="p">,</span>
+    <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">742.0</span><span class="p">,</span>
+    <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">8503.3</span><span class="p">,</span>
+    <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">753.1</span><span class="p">,</span>
+    <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">37187.5</span><span class="p">,</span>
+    <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">12.1</span><span class="p">,</span>
+    <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">30.5</span><span class="p">,</span>
+    <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">7387.8</span><span class="p">,</span>
+    <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">35829.4</span><span class="p">,</span>
+    <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">1971.0</span><span class="p">,</span>
+    <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">29.6</span><span class="p">,</span>
+    <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">4334.7</span><span class="p">,</span>
+    <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">2412.5</span><span class="p">,</span>
+    <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">30826.4</span><span class="p">,</span>
+    <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">302.8</span><span class="p">,</span>
+    <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">3035.0</span><span class="p">,</span>
+    <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">2665.5</span><span class="p">,</span>
+    <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">22736.3</span><span class="p">,</span>
+    <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">6951.6</span><span class="p">,</span>
+    <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="mf">14.6</span><span class="p">,</span>
+    <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">69571.3</span><span class="p">,</span>
+    <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">13455.0</span><span class="p">,</span>
+    <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">7845.0</span><span class="p">,</span>
+    <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">42054.7</span><span class="p">,</span>
+    <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">11693.2</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Random baseline scores</span>
+<span class="n">RANDOM_SCORES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">227.8</span><span class="p">,</span>
+    <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">5.8</span><span class="p">,</span>
+    <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">222.4</span><span class="p">,</span>
+    <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">210.0</span><span class="p">,</span>
+    <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">14.2</span><span class="p">,</span>
+    <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">2360.0</span><span class="p">,</span>
+    <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span>
+    <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">811.0</span><span class="p">,</span>
+    <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">10780.5</span><span class="p">,</span>
+    <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">152.1</span><span class="p">,</span>
+    <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">65.2</span><span class="p">,</span>
+    <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">257.6</span><span class="p">,</span>
+    <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">1027.0</span><span class="p">,</span>
+    <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">29.0</span><span class="p">,</span>
+    <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">52.0</span><span class="p">,</span>
+    <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">1598.0</span><span class="p">,</span>
+    <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">258.5</span><span class="p">,</span>
+    <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">307.3</span><span class="p">,</span>
+    <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">20.7</span><span class="p">,</span>
+    <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">24.9</span><span class="p">,</span>
+    <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">163.9</span><span class="p">,</span>
+    <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">11.5</span><span class="p">,</span>
+    <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">68.4</span><span class="p">,</span>
+    <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">533.4</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Baseline comparison scores (from paper)</span>
+<span class="c1"># These are the reported scores from SimPLe, CURL, DrQ, SPR</span>
+<span class="n">BASELINE_SCORES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;SimPLe&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">616.9</span><span class="p">,</span>
+        <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">74.3</span><span class="p">,</span>
+        <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">527.2</span><span class="p">,</span>
+        <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">1128.3</span><span class="p">,</span>
+        <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">34.2</span><span class="p">,</span>
+        <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">4031.2</span><span class="p">,</span>
+        <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">7.8</span><span class="p">,</span>
+        <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">16.4</span><span class="p">,</span>
+        <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">979.4</span><span class="p">,</span>
+        <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">62583.6</span><span class="p">,</span>
+        <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">208.1</span><span class="p">,</span>
+        <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">16.7</span><span class="p">,</span>
+        <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">236.9</span><span class="p">,</span>
+        <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">596.8</span><span class="p">,</span>
+        <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">2656.6</span><span class="p">,</span>
+        <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">100.5</span><span class="p">,</span>
+        <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">51.2</span><span class="p">,</span>
+        <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">2204.8</span><span class="p">,</span>
+        <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">14862.5</span><span class="p">,</span>
+        <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">1480.0</span><span class="p">,</span>
+        <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="mf">12.8</span><span class="p">,</span>
+        <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">35.0</span><span class="p">,</span>
+        <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">1288.8</span><span class="p">,</span>
+        <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">5640.6</span><span class="p">,</span>
+        <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">683.3</span><span class="p">,</span>
+        <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">3350.3</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;CURL&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">711.0</span><span class="p">,</span>
+        <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">113.7</span><span class="p">,</span>
+        <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">500.9</span><span class="p">,</span>
+        <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">567.2</span><span class="p">,</span>
+        <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">65.3</span><span class="p">,</span>
+        <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">8997.8</span><span class="p">,</span>
+        <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+        <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">2.6</span><span class="p">,</span>
+        <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">783.5</span><span class="p">,</span>
+        <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">9154.4</span><span class="p">,</span>
+        <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">646.5</span><span class="p">,</span>
+        <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">28.3</span><span class="p">,</span>
+        <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">1226.5</span><span class="p">,</span>
+        <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">400.9</span><span class="p">,</span>
+        <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">4987.7</span><span class="p">,</span>
+        <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">331.0</span><span class="p">,</span>
+        <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">740.2</span><span class="p">,</span>
+        <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">3049.2</span><span class="p">,</span>
+        <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">8155.6</span><span class="p">,</span>
+        <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">1064.0</span><span class="p">,</span>
+        <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">18.5</span><span class="p">,</span>
+        <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">81.9</span><span class="p">,</span>
+        <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">727.0</span><span class="p">,</span>
+        <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">5006.1</span><span class="p">,</span>
+        <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">315.2</span><span class="p">,</span>
+        <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">2646.4</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;DrQ&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">865.2</span><span class="p">,</span>
+        <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">137.8</span><span class="p">,</span>
+        <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">579.6</span><span class="p">,</span>
+        <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">763.6</span><span class="p">,</span>
+        <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">232.9</span><span class="p">,</span>
+        <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">10165.3</span><span class="p">,</span>
+        <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">9.0</span><span class="p">,</span>
+        <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">19.8</span><span class="p">,</span>
+        <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">844.6</span><span class="p">,</span>
+        <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">21539.0</span><span class="p">,</span>
+        <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">1321.5</span><span class="p">,</span>
+        <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">20.3</span><span class="p">,</span>
+        <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">1014.2</span><span class="p">,</span>
+        <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">621.6</span><span class="p">,</span>
+        <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">4167.9</span><span class="p">,</span>
+        <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">349.1</span><span class="p">,</span>
+        <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">1088.4</span><span class="p">,</span>
+        <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">4402.1</span><span class="p">,</span>
+        <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">11467.4</span><span class="p">,</span>
+        <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">1218.1</span><span class="p">,</span>
+        <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">9.1</span><span class="p">,</span>
+        <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">3.5</span><span class="p">,</span>
+        <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">1810.7</span><span class="p">,</span>
+        <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">11211.4</span><span class="p">,</span>
+        <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">352.3</span><span class="p">,</span>
+        <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">4324.5</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;SPR&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Alien&quot;</span><span class="p">:</span> <span class="mf">841.9</span><span class="p">,</span>
+        <span class="s2">&quot;Amidar&quot;</span><span class="p">:</span> <span class="mf">179.7</span><span class="p">,</span>
+        <span class="s2">&quot;Assault&quot;</span><span class="p">:</span> <span class="mf">565.6</span><span class="p">,</span>
+        <span class="s2">&quot;Asterix&quot;</span><span class="p">:</span> <span class="mf">962.5</span><span class="p">,</span>
+        <span class="s2">&quot;BankHeist&quot;</span><span class="p">:</span> <span class="mf">345.4</span><span class="p">,</span>
+        <span class="s2">&quot;BattleZone&quot;</span><span class="p">:</span> <span class="mf">14834.1</span><span class="p">,</span>
+        <span class="s2">&quot;Boxing&quot;</span><span class="p">:</span> <span class="mf">35.7</span><span class="p">,</span>
+        <span class="s2">&quot;Breakout&quot;</span><span class="p">:</span> <span class="mf">19.6</span><span class="p">,</span>
+        <span class="s2">&quot;ChopperCommand&quot;</span><span class="p">:</span> <span class="mf">946.3</span><span class="p">,</span>
+        <span class="s2">&quot;CrazyClimber&quot;</span><span class="p">:</span> <span class="mf">36700.5</span><span class="p">,</span>
+        <span class="s2">&quot;DemonAttack&quot;</span><span class="p">:</span> <span class="mf">517.6</span><span class="p">,</span>
+        <span class="s2">&quot;Freeway&quot;</span><span class="p">:</span> <span class="mf">19.3</span><span class="p">,</span>
+        <span class="s2">&quot;Frostbite&quot;</span><span class="p">:</span> <span class="mf">1170.7</span><span class="p">,</span>
+        <span class="s2">&quot;Gopher&quot;</span><span class="p">:</span> <span class="mf">660.6</span><span class="p">,</span>
+        <span class="s2">&quot;Hero&quot;</span><span class="p">:</span> <span class="mf">5858.6</span><span class="p">,</span>
+        <span class="s2">&quot;Jamesbond&quot;</span><span class="p">:</span> <span class="mf">366.5</span><span class="p">,</span>
+        <span class="s2">&quot;Kangaroo&quot;</span><span class="p">:</span> <span class="mf">3617.4</span><span class="p">,</span>
+        <span class="s2">&quot;Krull&quot;</span><span class="p">:</span> <span class="mf">3681.6</span><span class="p">,</span>
+        <span class="s2">&quot;KungFuMaster&quot;</span><span class="p">:</span> <span class="mf">14783.2</span><span class="p">,</span>
+        <span class="s2">&quot;MsPacman&quot;</span><span class="p">:</span> <span class="mf">1318.4</span><span class="p">,</span>
+        <span class="s2">&quot;Pong&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.4</span><span class="p">,</span>
+        <span class="s2">&quot;PrivateEye&quot;</span><span class="p">:</span> <span class="mf">86.0</span><span class="p">,</span>
+        <span class="s2">&quot;Qbert&quot;</span><span class="p">:</span> <span class="mf">866.3</span><span class="p">,</span>
+        <span class="s2">&quot;RoadRunner&quot;</span><span class="p">:</span> <span class="mf">12213.1</span><span class="p">,</span>
+        <span class="s2">&quot;Seaquest&quot;</span><span class="p">:</span> <span class="mf">558.1</span><span class="p">,</span>
+        <span class="s2">&quot;UpNDown&quot;</span><span class="p">:</span> <span class="mf">10859.2</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="compute_human_normalized_score">
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.compute_human_normalized_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_human_normalized_score</span><span class="p">(</span><span class="n">score</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">game</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute human-normalized score for a game.</span>
+
+<span class="sd">    Formula: (score - random) / (human - random)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">human</span> <span class="o">=</span> <span class="n">HUMAN_SCORES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">random</span> <span class="o">=</span> <span class="n">RANDOM_SCORES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">human</span> <span class="o">==</span> <span class="n">random</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">score</span> <span class="o">-</span> <span class="n">random</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">human</span> <span class="o">-</span> <span class="n">random</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_single_game">
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.run_single_game">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_single_game</span><span class="p">(</span>
+    <span class="n">game</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">IRISConfig</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+    <span class="n">num_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run IRIS on a single game with multiple seeds.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        game: Game name (e.g., &quot;ALE/Pong-v5&quot;)</span>
+<span class="sd">        config: IRIS config</span>
+<span class="sd">        device: Device to run on</span>
+<span class="sd">        num_seeds: Number of random seeds to run</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary with results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Training on: </span><span class="si">{</span><span class="n">game</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_seeds</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Seed </span><span class="si">{</span><span class="n">seed</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_seeds</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">trainer</span> <span class="o">=</span> <span class="n">IRISTrainer</span><span class="p">(</span>
+                <span class="n">game</span><span class="o">=</span><span class="n">game</span><span class="p">,</span>
+                <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Train for full 100k steps</span>
+            <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">total_epochs</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">total_epochs</span><span class="p">,</span> <span class="n">eval_interval</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+            <span class="c1"># Evaluate</span>
+            <span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">num_episodes</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eval_metrics</span><span class="p">[</span><span class="s2">&quot;eval_mean_return&quot;</span><span class="p">])</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error on seed </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="c1"># Compute statistics</span>
+    <span class="n">mean_return</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">std_return</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="c1"># Get game name without ALE/ prefix</span>
+    <span class="n">game_name</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;ALE/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-v5&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compute human-normalized score</span>
+    <span class="n">hns</span> <span class="o">=</span> <span class="n">compute_human_normalized_score</span><span class="p">(</span><span class="n">mean_return</span><span class="p">,</span> <span class="n">game_name</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;game&quot;</span><span class="p">:</span> <span class="n">game</span><span class="p">,</span>
+        <span class="s2">&quot;game_name&quot;</span><span class="p">:</span> <span class="n">game_name</span><span class="p">,</span>
+        <span class="s2">&quot;mean_return&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean_return</span><span class="p">),</span>
+        <span class="s2">&quot;std_return&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">std_return</span><span class="p">),</span>
+        <span class="s2">&quot;human_normalized_score&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">hns</span><span class="p">),</span>
+        <span class="s2">&quot;individual_runs&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Results for </span><span class="si">{</span><span class="n">game_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean return: </span><span class="si">{</span><span class="n">mean_return</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> +/- </span><span class="si">{</span><span class="n">std_return</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Human-normalized: </span><span class="si">{</span><span class="n">hns</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="run_atari_100k">
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.run_atari_100k">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_atari_100k</span><span class="p">(</span>
+    <span class="n">games</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">IRISConfig</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+    <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results/iris_atari100k.json&quot;</span><span class="p">,</span>
+    <span class="n">num_seeds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run IRIS on all Atari 100k games.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        games: List of games to run (default: all 26)</span>
+<span class="sd">        config: IRIS config</span>
+<span class="sd">        device: Device to run on</span>
+<span class="sd">        output_file: Output JSON file for results</span>
+<span class="sd">        num_seeds: Number of seeds per game</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">games</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">games</span> <span class="o">=</span> <span class="n">ATARI_100K_GAMES</span>
+
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">IRISConfig</span><span class="p">()</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">num_superhuman</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">game</span> <span class="ow">in</span> <span class="n">games</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run_single_game</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">num_seeds</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="c1"># Count superhuman games</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;human_normalized_score&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">num_superhuman</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Compute aggregate metrics</span>
+    <span class="n">hns_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;human_normalized_score&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+
+    <span class="c1"># Compute baseline comparisons</span>
+    <span class="n">baseline_hns</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">baseline_name</span><span class="p">,</span> <span class="n">baseline_returns</span> <span class="ow">in</span> <span class="n">BASELINE_SCORES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">baseline_scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">game_name</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;game_name&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">game_name</span> <span class="ow">in</span> <span class="n">baseline_returns</span><span class="p">:</span>
+                <span class="n">hns</span> <span class="o">=</span> <span class="n">compute_human_normalized_score</span><span class="p">(</span>
+                    <span class="n">baseline_returns</span><span class="p">[</span><span class="n">game_name</span><span class="p">],</span> <span class="n">game_name</span>
+                <span class="p">)</span>
+                <span class="n">baseline_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hns</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">baseline_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="n">baseline_hns</span><span class="p">[</span><span class="n">baseline_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">baseline_scores</span><span class="p">)),</span>
+            <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">baseline_scores</span><span class="p">)),</span>
+            <span class="s2">&quot;iqm&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">baseline_scores</span><span class="p">,</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">75</span><span class="p">]))),</span>
+        <span class="p">}</span>
+
+    <span class="n">aggregate</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;num_games&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">),</span>
+        <span class="s2">&quot;num_superhuman&quot;</span><span class="p">:</span> <span class="n">num_superhuman</span><span class="p">,</span>
+        <span class="s2">&quot;mean_hns&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">hns_scores</span><span class="p">)),</span>
+        <span class="s2">&quot;median_hns&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">hns_scores</span><span class="p">)),</span>
+        <span class="s2">&quot;iqm_hns&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">hns_scores</span><span class="p">,</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">75</span><span class="p">]))),</span>
+        <span class="s2">&quot;baseline_comparison&quot;</span><span class="p">:</span> <span class="n">baseline_hns</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Save results</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output_file</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;results&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">,</span>
+                <span class="s2">&quot;aggregate&quot;</span><span class="p">:</span> <span class="n">aggregate</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">f</span><span class="p">,</span>
+            <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Print summary</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ATARI 100K BENCHMARK RESULTS&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Games tested: </span><span class="si">{</span><span class="n">aggregate</span><span class="p">[</span><span class="s1">&#39;num_games&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Superhuman games: </span><span class="si">{</span><span class="n">aggregate</span><span class="p">[</span><span class="s1">&#39;num_superhuman&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean HNS: </span><span class="si">{</span><span class="n">aggregate</span><span class="p">[</span><span class="s1">&#39;mean_hns&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Median HNS: </span><span class="si">{</span><span class="n">aggregate</span><span class="p">[</span><span class="s1">&#39;median_hns&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IQM HNS: </span><span class="si">{</span><span class="n">aggregate</span><span class="p">[</span><span class="s1">&#39;iqm_hns&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Comparison to baselines:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">stats</span> <span class="ow">in</span> <span class="n">baseline_hns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: mean=</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, median=</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, iqm=</span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;iqm&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Results saved to: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">aggregate</span></div>
+
+
+
+<div class="viewcode-block" id="print_results_table">
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.print_results_table">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_results_table</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print a nice table of results.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Game&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Mean Return&#39;</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Std&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;HNS&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;game_name&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;mean_return&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;std_return&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;human_normalized_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run full Atari 100k benchmark.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Run IRIS Atari 100k benchmark&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Device&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;benchmarks/results/iris_atari100k.json&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output file&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--num_seeds&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of random seeds per game&quot;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--games&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Specific games to run&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Create config optimized for Atari 100k</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">IRISConfig</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">atari_100k</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">max_env_steps</span> <span class="o">=</span> <span class="mi">100000</span>
+
+    <span class="c1"># Run benchmark</span>
+    <span class="n">results</span><span class="p">,</span> <span class="n">aggregate</span> <span class="o">=</span> <span class="n">run_atari_100k</span><span class="p">(</span>
+        <span class="n">games</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">games</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">output_file</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
+        <span class="n">num_seeds</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">num_seeds</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Print results table</span>
+    <span class="n">print_results_table</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

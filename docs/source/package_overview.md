@@ -42,8 +42,8 @@ processed = op.process({'image': image, 'action': action})
 
 ## Core Modules
 
-- `world_models.models`: High-level models and agents
-- `world_models.configs`: Configuration containers
+- `world_models.models`: High-level models and agents (`Dreamer`, `DreamerAgent`, `Planet`, `JEPAAgent`)
+- `world_models.configs`: Configuration containers for Dreamer, JEPA, and diffusion runs
 - `world_models.training`: Script-style training entrypoints
 
 ## Environment Integration
@@ -53,21 +53,22 @@ processed = op.process({'image': image, 'action': action})
 
 ## World Model Building Blocks
 
-- `world_models.models.dreamer_rssm`: Recurrent state-space model
-- `world_models.models.modular_rssm`: Modular RSSM
-- `world_models.vision`: Encoders/decoders
-- `world_models.reward`: Reward and value heads
+- `world_models.models.dreamer_rssm`: Recurrent state-space model used by Dreamer
+- `world_models.models.modular_rssm`: Modular RSSM with swappable encoder/decoder/backbone for research experiments
+- `world_models.vision`: Encoders/decoders and action heads for latent dynamics models
+- `world_models.reward`: Reward and value prediction heads
+- `world_models.observations`: Symbolic and visual observation reconstruction modules
 
 ## Representation Learning and Diffusion
 
-- `world_models.models.vit`: Vision Transformer and JEPA
-- `world_models.models.diffusion`: DDPM and DiT
-- `world_models.masks`: Mask collators
+- `world_models.models.vit`: Vision Transformer and JEPA predictor components
+- `world_models.models.diffusion`: DDPM scheduler and DiT model implementation
+- `world_models.masks`: Mask collators for JEPA-style context/target masking
 
 ## Data and Memory
 
-- `world_models.datasets`: CIFAR-10, ImageNet-1K loaders
-- `world_models.memory`: Replay buffers
+- `world_models.datasets`: CIFAR-10, ImageNet-1K, and generic `ImageFolder` dataset loaders
+- `world_models.memory`: Replay buffers for Dreamer and episode-based memory for PlaNet/RSSM
 
 ## Utilities
 

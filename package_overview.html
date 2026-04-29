@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/package_overview.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="TorchWM is organized into focused modules so you can use only the pieces you need. Core APIs: world_models.models: High-level models and agents ( Dreamer, DreamerAgent, Planet, JEPAAgent), world_mo..." />
-<meta name="description" content="TorchWM is organized into focused modules so you can use only the pieces you need. Core APIs: world_models.models: High-level models and agents ( Dreamer, DreamerAgent, Planet, JEPAAgent), world_mo..." />
+<meta property="og:description" content="TorchWM is organized into focused modules so you can use only the pieces you need. Quick Import (Public API): Import everything you need from a single namespace: Available Exports:,, Category, Expo..." />
+<meta name="description" content="TorchWM is organized into focused modules so you can use only the pieces you need. Quick Import (Public API): Import everything you need from a single namespace: Available Exports:,, Category, Expo..." />
 
-    <title>Package Overview &#8212; TorchWM 0.2.1 documentation</title>
+    <title>Package Overview &#8212; TorchWM 0.3.2 documentation</title>
   
   
   
@@ -45,7 +45,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="_static/documentation_options.js?v=37f418d5"></script>
+    <script src="_static/documentation_options.js?v=71d9d8e6"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'package_overview';</script>
@@ -131,7 +131,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.2.1 documentation</p>
+    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
   
 </a></div>
     
@@ -608,8 +608,63 @@
   <section id="package-overview">
 <h1>Package Overview<a class="headerlink" href="#package-overview" title="Link to this heading">#</a></h1>
 <p>TorchWM is organized into focused modules so you can use only the pieces you need.</p>
-<section id="core-apis">
-<h2>Core APIs<a class="headerlink" href="#core-apis" title="Link to this heading">#</a></h2>
+<section id="quick-import-public-api">
+<h2>Quick Import (Public API)<a class="headerlink" href="#quick-import-public-api" title="Link to this heading">#</a></h2>
+<p>Import everything you need from a single namespace:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">world_models</span>
+<span class="c1"># or</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
+</pre></div>
+</div>
+<section id="available-exports">
+<h3>Available Exports<a class="headerlink" href="#available-exports" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Exports</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Models</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">Planet</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">VisionTransformer</span></code>, <code class="docutils literal notranslate"><span class="pre">ModularRSSM</span></code>, <code class="docutils literal notranslate"><span class="pre">create_modular_rssm</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Configs</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiamondConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISConfig</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Environments</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">make_atari_env</span></code>, <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Operators</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">get_operator</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">IrisOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">PlaNetOperator</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Reward</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RewardModel</span></code>, <code class="docutils literal notranslate"><span class="pre">ValueModel</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Utilities</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">__version__</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_operator</span>
+
+<span class="c1"># Training</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+<span class="c1"># Inference preprocessing</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">get_operator</span><span class="p">(</span><span class="s1">&#39;dreamer&#39;</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">process</span><span class="p">({</span><span class="s1">&#39;image&#39;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="core-modules">
+<h2>Core Modules<a class="headerlink" href="#core-modules" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">world_models.models</span></code>: High-level models and agents (<code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">Planet</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">world_models.configs</span></code>: Configuration containers for Dreamer, JEPA, and diffusion runs</p></li>
@@ -619,8 +674,8 @@
 <section id="environment-integration">
 <h2>Environment Integration<a class="headerlink" href="#environment-integration" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>: Environment adapters for DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.envs.wrappers</span></code>: Common wrappers for action repeat, action normalization, time limits, and observation shaping</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>: DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents adapters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.envs.wrappers</span></code>: Action repeat, normalization, time limits</p></li>
 </ul>
 </section>
 <section id="world-model-building-blocks">
@@ -651,10 +706,9 @@
 <section id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.utils.dreamer_utils</span></code>: Logging, parameter freezing, and TD(lambda) return computation</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.utils.jepa_utils</span></code>: Optimizer schedules, distributed helpers, and training meters</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.transforms</span></code>: Data augmentation pipelines used by JEPA/vision training</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models.benchmarks</span></code>: Lightweight benchmarking harness and adapters for DIAMOND, IRIS, and Dreamer; includes a CLI and reporting utilities for CSV/Markdown/JSON exports</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.utils</span></code>: Logging, parameter freezing, transforms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.transforms</span></code>: Data augmentation pipelines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.benchmarks</span></code>: CLI and reporting utilities</p></li>
 </ul>
 </section>
 <section id="which-api-should-i-use">
@@ -716,7 +770,11 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-apis">Core APIs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-import-public-api">Quick Import (Public API)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-exports">Available Exports</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#core-modules">Core Modules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-integration">Environment Integration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-model-building-blocks">World Model Building Blocks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#representation-learning-and-diffusion">Representation Learning and Diffusion</a></li>

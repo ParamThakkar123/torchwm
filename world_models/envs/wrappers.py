@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 from PIL import Image
 import numpy as np
 import datetime
@@ -211,9 +211,8 @@ class ResizeImage:
             for k, v in env.obs_space.items()
             if len(v.shape) > 1 and v.shape[:2] != size
         ]
-        print(f'Resizing keys {",".join(self._keys)} to {self._size}.')
+        print(f"Resizing keys {','.join(self._keys)} to {self._size}.")
         if self._keys:
-
             self._Image = Image
 
     def __getattr__(self, name):

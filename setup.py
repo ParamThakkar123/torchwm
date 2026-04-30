@@ -10,7 +10,7 @@ README = (
 )
 
 setup(
-    name="pytorch-world",
+    name="torchwm",
     version="0.1.0",
     description="A Pytorch Based library for training world models",
     long_description=README,
@@ -19,9 +19,10 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
-    python_requires=">=3.13",
+    python_requires=">=3.10",
     install_requires=[
         "ale-py>=0.11.2",
+        "fastapi>=0.116.0",
         "gym>=0.26.2",
         "gymnasium>=1.2.2",
         "mlagents-envs>=0.28.0",
@@ -30,11 +31,11 @@ setup(
         "plotly>=6.5.0",
         "pre-commit>=4.5.0",
         "pygame>=2.6.1",
-        "tensorboard>=2.20.0",
-        "tensorboardx>=2.6.4",
+        "wandb>=0.16.0",
         "tqdm>=4.67.1",
         "torch>=1.13.0",
         "torchvision>=0.14.0",
+        "uvicorn>=0.35.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

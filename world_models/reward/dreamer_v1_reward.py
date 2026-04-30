@@ -4,6 +4,12 @@ import torch.nn.functional as F
 
 
 class RewardModel(nn.Module):
+    """Predict scalar rewards from Dreamer latent belief and state vectors.
+
+    Implemented as an MLP used for model-based reward supervision and
+    imagined rollout return estimation.
+    """
+
     def __init__(
         self, belief_size, state_size, hidden_size, activation_function="relu"
     ):

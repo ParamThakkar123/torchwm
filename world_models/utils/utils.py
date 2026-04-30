@@ -15,10 +15,59 @@ from plotly.graph_objs import Scatter, Line
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
 
-from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
+
+import yaml
+
+import collections
+import collections.abc
+
+try:
+    from sklearn.manifold import TSNE
+    import umap
+
+    HAS_VIZ = True
+except ImportError:
+    HAS_VIZ = False
+
+try:
+    from attrdict import AttrDict
+except ImportError:
+
+    class AttrDict(dict):
+        def __getattr__(self, name):
+            try:
+                return self[name]
+            except KeyError:
+                raise AttributeError(name)
+
+        def __setattr__(self, name, value):
+            self[name] = value
+
+        def __delattr__(self, name):
+            del self[name]
+
+
+for type_name in collections.abc.__all__:
+    setattr(collections, type_name, getattr(collections.abc, type_name))
+
+
+def load_yml_config(path):
+    with open(path) as fileStream:
+        loaded = yaml.safe_load(fileStream)
+        keys = list(loaded.keys())
+
+        dictionary = None
+
+        for i, key in enumerate(keys):
+            if i == 0:
+                dictionary = AttrDict({key: loaded[key]})
+            else:
+                dictionary += AttrDict({key: loaded[key]})
+
+        return dictionary
 
 
 def to_tensor_obs(image):
@@ -227,11 +276,11 @@ def ensure_results_dir_exists(results_dir):
 
 def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     """
-    Save side-by-side comparisons of target / prior / posterior predictions.
-    Accepts:
-      - target: [T+1, C, H, W] or [C, H, W] (torch.Tensor)
-      - pred_prior / pred_posterior: [T, C, H, W] or [C, H, W]
-    Produces name.png (and ensures output directory exists).
+    Save side-by-side target, prior-prediction, and posterior-prediction frames.
+
+    The function accepts tensors with optional time dimension and writes a PNG
+    grid to ``{name}.png``. Spatial sizes are aligned per timestep before
+    concatenation and values are normalized to ``[0, 1]`` when needed.
     """
 
     def ensure_time_dim(x):
@@ -299,12 +348,11 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
 
 def get_mask(tensor, lengths):
     """
-    Generates masks for batches of sequences.
+    Build a batch-first validity mask from sequence lengths.
 
-    Accepts:
-      - tensor: torch.Tensor or numpy array with shape (N, T, ...) or (N,) (no time dim)
-    Returns:
-      - mask: torch.Tensor with batch-first layout [N, T, ...] (same device/dtype as input)
+    ``tensor`` may be a tensor/array with shape ``(N, T, ...)`` or ``(N,)``.
+    The returned mask marks valid timesteps with ones up to each element in
+    ``lengths`` and preserves device/dtype conventions from the input.
     """
     # convert numpy -> torch if needed
     if not torch.is_tensor(tensor):
@@ -363,16 +411,24 @@ def load_memory(path, device):
 
 
 def flatten_dict(data, sep=".", prefix=""):
-    """Flattens a nested dict into a dict.
-    eg. {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
+    """Flattens a nested dict into a single-level dict.
+
+    Example:
+      {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
     """
-    x = {}
+
+    def build_key(parent, child):
+        return f"{parent}{sep}{child}" if parent else str(child)
+
+    flattened = {}
+
     for key, val in data.items():
+        flat_key = build_key(prefix, key)
         if isinstance(val, dict):
-            x.update(flatten_dict(val, sep=sep, prefix=key))
+            flattened.update(flatten_dict(val, sep=sep, prefix=key))
         else:
-            x[f"{prefix}{sep}{key}"] = val
-    return x
+            flattened[flat_key] = val
+    return flattened
 
 
 def normalize_frames_for_saving(frames):
@@ -413,23 +469,11 @@ class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
     def __init__(self, path):
-        self.writer = SummaryWriter(path)
         self.steps = defaultdict(lambda: 0)
         self.summary = {}
 
     def assign_type(self, key, val):
-        if isinstance(val, (list, tuple)):
-
-            def fun(k, x, s):
-                self.writer.add_histogram(k, np.array(x), s)
-
-            self.summary[key] = fun
-        elif isinstance(val, (np.ndarray, torch.Tensor)):
-            self.summary[key] = self.writer.add_histogram
-        elif isinstance(val, float) or isinstance(val, int):
-            self.summary[key] = self.writer.add_scalar
-        else:
-            raise ValueError(f"Datatype {type(val)} not allowed")
+        pass
 
     def update(self, metrics: dict):
         metrics = flatten_dict(metrics)
@@ -437,21 +481,29 @@ class TensorBoardMetrics:
             key = key_dots.replace(".", "/")
             if self.summary.get(key, None) is None:
                 self.assign_type(key, val)
-            self.summary[key](key, val, self.steps[key])
             self.steps[key] += 1
 
 
 def apply_model(model, inputs, ignore_dim=None):
+    """Placeholder helper for generic model application across input structures.
+
+    Currently not implemented; kept as an extension hook for future utility code.
+    """
     pass
 
 
 def plot_metrics(metrics, path, prefix):
+    """Render and save line plots for each metric series in a dictionary."""
     os.makedirs(path, exist_ok=True)
     for key, val in metrics.items():
         lineplot(np.arange(len(val)), val, f"{prefix}{key}", path)
 
 
 def lineplot(xs, ys, title, path="", xaxis="episode"):
+    """Create a Plotly line plot for scalar, dict, or ensemble-series data.
+
+    Supports uncertainty-band plotting when `ys` is a 2D array.
+    """
     MAX_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     MIN_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     NO_LINE = Line(color="rgba(0, 0, 0, 0)")
@@ -506,12 +558,16 @@ class TorchImageEnvWrapper:
     """
 
     def __init__(self, env, bit_depth, observation_shape=None, act_rep=2):
-        try:
-            self.env = gym.make(env, render_mode="rgb_array")
+        if isinstance(env, str):
+            try:
+                self.env = gym.make(env, render_mode="rgb_array")
+                self._render_mode_supported = True
+            except TypeError:
+                self.env = gym.make(env)
+                self._render_mode_supported = False
+        else:
+            self.env = env
             self._render_mode_supported = True
-        except TypeError:
-            self.env = gym.make(env)
-            self._render_mode_supported = False
         self.bit_depth = bit_depth
         self.action_repeats = act_rep
 
@@ -573,15 +629,62 @@ class TorchImageEnvWrapper:
         return frame
 
     def _obs_to_frame(self, obs):
-        """If obs already looks like an image (H,W,3) return it, else None."""
-        if isinstance(obs, np.ndarray) and obs.ndim == 3 and obs.shape[2] in (1, 3, 4):
-            return obs
+        """Convert common observation formats to an HWC image when possible."""
+        if isinstance(obs, tuple):
+            obs = obs[0]
+
+        if isinstance(obs, dict):
+            for key in ("image", "pixels", "rgb", "observation"):
+                if key in obs:
+                    frame = self._obs_to_frame(obs[key])
+                    if frame is not None:
+                        return frame
+            for value in obs.values():
+                frame = self._obs_to_frame(value)
+                if frame is not None:
+                    return frame
+            return None
+
+        if not isinstance(obs, np.ndarray):
+            try:
+                obs = np.asarray(obs)
+            except Exception:
+                return None
+
+        if obs.ndim == 3:
+            frame = obs
+            if frame.shape[-1] not in (1, 3, 4) and frame.shape[0] in (1, 3, 4):
+                frame = frame.transpose(1, 2, 0)
+            if frame.shape[-1] == 1:
+                frame = np.repeat(frame, 3, axis=-1)
+            elif frame.shape[-1] == 4:
+                frame = frame[..., :3]
+            return frame
+
+        if obs.ndim == 2:
+            return np.repeat(obs[..., None], 3, axis=-1)
+
+        if obs.ndim == 1:
+            vals = obs.astype(np.float32).reshape(-1)
+            if vals.size == 0:
+                return None
+            if vals.max() != vals.min():
+                vals = (vals - vals.min()) / (vals.max() - vals.min() + 1e-8)
+            else:
+                vals = np.zeros_like(vals)
+            canvas = np.zeros((64, 64, 3), dtype=np.uint8)
+            for i, v in enumerate(vals[:8]):
+                canvas[:, i * 8 : (i + 1) * 8, :] = int(255 * float(v))
+            return canvas
+
         return None
 
     def reset(self):
         ret = self.env.reset()
         obs = ret[0] if isinstance(ret, tuple) else ret
-        frame = self._obs_to_frame(obs) or self._get_frame(last_obs=obs)
+        frame = self._obs_to_frame(obs)
+        if frame is None:
+            frame = self._get_frame(last_obs=obs)
         if frame is None:
             raise RuntimeError(
                 "Environment did not provide an RGB frame on reset. "
@@ -598,15 +701,13 @@ class TorchImageEnvWrapper:
             u_t = u
         if getattr(self.env.action_space, "n", None) is not None:
             n = int(self.env.action_space.n)
-            try:
-                val = (
-                    float(u_t.item())
-                    if isinstance(u_t, torch.Tensor)
-                    else float(np.asarray(u_t).reshape(-1)[0])
-                )
-            except Exception:
-                val = float(u_t)
-            action = int(np.clip(int(round(val)), 0, n - 1))
+            arr = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
+            arr = arr.reshape(-1)
+            if arr.size > 1:
+                action = int(np.argmax(arr))
+            else:
+                val = float(arr[0]) if arr.size else 0.0
+                action = int(np.clip(int(round(val)), 0, n - 1))
         else:
             action = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
 
@@ -627,7 +728,9 @@ class TorchImageEnvWrapper:
             last_obs = obs
         frame = self._obs_to_frame(
             last_obs if not isinstance(last_obs, tuple) else last_obs[0]
-        ) or self._get_frame(last_obs=last_obs)
+        )
+        if frame is None:
+            frame = self._get_frame(last_obs=last_obs)
         if frame is None:
             raise RuntimeError(
                 "Environment did not provide an RGB frame on step. "
@@ -690,3 +793,175 @@ class TorchImageEnvWrapper:
         ):
             return int(self.env.spec.max_episode_steps)
         return 1000
+
+
+def apply_masks(x, masks):
+    """Gather token subsets from patch sequences using index masks.
+
+    Each mask selects token positions from `x`; selected groups are concatenated
+    along the batch dimension.
+    """
+    all_x = []
+    for m in masks:
+        mask_keep = m.unsqueeze(-1).repeat(1, 1, x.shape[-1])
+        all_x.append(torch.gather(x, 1, mask_keep))
+    return torch.cat(all_x, dim=0)
+
+
+def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
+    """
+    Visualize latent representations using t-SNE.
+
+    Args:
+        latents: torch.Tensor of shape (N, D) or numpy array
+        labels: optional list or array of labels for coloring
+        save_path: path to save the plot (HTML for plotly)
+        perplexity: t-SNE perplexity parameter
+    """
+    if not HAS_VIZ:
+        print(
+            "t-SNE visualization requires sklearn. Install with: pip install scikit-learn"
+        )
+        return
+
+    if isinstance(latents, torch.Tensor):
+        latents = latents.detach().cpu().numpy()
+
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    latents_2d = tsne.fit_transform(latents)
+
+    fig = plotly.graph_objs.Figure()
+    if labels is not None:
+        unique_labels = np.unique(labels)
+        for label in unique_labels:
+            idx = labels == label
+            fig.add_trace(
+                Scatter(
+                    x=latents_2d[idx, 0],
+                    y=latents_2d[idx, 1],
+                    mode="markers",
+                    name=str(label),
+                    marker=dict(size=5),
+                )
+            )
+    else:
+        fig.add_trace(
+            Scatter(
+                x=latents_2d[:, 0],
+                y=latents_2d[:, 1],
+                mode="markers",
+                marker=dict(size=5),
+            )
+        )
+
+    fig.update_layout(
+        title="Latent Space t-SNE", xaxis_title="t-SNE 1", yaxis_title="t-SNE 2"
+    )
+
+    if save_path:
+        fig.write_html(save_path)
+    return fig
+
+
+def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
+    """
+    Visualize latent representations using UMAP.
+
+    Args:
+        latents: torch.Tensor of shape (N, D) or numpy array
+        labels: optional list or array of labels for coloring
+        save_path: path to save the plot (HTML for plotly)
+        n_neighbors: UMAP n_neighbors parameter
+    """
+    if not HAS_VIZ:
+        print(
+            "UMAP visualization requires umap-learn. Install with: pip install umap-learn"
+        )
+        return
+
+    if isinstance(latents, torch.Tensor):
+        latents = latents.detach().cpu().numpy()
+
+    reducer = umap.UMAP(n_neighbors=n_neighbors, random_state=42)
+    latents_2d = reducer.fit_transform(latents)
+
+    fig = plotly.graph_objs.Figure()
+    if labels is not None:
+        unique_labels = np.unique(labels)
+        for label in unique_labels:
+            idx = labels == label
+            fig.add_trace(
+                Scatter(
+                    x=latents_2d[idx, 0],
+                    y=latents_2d[idx, 1],
+                    mode="markers",
+                    name=str(label),
+                    marker=dict(size=5),
+                )
+            )
+    else:
+        fig.add_trace(
+            Scatter(
+                x=latents_2d[:, 0],
+                y=latents_2d[:, 1],
+                mode="markers",
+                marker=dict(size=5),
+            )
+        )
+
+    fig.update_layout(
+        title="Latent Space UMAP", xaxis_title="UMAP 1", yaxis_title="UMAP 2"
+    )
+
+    if save_path:
+        fig.write_html(save_path)
+    return fig
+
+
+class StreamingVideoWriter:
+    """
+    A class for streaming video writing to save frames in real-time.
+
+    Args:
+        path: output video file path
+        fps: frames per second
+        frame_shape: (height, width) of frames
+        format: 'mp4' or 'avi'
+    """
+
+    def __init__(self, path, fps=20, frame_shape=None, format="mp4"):
+        self.path = path
+        self.fps = fps
+        self.frame_shape = frame_shape
+        self.format = format.lower()
+        self.writer = None
+
+    def write_frame(self, frame):
+        """
+        Write a single frame to the video.
+
+        Args:
+            frame: numpy array of shape (H, W, C) or (H, W), uint8 or float in [0,1]
+        """
+        if self.writer is None:
+            if self.frame_shape is None:
+                self.frame_shape = frame.shape[:2][::-1]  # (W, H)
+            if self.format == "mp4":
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+            elif self.format == "avi":
+                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+            else:
+                raise ValueError("Unsupported format")
+            self.writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.frame_shape)
+
+        # Convert frame to uint8 HWC BGR
+        if frame.dtype != np.uint8:
+            frame = (frame * 255).astype(np.uint8)
+        if frame.shape[-1] == 3:  # RGB to BGR
+            frame = frame[..., ::-1]
+        self.writer.write(frame)
+
+    def close(self):
+        if self.writer is not None:
+            self.writer.release()
+            self.writer = None

@@ -92,6 +92,11 @@ def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
 
 
 def main():
+    """Example PlaNet/RSSM training script with rollout collection and evaluation.
+
+    Builds environment/model/policy objects, iteratively trains on replayed
+    episodes, and periodically saves videos and checkpoints.
+    """
     env = None
     try:
         env = RolloutGenerator

@@ -2,6 +2,11 @@ import numpy as np
 
 
 class ReplayBuffer:
+    """Fixed-size replay buffer for Dreamer image observations and transitions.
+
+    Stores `(observation image, action, reward, terminal)` tuples and supports
+    sampling contiguous sequences used by world-model unroll training.
+    """
 
     def __init__(self, size, obs_shape, action_size, seq_len, batch_size):
 

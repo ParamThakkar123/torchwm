@@ -1,25 +1,62 @@
 [project]
-name = "pytorch-world"
-version = "0.1.0"
-description = "A Pytorch Based library for training world models"
+name = "torchwm"
+version = "0.3.2"
+description = "A Modular Pytorch Based library for training world models"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["world-models", "pytorch", "mbrl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "ale-py>=0.11.2",
-    "einops>=0.8.1",
+    "einops>=0.8.2",
+    "fastapi[standard]>=0.116.0",
     "gym>=0.26.2",
     "gymnasium>=1.2.2",
     "mlagents-envs>=0.28.0",
     "moviepy>=2.2.1",
+    "myst-parser>=5.0.0",
+    "nbsphinx>=0.9.8",
     "opencv-python>=4.12.0.88",
     "plotly>=6.5.0",
     "pre-commit>=4.5.0",
     "pygame>=2.6.1",
+    "pytest>=9.0.2",
+    "pyyaml>=6.0.3",
     "scipy>=1.16.3",
+    "selenium>=4.41.0",
+    "sphinx>=9.1.0",
+    "sphinx-autodoc-typehints>=3.6.2",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-rtd-theme>=3.1.0",
+    "sphinxcontrib-bibtex>=2.6.5",
+    "sphinxcontrib-mermaid>=0.9.0",
+    "sphinx-thebe>=0.3.0",
+    "sphinxext-opengraph>=0.13.0",
     "tensorboard>=2.20.0",
     "tensorboardx>=2.6.4",
     "tqdm>=4.67.1",
+    "uvicorn>=0.35.0",
+    "wheel>=0.46.3",
+    "wandb>=0.16.0",
+    "scikit-learn>=1.8.0",
+    "umap-learn>=0.5.11",
+    "mypy>=1.19.1",
+    "autorom>=0.6.1",
+    "pytest-cov>=7.1.0",
+    "torchaudio>=2.10.0",
 ]
+
+[tool.uv]
+index-url = "https://download.pytorch.org/whl/cu121"
+extra-index-url = ["https://pypi.org/simple"]
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu121"
+default = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]

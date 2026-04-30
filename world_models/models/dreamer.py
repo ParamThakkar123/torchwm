@@ -2,6 +2,7 @@ import os
 import random
 import time
 import numpy as np
+import ctypes
 
 import torch
 import torch.nn as nn
@@ -11,7 +12,9 @@ import torch.distributions as distributions
 from collections import OrderedDict
 
 import world_models.envs.wrappers as env_wrapper
-from world_models.envs.dmc import DeepMindControl
+from world_models.envs.dmc import DeepMindControlEnv
+from world_models.envs.gym_env import GymImageEnv
+from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
@@ -19,36 +22,166 @@ from world_models.vision.dreamer_encoder import ConvEncoder
 from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
 from world_models.configs.dreamer_config import DreamerConfig
 
-os.environ["MUJOCO_GL"] = "egl"
+# Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
+# causes mujoco to raise a RuntimeError during import. Respect an existing
+# environment value if present.
+if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
+    os.environ["MUJOCO_GL"] = "egl"
+
+
+def get_available_memory():
+    """Get available physical memory in bytes."""
+    if os.name == "nt":  # Windows
+
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        memory_status = MEMORYSTATUSEX()
+        memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
+            raise OSError("Failed to get memory status")
+        return memory_status.ullAvailPhys
+    else:  # Linux/Mac
+        try:
+            import psutil
+
+            return psutil.virtual_memory().available
+        except ImportError:
+            # Fallback: read /proc/meminfo on Linux
+            try:
+                with open("/proc/meminfo", "r") as f:
+                    for line in f:
+                        if line.startswith("MemAvailable:"):
+                            avail_kb = int(line.split()[1])
+                            return avail_kb * 1024  # Convert KB to bytes
+            except (FileNotFoundError, ValueError, IndexError):
+                pass
+            # Ultimate fallback: assume 8GB available
+            return 8 * 1024 * 1024 * 1024
+
+
+def _resolve_image_size(args):
+    size = getattr(args, "image_size", (64, 64))
+    if isinstance(size, int):
+        return (size, size)
+    if isinstance(size, (tuple, list)) and len(size) == 2:
+        return (int(size[0]), int(size[1]))
+    raise ValueError(f"Invalid image_size={size}. Expected int or (H, W).")
 
 
 def make_env(args):
+    """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    env = DeepMindControl(args.env, args.seed)
-    env = env_wrapper.ActionRepeat(env, args.action_repeat)
+    Supports DMC, Gym/Gymnasium, and Unity ML-Agents backends and applies the
+    standard wrapper stack: action repeat, action normalization, and time limit.
+    """
+    size = _resolve_image_size(args)
+    backend = str(getattr(args, "env_backend", "dmc")).lower()
+
+    env_instance = getattr(args, "env_instance", None)
+    if env_instance is not None:
+        env = GymImageEnv(
+            env_instance,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend == "dmc":
+        env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"gym", "gymnasium", "generic"}:
+        env = GymImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"unity", "unity_mlagents", "mlagents"}:
+        unity_file_name = getattr(args, "unity_file_name", None)
+        if not unity_file_name:
+            raise ValueError(
+                "unity_file_name must be provided when env_backend='unity_mlagents'."
+            )
+        env = UnityMLAgentsEnv(
+            file_name=unity_file_name,
+            behavior_name=getattr(args, "unity_behavior_name", None),
+            seed=args.seed,
+            size=size,
+            worker_id=int(getattr(args, "unity_worker_id", 0)),
+            base_port=int(getattr(args, "unity_base_port", 5005)),
+            no_graphics=bool(getattr(args, "unity_no_graphics", True)),
+            time_scale=float(getattr(args, "unity_time_scale", 20.0)),
+            quality_level=int(getattr(args, "unity_quality_level", 1)),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
+    else:
+        raise ValueError(
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, unity_mlagents."
+        )
+
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
     env = env_wrapper.NormalizeActions(env)
-    env = env_wrapper.TimeLimit(env, args.time_limit / args.action_repeat)
-    # env = env_wrapper.RewardObs(env)
+    repeat = max(1, int(args.action_repeat))
+    duration = max(1, int(args.time_limit) // repeat)
+    env = env_wrapper.TimeLimit(env, duration)
     return env
 
 
 def preprocess_obs(obs):
+    """Convert raw uint8 image observations to Dreamer float input space.
+
+    Images are scaled from `[0, 255]` to roughly `[-0.5, 0.5]`, matching the
+    normalization expected by Dreamer encoders.
+    """
     obs = obs.to(torch.float32) / 255.0 - 0.5
     return obs
 
 
 class Dreamer:
+    """Core Dreamer training system combining world model, actor, and value nets.
+
+    This class owns model construction, replay sampling, imagination rollouts,
+    loss computation, optimization steps, evaluation loops, and checkpoint I/O.
+    """
 
     def __init__(self, args, obs_shape, action_size, device, restore=False):
-
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
         self.device = device
         self.restore = args.restore
         self.restore_path = args.checkpoint_path
+
+        # Calculate memory per sample
+        obs_bytes = np.prod(obs_shape) * 1  # uint8
+        action_bytes = action_size * 4  # float32
+        reward_bytes = 4  # float32
+        terminal_bytes = 4  # float32
+        bytes_per_sample = obs_bytes + action_bytes + reward_bytes + terminal_bytes
+
+        # Get available memory
+        available_memory = get_available_memory()
+        # Use 80% of available memory for buffer to leave margin for other processes
+        max_buffer_size = int((available_memory * 0.8) // bytes_per_sample)
+        adaptive_buffer_size = min(args.buffer_size, max_buffer_size)
+
+        if adaptive_buffer_size < args.buffer_size:
+            print(
+                f"Reducing buffer size from {args.buffer_size} to {adaptive_buffer_size} due to memory constraints."
+            )
+
         self.data_buffer = ReplayBuffer(
-            self.args.buffer_size,
+            adaptive_buffer_size,
             self.obs_shape,
             self.action_size,
             self.args.train_seq_len,
@@ -58,7 +191,6 @@ class Dreamer:
         self._build_model(restore=self.restore)
 
     def _build_model(self, restore):
-
         self.rssm = RSSM(
             action_size=self.action_size,
             stoch_size=self.args.stoch_size,
@@ -164,7 +296,6 @@ class Dreamer:
             self.restore_checkpoint(self.restore_path)
 
     def world_model_loss(self, obs, acs, rews, nonterms):
-
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
         init_state = self.rssm.init_state(self.args.batch_size, self.device)
@@ -232,7 +363,6 @@ class Dreamer:
         return model_loss
 
     def actor_loss(self):
-
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
 
@@ -269,7 +399,6 @@ class Dreamer:
         return actor_loss
 
     def value_loss(self):
-
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
             value_targ = self.returns.detach()
@@ -282,7 +411,6 @@ class Dreamer:
         return value_loss
 
     def train_one_batch(self):
-
         obs, acs, rews, terms = self.data_buffer.sample()
         obs = torch.tensor(obs, dtype=torch.float32).to(self.device)
         acs = torch.tensor(acs, dtype=torch.float32).to(self.device)
@@ -316,7 +444,6 @@ class Dreamer:
         return model_loss.item(), actor_loss.item(), value_loss.item()
 
     def act_with_world_model(self, obs, prev_state, prev_action, explore=False):
-
         obs = obs["image"]
         obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
         obs_embed = self.obs_encoder(preprocess_obs(obs))
@@ -329,7 +456,6 @@ class Dreamer:
         return posterior, action
 
     def act_and_collect_data(self, env, collect_steps):
-
         obs = env.reset()
         done = False
         prev_state = self.rssm.init_state(1, self.device)
@@ -338,14 +464,18 @@ class Dreamer:
         episode_rewards = [0.0]
 
         for i in range(collect_steps):
-
             with torch.no_grad():
                 posterior, action = self.act_with_world_model(
                     obs, prev_state, prev_action, explore=True
                 )
             action = action[0].cpu().numpy()
-            next_obs, rew, done, _ = env.step(action)
-            self.data_buffer.add(obs, action, rew, done)
+            next_obs, rew, done, info = env.step(action)
+            executed_action = (
+                info["action"]
+                if isinstance(info, dict) and ("action" in info)
+                else action
+            )
+            self.data_buffer.add(obs, executed_action, rew, done)
 
             episode_rewards[-1] += rew
 
@@ -360,7 +490,7 @@ class Dreamer:
                 obs = next_obs
                 prev_state = posterior
                 prev_action = (
-                    torch.tensor(action, dtype=torch.float32)
+                    torch.tensor(executed_action, dtype=torch.float32)
                     .to(self.device)
                     .unsqueeze(0)
                 )
@@ -368,10 +498,10 @@ class Dreamer:
         return np.array(episode_rewards)
 
     def evaluate(self, env, eval_episodes, render=False):
-
         episode_rew = np.zeros((eval_episodes))
 
         video_images = [[] for _ in range(eval_episodes)]
+        latents = [] if render else None
 
         for i in range(eval_episodes):
             obs = env.reset()
@@ -385,10 +515,15 @@ class Dreamer:
                         obs, prev_state, prev_action
                     )
                 action = action[0].cpu().numpy()
-                next_obs, rew, done, _ = env.step(action)
+                next_obs, rew, done, info = env.step(action)
+                executed_action = (
+                    info["action"]
+                    if isinstance(info, dict) and ("action" in info)
+                    else action
+                )
                 prev_state = posterior
                 prev_action = (
-                    torch.tensor(action, dtype=torch.float32)
+                    torch.tensor(executed_action, dtype=torch.float32)
                     .to(self.device)
                     .unsqueeze(0)
                 )
@@ -397,20 +532,36 @@ class Dreamer:
 
                 if render:
                     video_images[i].append(obs["image"].transpose(1, 2, 0).copy())
+                    if latents is not None:
+                        latents.append(
+                            torch.cat([posterior[0], posterior[1]], dim=-1)
+                            .cpu()
+                            .numpy()
+                        )
                 obs = next_obs
-        return episode_rew, np.array(video_images[: self.args.max_videos_to_save])
+        if latents is not None and len(latents) > 0:
+            latents = np.array(latents)
+        return (
+            episode_rew,
+            np.array(video_images[: self.args.max_videos_to_save]),
+            latents,
+        )
 
     def collect_random_episodes(self, env, seed_steps):
-
         obs = env.reset()
         done = False
         seed_episode_rews = [0.0]
 
         for i in range(seed_steps):
             action = env.action_space.sample()
-            next_obs, rew, done, _ = env.step(action)
+            next_obs, rew, done, info = env.step(action)
+            executed_action = (
+                info["action"]
+                if isinstance(info, dict) and ("action" in info)
+                else action
+            )
 
-            self.data_buffer.add(obs, action, rew, done)
+            self.data_buffer.add(obs, executed_action, rew, done)
             seed_episode_rews[-1] += rew
             if done:
                 obs = env.reset()
@@ -423,7 +574,6 @@ class Dreamer:
         return np.array(seed_episode_rews)
 
     def save(self, save_path):
-
         torch.save(
             {
                 "rssm": self.rssm.state_dict(),
@@ -444,7 +594,6 @@ class Dreamer:
         )
 
     def restore_checkpoint(self, ckpt_path):
-
         checkpoint = torch.load(ckpt_path)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
@@ -460,17 +609,34 @@ class Dreamer:
 
 
 class DreamerAgent:
+    """High-level user API for running Dreamer experiments end to end.
+
+    It builds environments from config, initializes seeds and logging,
+    instantiates `Dreamer`, and exposes simple `train()` / `evaluate()` methods.
+    """
+
     def __init__(self, config=None, **kwargs):
         if config is None:
             self.args = DreamerConfig()
         else:
             self.args = config
 
+        self.last_latents_ref = kwargs.get("last_latents_ref", None)
+
         for key, value in kwargs.items():
             if hasattr(self.args, key):
                 setattr(self.args, key, value)
             elif key == "logdir":
-                setattr(self.args, key, value)
+                # Accept either `logdir` (server/legacy) and mirror into
+                # both `logdir` and `log_dir` so downstream code using either
+                # naming convention picks up the value.
+                setattr(self.args, "logdir", value)
+                try:
+                    setattr(self.args, "log_dir", value)
+                except Exception:
+                    pass
+            elif key == "last_latents_ref":
+                self.last_latents_ref = value
             else:
                 raise ValueError(f"Invalid argument: {key}")
 
@@ -479,6 +645,9 @@ class DreamerAgent:
         if not (os.path.exists(data_path)):
             os.makedirs(data_path)
 
+        # Allow caller to pass an absolute `logdir`. If provided and absolute,
+        # use it verbatim. Otherwise keep the historical behavior of creating
+        # a subdir under the package data path so examples/tests remain stable.
         if hasattr(self.args, "logdir") and self.args.logdir is not None:
             self.logdir = self.args.logdir
         else:
@@ -491,7 +660,10 @@ class DreamerAgent:
                 + "_"
                 + time.strftime("%d-%m-%Y-%H-%M-%S")
             )
-        self.logdir = os.path.join(data_path, self.logdir)
+
+        # If `self.logdir` is not an absolute path, place it under package data_path
+        if not os.path.isabs(self.logdir):
+            self.logdir = os.path.join(data_path, self.logdir)
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
 
@@ -513,7 +685,15 @@ class DreamerAgent:
             self.args, obs_shape, action_size, device, self.args.restore
         )
 
-        self.logger = Logger(self.logdir)
+        self.logger = Logger(
+            self.logdir,
+            self.args.enable_wandb,
+            self.args.wandb_api_key,
+            self.args.wandb_project,
+            self.args.wandb_entity,
+            self.args.video_format,
+            self.args.video_fps,
+        )
 
     def train(self, total_steps=None):
         if total_steps is None:
@@ -541,7 +721,6 @@ class DreamerAgent:
         self.logger.flush()
 
         while global_step <= total_steps:
-
             print("##################################")
             print(f"At global step {global_step}")
 
@@ -567,9 +746,11 @@ class DreamerAgent:
             )
 
             if global_step % self.args.test_interval == 0:
-                episode_rews, video_images = self.dreamer.evaluate(
+                episode_rews, video_images, latents = self.dreamer.evaluate(
                     self.test_env, self.args.test_episodes
                 )
+                if self.last_latents_ref is not None and latents is not None:
+                    self.last_latents_ref[0] = latents
 
                 logs.update(
                     {
@@ -601,9 +782,11 @@ class DreamerAgent:
 
     def evaluate(self):
         logs = OrderedDict()
-        episode_rews, video_images = self.dreamer.evaluate(
+        episode_rews, video_images, latents = self.dreamer.evaluate(
             self.test_env, self.args.test_episodes, render=True
         )
+        if self.last_latents_ref is not None and latents is not None:
+            self.last_latents_ref[0] = latents
         logs.update(
             {
                 "test_avg_reward": np.mean(episode_rews),
@@ -616,3 +799,5 @@ class DreamerAgent:
         self.logger.log_videos(
             video_images, 0, max_videos_to_save=self.args.max_videos_to_save
         )
+        self.logger.flush()
+        return episode_rews, video_images, latents

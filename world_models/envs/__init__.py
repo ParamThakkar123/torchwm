@@ -1,6 +1,8 @@
 from .ale_atari_env import make_atari_env, list_available_atari_envs
 from .ale_atari_vector_env import make_atari_vector_env
 from .mujoco_env import make_humanoid_env, make_half_cheetah_env
+from .gym_env import GymImageEnv, make_gym_env
+from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
     TimeLimit,
     ActionRepeat,
@@ -12,7 +14,7 @@ from .wrappers import (
     RenderImage,
     SelectAction,
 )
-from .dmc import DeepMindControl
+from .dmc import DeepMindControlEnv
 
 __all__ = [
     "make_atari_env",
@@ -20,7 +22,11 @@ __all__ = [
     "make_atari_vector_env",
     "make_humanoid_env",
     "make_half_cheetah_env",
-    "DeepMindControl",
+    "GymImageEnv",
+    "make_gym_env",
+    "UnityMLAgentsEnv",
+    "make_unity_mlagents_env",
+    "DeepMindControlEnv",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

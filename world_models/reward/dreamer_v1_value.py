@@ -4,6 +4,11 @@ import torch.nn.functional as F
 
 
 class ValueModel(nn.Module):
+    """Estimate scalar value from Dreamer latent belief and state vectors.
+
+    This MLP is trained on imagined returns and used for actor/value updates.
+    """
+
     def __init__(
         self, belief_size, state_size, hidden_size, activation_function="relu"
     ):

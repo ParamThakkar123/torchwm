@@ -4,6 +4,11 @@ import torch.nn.functional as F
 
 
 class SymbolicObservationModel(nn.Module):
+    """Observation decoder for low-dimensional (symbolic) environments.
+
+    Maps latent belief/state features to vector observations through an MLP.
+    """
+
     def __init__(
         self,
         observation_size,
@@ -26,6 +31,12 @@ class SymbolicObservationModel(nn.Module):
 
 
 class VisualObservationModel(nn.Module):
+    """Observation decoder for pixel observations in Dreamer-style models.
+
+    Uses transposed convolutions to reconstruct RGB-like frames from latent
+    belief/state features.
+    """
+
     def __init__(
         self, belief_size, state_size, embedding_size, activation_function="relu"
     ):
@@ -56,6 +67,10 @@ def ObservationModel(
     embedding_size,
     activation_function="relu",
 ):
+    """Factory that returns symbolic or visual observation decoder variants.
+
+    Selects the concrete model class based on the `symbolic` flag.
+    """
     if symbolic:
         return SymbolicObservationModel(
             observation_size,

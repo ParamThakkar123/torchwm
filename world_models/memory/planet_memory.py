@@ -41,6 +41,12 @@ class Episode:
 
 
 class Memory(deque):
+    """Episode-based replay memory for PlaNet/RSSM training.
+
+    Episodes are stored as variable-length trajectories and sampled as
+    sub-sequences with optional time-major formatting for sequence models.
+    """
+
     def __init__(self, size=None):
         """Maintains a FIFO list of `size` number of episodes.
         If size is None (e.g. during unpickling or loading legacy files),

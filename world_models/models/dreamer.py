@@ -675,6 +675,7 @@ class DreamerAgent:
             torch.cuda.manual_seed(self.args.seed)
         else:
             device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         self.train_env = make_env(self.args)
         self.test_env = make_env(self.args)

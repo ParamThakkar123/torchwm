@@ -198,6 +198,40 @@ pip install torchwm
 uv add torch torchvision torchaudio
 ```
 
+## Training Scripts
+
+TorchWM includes several training scripts for different world model components. These can be run directly from the command line.
+
+### Train World Model Pipeline
+
+Train a complete world model (VAE + MDNRNN + Controller) on any Gym environment:
+
+```bash
+# Train on CarRacing
+python -m world_models.training.train_world_model --env CarRacing-v2
+
+# Train on Pendulum
+python -m world_models.training.train_world_model --env Pendulum-v1
+
+# Custom data/log directories
+python -m world_models.training.train_world_model --env YourEnv-v0 --data_dir ./my_data --logdir ./my_logs
+
+# Specify action size manually if env loading fails
+python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
+
+# Test trained model
+python -m world_models.training.train_world_model --env CarRacing-v2 --test
+```
+
+### Other Training Scripts
+
+- **ConvVAE**: `python -m world_models.training.train_convvae`
+- **MDNRNN**: `python -m world_models.training.train_mdn_rnn`
+- **Controller**: `python -m world_models.training.train_controller`
+- **Planet**: `python -m world_models.training.train_planet`
+- **RSSM**: `python -m world_models.training.train_rssm`
+- **JEPA**: `python -m world_models.training.train_jepa`
+
 ### Training a Dreamer Agent
 
 ```python

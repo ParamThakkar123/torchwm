@@ -150,7 +150,21 @@ normalized_img = normalize_image(pil_image, size=(224, 224))
 tokens = tokenize_text("Hello world", max_length=512)
 ```
 
-## Environment Backends
+Train a complete world model pipeline (VAE + MDNRNN + Controller) on any Gym environment:
+
+```bash
+# Train on CarRacing
+python -m world_models.training.train_world_model --env CarRacing-v2
+
+# Train on Pendulum
+python -m world_models.training.train_world_model --env Pendulum-v1
+
+# Test trained model
+python -m world_models.training.train_world_model --env CarRacing-v2 --test
+
+# Specify action size manually for environments with missing dependencies
+python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
+```
 
 Dreamer supports multiple backends through `DreamerConfig.env_backend`:
 

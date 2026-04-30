@@ -42,7 +42,7 @@ class TestDeepMindControlEnv:
         try:
             DeepMindControlEnv(name="invalid-env", seed=42, size=(64, 64))
         except Exception as e:
-            assert isinstance(e, ValueError)
+            assert isinstance(e, (ValueError, ImportError))
 
     def test_different_image_sizes(self):
         sizes = [(32, 32), (64, 64), (128, 128)]

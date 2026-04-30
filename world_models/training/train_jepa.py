@@ -64,11 +64,12 @@ def main(args, resume_preempt=False):
     copy_data = args["meta"]["copy_data"]
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
-    if not torch.cuda.is_available():
-        device = torch.device("cpu")
-    else:
+    if torch.cuda.is_available():
         device = torch.device("cuda:0")
         torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]
@@ -313,7 +314,6 @@ def main(args, resume_preempt=False):
             if (epoch + 1) % checkpoint_freq == 0:
                 torch.save(save_dict, save_path.format(epoch=f"{epoch + 1}"))
 
-    # -- TRAINING LOOP
     for epoch in range(start_epoch, num_epochs):
         logger.info("Epoch %d" % (epoch + 1))
 

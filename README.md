@@ -1,100 +1,201 @@
 # TorchWM
 
-TorchWM is a modular PyTorch library for world models and latent dynamics learning.
-It includes practical implementations of Dreamer-style agents, PlaNet/RSSM utilities,
-JEPA-style representation learning, and diffusion/transformer building blocks.
+<div align="center">
+  <img src="docs/images/torchwm-logo.svg" alt="TorchWM Logo" height="80">
+  <p><strong>Modular PyTorch Library for World Models</strong></p>
+</div>
 
-## Highlights
-
-- Modular components for encoders, decoders, RSSMs, reward/value heads, and policies
-- Multiple environment backends: DMC, Gym/Gymnasium, Atari, MuJoCo, Unity ML-Agents
-- Replay/memory utilities for both Dreamer and PlaNet-style training loops
-- ViT + masking utilities for JEPA workflows
-- Diffusion utilities (DDPM schedule + DiT model)
-
-## Installation
-
-Install from PyPI:
-
-```bash
-pip install torchwm
-```
-
-Install from source:
-
-```bash
-git clone https://github.com/ParamThakkar123/torchwm.git
-cd torchwm
-pip install -e .
-```
-
-Development extras:
-
-```bash
-pip install -e ".[dev]"
-```
+---
 
 ## Quick Start
 
-### Train Dreamer on Gym
+TorchWM provides a unified interface for training and deploying world models.
+
+### Installation
+
+```bash
+pip install torchwm
+# or with uv
+uv add torch torchvision torchaudio
+```
+
+### Training a Dreamer Agent
 
 ```python
 from world_models.models import DreamerAgent
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-cfg.env_backend = "gym"  # dmc | gym | unity_mlagents
-cfg.env = "Pendulum-v1"
-cfg.total_steps = 10_000
+cfg.env = "walker-walk"
+cfg.total_steps = 1_000_000
 
 agent = DreamerAgent(cfg)
 agent.train()
 ```
 
-### Train Dreamer on Unity ML-Agents
+### Using Inference Operators
 
 ```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+from world_models.inference.operators import DreamerOperator
 
-cfg = DreamerConfig()
-cfg.env_backend = "unity_mlagents"
-cfg.unity_file_name = r"E:\UnityBuilds\MyEnv.exe"
-cfg.unity_behavior_name = "MyBehavior"
-cfg.unity_no_graphics = True
-cfg.unity_time_scale = 20.0
-
-agent = DreamerAgent(cfg)
-agent.train()
+op = DreamerOperator(image_size=64, action_dim=6)
+processed = op.process({'image': image, 'action': action})
+# Returns standardized tensors for inference
 ```
 
-### Train JEPA
+## Features
 
-```python
-from world_models.models import JEPAAgent
-from world_models.configs import JEPAConfig
+- 🎯 **Unified Interface**: Consistent API across all world model algorithms
+- 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
+- 🚀 **High Performance**: Optimized for both training and inference
+- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
+- 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
+- 🧠 **Research Ready**: Easy experimentation with different architectures
 
-cfg = JEPAConfig()
-cfg.dataset = "imagefolder"
-cfg.root_path = "./data"
-cfg.image_folder = "train"
-cfg.epochs = 10
+## Supported Algorithms
 
-agent = JEPAAgent(cfg)
-agent.train()
-```
+| Algorithm | Description | Key Features |
+|-----------|-------------|--------------|
+| **Dreamer** | Model-based RL with latent dynamics | Imagination, actor-critic |
+| **JEPA** | Self-supervised visual representations | Masked prediction, ViT |
+| **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
+| **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
 
 ## Documentation
 
-- Sphinx source: `docs/source`
-- Getting started guide: `docs/source/getting_started.md`
-- Package overview: `docs/source/package_overview.md`
-- API reference (autodoc): `docs/source/api_reference.rst`
+📖 [Full Documentation](https://paramthakkar123.github.io/torchwm/)
 
-Build HTML docs locally:
+### Get Started
+- [Installation](https://paramthakkar123.github.io/torchwm/getting_started.html)
+- [Training Guide](https://paramthakkar123.github.io/torchwm/training_guide.html)
+- [Inference Guide](https://paramthakkar123.github.io/torchwm/inference_guide.html)
+
+### User Guides
+- [Operators Guide](https://paramthakkar123.github.io/torchwm/operators_guide.html)
+- [Environments Guide](https://paramthakkar123.github.io/torchwm/environments_guide.html)
+- [Package Overview](https://paramthakkar123.github.io/torchwm/package_overview.html)
+
+### Algorithms
+- [Dreamer](https://paramthakkar123.github.io/torchwm/dreamer.html)
+- [JEPA](https://paramthakkar123.github.io/torchwm/jepa.html)
+- [IRIS](https://paramthakkar123.github.io/torchwm/iris.html)
+- [DiT](https://paramthakkar123.github.io/torchwm/dit.html)
+
+## Community
+
+- 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
+- 💬 [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
+- 📧 [PyPI](https://pypi.org/project/torchwm/)
+
+---
+
+```{important}
+TorchWM is under active development. APIs may change between versions.
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Get Started
+
+getting_started
+installation
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: User Guides
+
+operators_guide
+training_guide
+inference_guide
+environments_guide
+package_overview
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Algorithms
+
+dreamer
+jepa
+iris
+dit
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Reference
+
+api_reference
+configs_reference
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Development
+
+contributing
+benchmarks
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: User Guides
+
+operators_guide
+training_guide
+inference_guide
+environments_guide
+package_overview
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Algorithms
+
+dreamer
+jepa
+iris
+dit
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Reference
+
+api_reference
+configs_reference
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Development
+
+contributing
+benchmarks
+```
+
+---
+
+## Quick Start
+
+TorchWM provides a unified interface for training and deploying world models.
+
+### Installation
 
 ```bash
-sphinx-build -b html docs/source docs/build/html
+pip install torchwm
+# or with uv
+uv add torch torchvision torchaudio
 ```
 
 ## Training Scripts
@@ -131,31 +232,56 @@ python -m world_models.training.train_world_model --env CarRacing-v2 --test
 - **RSSM**: `python -m world_models.training.train_rssm`
 - **JEPA**: `python -m world_models.training.train_jepa`
 
-- `world_models/models`: Agents and model architectures (`Dreamer`, `JEPAAgent`, `Planet`, ViT, diffusion)
-- `world_models/configs`: Config classes (`DreamerConfig`, `JEPAConfig`, `DiTConfig`)
-- `world_models/envs`: Environment adapters and wrappers
-- `world_models/training`: Script-style training entrypoints
-- `world_models/datasets`: CIFAR10/ImageNet/ImageFolder data loaders
-- `world_models/memory`: Replay and episodic memory implementations
-- `world_models/utils`: Training/logging/distributed helper utilities
+### Training a Dreamer Agent
 
-## Contributing
+```python
+from world_models.models import DreamerAgent
+from world_models.configs import DreamerConfig
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+cfg.total_steps = 1_000_000
 
-## License
-
-MIT. See [LICENSE](LICENSE).
-
-## Citation
-
-```bibtex
-@misc{Thakkar_GitHub_-_ParamThakkar123_torchwm,
-author = {Thakkar, Param},
-title = {{GitHub - ParamThakkar123/torchwm: A modular PyTorch library designed for learning, training, and deploying world models across various environments.}},
-year = {2025},
-url = {https://github.com/ParamThakkar123/torchwm}
-}
+agent = DreamerAgent(cfg)
+agent.train()
 ```
 
-Package: [torchwm on PyPI](https://pypi.org/project/torchwm/)
+### Using Inference Operators
+
+```python
+from world_models.inference.operators import DreamerOperator
+
+op = DreamerOperator(image_size=64, action_dim=6)
+processed = op.process({'image': image, 'action': action})
+```
+
+## Features
+
+- 🎯 **Unified Interface**: Consistent API across all world model algorithms
+- 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
+- 🚀 **High Performance**: Optimized for both training and inference
+- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
+- 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
+- 🧠 **Research Ready**: Easy experimentation with different architectures
+
+## Supported Algorithms
+
+| Algorithm | Description | Key Features |
+|-----------|-------------|--------------|
+| **Dreamer** | Model-based RL with latent dynamics | Imagination, actor-critic |
+| **JEPA** | Self-supervised visual representations | Masked prediction, ViT |
+| **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
+| **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
+
+## Community
+
+- 📖 [Documentation](https://paramthakkar123.github.io/torchwm/)
+- 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
+- 💬 [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
+- 📧 [PyPI](https://pypi.org/project/torchwm/)
+
+---
+
+```{important}
+TorchWM is under active development. APIs may change between versions.
+```

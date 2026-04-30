@@ -68,8 +68,19 @@ class DreamerConfig:
         self.scalar_freq = int(1e3)
         self.log_video_freq = -1
         self.max_videos_to_save = 2
+        self.video_format = "gif"  # "gif" or "mp4"
+        self.video_fps = 20
         self.checkpoint_interval = 10000
         self.checkpoint_path = ""
         self.restore = False
         self.experience_replay = ""
         self.render = False
+
+        # Logging options
+        self.enable_wandb = False
+        self.wandb_api_key = (
+            ""  # Required if enable_wandb is True (anonymous logins not supported)
+        )
+        self.wandb_project = "torchwm"
+        self.wandb_entity = ""
+        self.log_dir = "runs"

@@ -12,10 +12,7 @@ import yaml
 
 import numpy as np
 
-import torch
-import torch.multiprocessing as mp
-import torch.nn.functional as F
-from torch.nn.parallel import DistributedDataParallel
+import wandb
 
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator
 from world_models.utils.utils import apply_masks
@@ -116,6 +113,10 @@ def main(args, resume_preempt=False):
     # -- LOGGING
     folder = args["logging"]["folder"]
     tag = args["logging"]["write_tag"]
+    enable_wandb = args["logging"]["enable_wandb"]
+    wandb_api_key = args["logging"]["wandb_api_key"]
+    wandb_project = args["logging"]["wandb_project"]
+    wandb_entity = args["logging"]["wandb_entity"]
 
     os.makedirs(folder, exist_ok=True)  # ensure output dir exists
 
@@ -146,6 +147,10 @@ def main(args, resume_preempt=False):
     # -- make csv_logger
     csv_logger = CSVLogger(
         log_file,
+        enable_wandb,
+        wandb_api_key,
+        wandb_project,
+        wandb_entity,
         ("%d", "epoch"),
         ("%d", "itr"),
         ("%.5f", "loss"),
@@ -393,8 +398,15 @@ def main(args, resume_preempt=False):
             time_meter.update(etime)
 
             def log_stats():
+                global_step = epoch * ipe + itr
                 csv_logger.log(
-                    epoch + 1, itr, loss, maskA_meter.val, maskB_meter.val, etime
+                    global_step,
+                    epoch + 1,
+                    itr,
+                    loss,
+                    maskA_meter.val,
+                    maskB_meter.val,
+                    etime,
                 )
                 if (itr % log_freq == 0) or np.isnan(loss) or np.isinf(loss):
                     logger.info(
@@ -435,3 +447,26 @@ def main(args, resume_preempt=False):
 
         logger.info("avg. loss %.3f" % loss_meter.avg)
         save_checkpoint(epoch + 1)
+
+
+def sweep_train():
+    """Function for WandB sweep agent."""
+    with wandb.init() as run:
+        cfg = JEPAConfig()
+        # Update config with sweep parameters
+        for key, value in wandb.config.items():
+            if hasattr(cfg, key):
+                setattr(cfg, key, value)
+        main(cfg.to_dict())
+
+
+if __name__ == "__main__":
+    cfg = JEPAConfig()
+    # TODO: Load config from file if needed
+    if cfg.enable_sweep:
+        sweep_id = wandb.sweep(
+            cfg.sweep_config, project=cfg.wandb_project, entity=cfg.wandb_entity
+        )
+        wandb.agent(sweep_id, function=sweep_train)
+    else:
+        main(cfg.to_dict())

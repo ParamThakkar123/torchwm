@@ -60,6 +60,14 @@ class JEPAConfig:
         # logging
         self.folder: str = "results/jepa"
         self.write_tag: str = "jepa_run"
+        self.enable_wandb: bool = False
+        self.wandb_api_key: str = (
+            ""  # Required if enable_wandb is True (anonymous logins not supported)
+        )
+        self.wandb_project: str = "torchwm"
+        self.wandb_entity: str = ""
+        self.enable_sweep: bool = False
+        self.sweep_config: Dict[str, Any] = {}
 
     def to_dict(self) -> Dict[str, Dict[str, Any]]:
         return {
@@ -112,5 +120,11 @@ class JEPAConfig:
             "logging": {
                 "folder": self.folder,
                 "write_tag": self.write_tag,
+                "enable_wandb": self.enable_wandb,
+                "wandb_api_key": self.wandb_api_key,
+                "wandb_project": self.wandb_project,
+                "wandb_entity": self.wandb_entity,
+                "enable_sweep": self.enable_sweep,
+                "sweep_config": self.sweep_config,
             },
         }

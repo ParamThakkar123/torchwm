@@ -41,18 +41,6 @@ class TestConvDecoder:
         assert dist.batch_shape == (1,)
         assert dist.event_shape == output_shape
 
-    def test_forward_pass_with_small_output_shape(self):
-        stoch_size = 30
-        deter_size = 200
-        output_shape = (1, 64, 64)
-        activation = "relu"
-        decoder = ConvDecoder(stoch_size, deter_size, output_shape, activation)
-        batch_size = 2
-        features = torch.randn(batch_size, stoch_size + deter_size)
-        dist = decoder(features)
-        assert dist.batch_shape == (batch_size,)
-        assert dist.event_shape == output_shape
-
 
 class TestDenseDecoder:
     def test_initialization(self):

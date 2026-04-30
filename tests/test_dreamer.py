@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from unittest.mock import Mock, patch
-from world_models.models.dreamer import DreamerAgent
+from world_models.models.dreamer_agent import DreamerAgent
 from world_models.models.dreamer_rssm import RSSM
 from world_models.configs.dreamer_config import DreamerConfig
 
@@ -10,7 +10,7 @@ class TestDreamerAgent:
     @pytest.fixture
     def config(self):
         config = DreamerConfig()
-        config.env = "cartpole_balance"
+        config.env = "cartpole-balance"
         config.seed = 42
         config.total_steps = 1000
         config.seed_steps = 1

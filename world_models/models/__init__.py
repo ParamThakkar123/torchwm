@@ -19,7 +19,7 @@ def __getattr__(name):
 
         return Planet
     if name == "DreamerAgent":
-        from .dreamer import DreamerAgent
+        from .dreamer_agent import DreamerAgent
 
         return DreamerAgent
     if name == "JEPAAgent":

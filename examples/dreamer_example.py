@@ -19,7 +19,7 @@ def main():
     parser.add_argument(
         "--env",
         type=str,
-        default="cartpole_balance",
+        default="cartpole-balance",
         help="Environment name (DMC or Gym format)",
     )
     parser.add_argument(

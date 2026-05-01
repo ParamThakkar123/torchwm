@@ -100,11 +100,7 @@ html_js_files = [
     # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
     # paths in the output which break file:// viewing.
     "mathjax_local.js",
-    # Load Mermaid runtime from our vendored copy in `_static` so docs work
-    # even when CDN access is unreliable.
-    "mermaid.min.js",
-    # Local init file that converts script blocks to .mermaid divs then runs Mermaid
-    "mermaid_init.js",
+    # sphinxcontrib-mermaid 2.0.1 loads Mermaid from CDN automatically
     # Small script to tidy duplicated navbar elements caused by theme options
     "fix_navbar.js",
     # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded

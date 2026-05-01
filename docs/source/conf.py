@@ -54,6 +54,8 @@ myst_enable_extensions = [
     "fieldlist",
 ]
 
+myst_fence_as_directive = ["mermaid"]
+
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",

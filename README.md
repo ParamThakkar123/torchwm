@@ -2,14 +2,20 @@
 
 <div align="center">
   <img src="docs/images/torchwm-logo.svg" alt="TorchWM Logo" height="80">
+  <p>
+    <a href="https://pypi.org/project/torchwm/"><img alt="PyPI version" src="https://badge.fury.io/py/torchwm.svg"></a>
+    <a href="https://pypi.org/project/torchwm/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/torchwm.svg"></a>
+    <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+    <a href="https://paramthakkar123.github.io/torchwm/"><img alt="Documentation" src="https://img.shields.io/badge/docs-link-blue.svg"></a>
+  </p>
   <p><strong>Modular PyTorch Library for World Models</strong></p>
 </div>
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-TorchWM provides a unified interface for training and deploying world models.
+Train Dreamer agents in just 3 lines of code. TorchWM provides a unified interface for training and deploying world models.
 
 ### Installation
 
@@ -43,7 +49,7 @@ processed = op.process({'image': image, 'action': action})
 # Returns standardized tensors for inference
 ```
 
-## Features
+## 🚀 Features
 
 - 🎯 **Unified Interface**: Consistent API across all world model algorithms
 - 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
@@ -52,7 +58,7 @@ processed = op.process({'image': image, 'action': action})
 - 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
 - 🧠 **Research Ready**: Easy experimentation with different architectures
 
-## Supported Algorithms
+## 🧠 Supported Algorithms
 
 | Algorithm | Description | Key Features |
 |-----------|-------------|--------------|
@@ -61,7 +67,7 @@ processed = op.process({'image': image, 'action': action})
 | **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
 | **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
 
-## Documentation
+## 📖 Documentation
 
 📖 [Full Documentation](https://paramthakkar123.github.io/torchwm/)
 
@@ -81,7 +87,7 @@ processed = op.process({'image': image, 'action': action})
 - [IRIS](https://paramthakkar123.github.io/torchwm/iris.html)
 - [DiT](https://paramthakkar123.github.io/torchwm/dit.html)
 
-## Community
+## 🤝 Community
 
 - 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
 - 💬 [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
@@ -186,7 +192,7 @@ benchmarks
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
 TorchWM provides a unified interface for training and deploying world models.
 
@@ -230,7 +236,7 @@ processed = op.process({'image': image, 'action': action})
 - 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
 - 🧠 **Research Ready**: Easy experimentation with different architectures
 
-## Supported Algorithms
+## 🧠 Supported Algorithms
 
 | Algorithm | Description | Key Features |
 |-----------|-------------|--------------|
@@ -239,7 +245,7 @@ processed = op.process({'image': image, 'action': action})
 | **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
 | **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
 
-## Community
+## 🤝 Community
 
 - 📖 [Documentation](https://paramthakkar123.github.io/torchwm/)
 - 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)

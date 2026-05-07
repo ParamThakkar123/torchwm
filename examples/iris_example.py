@@ -11,6 +11,7 @@ import logging
 import torch
 from world_models.models.iris_agent import IRISAgent
 from world_models.configs.iris_config import IRISConfig
+from world_models.device import get_device
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,9 +43,9 @@ def main():
     config.batch_size = args.batch_size
 
     if args.device != "auto":
-        device = torch.device(args.device)
+        device = get_device(args.device)
     else:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = get_device()
 
     # Create agent
     agent = IRISAgent(config, action_size=4, device=device)

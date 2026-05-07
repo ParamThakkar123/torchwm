@@ -4,10 +4,9 @@ import torch
 
 
 def get_default_device() -> str:
-    try:
-        return "cuda" if torch.cuda.is_available() else "cpu"
-    except AttributeError:
-        return "cpu"
+    from world_models.device import get_device
+
+    return str(get_device())
 
 
 @dataclass

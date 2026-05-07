@@ -9,6 +9,7 @@ from world_models.configs.iris_config import IRISConfig
 from world_models.models.iris_agent import IRISAgent
 from world_models.memory.iris_memory import IRISReplayBuffer
 from world_models.envs.ale_atari_env import make_atari_env
+from world_models.device import get_device
 
 
 class IRISTrainer:
@@ -22,7 +23,7 @@ class IRISTrainer:
         config: IRISConfig = None,
     ):
         self.game = game
-        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
+        self.device = get_device(device)
         self.seed = seed
 
         # Set seeds

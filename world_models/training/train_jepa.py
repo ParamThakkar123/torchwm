@@ -5,6 +5,9 @@ try:
 except Exception:
     pass
 
+import torch
+from world_models.device import get_device
+
 import copy
 import logging
 import sys
@@ -64,11 +67,7 @@ def main(args, resume_preempt=False):
     copy_data = args["meta"]["copy_data"]
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
-    if not torch.cuda.is_available():
-        device = torch.device("cpu")
-    else:
-        device = torch.device("cuda:0")
-        torch.cuda.set_device(device)
+    device = get_device()
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]

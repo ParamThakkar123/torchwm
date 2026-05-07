@@ -89,6 +89,18 @@ def __getattr__(name):
 
         return getattr(_reward, name)
 
+    # Device utilities
+    if name in (
+        "get_device",
+        "get_device_info",
+        "set_device_for_model",
+        "supports_bfloat16",
+        "supports_mixed_precision",
+    ):
+        from world_models import device as _device
+
+        return getattr(_device, name)
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -142,4 +154,10 @@ __all__ = [
     # Reward Models
     "RewardModel",
     "ValueModel",
+    # Device utilities
+    "get_device",
+    "get_device_info",
+    "set_device_for_model",
+    "supports_bfloat16",
+    "supports_mixed_precision",
 ]

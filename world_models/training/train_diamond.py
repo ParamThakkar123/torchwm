@@ -28,6 +28,7 @@ from world_models.models.diffusion.actor_critic import (
     ActorCriticNetwork,
     RLLoss,
 )
+from world_models.device import get_device
 
 
 class DiamondAgent:
@@ -39,9 +40,7 @@ class DiamondAgent:
 
     def __init__(self, config: DiamondConfig):
         self.config = config
-        self.device = torch.device(
-            config.device if torch.cuda.is_available() else "cpu"
-        )
+        self.device = get_device(config.device)
 
         self.env = make_diamond_atari_env(
             game=config.game,

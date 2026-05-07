@@ -9,6 +9,7 @@ import argparse
 import logging
 from world_models.models.dreamer import DreamerAgent
 from world_models.configs.dreamer_config import DreamerConfig
+from world_models.device import get_device
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,7 +46,9 @@ def main():
     config.seed = args.seed
 
     if args.device != "auto":
-        config.no_gpu = args.device == "cpu"
+        config.device = args.device
+    else:
+        config.device = str(get_device())
 
     # Create and train agent
     agent = DreamerAgent(config, logdir=args.logdir)

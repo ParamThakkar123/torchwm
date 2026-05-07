@@ -667,14 +667,14 @@ class DreamerAgent:
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
 
+        from world_models.device import get_device
+
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
         torch.manual_seed(self.args.seed)
-        if torch.cuda.is_available() and not self.args.no_gpu:
-            device = torch.device("cuda")
+        device = get_device()
+        if device.type == "cuda":
             torch.cuda.manual_seed(self.args.seed)
-        else:
-            device = torch.device("cpu")
 
         self.train_env = make_env(self.args)
         self.test_env = make_env(self.args)

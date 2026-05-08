@@ -11,7 +11,11 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = "TorchWM"
 copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
-release = "0.2.1"
+
+# Auto-read version from world_models package
+import world_models
+
+release = world_models.__version__
 
 extensions = [
     "sphinx.ext.autodoc",

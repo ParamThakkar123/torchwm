@@ -19,7 +19,7 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
-    python_requires=">=3.13",
+    python_requires=">=3.10",
     install_requires=[
         "ale-py>=0.11.2",
         "fastapi>=0.116.0",

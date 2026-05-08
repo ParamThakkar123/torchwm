@@ -125,19 +125,11 @@ class GenieTrainer:
         recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
         vq_loss = outputs["tokenizer_loss"].get("vq_loss", 0.0)
 
-        if "dynamics_logits" in outputs and outputs["dynamics_logits"] is not None:
-            target_tokens = outputs["video_indices"][:, 1:, :]
-            dynamics_logits = outputs["dynamics_logits"]
+        dynamics_loss = outputs.get(
+            "dynamics_loss", torch.tensor(0.0, device=self.device)
+        )
 
-            B, T_pred, N, V = dynamics_logits.shape
-            target_tokens_flat = target_tokens.reshape(B * T_pred * N)
-            logits_flat = dynamics_logits.reshape(B * T_pred * N, V)
-
-            dynamics_loss = F.cross_entropy(logits_flat, target_tokens_flat)
-        else:
-            dynamics_loss = torch.tensor(0.0, device=self.device)
-
-        total_loss = recon_loss + vq_loss + dynamics_loss
+        total_loss = outputs["total_loss"]
 
         self.optimizer.zero_grad()
         total_loss.backward()

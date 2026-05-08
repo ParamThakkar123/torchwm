@@ -172,6 +172,36 @@ class VideoTokenizer(nn.Module):
 
         return z_q, indices, vq_loss
 
+    def decode_indices(self, indices: torch.Tensor) -> torch.Tensor:
+        """Decode token indices to embeddings for video frames.
+
+        Args:
+            indices: Token indices (B, T, H', W') or (B, T, N) where N = H'*W'
+
+        Returns:
+            z_q: Quantized embeddings (B, T, H', W', embedding_dim)
+        """
+        if indices.dim() == 4:
+            B, T, H_idx, W_idx = indices.shape
+            indices_reshaped = indices
+        elif indices.dim() == 3:
+            B, T, N = indices.shape
+            num_patches = int(N**0.5)
+            if num_patches**2 == N:
+                H_idx = W_idx = num_patches
+                indices_reshaped = indices.reshape(B, T, H_idx, W_idx)
+            else:
+                indices_reshaped = indices
+                H_idx = W_idx = 1
+        else:
+            raise ValueError(f"Expected 3D or 4D indices, got {indices.dim()}D")
+
+        z_q = F.embedding(indices_reshaped, self.vq.codebook.weight)
+
+        z_q = z_q.reshape(B, T, H_idx, W_idx, self.embedding_dim)
+
+        return z_q
+
     def decode(self, z_q: torch.Tensor) -> torch.Tensor:
         """Decode discrete tokens to video frames.
 

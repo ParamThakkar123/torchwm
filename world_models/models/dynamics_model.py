@@ -156,11 +156,11 @@ class DynamicsModel(nn.Module):
 
         action_emb = self.action_embedding(actions)
 
-        action_emb = action_emb + self.action_pos_embed[:, :T, :].unsqueeze(2)
+        action_emb = action_emb + self.action_pos_embed[:, :T, :]
 
-        x = torch.cat(
-            [video_emb, action_emb.unsqueeze(2).expand(-1, -1, N, -1)], dim=-1
-        )
+        action_emb_expanded = action_emb.unsqueeze(2).expand(-1, -1, N, -1)
+
+        x = video_emb + action_emb_expanded
 
         x = x.reshape(B, T * N, -1)
 

@@ -103,20 +103,59 @@ class Genie(nn.Module):
         """
         B, C, T, H, W = video.shape
 
-        recon_video, video_indices, tokenizer_loss = self.video_tokenizer(video)
+        recon_video, video_indices, tokenizer_loss_dict = self.video_tokenizer(video)
 
         latent_actions, _ = self.latent_action_model.encode(
             video[:, :, :-1], video[:, :, -1]
         )
         latent_actions = latent_actions[:, : T - 1]
 
+        B_idx, T_idx, H_idx, W_idx = video_indices.shape
+        video_tokens = video_indices.reshape(B_idx, T_idx, H_idx * W_idx)
+
+        target_tokens = video_tokens[:, 1:, :]
+        dynamics_logits = self.dynamics_model(
+            video_tokens[:, :-1, :],
+            latent_actions,
+            mask_prob=mask_prob,
+        )
+
+        B_pred, T_pred, N, V = dynamics_logits.shape
+        target_flat = target_tokens.reshape(B_pred * T_pred * N)
+        logits_flat = dynamics_logits.reshape(B_pred * T_pred * N, V)
+        dynamics_loss = F.cross_entropy(logits_flat, target_flat)
+
+        total_loss = (
+            tokenizer_loss_dict["recon_loss"]
+            + tokenizer_loss_dict["vq_loss"]
+            + dynamics_loss
+        )
+
         return {
             "reconstructed_video": recon_video,
             "video_indices": video_indices,
             "latent_actions": latent_actions,
-            "dynamics_logits": None,
-            "tokenizer_loss": tokenizer_loss,
+            "dynamics_logits": dynamics_logits,
+            "tokenizer_loss": tokenizer_loss_dict,
+            "dynamics_loss": dynamics_loss,
+            "total_loss": total_loss,
         }
+
+    def training_step(
+        self,
+        video: torch.Tensor,
+        mask_prob: float = 0.5,
+    ) -> Dict[str, torch.Tensor]:
+        """Single training step computing all losses.
+
+        Args:
+            video: (B, C, T, H, W) input video
+            mask_prob: Probability for random masking in dynamics
+
+        Returns:
+            Dictionary containing all losses for backpropagation
+        """
+        return self.forward(video, mask_prob)
 
     def generate(
         self,
@@ -131,18 +170,18 @@ class Genie(nn.Module):
             prompt_frame: (B, C, H, W) initial frame
             num_frames: Total number of frames to generate
             actions: (B, num_frames-1) latent action indices, or None for random
-            use_maskgit: Whether to use MaskGIT sampling
+            use_maskgit: Whether to use MaskGIT sampling (currently uses autoregressive)
 
         Returns:
-            generated_video: (B, C, T, H, W)
+            generated_video: (B, C, num_frames, H, W)
         """
         B, C, H, W = prompt_frame.shape
 
-        prompt_frame = prompt_frame.unsqueeze(2).expand(-1, -1, self.num_frames, -1, -1)
+        prompt_frame = prompt_frame.unsqueeze(2).expand(-1, -1, num_frames, -1, -1)
 
         z_q, prompt_indices, _ = self.video_tokenizer.encode(prompt_frame)
 
-        prompt_tokens = prompt_indices[:, 0, :, :].unsqueeze(1)
+        prompt_tokens = prompt_indices[:, 0, :, :].reshape(B, -1).unsqueeze(1)
 
         if actions is None:
             actions = torch.randint(
@@ -152,39 +191,90 @@ class Genie(nn.Module):
                 device=prompt_frame.device,
             )
 
-        generated_tokens = self.dynamics_model.autoregressive_sample(
-            prompt_tokens[:, :1, :],
-            actions[:, :1],
-            num_frames,
-            temperature=2.0,
-        )
+        if use_maskgit and hasattr(self, "sampler"):
+            generated_tokens = self._generate_maskgit(
+                prompt_tokens,
+                actions,
+                num_frames,
+            )
+        else:
+            generated_tokens = self.dynamics_model.autoregressive_sample(
+                prompt_tokens[:, :1, :],
+                actions[:, :1],
+                num_frames,
+                temperature=2.0,
+            )
 
-        z_generated = self.video_tokenizer.vq.decode_indices(generated_tokens)
+        z_generated = self.video_tokenizer.decode_indices(generated_tokens)
 
         generated_video = self.video_tokenizer.decode(z_generated)
 
         return generated_video
 
+    def _generate_maskgit(
+        self,
+        prompt_tokens: torch.Tensor,
+        actions: torch.Tensor,
+        num_frames: int,
+    ) -> torch.Tensor:
+        """Generate tokens using MaskGIT sampling."""
+        B = prompt_tokens.shape[0]
+        num_patches = prompt_tokens.shape[2]
+
+        target_tokens = torch.zeros(
+            (B, num_frames, num_patches),
+            dtype=torch.long,
+            device=prompt_tokens.device,
+        )
+        target_tokens[:, 0, :] = prompt_tokens[:, 0, :]
+
+        mask = torch.ones(
+            B, num_frames, num_patches, dtype=torch.bool, device=prompt_tokens.device
+        )
+        mask[:, :1, :] = False
+
+        max_steps = min(self.sampler.num_steps, 3)
+        for step in range(max_steps):
+            B_curr, T_curr, N_curr = target_tokens.shape
+
+            logits = self.dynamics_model(
+                target_tokens[:, :-1, :],
+                actions,
+                mask_prob=0.0,
+            )
+
+            target_tokens, mask = self.sampler.sample(
+                logits.reshape(B_curr, T_curr, N_curr, -1),
+                mask,
+                step,
+            )
+
+        return target_tokens
+
     def play(
         self,
-        prompt_frame: torch.Tensor,
-        action: int,
+        current_frame: torch.Tensor,
+        action: torch.Tensor,
         current_frames: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Play step - generate next frame given current frame and action.
 
         Args:
-            prompt_frame: (B, C, H, W) current frame
-            action: (B,) latent action index
+            current_frame: (B, C, H, W) current frame
+            action: (B,) latent action indices (int or tensor)
             current_frames: (B, C, T, H, W) history frames, or None for first frame
 
         Returns:
             next_frame: (B, C, H, W)
         """
-        B, C, H, W = prompt_frame.shape
+        B, C, H, W = current_frame.shape
+
+        if not isinstance(action, torch.Tensor):
+            action = torch.tensor(action, device=current_frame.device)
+        action = action.to(current_frame.device)
 
         if current_frames is None:
-            current_frames = prompt_frame.unsqueeze(2)
+            current_frames = current_frame.unsqueeze(2)
 
         T_history = current_frames.shape[2]
 
@@ -192,25 +282,30 @@ class Genie(nn.Module):
 
         prompt_tokens = prompt_indices.reshape(B, T_history, -1)
 
-        action_emb = self.dynamics_model.action_embedding(action)
+        if action.dim() == 0:
+            action = action.unsqueeze(0)
+        action_expanded = action.unsqueeze(1).expand(-1, T_history)
 
-        x = self.dynamics_model.dynamics_transformer(
-            prompt_tokens.reshape(B, T_history * prompt_tokens.shape[2], -1)
+        next_frame_logits = self.dynamics_model(
+            prompt_tokens,
+            action_expanded,
+            mask_prob=0.0,
         )
 
-        x = x.reshape(B, T_history, -1, self.dynamics_model.dim)
-
-        action_emb_expanded = action_emb.unsqueeze(1).expand(-1, x.shape[2], -1)
-
-        x = x + action_emb_expanded
-
-        next_frame_logits = x[:, -1, :, :]
+        next_frame_logits = next_frame_logits[:, -1, :, :]
 
         next_token_ids = torch.argmax(next_frame_logits, dim=-1)
 
-        z_next = self.video_tokenizer.vq.decode_indices(next_token_ids)
+        num_patches_per_side = int(next_token_ids.shape[1] ** 0.5)
+        next_token_ids_reshaped = next_token_ids.reshape(
+            B, num_patches_per_side, num_patches_per_side
+        )
 
-        next_frame = self.video_tokenizer.decode(z_next[:, -1, :, :, :].unsqueeze(1))
+        z_next = self.video_tokenizer.decode_indices(
+            next_token_ids_reshaped.unsqueeze(1)
+        )
+
+        next_frame = self.video_tokenizer.decode(z_next)
 
         next_frame = next_frame.squeeze(2)
 

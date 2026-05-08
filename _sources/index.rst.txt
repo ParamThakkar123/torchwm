@@ -29,6 +29,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    jepa
    iris
    dit
+   genie
 
 .. toctree::
    :maxdepth: 1

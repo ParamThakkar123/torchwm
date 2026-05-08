@@ -657,6 +657,13 @@ window.runMermaid = runMermaid;</script>
 
 
 <li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../genie.html">
+    Genie: Generative Interactive Environment
+  </a>
+</li>
+
+
+<li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../../../api_reference.html">
     API Reference
   </a>
@@ -855,6 +862,13 @@ window.runMermaid = runMermaid;</script>
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../../dit.html">
     DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../genie.html">
+    Genie: Generative Interactive Environment
   </a>
 </li>
 
@@ -1083,8 +1097,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">perplexity</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)))</span>
 
         <span class="c1"># Reshape back to original spatial dimensions</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">original_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="n">z_q</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">z_q</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">z_q</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 

@@ -60,7 +60,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configs Reference" href="configs_reference.html" />
-    <link rel="prev" title="DiT: Diffusion Transformer" href="dit.html" />
+    <link rel="prev" title="Genie: Generative Interactive Environment" href="genie.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -225,6 +225,13 @@
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="dit.html">
     DiT: Diffusion Transformer
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="genie.html">
+    Genie: Generative Interactive Environment
   </a>
 </li>
 
@@ -434,6 +441,13 @@
 </li>
 
 
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="genie.html">
+    Genie: Generative Interactive Environment
+  </a>
+</li>
+
+
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="#">
     API Reference
@@ -538,6 +552,7 @@
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul class="current nav bd-sidenav">
@@ -1068,6 +1083,672 @@ training entrypoints.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="world_models.configs.DiamondConfig.operator_action_dim">
 <span class="sig-name descname"><span class="pre">operator_action_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.DiamondConfig.operator_action_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">GenieConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_decoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_decoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">125000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_prob_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_prob_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskgit_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#GenieConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.GenieConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for Genie model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>image_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_decoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_decoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>weight_decay</strong> (<em>float</em>)</p></li>
+<li><p><strong>warmup_steps</strong> (<em>int</em>)</p></li>
+<li><p><strong>max_steps</strong> (<em>int</em>)</p></li>
+<li><p><strong>mask_prob_min</strong> (<em>float</em>)</p></li>
+<li><p><strong>mask_prob_max</strong> (<em>float</em>)</p></li>
+<li><p><strong>sample_temperature</strong> (<em>float</em>)</p></li>
+<li><p><strong>maskgit_steps</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.image_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.in_channels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_vocab_size">
+<span class="sig-name descname"><span class="pre">tokenizer_vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_embedding_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_encoder_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_decoder_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_decoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_decoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_encoder_depth">
+<span class="sig-name descname"><span class="pre">tokenizer_encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_decoder_depth">
+<span class="sig-name descname"><span class="pre">tokenizer_decoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_decoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.tokenizer_num_heads">
+<span class="sig-name descname"><span class="pre">tokenizer_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.tokenizer_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.action_vocab_size">
+<span class="sig-name descname"><span class="pre">action_vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.action_vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.action_embedding_dim">
+<span class="sig-name descname"><span class="pre">action_embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.action_embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.action_encoder_dim">
+<span class="sig-name descname"><span class="pre">action_encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.action_encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.action_encoder_depth">
+<span class="sig-name descname"><span class="pre">action_encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.action_encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.action_num_heads">
+<span class="sig-name descname"><span class="pre">action_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.action_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.dynamics_dim">
+<span class="sig-name descname"><span class="pre">dynamics_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.dynamics_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.dynamics_depth">
+<span class="sig-name descname"><span class="pre">dynamics_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.dynamics_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.dynamics_num_heads">
+<span class="sig-name descname"><span class="pre">dynamics_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.dynamics_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.batch_size">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.batch_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.learning_rate">
+<span class="sig-name descname"><span class="pre">learning_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3e-05</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.learning_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.weight_decay">
+<span class="sig-name descname"><span class="pre">weight_decay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.weight_decay" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.warmup_steps">
+<span class="sig-name descname"><span class="pre">warmup_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5000</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.warmup_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.max_steps">
+<span class="sig-name descname"><span class="pre">max_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">125000</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.max_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.mask_prob_min">
+<span class="sig-name descname"><span class="pre">mask_prob_min</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.5</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.mask_prob_min" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.mask_prob_max">
+<span class="sig-name descname"><span class="pre">mask_prob_max</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.mask_prob_max" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.sample_temperature">
+<span class="sig-name descname"><span class="pre">sample_temperature</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.0</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.sample_temperature" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieConfig.maskgit_steps">
+<span class="sig-name descname"><span class="pre">maskgit_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></span><a class="headerlink" href="#world_models.configs.GenieConfig.maskgit_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">GenieSmallConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_decoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_decoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamics_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#GenieSmallConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.GenieSmallConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Small configuration for development/testing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>image_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_decoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_decoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>tokenizer_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>dynamics_num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>weight_decay</strong> (<em>float</em>)</p></li>
+<li><p><strong>warmup_steps</strong> (<em>int</em>)</p></li>
+<li><p><strong>max_steps</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.image_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.in_channels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_vocab_size">
+<span class="sig-name descname"><span class="pre">tokenizer_vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_embedding_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_encoder_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_decoder_dim">
+<span class="sig-name descname"><span class="pre">tokenizer_decoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_decoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_encoder_depth">
+<span class="sig-name descname"><span class="pre">tokenizer_encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_decoder_depth">
+<span class="sig-name descname"><span class="pre">tokenizer_decoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_decoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.tokenizer_num_heads">
+<span class="sig-name descname"><span class="pre">tokenizer_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.tokenizer_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.action_vocab_size">
+<span class="sig-name descname"><span class="pre">action_vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.action_vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.action_embedding_dim">
+<span class="sig-name descname"><span class="pre">action_embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.action_embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.action_encoder_dim">
+<span class="sig-name descname"><span class="pre">action_encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.action_encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.action_encoder_depth">
+<span class="sig-name descname"><span class="pre">action_encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.action_encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.action_num_heads">
+<span class="sig-name descname"><span class="pre">action_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.action_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.dynamics_dim">
+<span class="sig-name descname"><span class="pre">dynamics_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.dynamics_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.dynamics_depth">
+<span class="sig-name descname"><span class="pre">dynamics_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.dynamics_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.dynamics_num_heads">
+<span class="sig-name descname"><span class="pre">dynamics_num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.dynamics_num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.batch_size">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.batch_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.learning_rate">
+<span class="sig-name descname"><span class="pre">learning_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.learning_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.weight_decay">
+<span class="sig-name descname"><span class="pre">weight_decay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0001</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.weight_decay" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.warmup_steps">
+<span class="sig-name descname"><span class="pre">warmup_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.warmup_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.GenieSmallConfig.max_steps">
+<span class="sig-name descname"><span class="pre">max_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50000</span></span><a class="headerlink" href="#world_models.configs.GenieSmallConfig.max_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">STTransformerConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_patches_per_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">768</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkv_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attn_drop_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_path_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#STTransformerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.STTransformerConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for Spatiotemporal Transformer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_patches_per_frame</strong> (<em>int</em>)</p></li>
+<li><p><strong>dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_ratio</strong> (<em>float</em>)</p></li>
+<li><p><strong>qkv_bias</strong> (<em>bool</em>)</p></li>
+<li><p><strong>drop_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>attn_drop_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>drop_path_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.num_patches_per_frame">
+<span class="sig-name descname"><span class="pre">num_patches_per_frame</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.num_patches_per_frame" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.dim">
+<span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">768</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.depth">
+<span class="sig-name descname"><span class="pre">depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.num_heads">
+<span class="sig-name descname"><span class="pre">num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.mlp_ratio">
+<span class="sig-name descname"><span class="pre">mlp_ratio</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4.0</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.mlp_ratio" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.qkv_bias">
+<span class="sig-name descname"><span class="pre">qkv_bias</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.qkv_bias" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.drop_rate">
+<span class="sig-name descname"><span class="pre">drop_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.drop_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.attn_drop_rate">
+<span class="sig-name descname"><span class="pre">attn_drop_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.attn_drop_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.STTransformerConfig.drop_path_rate">
+<span class="sig-name descname"><span class="pre">drop_path_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.STTransformerConfig.drop_path_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">VideoTokenizerConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_ema</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ema_decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#VideoTokenizerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for Video Tokenizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>image_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>decoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>decoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>use_ema</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ema_decay</strong> (<em>float</em>)</p></li>
+<li><p><strong>commitment_weight</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.image_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.in_channels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.encoder_dim">
+<span class="sig-name descname"><span class="pre">encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">512</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.decoder_dim">
+<span class="sig-name descname"><span class="pre">decoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.decoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.encoder_depth">
+<span class="sig-name descname"><span class="pre">encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.decoder_depth">
+<span class="sig-name descname"><span class="pre">decoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.decoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.num_heads">
+<span class="sig-name descname"><span class="pre">num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.patch_size">
+<span class="sig-name descname"><span class="pre">patch_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.patch_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.vocab_size">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.embedding_dim">
+<span class="sig-name descname"><span class="pre">embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.use_ema">
+<span class="sig-name descname"><span class="pre">use_ema</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.use_ema" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.ema_decay">
+<span class="sig-name descname"><span class="pre">ema_decay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.99</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.ema_decay" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.VideoTokenizerConfig.commitment_weight">
+<span class="sig-name descname"><span class="pre">commitment_weight</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#world_models.configs.VideoTokenizerConfig.commitment_weight" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">LatentActionModelConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#LatentActionModelConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.LatentActionModelConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for Latent Action Model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>image_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>commitment_weight</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.image_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.in_channels" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.encoder_dim">
+<span class="sig-name descname"><span class="pre">encoder_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.encoder_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.encoder_depth">
+<span class="sig-name descname"><span class="pre">encoder_depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.encoder_depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.num_heads">
+<span class="sig-name descname"><span class="pre">num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.patch_size">
+<span class="sig-name descname"><span class="pre">patch_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.patch_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.vocab_size">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.embedding_dim">
+<span class="sig-name descname"><span class="pre">embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.LatentActionModelConfig.commitment_weight">
+<span class="sig-name descname"><span class="pre">commitment_weight</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#world_models.configs.LatentActionModelConfig.commitment_weight" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DynamicsModelConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_vocab_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">48</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkv_bias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attn_drop_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_path_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/genie_config.html#DynamicsModelConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DynamicsModelConfig" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for Dynamics Model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_frames</strong> (<em>int</em>)</p></li>
+<li><p><strong>image_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>embedding_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_vocab_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>depth</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_ratio</strong> (<em>float</em>)</p></li>
+<li><p><strong>qkv_bias</strong> (<em>bool</em>)</p></li>
+<li><p><strong>drop_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>attn_drop_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>drop_path_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.num_frames">
+<span class="sig-name descname"><span class="pre">num_frames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.num_frames" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.image_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.vocab_size">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1024</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.embedding_dim">
+<span class="sig-name descname"><span class="pre">embedding_dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.embedding_dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.action_vocab_size">
+<span class="sig-name descname"><span class="pre">action_vocab_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.action_vocab_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.dim">
+<span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5120</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.dim" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.depth">
+<span class="sig-name descname"><span class="pre">depth</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">48</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.depth" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.num_heads">
+<span class="sig-name descname"><span class="pre">num_heads</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">36</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.num_heads" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.patch_size">
+<span class="sig-name descname"><span class="pre">patch_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.patch_size" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.mlp_ratio">
+<span class="sig-name descname"><span class="pre">mlp_ratio</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4.0</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.mlp_ratio" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.qkv_bias">
+<span class="sig-name descname"><span class="pre">qkv_bias</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.qkv_bias" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.drop_rate">
+<span class="sig-name descname"><span class="pre">drop_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.drop_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.attn_drop_rate">
+<span class="sig-name descname"><span class="pre">attn_drop_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.attn_drop_rate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.configs.DynamicsModelConfig.drop_path_rate">
+<span class="sig-name descname"><span class="pre">drop_path_rate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></span><a class="headerlink" href="#world_models.configs.DynamicsModelConfig.drop_path_rate" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -4187,12 +4868,12 @@ along the batch dimension.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="dit.html"
+       href="genie.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">DiT: Diffusion Transformer</p>
+        <p class="prev-next-title">Genie: Generative Interactive Environment</p>
       </div>
     </a>
     <a class="right-next"
@@ -4300,6 +4981,122 @@ along the batch dimension.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DiamondConfig.save_interval"><code class="docutils literal notranslate"><span class="pre">DiamondConfig.save_interval</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DiamondConfig.operator_state_dim"><code class="docutils literal notranslate"><span class="pre">DiamondConfig.operator_state_dim</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DiamondConfig.operator_action_dim"><code class="docutils literal notranslate"><span class="pre">DiamondConfig.operator_action_dim</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig"><code class="docutils literal notranslate"><span class="pre">GenieConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">GenieConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.image_size"><code class="docutils literal notranslate"><span class="pre">GenieConfig.image_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.in_channels"><code class="docutils literal notranslate"><span class="pre">GenieConfig.in_channels</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_vocab_size"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_embedding_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_encoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_decoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_decoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_encoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_decoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_decoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.tokenizer_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieConfig.tokenizer_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.action_vocab_size"><code class="docutils literal notranslate"><span class="pre">GenieConfig.action_vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.action_embedding_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.action_embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.action_encoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.action_encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.action_encoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieConfig.action_encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.action_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieConfig.action_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.dynamics_dim"><code class="docutils literal notranslate"><span class="pre">GenieConfig.dynamics_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.dynamics_depth"><code class="docutils literal notranslate"><span class="pre">GenieConfig.dynamics_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.dynamics_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieConfig.dynamics_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">GenieConfig.batch_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.learning_rate"><code class="docutils literal notranslate"><span class="pre">GenieConfig.learning_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.weight_decay"><code class="docutils literal notranslate"><span class="pre">GenieConfig.weight_decay</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.warmup_steps"><code class="docutils literal notranslate"><span class="pre">GenieConfig.warmup_steps</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.max_steps"><code class="docutils literal notranslate"><span class="pre">GenieConfig.max_steps</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.mask_prob_min"><code class="docutils literal notranslate"><span class="pre">GenieConfig.mask_prob_min</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.mask_prob_max"><code class="docutils literal notranslate"><span class="pre">GenieConfig.mask_prob_max</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.sample_temperature"><code class="docutils literal notranslate"><span class="pre">GenieConfig.sample_temperature</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieConfig.maskgit_steps"><code class="docutils literal notranslate"><span class="pre">GenieConfig.maskgit_steps</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.image_size"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.image_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.in_channels"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.in_channels</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_vocab_size"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_embedding_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_encoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_decoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_decoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_encoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_decoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_decoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.tokenizer_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.tokenizer_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.action_vocab_size"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.action_vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.action_embedding_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.action_embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.action_encoder_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.action_encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.action_encoder_depth"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.action_encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.action_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.action_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.dynamics_dim"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.dynamics_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.dynamics_depth"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.dynamics_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.dynamics_num_heads"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.dynamics_num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.batch_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.learning_rate"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.learning_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.weight_decay"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.weight_decay</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.warmup_steps"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.warmup_steps</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.GenieSmallConfig.max_steps"><code class="docutils literal notranslate"><span class="pre">GenieSmallConfig.max_steps</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.num_patches_per_frame"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.num_patches_per_frame</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.dim"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.depth"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.num_heads"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.mlp_ratio"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.mlp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.qkv_bias"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.qkv_bias</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.drop_rate"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.drop_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.attn_drop_rate"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.attn_drop_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.STTransformerConfig.drop_path_rate"><code class="docutils literal notranslate"><span class="pre">STTransformerConfig.drop_path_rate</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.image_size"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.image_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.in_channels"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.in_channels</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.encoder_dim"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.decoder_dim"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.decoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.encoder_depth"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.decoder_depth"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.decoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.num_heads"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.patch_size"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.patch_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.vocab_size"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.embedding_dim"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.use_ema"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.use_ema</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.ema_decay"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.ema_decay</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.VideoTokenizerConfig.commitment_weight"><code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig.commitment_weight</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.image_size"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.image_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.in_channels"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.in_channels</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.encoder_dim"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.encoder_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.encoder_depth"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.encoder_depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.num_heads"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.patch_size"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.patch_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.vocab_size"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.embedding_dim"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.LatentActionModelConfig.commitment_weight"><code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig.commitment_weight</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.num_frames</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.image_size"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.image_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.vocab_size"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.embedding_dim"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.embedding_dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.action_vocab_size"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.action_vocab_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.dim"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.dim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.depth"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.depth</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.num_heads"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.num_heads</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.patch_size"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.patch_size</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.mlp_ratio"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.mlp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.qkv_bias"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.qkv_bias</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.drop_rate"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.drop_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.attn_drop_rate"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.attn_drop_rate</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.configs.DynamicsModelConfig.drop_path_rate"><code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig.drop_path_rate</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>

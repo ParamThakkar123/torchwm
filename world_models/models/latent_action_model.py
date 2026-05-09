@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from typing import Tuple, Optional, Dict
 
 from world_models.vision.vq_layer import VectorQuantizer
+from world_models.blocks.st_transformer import STTransformer
 
 
 class LatentActionModel(nn.Module):
@@ -49,6 +50,8 @@ class LatentActionModel(nn.Module):
 
         # ===== ENCODER =====
         # Takes x1:t and x_t+1, outputs latent actions at each timestep
+        # Uses ST-Transformer as per Genie paper
+        # Input is T+1 frames (T previous + 1 next), output is T latent actions
         self.patch_embed = nn.Conv2d(
             in_channels,
             encoder_dim,
@@ -56,17 +59,24 @@ class LatentActionModel(nn.Module):
             stride=patch_size,
         )
 
-        self.encoder_pos_embed = nn.Parameter(torch.zeros(1, num_patches, encoder_dim))
+        # Encoder processes T frames (x1:t + x_{t+1} combined), need T positions
+        # Support up to max_seq_len frames (should be set to max expected frames)
+        self.max_seq_len = max(num_frames + 1, 32)  # At least 32 for flexibility
+        self.encoder_pos_embed = nn.Parameter(
+            torch.zeros(1, self.max_seq_len * num_patches, encoder_dim)
+        )
         nn.init.trunc_normal_(self.encoder_pos_embed, std=0.02)
 
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=encoder_dim,
-            nhead=num_heads,
-            dim_feedforward=encoder_dim * 4,
-            dropout=0.0,
-            batch_first=True,
+        # ST-Transformer for encoder (per paper - uses spatiotemporal attention)
+        self.encoder = STTransformer(
+            num_frames=self.max_seq_len,
+            num_patches_per_frame=num_patches,
+            dim=encoder_dim,
+            depth=encoder_depth,
+            num_heads=num_heads,
+            drop_rate=0.0,
+            attn_drop_rate=0.0,
         )
-        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=encoder_depth)
 
         self.to_vq_embedding = nn.Linear(encoder_dim, embedding_dim)
 
@@ -82,6 +92,7 @@ class LatentActionModel(nn.Module):
         # ===== DECODER =====
         # Takes x1:t-1 and a1:t-1, predicts x_t
         # Uses masked frames (all but first) to force action usage
+        # Uses ST-Transformer as per Genie paper
         self.decoder_patch_embed = nn.Conv2d(
             in_channels,
             decoder_dim,
@@ -89,20 +100,44 @@ class LatentActionModel(nn.Module):
             stride=patch_size,
         )
 
-        self.decoder_pos_embed = nn.Parameter(torch.zeros(1, num_patches, decoder_dim))
+        # Decoder processes T frames (x1:t), outputs T predictions
+        self.decoder_pos_embed = nn.Parameter(
+            torch.zeros(1, self.max_seq_len * num_patches, decoder_dim)
+        )
         nn.init.trunc_normal_(self.decoder_pos_embed, std=0.02)
 
         # Decoder uses action embeddings as additive conditioning
         self.decoder_action_proj = nn.Linear(embedding_dim, decoder_dim)
 
-        decoder_layer = nn.TransformerEncoderLayer(
-            d_model=decoder_dim,
-            nhead=num_heads,
-            dim_feedforward=decoder_dim * 4,
-            dropout=0.0,
-            batch_first=True,
+        # ST-Transformer for decoder (per paper - uses spatiotemporal attention)
+        self.decoder = STTransformer(
+            num_frames=num_frames,
+            num_patches_per_frame=num_patches,
+            dim=decoder_dim,
+            depth=decoder_depth,
+            num_heads=num_heads,
+            drop_rate=0.0,
+            attn_drop_rate=0.0,
         )
-        self.decoder = nn.TransformerEncoder(decoder_layer, num_layers=decoder_depth)
+
+        self.decoder_pos_embed = nn.Parameter(
+            torch.zeros(1, self.max_seq_len * num_patches, decoder_dim)
+        )
+        nn.init.trunc_normal_(self.decoder_pos_embed, std=0.02)
+
+        # Decoder uses action embeddings as additive conditioning
+        self.decoder_action_proj = nn.Linear(embedding_dim, decoder_dim)
+
+        # ST-Transformer for decoder (per paper - uses spatiotemporal attention)
+        self.decoder = STTransformer(
+            num_frames=self.max_seq_len,
+            num_patches_per_frame=num_patches,
+            dim=decoder_dim,
+            depth=decoder_depth,
+            num_heads=num_heads,
+            drop_rate=0.0,
+            attn_drop_rate=0.0,
+        )
 
         # Output projection to reconstruct pixels
         self.decoder_out = nn.Linear(decoder_dim, in_channels * patch_size * patch_size)
@@ -124,42 +159,48 @@ class LatentActionModel(nn.Module):
         """
         B, C, T, H, W = x_prev.shape
 
-        x_all = torch.cat([x_prev, x_next.unsqueeze(2)], dim=2)
+        # Concatenate all frames (x1:t and x_{t+1}) as per paper
+        x_all = torch.cat([x_prev, x_next.unsqueeze(2)], dim=2)  # (B, C, T+1, H, W)
 
+        # Patch embed
         x = x_all.permute(0, 2, 1, 3, 4).reshape(B * (T + 1), C, H, W)
-
         x = self.patch_embed(x)
         _, C_enc, H_enc, W_enc = x.shape
+        num_patches = H_enc * W_enc
 
-        x = x.reshape(B, (T + 1), H_enc * W_enc, C_enc)
+        # Reshape for ST-Transformer: (B, T+1, N, C) then flatten to (B, (T+1)*N, C)
+        x = x.reshape(B, (T + 1), num_patches, C_enc)
 
-        x = x + self.encoder_pos_embed[:, : H_enc * W_enc, :].unsqueeze(1)
+        # Add positional embeddings
+        x = x.reshape(B, (T + 1) * num_patches, C_enc)
+        x = x + self.encoder_pos_embed[:, : (T + 1) * num_patches, :]
 
-        x = x.reshape(B * (T + 1), H_enc * W_enc, C_enc)
+        # ST-Transformer forward (expects B, T*N, C format)
+        x = self.encoder(x)  # (B, (T+1)*N, C)
 
-        x = self.encoder(x)
+        # Reshape back to (B, T+1, N, C) and take first T frames
+        x = x.reshape(B, T + 1, num_patches, C_enc)
+        x = x[:, :T, :, :]  # (B, T, N, C)
 
-        x = x.reshape(B, T + 1, H_enc * W_enc, C_enc)
-
-        x = x[:, :T, :, :]
-
+        # Quantize each timestep
         z_all = []
         indices_all = []
         for t in range(T):
-            x_t = x[:, t, :, :]
+            x_t = x[:, t, :, :]  # (B, N, C)
 
-            x_t_embed = self.to_vq_embedding(x_t)
+            x_t_embed = self.to_vq_embedding(x_t)  # (B, N, embedding_dim)
 
-            x_t_pooled = x_t_embed.mean(dim=1)
+            # Pool across spatial dimension
+            x_t_pooled = x_t_embed.mean(dim=1)  # (B, embedding_dim)
 
             z_q_t, indices_t, _ = self.vq(x_t_pooled)
             z_all.append(z_q_t)
             indices_all.append(indices_t)
 
-        z_q = torch.stack(z_all, dim=1)
-        indices = torch.stack(indices_all, dim=1)
+        z_q = torch.stack(z_all, dim=1)  # (B, T, embedding_dim)
+        indices = torch.stack(indices_all, dim=1)  # (B, T, 1)
 
-        latent_actions = indices.squeeze(-1)
+        latent_actions = indices.squeeze(-1)  # (B, T)
 
         return latent_actions, z_q
 
@@ -184,33 +225,41 @@ class LatentActionModel(nn.Module):
         for t in range(1, T):
             x_masked[:, :, t, :, :] = 0
 
-        # Embed frames
+        # Patch embed
         x = x_masked.permute(0, 2, 1, 3, 4).reshape(B * T, C, H, W)
         x = self.decoder_patch_embed(x)
         _, C_dec, H_dec, W_dec = x.shape
+        num_patches = H_dec * W_dec
 
-        x = x.reshape(B, T, H_dec * W_dec, C_dec)
-        x = x + self.decoder_pos_embed[:, : H_dec * W_dec, :].unsqueeze(1)
+        # Reshape for ST-Transformer: (B, T, N, C) then flatten to (B, T*N, C)
+        x = x.reshape(B, T, num_patches, C_dec)
 
-        # Project action embeddings to decoder dimension and add as conditioning
+        # Project action embeddings to decoder dimension
         action_cond = self.decoder_action_proj(z_q)  # (B, T-1, decoder_dim)
 
         # Add action embeddings to frames (align T-1 actions with T-1 future frames)
         # Frames 1 to T-1 get action conditioning, frame 0 is the prompt
-        action_expanded = torch.zeros(B, T, H_dec * W_dec, C_dec, device=x.device)
+        action_expanded = torch.zeros(B, T, num_patches, C_dec, device=x.device)
         action_expanded[:, 1:, :, :] = action_cond.unsqueeze(2)
+
+        # Combine frame embeddings with action conditioning
         x = x + action_expanded
 
-        # Decode
-        x = x.reshape(B * T, H_dec * W_dec, C_dec)
-        x = self.decoder(x)
-        x = x.reshape(B, T, H_dec * W_dec, C_dec)
+        # Add positional embeddings and flatten for ST-Transformer
+        x = x.reshape(B, T * num_patches, C_dec)
+        x = x + self.decoder_pos_embed[:, : T * num_patches, :]
+
+        # ST-Transformer forward
+        x = self.decoder(x)  # (B, T*N, C)
+
+        # Reshape back to (B, T, N, C)
+        x = x.reshape(B, T, num_patches, C_dec)
 
         # Use only last frame (predicted next frame)
-        x = x[:, -1, :, :]  # (B, H_dec*W_dec, C_dec)
+        x = x[:, -1, :, :]  # (B, N, C)
 
         # Project to pixel space
-        x = self.decoder_out(x)  # (B, H_dec*W_dec, C*patch_size*patch_size)
+        x = self.decoder_out(x)  # (B, N, C*patch_size*patch_size)
 
         # Reshape to image
         x = x.reshape(B, H_dec, W_dec, C, self.patch_size, self.patch_size)

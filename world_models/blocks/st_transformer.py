@@ -307,8 +307,8 @@ class STTransformer(nn.Module):
             (B, T*N, C)
         """
         B, T_N, C = x.shape
-        T = self.num_frames
-        N = T_N // T
+        T = T_N // self.num_patches_per_frame
+        N = self.num_patches_per_frame
 
         # Reshape to (B, T, N, C) for ST-attention
         x = x.reshape(B, T, N, C)

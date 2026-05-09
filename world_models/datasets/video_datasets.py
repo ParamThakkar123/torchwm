@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import logging
 import cv2
 from PIL import Image
+import h5py
 
 logger = logging.getLogger(__name__)
 
@@ -371,6 +372,126 @@ class RLEnvironmentDataset(VideoDatasetBase):
             processed.append(np.array(img))
 
         return torch.from_numpy(np.stack(processed)).float()
+
+
+class HDF5Dataset(VideoDatasetBase):
+    """Dataset that loads videos from HDF5 files.
+
+    Supports pre-processed video datasets stored in HDF5 format.
+    Expected structure: HDF5 file with 'videos' dataset of shape (N, T, H, W, C)
+    or (N, T, C, H, W).
+
+    Usage:
+        dataset = HDF5Dataset(
+            data_source="/path/to/videos.h5",
+            num_frames=16,
+            image_size=64
+        )
+    """
+
+    def __init__(
+        self,
+        data_source: Union[str, Path],
+        num_frames: int = 16,
+        image_size: int = 64,
+        transform: Optional[Callable] = None,
+        normalize: bool = True,
+        key: str = "videos",
+        memmap: bool = False,
+    ):
+        self.key = key
+        self.memmap = memmap
+        self._h5_file = None
+
+        data_path = Path(data_source)
+        if not data_path.exists():
+            raise FileNotFoundError(f"HDF5 file not found: {data_path}")
+
+        with h5py.File(data_path, "r") as f:
+            if key not in f:
+                available_keys = list(f.keys())
+                raise KeyError(
+                    f"Key '{key}' not found in HDF5. Available: {available_keys}"
+                )
+            data = f[key]
+            if len(data.shape) == 5:
+                self.num_samples = data.shape[0]
+                self.video_length = data.shape[1]
+                self.raw_height = data.shape[2]
+                self.raw_width = data.shape[3]
+                self.channels = data.shape[4]
+                self.data_layout = "NCTHW" if data.shape[-1] <= 4 else "NTHWC"
+            elif len(data.shape) == 4:
+                self.num_samples = data.shape[0]
+                self.video_length = data.shape[1]
+                self.raw_height = data.shape[2]
+                self.raw_width = data.shape[3]
+                self.channels = 1
+                self.data_layout = "NTHW"
+            else:
+                raise ValueError(f"Unexpected data shape: {data.shape}")
+
+        super().__init__(data_source, num_frames, image_size, transform, normalize)
+
+    def _get_video_paths(self) -> List[Path]:
+        return list(range(self.num_samples))
+
+    def _open_h5(self):
+        if self._h5_file is None:
+            self._h5_file = h5py.File(self.data_source, "r" if self.memmap else "r")
+        return self._h5_file
+
+    def _load_video(self, idx: int) -> torch.Tensor:
+        f = self._open_h5()
+        data = f[self.key]
+
+        if self.memmap:
+            video = data[idx]
+        else:
+            video = data[idx][:]
+
+        if not isinstance(video, np.ndarray):
+            video = np.array(video)
+
+        if self.data_layout == "NCTHW":
+            video = np.transpose(video, (0, 2, 3, 1))
+        elif self.data_layout == "NTHWC":
+            video = np.transpose(video, (0, 1, 3, 2))
+
+        if video.shape[-1] == 1:
+            video = np.repeat(video, 3, axis=-1)
+
+        total_frames = video.shape[0]
+        if total_frames >= self.num_frames:
+            indices = np.linspace(0, total_frames - 1, self.num_frames).astype(int)
+            video = video[indices]
+        else:
+            padding = np.tile(video[-1:], (self.num_frames - total_frames, 1, 1, 1))
+            video = np.concatenate([video, padding], axis=0)
+
+        if video.shape[1] != self.image_size or video.shape[2] != self.image_size:
+            processed = []
+            for frame in video:
+                if frame.max() <= 1.0 and frame.dtype != np.uint8:
+                    frame = (frame * 255).astype(np.uint8)
+                img = Image.fromarray(frame)
+                img = img.resize(
+                    (self.image_size, self.image_size), Image.Resampling.BILINEAR
+                )
+                processed.append(np.array(img))
+            video = np.stack(processed)
+        else:
+            if video.max() <= 1.0:
+                video = (video * 255).astype(np.uint8)
+
+        return torch.from_numpy(video).float()
+
+    def __len__(self) -> int:
+        return self.num_samples
+
+    def __del__(self):
+        if self._h5_file is not None:
+            self._h5_file.close()
 
 
 def create_video_dataloader(

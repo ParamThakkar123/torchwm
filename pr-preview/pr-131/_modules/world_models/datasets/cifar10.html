@@ -1023,13 +1023,42 @@ window.runMermaid = runMermaid;</script>
     <span class="n">root_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">download</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># new</span>
+    <span class="n">download</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create CIFAR-10 dataset objects and a distributed-capable dataloader.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create CIFAR-10 dataset and distributed dataloader.</span>
 
-<span class="sd">    Returns the dataset, sampler, and loader configured with the provided</span>
-<span class="sd">    transform/collator so callers can plug the loader directly into JEPA or</span>
-<span class="sd">    diffusion training loops.</span>
+<span class="sd">    Factory function that creates a CIFAR-10 dataset with the provided transforms</span>
+<span class="sd">    and returns a tuple of (dataset, dataloader, sampler) for use in JEPA or</span>
+<span class="sd">    diffusion training pipelines.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transform: Transforms to apply to images (e.g., RandomCrop, ColorJitter).</span>
+<span class="sd">        batch_size (int): Number of samples per batch.</span>
+<span class="sd">        collator (callable, optional): Custom collate function for batching</span>
+<span class="sd">            (e.g., mask collator for JEPA).</span>
+<span class="sd">        pin_mem (bool): Whether to pin memory for faster GPU transfer (default: True).</span>
+<span class="sd">        num_workers (int): Number of data loading workers (default: 8).</span>
+<span class="sd">        world_size (int): Number of distributed processes (default: 1).</span>
+<span class="sd">        rank (int): Rank of current process in distributed setting (default: 0).</span>
+<span class="sd">        root_path (str, optional): Path to store/load CIFAR-10 data.</span>
+<span class="sd">        drop_last (bool): Whether to drop incomplete final batch (default: True).</span>
+<span class="sd">        train (bool): Whether to load train or test split (default: True).</span>
+<span class="sd">        download (bool): Whether to download dataset if not present (default: False).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (dataset, dataloader, sampler)</span>
+<span class="sd">            - dataset: torchvision.datasets.CIFAR10 instance</span>
+<span class="sd">            - dataloader: torch.utils.data.DataLoader with distributed sampling</span>
+<span class="sd">            - sampler: torch.utils.data.distributed.DistributedSampler</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; transform = make_transforms(crop_size=224)</span>
+<span class="sd">        &gt;&gt;&gt; dataset, loader, sampler = make_cifar10(</span>
+<span class="sd">        ...     transform=transform,</span>
+<span class="sd">        ...     batch_size=256,</span>
+<span class="sd">        ...     root_path=&quot;./data&quot;,</span>
+<span class="sd">        ...     download=True</span>
+<span class="sd">        ... )</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">CIFAR10</span><span class="p">(</span>
         <span class="n">root</span><span class="o">=</span><span class="n">root_path</span><span class="p">,</span>

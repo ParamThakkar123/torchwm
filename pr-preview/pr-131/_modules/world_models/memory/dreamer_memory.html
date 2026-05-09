@@ -1059,6 +1059,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize replay buffer with fixed capacity.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (int): Maximum number of transitions to store.</span>
+<span class="sd">            obs_shape (tuple): Shape of observations (C, H, W).</span>
+<span class="sd">            action_size (int): Dimension of action vectors.</span>
+<span class="sd">            seq_len (int): Length of sequences to sample.</span>
+<span class="sd">            batch_size (int): Number of sequences per batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
@@ -1182,14 +1191,26 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="Memory.append">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.dreamer_memory.Memory.append">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append a transition to memory.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append a transition to memory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *args: Variable length argument list containing transition data.</span>
+<span class="sd">                Typically (observation, action, reward, done, info).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Memory.sample">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.dreamer_memory.Memory.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample random batch from memory.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample random batch of transitions from memory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch_size (int): Number of transitions to sample.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: List of sampled transitions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">sample</span>
 
         <span class="k">return</span> <span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>

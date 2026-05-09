@@ -1016,8 +1016,29 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="Episode">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Episode</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Records the agent&#39;s interaction with the environment for a single</span>
-<span class="sd">    episode. At termination, it converts all the data to Numpy arrays.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Records the agent&#39;s interaction with the environment for a single episode.</span>
+
+<span class="sd">    Stores observations, actions, rewards, and terminal flags during a single</span>
+<span class="sd">    trajectory. At termination, converts all lists to numpy arrays for</span>
+<span class="sd">    efficient batch processing.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        x (list or np.ndarray): Observations collected during the episode.</span>
+<span class="sd">        u (list or np.ndarray): Actions taken.</span>
+<span class="sd">        r (list or np.ndarray): Rewards received.</span>
+<span class="sd">        t (list or np.ndarray): Terminal flags (0.0 = continue, 1.0 = terminal).</span>
+<span class="sd">        info (dict): Additional episode metadata.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        postprocess_fn (callable, optional): Function to apply to observations</span>
+<span class="sd">            before storing (e.g., normalization). Default: identity function.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; episode = Episode()</span>
+<span class="sd">        &gt;&gt;&gt; episode.append(obs, action, reward, False)</span>
+<span class="sd">        &gt;&gt;&gt; episode.append(obs, action, reward, True)</span>
+<span class="sd">        &gt;&gt;&gt; episode.terminate(final_obs)</span>
+<span class="sd">        &gt;&gt;&gt; print(episode.x.shape)  # Now a numpy array</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postprocess_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1059,14 +1080,37 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">Memory</span><span class="p">(</span><span class="n">deque</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Episode-based replay memory for PlaNet/RSSM training.</span>
 
-<span class="sd">    Episodes are stored as variable-length trajectories and sampled as</span>
-<span class="sd">    sub-sequences with optional time-major formatting for sequence models.</span>
+<span class="sd">    Stores episodes as variable-length trajectories and supports sampling</span>
+<span class="sd">    sub-sequences for training. Implements a ring-buffer style eviction</span>
+<span class="sd">    when capacity is reached.</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Stores complete episodes as lists of transitions</span>
+<span class="sd">        - Samples contiguous sub-sequences for sequence models</span>
+<span class="sd">        - Supports time-major formatting (time-first) for RNN input</span>
+<span class="sd">        - Memory usage estimation to prevent OOM errors</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        size (int, optional): Maximum number of episodes to store. If None,</span>
+<span class="sd">            deque grows without limit (useful for unpickling).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        episodes (deque): Collection of Episode objects.</span>
+<span class="sd">        eps_lengths (deque): Length of each episode.</span>
+<span class="sd">        size (property): Total number of transitions across all episodes.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; memory = Memory(size=100)</span>
+<span class="sd">        &gt;&gt;&gt; memory.append([episode1, episode2])</span>
+<span class="sd">        &gt;&gt;&gt; batch, lengths = memory.sample(batch_size=32, tracelen=50)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Maintains a FIFO list of `size` number of episodes.</span>
-<span class="sd">        If size is None (e.g. during unpickling or loading legacy files),</span>
-<span class="sd">        create deques without a fixed maxlen so pickle can restore state.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize memory with optional episode capacity.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (int, optional): Maximum number of episodes. If None,</span>
+<span class="sd">                creates unbounded deques for pickle compatibility.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">maxlen</span> <span class="o">=</span> <span class="n">size</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">maxlen</span><span class="p">)</span>
@@ -1100,6 +1144,29 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="Memory.sample">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">tracelen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample random sub-sequences from stored episodes.</span>
+
+<span class="sd">        Randomly selects episodes and starting positions to create batches</span>
+<span class="sd">        of contiguous sequences for training sequence models.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch_size (int): Number of sequences to sample.</span>
+<span class="sd">            tracelen (int): Length of each sequence (default: 1).</span>
+<span class="sd">            time_first (bool): If True, returns tensors with time dimension</span>
+<span class="sd">                first (T, B, ...) instead of batch first (B, T, ...).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (observations, actions, rewards, terminals, lengths)</span>
+<span class="sd">                - observations: (batch, tracelen+1, *obs_shape) or (tracelen+1, batch, ...)</span>
+<span class="sd">                - actions: (batch, tracelen, action_dim) or (tracelen, batch, ...)</span>
+<span class="sd">                - rewards: (batch, tracelen) or (tracelen, batch)</span>
+<span class="sd">                - terminals: (batch, tracelen) or (tracelen, batch)</span>
+<span class="sd">                - lengths: (batch,) original episode lengths for each sample</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If memory is empty or no episodes meet minimum length.</span>
+<span class="sd">            MemoryError: If estimated memory usage exceeds 200 MiB threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">episodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Memory is empty; cannot sample.&quot;</span><span class="p">)</span>
 

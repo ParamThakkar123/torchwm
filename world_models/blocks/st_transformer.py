@@ -2,8 +2,12 @@ import torch
 import torch.nn as nn
 from typing import Optional
 
+
 class STSpatialAttention(nn.Module):
-    """Spatial attention layer - attends over H*W tokens within each time step."""
+    """Spatial attention layer - attends over H*W tokens within each time step.
+
+    Includes QK normalization for training stability at scale (as per Genie paper).
+    """
 
     def __init__(
         self,
@@ -13,6 +17,7 @@ class STSpatialAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
+        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -20,6 +25,11 @@ class STSpatialAttention(nn.Module):
         self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+
+        # QK Normalization (as per Genie paper - improves stability at large scale)
+        self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+        self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -37,6 +47,10 @@ class STSpatialAttention(nn.Module):
         qkv = qkv.permute(3, 0, 4, 1, 2, 5)  # (3, B, heads, T, N, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
 
+        # Apply QK normalization (as per Genie paper)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
+
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
@@ -48,7 +62,10 @@ class STSpatialAttention(nn.Module):
 
 
 class STTemporalAttention(nn.Module):
-    """Temporal attention layer - attends over T tokens across all spatial positions with causal mask."""
+    """Temporal attention layer - attends over T tokens across all spatial positions with causal mask.
+
+    Includes QK normalization for training stability at scale (as per Genie paper).
+    """
 
     def __init__(
         self,
@@ -58,6 +75,7 @@ class STTemporalAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
+        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -65,6 +83,11 @@ class STTemporalAttention(nn.Module):
         self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+
+        # QK Normalization (as per Genie paper - improves stability at large scale)
+        self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+        self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -83,6 +106,10 @@ class STTemporalAttention(nn.Module):
         qkv = qkv.permute(3, 0, 4, 2, 1, 5)  # (3, B, heads, N, T, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
 
+        # Apply QK normalization (as per Genie paper)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
+
         attn = (q @ k.transpose(-2, -1)) * self.scale
 
         if causal:
@@ -98,6 +125,7 @@ class STTemporalAttention(nn.Module):
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
+
 
 class STMLP(nn.Module):
     """MLP for ST-Transformer block."""
@@ -125,6 +153,7 @@ class STMLP(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
+
 
 class STTransformerBlock(nn.Module):
     """Spatiotemporal Transformer Block.
@@ -205,6 +234,7 @@ class STTransformerBlock(nn.Module):
         x = x + self.drop_path(self.mlp(self.norm2(x)))
 
         return x
+
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample."""

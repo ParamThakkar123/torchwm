@@ -44,7 +44,7 @@ autodoc_typehints = "description"
 autodoc_inherit_docstrings = False
 autodoc_default_options = {
     "members": True,
-    "undoc-members": False,
+    "undoc-members": True,
     "show-inheritance": True,
 }
 

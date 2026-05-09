@@ -52,6 +52,15 @@ class ReplayBuffer:
     """
 
     def __init__(self, size, obs_shape, action_size, seq_len, batch_size):
+        """Initialize replay buffer with fixed capacity.
+
+        Args:
+            size (int): Maximum number of transitions to store.
+            obs_shape (tuple): Shape of observations (C, H, W).
+            action_size (int): Dimension of action vectors.
+            seq_len (int): Length of sequences to sample.
+            batch_size (int): Number of sequences per batch.
+        """
         self.size = size
         self.obs_shape = obs_shape
         self.action_size = action_size
@@ -164,11 +173,23 @@ class Memory:
         self.memory = self.deque(maxlen=capacity)
 
     def append(self, *args):
-        """Append a transition to memory."""
+        """Append a transition to memory.
+
+        Args:
+            *args: Variable length argument list containing transition data.
+                Typically (observation, action, reward, done, info).
+        """
         self.memory.append(args)
 
     def sample(self, batch_size: int):
-        """Sample random batch from memory."""
+        """Sample random batch of transitions from memory.
+
+        Args:
+            batch_size (int): Number of transitions to sample.
+
+        Returns:
+            list: List of sampled transitions.
+        """
         from random import sample
 
         return sample(self.memory, batch_size)

@@ -2,8 +2,26 @@ import torch
 import torch.nn as nn
 from typing import Optional
 
+
 class STSpatialAttention(nn.Module):
-    """Spatial attention layer - attends over H*W tokens within each time step."""
+    """Spatial attention layer for spatiotemporal transformer.
+
+    Processes video tokens by attending over spatial positions (H*W) within
+    each time step independently. Captures within-frame spatial relationships.
+
+    Input: (B, T, N, C) - B batches, T time steps, N spatial positions (H*W), C channels
+    Output: (B, T, N, C) - Same shape, spatially attended features
+
+    Architecture:
+        QKV projection: Linear(dim, dim*3)
+        Reshape to multi-head attention format
+        Attention: softmax(Q @ K^T / sqrt(d_k)) @ V
+        Output projection
+
+    Usage in ST-Transformer:
+        Applied to video tokens of shape (B, T, N, C) to capture
+        within-frame spatial structure (e.g., object positions).
+    """
 
     def __init__(
         self,
@@ -48,7 +66,24 @@ class STSpatialAttention(nn.Module):
 
 
 class STTemporalAttention(nn.Module):
-    """Temporal attention layer - attends over T tokens across all spatial positions with causal mask."""
+    """Temporal attention layer with causal masking for spatiotemporal transformer.
+
+    Processes video tokens by attending over time steps (T) across all spatial
+    positions. Uses causal masking to ensure each frame only attends to previous
+    frames (important for autoregressive video generation).
+
+    Input: (B, T, N, C) - B batches, T time steps, N spatial positions, C channels
+    Output: (B, T, N, C) - Same shape, temporally attended features
+
+    Key Feature: Causal masking
+        - Frame t can only attend to frames 0...t-1
+        - Prevents information leakage from future frames
+        - Essential for autoregressive video generation models
+
+    Usage in Genie VideoTokenizer:
+        Applied after STSpatialAttention to model temporal dynamics.
+        The causal mask ensures generation is autoregressive.
+    """
 
     def __init__(
         self,
@@ -99,6 +134,7 @@ class STTemporalAttention(nn.Module):
         x = self.proj_drop(x)
         return x
 
+
 class STMLP(nn.Module):
     """MLP for ST-Transformer block."""
 
@@ -126,10 +162,48 @@ class STMLP(nn.Module):
         x = self.drop(x)
         return x
 
-class STTransformerBlock(nn.Module):
-    """Spatiotemporal Transformer Block.
 
-    Contains interleaved spatial and temporal attention layers, followed by a single MLP.
+class STTransformerBlock(nn.Module):
+    """Combined spatiotemporal transformer block with interleaved attention.
+
+    A single block applies:
+        1. Spatial attention (within each time frame)
+        2. Temporal attention (across frames with causal mask)
+        3. MLP projection
+
+    The order is: x -> + SpatialAttn -> + TemporalAttn -> + MLP -> x
+
+    This interleaved design captures both spatial structure and temporal
+    dynamics efficiently, used in Genie's VideoTokenizer and DynamicsModel.
+
+    Args:
+        dim: Feature dimension (must match patch embedding dimension)
+        num_heads: Number of attention heads
+        mlp_ratio: MLP hidden dim = dim * mlp_ratio
+        drop, attn_drop: Dropout rates
+        drop_path: Stochastic depth rate for drop path regularization
+        norm_layer: Normalization layer class (default: nn.LayerNorm)
+
+    Usage in Genie:
+        # VideoTokenizer encoder (12 layers)
+        encoder = STTransformer(
+            num_frames=16,
+            num_patches_per_frame=256,  # 16x16 for 64x64 images with patch_size=4
+            dim=512,
+            depth=12,
+            num_heads=16
+        )
+        encoded = encoder(tokens)  # (B, T*N, C)
+
+        # Dynamics model decoder (24 layers)
+        decoder = STTransformer(
+            num_frames=16,
+            num_patches_per_frame=256,
+            dim=1024,
+            depth=24,
+            num_heads=16
+        )
+        decoded = decoder(tokens)
     """
 
     def __init__(
@@ -205,6 +279,7 @@ class STTransformerBlock(nn.Module):
         x = x + self.drop_path(self.mlp(self.norm2(x)))
 
         return x
+
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample."""

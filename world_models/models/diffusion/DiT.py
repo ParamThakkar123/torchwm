@@ -21,8 +21,27 @@ cfg = Config()
 def sinusoidal_time_embedding(timesteps, dim):
     """Create sinusoidal timestep embeddings for diffusion conditioning.
 
-    Embeddings are scaled relative to configured diffusion timesteps and are
-    consumed by the DiT conditioning MLP.
+    This function generates positional-style embeddings for diffusion timesteps,
+    following the same pattern as transformer positional encodings. The embeddings
+    encode the noise level (t) and are used to condition the diffusion model.
+
+    Math:
+        embedding[t] = [sin(t/10000^(2i/d)), cos(t/10000^(2i/d))] for i in [0, d/2)
+
+    Args:
+        timesteps: Tensor of integer timesteps, shape (B,) or (B, 1)
+        dim: Embedding dimension (must be even)
+
+    Returns:
+        Tensor of shape (B, dim) with sinusoidal embeddings
+
+    Usage with DiT:
+        t = torch.tensor([0, 500, 1000])  # Timesteps
+        emb = sinusoidal_time_embedding(t, dim=256)  # (3, 256)
+
+        # Condition the model:
+        # - Add to timestep embedding to MLP input
+        # - Use AdaLN for adaptive normalization
     """
     half = dim // 2
     freqs = torch.exp(
@@ -38,8 +57,26 @@ def sinusoidal_time_embedding(timesteps, dim):
 class PatchEmbed(nn.Module):
     """Patchify an image into a sequence of learnable patch tokens.
 
-    A strided convolution performs patch extraction and projects each patch
-    to the transformer hidden dimension with additive positional embeddings.
+    Used in Vision Transformers (ViT) and DiT to convert 2D images into
+    sequences of token embeddings that can be processed by transformers.
+
+    Process:
+        1. Conv2d with kernel_size=stride=patch_size extracts non-overlapping patches
+        2. Each patch is projected to embed_dim via linear layer (Conv2d)
+        3. Learnable positional embeddings are added for spatial information
+
+    Input: (B, C, H, W) images
+    Output: (B, N, embed_dim) where N = (H/patch_size) * (W/patch_size)
+
+    Args:
+        img_size: Image size (assumes square), e.g., 32 for CIFAR
+        patch_size: Size of each patch (typically 4, 8, or 16)
+        in_channels: Number of input channels (3 for RGB)
+        embed_dim: Output dimension for each patch token
+
+    Usage with DiT:
+        patch_embed = PatchEmbed(img_size=32, patch_size=4, in_channels=3, embed_dim=256)
+        tokens = patch_embed(images)  # (B, 64, 256) for 32x32 image with patch_size=4
     """
 
     def __init__(self, img_size, patch_size, in_channels, embed_dim):
@@ -269,7 +306,7 @@ class DiT(nn.Module):
         def param_count(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-        print(f"Model Parameters: {param_count(model)/1e6:.2f}M")
+        print(f"Model Parameters: {param_count(model) / 1e6:.2f}M")
 
         ema_model = None
         if ema:
@@ -313,7 +350,7 @@ class DiT(nn.Module):
                 if global_step % 100 == 0:
                     elapsed = time.time() - start_time
                     print(
-                        f"Epoch [{epoch}/{epochs}] Step [{global_step}] Loss: {loss.item():.4f} Time Elapsed: {elapsed/60:.2f} min"
+                        f"Epoch [{epoch}/{epochs}] Step [{global_step}] Loss: {loss.item():.4f} Time Elapsed: {elapsed / 60:.2f} min"
                     )
                     start_time = time.time()
 

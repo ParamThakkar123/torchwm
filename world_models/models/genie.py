@@ -133,7 +133,7 @@ class Genie(nn.Module):
             return {
                 "reconstructed_video": recon_video,
                 "video_indices": video_indices,
-                "tokenizer_loss": tokenizer_loss_dict["recon_loss"],
+                "tokenizer_loss": tokenizer_loss_dict,
                 "vq_loss": tokenizer_loss_dict["vq_loss"],
                 "total_loss": tokenizer_loss_dict["recon_loss"]
                 + tokenizer_loss_dict["vq_loss"],
@@ -202,7 +202,7 @@ class Genie(nn.Module):
             "latent_actions": latent_actions,
             "lam_reconstructed": lam_output["reconstructed"],
             "dynamics_logits": dynamics_logits,
-            "tokenizer_loss": tokenizer_loss_dict["recon_loss"],
+            "tokenizer_loss": tokenizer_loss_dict,
             "vq_loss": tokenizer_loss_dict["vq_loss"],
             "lam_recon_loss": lam_recon_loss,
             "lam_vq_loss": lam_vq_loss,

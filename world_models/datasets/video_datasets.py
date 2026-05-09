@@ -3,8 +3,10 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Callable, List, Tuple, Union
 from pathlib import Path
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import logging
+import cv2
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -120,27 +122,17 @@ class VideoFolderDataset(VideoDatasetBase):
     def _load_video(self, idx: int) -> torch.Tensor:
         video_path = self.video_paths[idx]
 
-        try:
-            from decord import VideoReader, cpu
-
-            vr = VideoReader(str(video_path), ctx=cpu(0))
-            frames = vr.get_batch(range(len(vr))).asnumpy()
-        except ImportError:
-            import cv2
-
-            cap = cv2.VideoCapture(str(video_path))
-            frames = []
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            cap.release()
-            frames = np.array(frames)
+        cap = cv2.VideoCapture(str(video_path))
+        frames = []
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        cap.release()
+        frames = np.array(frames)
 
         frames = self._sample_frames(frames)
-
-        from PIL import Image
 
         frames_pil = [Image.fromarray(frame) for frame in frames]
         frames_resized = [
@@ -219,8 +211,6 @@ class ImageFolderDataset(VideoDatasetBase):
 
         if len(image_files) == 0:
             raise ValueError(f"No images found in {seq_path}")
-
-        from PIL import Image
 
         frames = []
         for img_path in image_files[: self.num_frames]:
@@ -369,8 +359,6 @@ class RLEnvironmentDataset(VideoDatasetBase):
                 observations[-1:], (self.num_frames - total_frames, 1, 1, 1)
             )
             observations = np.concatenate([observations, padding], axis=0)
-
-        from PIL import Image
 
         processed = []
         for frame in observations:

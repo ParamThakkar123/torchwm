@@ -1,9 +1,6 @@
-import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from typing import Optional, Tuple
-
+from typing import Optional
 
 class STSpatialAttention(nn.Module):
     """Spatial attention layer - attends over H*W tokens within each time step."""
@@ -102,7 +99,6 @@ class STTemporalAttention(nn.Module):
         x = self.proj_drop(x)
         return x
 
-
 class STMLP(nn.Module):
     """MLP for ST-Transformer block."""
 
@@ -129,7 +125,6 @@ class STMLP(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
-
 
 class STTransformerBlock(nn.Module):
     """Spatiotemporal Transformer Block.
@@ -210,7 +205,6 @@ class STTransformerBlock(nn.Module):
         x = x + self.drop_path(self.mlp(self.norm2(x)))
 
         return x
-
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample."""

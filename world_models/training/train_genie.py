@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Dict, Tuple
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

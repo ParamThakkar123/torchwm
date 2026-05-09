@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-
 class MultiHeadSelfAttention(nn.Module):
     """Multi-head scaled dot-product self-attention over sequence tokens.
 

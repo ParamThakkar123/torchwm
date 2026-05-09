@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 
 from world_models.vision.vq_layer import VectorQuantizer
 
@@ -93,7 +93,7 @@ class LatentActionModel(nn.Module):
         nn.init.trunc_normal_(self.decoder_pos_embed, std=0.02)
 
         # Decoder uses action embeddings as additive conditioning
-        self.decoder_action_proj = nn.Linear(encoder_dim, decoder_dim)
+        self.decoder_action_proj = nn.Linear(embedding_dim, decoder_dim)
 
         decoder_layer = nn.TransformerEncoderLayer(
             d_model=decoder_dim,
@@ -166,15 +166,13 @@ class LatentActionModel(nn.Module):
     def decode(
         self,
         x_prev: torch.Tensor,
-        latent_actions: torch.Tensor,
-        action_embeddings: Optional[torch.Tensor] = None,
+        z_q: torch.Tensor,
     ) -> torch.Tensor:
         """Decode latent actions to predict next frame.
 
         Args:
             x_prev: Previous frames (B, C, T, H, W) - will mask all but first
-            latent_actions: Discrete action indices (B, T-1)
-            action_embeddings: Precomputed action embeddings (optional)
+            z_q: Quantized action embeddings (B, T-1, embedding_dim)
 
         Returns:
             predicted_next_frame: (B, C, H, W)
@@ -182,12 +180,7 @@ class LatentActionModel(nn.Module):
         B, C, T, H, W = x_prev.shape
 
         # Mask all frames except the first - forces decoder to use actions
-        # Create mask: keep first frame, mask others
-        mask = torch.zeros(T, dtype=torch.bool, device=x_prev.device)
-        mask[0] = True  # Keep first frame
-
         x_masked = x_prev.clone()
-        # Set masked frames to zero (or could use learnable mask token)
         for t in range(1, T):
             x_masked[:, :, t, :, :] = 0
 
@@ -199,19 +192,14 @@ class LatentActionModel(nn.Module):
         x = x.reshape(B, T, H_dec * W_dec, C_dec)
         x = x + self.decoder_pos_embed[:, : H_dec * W_dec, :].unsqueeze(1)
 
-        # Get action embeddings
-        if action_embeddings is None:
-            action_embeddings = self.action_embedding(latent_actions)
+        # Project action embeddings to decoder dimension and add as conditioning
+        action_cond = self.decoder_action_proj(z_q)  # (B, T-1, decoder_dim)
 
-        # Project and add action conditioning
-        action_cond = self.decoder_action_proj(
-            action_embeddings
-        )  # (B, T-1, decoder_dim)
-
-        # Add action embeddings to frames (align T-1 actions with T frames)
-        action_expanded = torch.zeros(B, T, C_dec, device=x.device)
-        action_expanded[:, 1:, :] = action_cond
-        x = x + action_expanded.unsqueeze(2)
+        # Add action embeddings to frames (align T-1 actions with T-1 future frames)
+        # Frames 1 to T-1 get action conditioning, frame 0 is the prompt
+        action_expanded = torch.zeros(B, T, H_dec * W_dec, C_dec, device=x.device)
+        action_expanded[:, 1:, :, :] = action_cond.unsqueeze(2)
+        x = x + action_expanded
 
         # Decode
         x = x.reshape(B * T, H_dec * W_dec, C_dec)
@@ -239,7 +227,7 @@ class LatentActionModel(nn.Module):
         self,
         x_prev: torch.Tensor,
         x_next: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Dict[str, torch.Tensor]:
         """Full forward pass: encode to get actions, decode to reconstruct.
 
         Args:
@@ -247,31 +235,47 @@ class LatentActionModel(nn.Module):
             x_next: Next frame (B, C, H, W)
 
         Returns:
-            latent_actions: (B, T-1) - discrete action indices
-            z_q: (B, T-1, embedding_dim) - quantized embeddings
-            reconstructed: (B, C, H, W) - reconstructed next frame
-            vq_loss: VQ commitment loss
+            Dictionary with losses and outputs
         """
         # Encode to get latent actions
         latent_actions, z_q = self.encode(x_prev, x_next)
 
         # Use actions from timestep 1 to T-1 (T-1 actions for T-1 to predict T)
-        actions_for_decode = (
-            latent_actions[:, : x_prev.shape[2] - 1]
-            if latent_actions.shape[1] > 1
-            else latent_actions
-        )
+        # latent_actions has shape (B, T) from encoding T frames
+        # We need T-1 actions to predict T-1 future frames
+        num_actions = z_q.shape[1] - 1  # T-1
+        z_q_for_decode = z_q[:, :num_actions, :] if num_actions > 0 else z_q
 
-        # Decode to reconstruct
-        reconstructed = self.decode(x_prev[:, :, :-1], actions_for_decode)
+        # Decode to reconstruct next frame
+        # decode expects x_prev with T frames and z_q with T-1 actions
+        reconstructed = self.decode(x_prev, z_q_for_decode)
 
         # Compute reconstruction loss
         recon_loss = F.mse_loss(reconstructed, x_next)
 
         # Get VQ loss from quantizer
-        vq_loss = torch.tensor(0.0, device=x_prev.device)
+        B = x_prev.shape[0]
+        T = x_prev.shape[2]
+        z_q_reshaped = z_q.reshape(B * T, -1)  # (B*T, embedding_dim)
+        _, _, vq_info = self.vq(z_q_reshaped)
+        vq_loss = vq_info["vq_loss"]
 
-        return latent_actions, z_q, reconstructed, vq_loss
+        # Variance loss: encourage batch-wise variance in action embeddings
+        # This prevents the encoder from collapsing to a single action
+        z_for_variance = z_q.detach()  # Detach to only optimize encoder
+        action_variance = z_for_variance.var(dim=0).mean()
+        variance_loss = (
+            -action_variance
+        )  # Negative because we want to maximize variance
+
+        return {
+            "latent_actions": latent_actions,
+            "z_q": z_q,
+            "reconstructed": reconstructed,
+            "recon_loss": recon_loss,
+            "vq_loss": vq_loss,
+            "variance_loss": variance_loss,
+        }
 
 
 def create_latent_action_model(

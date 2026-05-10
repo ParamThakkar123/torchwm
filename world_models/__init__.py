@@ -31,10 +31,15 @@ def __getattr__(name):
         "VisionTransformer",
         "ModularRSSM",
         "create_modular_rssm",
+        # Genie world model components
         "Genie",
+        "LatentActionModel",
+        "DynamicsModel",
         "create_genie",
         "create_genie_small",
         "create_genie_large",
+        "create_latent_action_model",
+        "create_dynamics_model",
     ):
         from world_models import models as _models
 
@@ -161,6 +166,13 @@ def __getattr__(name):
         "ATARI_100K_GAMES",
         "HUMAN_SCORES",
         "RANDOM_SCORES",
+        # Genie configs
+        "GenieConfig",
+        "GenieSmallConfig",
+        "STTransformerConfig",
+        "VideoTokenizerConfig",
+        "LatentActionModelConfig",
+        "DynamicsModelConfig",
     ):
         from world_models import configs as _configs
 
@@ -268,6 +280,7 @@ __all__ = [
     "Planet",  # PlaNet planning agent
     "VisionTransformer",  # Vision Transformer (ViT) for image encoding
     "ModularRSSM",  # Modular RSSM with swappable components
+    "create_modular_rssm",  # Factory for ModularRSSM
     # ---------------------------------------------------------------------
     # CORE WORLD MODELS
     # ---------------------------------------------------------------------

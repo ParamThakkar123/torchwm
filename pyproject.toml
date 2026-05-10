@@ -3,7 +3,7 @@ name = "torchwm"
 version = "0.3.2"
 description = "A Modular Pytorch Based library for training world models"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = ["world-models", "pytorch", "mbrl"]
 classifiers = [
@@ -16,9 +16,11 @@ dependencies = [
     "fastapi[standard]>=0.116.0",
     "gym>=0.26.2",
     "gymnasium>=1.2.2",
+    "h5py>=3.11.0",
+    "huggingface-hub>=0.23.0",
     "mlagents-envs>=0.28.0",
     "moviepy>=2.2.1",
-    "myst-parser>=5.0.0",
+    "myst-parser>=2.0.0,<5.0.0",
     "nbsphinx>=0.9.8",
     "opencv-python>=4.12.0.88",
     "plotly>=6.5.0",
@@ -27,8 +29,8 @@ dependencies = [
     "pytest>=9.0.2",
     "pyyaml>=6.0.3",
     "selenium>=4.41.0",
-    "sphinx>=9.1.0",
-    "sphinx-autodoc-typehints>=3.6.2",
+    "sphinx>=8.0.0,<9.0.0",
+    "sphinx-autodoc-typehints<1.26.0",
     "sphinx-copybutton>=0.5.2",
     "sphinx-rtd-theme>=3.1.0",
     "sphinxcontrib-bibtex>=2.6.5",
@@ -41,7 +43,7 @@ dependencies = [
     "uvicorn>=0.35.0",
     "wheel>=0.46.3",
     "wandb>=0.16.0",
-    "scikit-learn>=1.8.0",
+    "scikit-learn>=1.6.0",
     "umap-learn>=0.5.11",
     "mypy>=1.19.1",
     "autorom>=0.6.1",
@@ -52,6 +54,7 @@ dependencies = [
 [tool.uv]
 index-url = "https://download.pytorch.org/whl/cu121"
 extra-index-url = ["https://pypi.org/simple"]
+index-strategy = "unsafe-best-match"
 
 [[tool.uv.index]]
 url = "https://download.pytorch.org/whl/cu121"

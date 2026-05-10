@@ -31,6 +31,7 @@ class STSpatialAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
+        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -38,6 +39,11 @@ class STSpatialAttention(nn.Module):
         self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+
+        # QK Normalization (as per Genie paper - improves stability at large scale)
+        self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+        self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -54,6 +60,10 @@ class STSpatialAttention(nn.Module):
         qkv = self.qkv(x).reshape(B, T, N, 3, self.num_heads, C // self.num_heads)
         qkv = qkv.permute(3, 0, 4, 1, 2, 5)  # (3, B, heads, T, N, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
+
+        # Apply QK normalization (as per Genie paper)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
@@ -93,6 +103,7 @@ class STTemporalAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
+        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -100,6 +111,11 @@ class STTemporalAttention(nn.Module):
         self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+
+        # QK Normalization (as per Genie paper - improves stability at large scale)
+        self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+        self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
+
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -117,6 +133,10 @@ class STTemporalAttention(nn.Module):
         qkv = self.qkv(x).reshape(B, T, N, 3, self.num_heads, C // self.num_heads)
         qkv = qkv.permute(3, 0, 4, 2, 1, 5)  # (3, B, heads, N, T, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2]
+
+        # Apply QK normalization (as per Genie paper)
+        q = self.q_norm(q)
+        k = self.k_norm(k)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
 
@@ -161,7 +181,6 @@ class STMLP(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
-
 
 class STTransformerBlock(nn.Module):
     """Combined spatiotemporal transformer block with interleaved attention.
@@ -352,8 +371,8 @@ class STTransformer(nn.Module):
             (B, T*N, C)
         """
         B, T_N, C = x.shape
-        T = self.num_frames
-        N = T_N // T
+        T = T_N // self.num_patches_per_frame
+        N = self.num_patches_per_frame
 
         # Reshape to (B, T, N, C) for ST-attention
         x = x.reshape(B, T, N, C)

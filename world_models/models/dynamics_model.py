@@ -141,7 +141,7 @@ class DynamicsModel(nn.Module):
         Args:
             video_tokens: (B, T, H*W) - token indices for frames 1 to T
             actions: (B, T) - latent action indices for frames 1 to T
-            mask_prob: Probability of masking input tokens
+            mask_prob: Probability of masking input tokens (Bernoulli 0.5-1.0)
 
         Returns:
             logits: (B, T, H*W, vocab_size)
@@ -153,6 +153,29 @@ class DynamicsModel(nn.Module):
         video_emb = video_emb.reshape(B, T, N, self.dim)
 
         video_emb = video_emb + self.video_pos_embed[:, :T, :, :]
+
+        # ===== Apply input token masking (Genie Section 2.1) =====
+        # Randomly mask input tokens z_2:T-1 according to Bernoulli distribution
+        # sampled uniformly between 0.5 and 1.0
+        if mask_prob > 0.0 and self.training:
+            # Create mask for tokens in frames 1 to T-1 (not first frame, not last)
+            # mask_prob is sampled uniformly between 0.5 and 1.0
+            mask_2d = (
+                torch.rand(B, T - 2, N, device=video_tokens.device) < mask_prob
+            )  # (B, T-2, N)
+
+            # Extend mask to cover all frames: [first_frame, masked_frames, last_frame]
+            full_mask = torch.zeros(
+                B, T, N, dtype=torch.bool, device=video_tokens.device
+            )
+            if T > 2:
+                full_mask[:, 1:-1, :] = mask_2d
+
+            # Apply mask by replacing with zeros (or could use mask token)
+            video_emb = torch.where(
+                full_mask.unsqueeze(-1), torch.zeros_like(video_emb), video_emb
+            )
+        # ===== End masking =====
 
         action_emb = self.action_embedding(actions)
 

@@ -23,6 +23,15 @@ def __getattr__(name):
         "VisionTransformer",
         "ModularRSSM",
         "create_modular_rssm",
+        # Genie world model components
+        "Genie",
+        "LatentActionModel",
+        "DynamicsModel",
+        "create_genie",
+        "create_genie_small",
+        "create_genie_large",
+        "create_latent_action_model",
+        "create_dynamics_model",
     ):
         from world_models import models as _models
 
@@ -39,6 +48,13 @@ def __getattr__(name):
         "ATARI_100K_GAMES",
         "HUMAN_SCORES",
         "RANDOM_SCORES",
+        # Genie configs
+        "GenieConfig",
+        "GenieSmallConfig",
+        "STTransformerConfig",
+        "VideoTokenizerConfig",
+        "LatentActionModelConfig",
+        "DynamicsModelConfig",
     ):
         from world_models import configs as _configs
 
@@ -103,6 +119,15 @@ __all__ = [
     "VisionTransformer",
     "ModularRSSM",
     "create_modular_rssm",
+    # Genie world model components
+    "Genie",
+    "LatentActionModel",
+    "DynamicsModel",
+    "create_genie",
+    "create_genie_small",
+    "create_genie_large",
+    "create_latent_action_model",
+    "create_dynamics_model",
     # Configs
     "DreamerConfig",
     "JEPAConfig",
@@ -113,6 +138,13 @@ __all__ = [
     "ATARI_100K_GAMES",
     "HUMAN_SCORES",
     "RANDOM_SCORES",
+    # Genie configs
+    "GenieConfig",
+    "GenieSmallConfig",
+    "STTransformerConfig",
+    "VideoTokenizerConfig",
+    "LatentActionModelConfig",
+    "DynamicsModelConfig",
     # Environments
     "make_atari_env",
     "list_available_atari_envs",

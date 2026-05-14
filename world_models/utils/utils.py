@@ -24,30 +24,24 @@ import yaml
 import collections
 import collections.abc
 
-try:
-    from sklearn.manifold import TSNE
-    import umap
+from sklearn.manifold import TSNE
+import umap
 
-    HAS_VIZ = True
-except ImportError:
-    HAS_VIZ = False
+HAS_VIZ = True
 
-try:
-    from attrdict import AttrDict
-except ImportError:
 
-    class AttrDict(dict):
-        def __getattr__(self, name):
-            try:
-                return self[name]
-            except KeyError:
-                raise AttributeError(name)
+class AttrDict(dict):
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
 
-        def __setattr__(self, name, value):
-            self[name] = value
+    def __setattr__(self, name, value):
+        self[name] = value
 
-        def __delattr__(self, name):
-            del self[name]
+    def __delattr__(self, name):
+        del self[name]
 
 
 for type_name in collections.abc.__all__:
@@ -818,12 +812,6 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
         save_path: path to save the plot (HTML for plotly)
         perplexity: t-SNE perplexity parameter
     """
-    if not HAS_VIZ:
-        print(
-            "t-SNE visualization requires sklearn. Install with: pip install scikit-learn"
-        )
-        return
-
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
 
@@ -873,12 +861,6 @@ def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
         save_path: path to save the plot (HTML for plotly)
         n_neighbors: UMAP n_neighbors parameter
     """
-    if not HAS_VIZ:
-        print(
-            "UMAP visualization requires umap-learn. Install with: pip install umap-learn"
-        )
-        return
-
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
 

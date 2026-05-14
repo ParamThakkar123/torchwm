@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from functools import partial
-from typing import Optional, Callable
+from typing import Optional
 
 
 def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5):

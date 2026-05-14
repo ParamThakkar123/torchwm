@@ -20,9 +20,13 @@ Train Dreamer agents in just 3 lines of code. TorchWM provides a unified interfa
 ### Installation
 
 ```bash
+# Minimal installation (core dependencies only)
 pip install torchwm
-# or with uv
-uv add torch torchvision torchaudio
+
+# With extras for specific features
+pip install torchwm[gym]    # Gym environments
+pip install torchwm[viz]   # Visualization tools
+pip install torchwm[dev]   # Development tools
 ```
 
 ### Training a Dreamer Agent
@@ -46,7 +50,6 @@ from world_models.inference.operators import DreamerOperator
 
 op = DreamerOperator(image_size=64, action_dim=6)
 processed = op.process({'image': image, 'action': action})
-# Returns standardized tensors for inference
 ```
 
 ## 🚀 Features

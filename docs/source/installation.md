@@ -7,8 +7,31 @@ TorchWM supports multiple installation methods depending on your use case.
 For stable releases:
 
 ```bash
+# Minimal installation (core dependencies only)
 pip install torchwm
+
+# With specific extras
+pip install torchwm[gym]      # Gym environments support
+pip install torchwm[viz]      # Visualization tools
+pip install torchwm[ml]       # Machine learning utilities
+pip install torchwm[docs]     # Documentation tools
+pip install torchwm[dev]      # Development tools (testing, linting)
+
+# Install multiple extras
+pip install torchwm[gym,viz]
 ```
+
+### Available Extras
+
+| Extra | Description |
+|-------|-------------|
+| `gym` | Gymnasium and DM Control environments |
+| `viz` | Visualization and plotting tools |
+| `ml` | Additional ML utilities and helpers |
+| `docs` | Documentation building tools |
+| `dev` | Development tools (pytest, ruff, mypy, pre-commit) |
+
+The minimal installation includes core dependencies: torch, torchvision, torchaudio, einops, pyyaml, tqdm.
 
 ## From Source
 
@@ -17,21 +40,13 @@ For the latest development version:
 ```bash
 git clone https://github.com/ParamThakkar123/torchwm.git
 cd torchwm
+
+# Minimal installation
 pip install -e .
+
+# With extras
+pip install -e ".[gym,viz,dev]"
 ```
-
-## Development Installation
-
-For development, testing, and documentation:
-
-```bash
-pip install -e ".[dev]"
-```
-
-This installs additional dependencies for:
-- Testing (`pytest`, `pytest-cov`)
-- Documentation (`sphinx`, `myst-parser`)
-- Development tools (`pre-commit`, `ruff`, `mypy`)
 
 ## CUDA Support
 
@@ -50,15 +65,11 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ### Core Dependencies
 - Python >= 3.8
 - PyTorch >= 2.0
-- NumPy
-- Pillow
+- torch, torchvision, torchaudio
+- einops, pyyaml, tqdm
+- NumPy, Pillow
 
-### Optional Dependencies
-- `gymnasium`: For Gym environments
-- `dm-control`: For DeepMind Control Suite
-- `wandb`: For experiment logging
-- `opencv-python`: For video processing
-- `selenium`: For UI testing
+Optional dependencies are installed via extras (see Available Extras above).
 
 ## Docker
 

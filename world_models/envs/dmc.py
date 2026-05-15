@@ -8,6 +8,28 @@ class DeepMindControlEnv:
     The wrapper exposes DMC observations and actions through Gym spaces and
     adds a rendered RGB image to each observation dict so image-based world
     model pipelines can train consistently across backends.
+
+    Features:
+        - Parses domain-task names (e.g., "cheetah-run" -> domain="cheetah", task="run")
+        - Automatically handles special cases like "cup" -> "ball_in_cup"
+        - Renders RGB images at configurable resolution
+        - Returns observations as dict with both state vectors and images
+
+    Args:
+        name (str): Environment name in format "domain-task" (e.g., "cheetah-run").
+        seed (int): Random seed for environment initialization.
+        size (tuple): Target image size as (height, width) (default: (64, 64)).
+        camera (int, optional): Camera ID for rendering. Defaults to 0 for most
+            domains, 2 for quadruped.
+
+    Attributes:
+        observation_space (gym.spaces.Dict): Dict space with state keys and "image".
+        action_space (gym.spaces.Box): Continuous action space from DMC spec.
+
+    Example:
+        >>> env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
+        >>> obs = env.reset()
+        >>> print(obs.keys())  # dict_keys(['position', 'velocity', 'image'])
     """
 
     def __init__(self, name, seed, size=(64, 64), camera=None):

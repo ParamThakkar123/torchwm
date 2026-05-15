@@ -11,7 +11,7 @@ import sys
 import yaml
 
 import numpy as np
-
+import torch
 import wandb
 
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator

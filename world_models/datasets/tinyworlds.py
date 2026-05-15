@@ -98,6 +98,7 @@ class TinyWorldsDataset(Dataset):
         split: str = "train",
         cache_dir: Optional[str] = None,
         download: bool = True,
+        data_file: Optional[str] = None,
     ):
         if dataset_name not in self.DATASET_CONFIGS:
             raise ValueError(
@@ -110,12 +111,15 @@ class TinyWorldsDataset(Dataset):
         self.image_size = image_size
         self.split = split
         self.cache_dir = cache_dir or self._get_default_cache_dir()
+        self.data_file = data_file
 
         self._data_file = None
         self.num_samples = 0
         self.video_length = 0
 
-        if download:
+        if data_file:
+            self._load_data(Path(data_file))
+        elif download:
             self._download_or_load_data()
         else:
             self._load_data()
@@ -152,7 +156,17 @@ class TinyWorldsDataset(Dataset):
                 repo_type="dataset",
                 cache_dir=self.cache_dir,
             )
-            logger.info(f"Downloaded to: {downloaded_path}")
+            downloaded_file = Path(downloaded_path)
+            if not downloaded_file.exists():
+                raise FileNotFoundError(f"Downloaded file not found: {downloaded_path}")
+
+            local_path = self._get_local_path()
+            if downloaded_file != local_path and not local_path.exists():
+                import shutil
+
+                shutil.copy2(downloaded_file, local_path)
+
+            logger.info(f"Downloaded to: {local_path}")
             self._load_data()
         except Exception as e:
             raise RuntimeError(
@@ -161,8 +175,8 @@ class TinyWorldsDataset(Dataset):
                 f"https://huggingface.co/datasets/{self.config['repo_id']}/tree/main"
             )
 
-    def _load_data(self):
-        local_path = self._get_local_path()
+    def _load_data(self, file_path: Optional[Path] = None):
+        local_path = file_path or self._get_local_path()
 
         if not local_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {local_path}")
@@ -280,6 +294,7 @@ class TinyWorldsDataLoader:
         shuffle: bool = True,
         cache_dir: Optional[str] = None,
         download: bool = True,
+        data_file: Optional[str] = None,
     ) -> Tuple[TinyWorldsDataset, DataLoader]:
         """Create a dataloader for TinyWorlds dataset.
 
@@ -310,6 +325,7 @@ class TinyWorldsDataLoader:
             image_size=image_size,
             cache_dir=cache_dir,
             download=download,
+            data_file=data_file,
         )
 
         loader = DataLoader(
@@ -353,6 +369,7 @@ def create_tinyworlds_dataloader(
     shuffle: bool = True,
     cache_dir: Optional[str] = None,
     download: bool = True,
+    data_file: Optional[str] = None,
 ) -> Tuple[TinyWorldsDataset, DataLoader]:
     """Factory function to create TinyWorlds dataloaders.
 
@@ -389,6 +406,7 @@ def create_tinyworlds_dataloader(
         shuffle=shuffle,
         cache_dir=cache_dir,
         download=download,
+        data_file=data_file,
     )
 
 

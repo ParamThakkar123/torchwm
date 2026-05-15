@@ -230,6 +230,10 @@ class TinyWorldsDataset(Dataset):
             video = np.transpose(video, (0, 2, 3, 1))
         elif self.data_layout == "NTHWC":
             video = np.transpose(video, (0, 1, 3, 2))
+        elif self.data_layout == "NTHW":
+            pass
+        else:
+            raise ValueError(f"Unknown data layout: {self.data_layout}")
 
         if video.shape[-1] == 1:
             video = np.repeat(video, 3, axis=-1)
@@ -243,7 +247,6 @@ class TinyWorldsDataset(Dataset):
             video = np.concatenate([video, padding], axis=0)
 
         from PIL import Image
-        import numpy as np
 
         processed = []
         for frame in video:

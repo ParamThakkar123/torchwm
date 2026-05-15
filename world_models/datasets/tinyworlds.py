@@ -231,9 +231,17 @@ class TinyWorldsDataset(Dataset):
             video = np.transpose(video, (0, 2, 3, 1))
         elif self.data_layout == "NTHWC":
             video = np.transpose(video, (0, 1, 3, 2))
+        elif self.data_layout == "NTHW":
+            pass
+        else:
+            raise ValueError(f"Unknown data layout: {self.data_layout}")
 
-        if video.shape[-1] == 1:
-            video = np.repeat(video, 3, axis=-1)
+        if len(video.shape) == 3:
+            if video.shape[-1] == 1:
+                video = np.repeat(video, 3, axis=-1)
+            else:
+                video = np.expand_dims(video, axis=-1)
+                video = np.repeat(video, 3, axis=-1)
 
         total_frames = video.shape[0]
         if total_frames >= self.num_frames:

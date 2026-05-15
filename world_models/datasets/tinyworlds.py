@@ -266,7 +266,7 @@ class TinyWorldsDataset(Dataset):
             video = video / 255.0
 
         video = torch.from_numpy(video).float()
-        video = video.permute(0, 3, 1, 2)
+        video = video.permute(0, 3, 1, 2)  # (T, H, W, C) -> (T, C, H, W)
 
         return video
 

@@ -14,6 +14,7 @@ Available datasets:
 
 import torch
 import numpy as np
+from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Tuple, Dict, List
 from dataclasses import dataclass
@@ -230,10 +231,6 @@ class TinyWorldsDataset(Dataset):
             video = np.transpose(video, (0, 2, 3, 1))
         elif self.data_layout == "NTHWC":
             video = np.transpose(video, (0, 1, 3, 2))
-        elif self.data_layout == "NTHW":
-            pass
-        else:
-            raise ValueError(f"Unknown data layout: {self.data_layout}")
 
         if video.shape[-1] == 1:
             video = np.repeat(video, 3, axis=-1)
@@ -245,8 +242,6 @@ class TinyWorldsDataset(Dataset):
         else:
             padding = np.tile(video[-1:], (self.num_frames - total_frames, 1, 1, 1))
             video = np.concatenate([video, padding], axis=0)
-
-        from PIL import Image
 
         processed = []
         for frame in video:

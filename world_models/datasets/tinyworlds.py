@@ -227,6 +227,11 @@ class TinyWorldsDataset(Dataset):
         if not isinstance(video, np.ndarray):
             video = np.array(video)
 
+        if idx == 0:
+            logger.info(
+                f"Sample video shape: {video.shape}, dtype: {video.dtype}, layout: {self.data_layout}"
+            )
+
         if self.data_layout == "NCTHW":
             video = np.transpose(video, (0, 2, 3, 1))
         elif self.data_layout == "NTHWC":
@@ -340,7 +345,7 @@ class TinyWorldsDataLoader:
             batch_size=batch_size,
             shuffle=shuffle,
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=False,
             drop_last=shuffle,
         )
 

@@ -10,25 +10,57 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
+
 dependencies = [
-    "ale-py>=0.11.2",
+    "torch>=1.13.0",
+    "torchvision>=0.14.0",
+    "torchaudio>=2.10.0",
     "einops>=0.8.2",
-    "fastapi[standard]>=0.116.0",
+    "pyyaml>=6.0.3",
+    "tqdm>=4.67.1",
+    "opencv-python>=4.12.0.88",
+    "requests>=2.32.0",
     "gym>=0.26.2",
     "gymnasium>=1.2.2",
-    "h5py>=3.11.0",
-    "huggingface-hub>=0.23.0",
-    "mlagents-envs>=0.28.0",
     "moviepy>=2.2.1",
+    "h5py>=3.11.0",
+    "plotly>=6.5.0",
+    "ale-py>=0.11.2",
+    "selenium>=4.41.0",
+    "scikit-learn>=1.8.0",
+    "umap-learn>=0.5.11",
+]
+
+[project.optional-dependencies]
+gym = [
+    "huggingface-hub>=0.23.0",
+    "pygame>=2.6.1",
+    "autorom>=0.6.1",
+]
+ml-agents = [
+    "mlagents-envs>=0.28.0",
+]
+viz = [
+    "fastapi[standard]>=0.116.0",
+    "uvicorn>=0.35.0",
     "myst-parser>=2.0.0,<5.0.0",
     "nbsphinx>=0.9.8",
-    "opencv-python>=4.12.0.88",
-    "plotly>=6.5.0",
-    "pre-commit>=4.5.0",
-    "pygame>=2.6.1",
+]
+ml = [
+    "tensorboard>=2.20.0",
+    "tensorboardx>=2.6.4",
+    "wandb>=0.16.0",
+]
+dev = [
     "pytest>=9.0.2",
-    "pyyaml>=6.0.3",
-    "selenium>=4.41.0",
+    "pytest-cov>=7.1.0",
+    "pre-commit>=4.5.0",
+    "mypy>=1.19.1",
+]
+all = [
+    "torchwm[gym,viz,ml,ml-agents,dev,docs]",
+]
+docs = [
     "sphinx>=8.0.0,<9.0.0",
     "sphinx-autodoc-typehints<1.26.0",
     "sphinx-copybutton>=0.5.2",
@@ -37,18 +69,8 @@ dependencies = [
     "sphinxcontrib-mermaid>=0.9.0",
     "sphinx-thebe>=0.3.0",
     "sphinxext-opengraph>=0.13.0",
-    "tensorboard>=2.20.0",
-    "tensorboardx>=2.6.4",
-    "tqdm>=4.67.1",
-    "uvicorn>=0.35.0",
-    "wheel>=0.46.3",
-    "wandb>=0.16.0",
-    "scikit-learn>=1.6.0",
-    "umap-learn>=0.5.11",
-    "mypy>=1.19.1",
-    "autorom>=0.6.1",
-    "pytest-cov>=7.1.0",
-    "torchaudio>=2.10.0",
+    "myst-parser>=2.0.0,<5.0.0",
+    "nbsphinx>=0.9.8",
 ]
 
 [tool.uv]

@@ -261,6 +261,7 @@ def create_genie_trainer(
     model = Genie(
         num_frames=config.num_frames,
         image_size=config.image_size,
+        in_channels=config.in_channels,
         tokenizer_vocab_size=config.tokenizer_vocab_size,
         tokenizer_embedding_dim=config.tokenizer_embedding_dim,
         action_vocab_size=config.action_vocab_size,

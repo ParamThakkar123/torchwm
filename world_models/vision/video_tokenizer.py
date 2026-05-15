@@ -158,6 +158,9 @@ class VideoTokenizer(nn.Module):
             vq_loss: Dictionary with VQ loss components
         """
         B, C, T, H, W = x.shape
+        print(
+            f"[DEBUG encode] x.shape={x.shape}, patch_embed.in_channels={self.patch_embed.in_channels}"
+        )
 
         x = x.permute(0, 2, 1, 3, 4).reshape(B * T, C, H, W)
 

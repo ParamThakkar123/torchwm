@@ -13,6 +13,7 @@ Available datasets:
 """
 
 import torch
+import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Tuple, Dict, List
 from dataclasses import dataclass

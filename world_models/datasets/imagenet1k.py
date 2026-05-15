@@ -28,10 +28,37 @@ def make_imagenet1k(
     drop_last=True,
     subset_file=None,
 ):
-    """Build an ImageNet-1K dataset and dataloader with distributed sampling support.
+    """Build an ImageNet-1K dataset and dataloader with distributed sampling.
 
-    This helper optionally restricts data to a subset file and returns the
-    `(dataset, dataloader, sampler)` tuple used by training scripts.
+    Factory function that creates an ImageNet dataset and returns a tuple of
+    (dataset, dataloader, sampler) for use in JEPA or other self-supervised
+    training pipelines.
+
+    Supports:
+        - Optional data staging from network storage to local scratch
+        - Subset filtering via text file listing allowed image IDs
+        - Distributed sampling for multi-GPU training
+
+    Args:
+        transform: Transforms to apply to images.
+        batch_size (int): Number of samples per batch.
+        collator (callable, optional): Custom collate function (e.g., mask collator).
+        pin_mem (bool): Whether to pin memory for GPU transfer (default: True).
+        num_workers (int): Number of data loading workers (default: 8).
+        world_size (int): Number of distributed processes (default: 1).
+        rank (int): Rank of current process (default: 0).
+        root_path (str, optional): Root path containing ImageNet data.
+        image_folder (str, optional): Subfolder containing ImageNet data.
+        training (bool): Load train or validation split (default: True).
+        copy_data (bool): Copy data locally for faster loading (default: False).
+        drop_last (bool): Drop incomplete final batch (default: True).
+        subset_file (str, optional): Path to file listing allowed image IDs.
+
+    Returns:
+        tuple: (dataset, dataloader, sampler)
+            - dataset: ImageNet dataset instance
+            - dataloader: DataLoader with distributed sampling
+            - sampler: DistributedSampler instance
     """
     dataset = ImageNet(
         root=root_path,
@@ -65,9 +92,15 @@ def make_imagenet1k(
 class ImageNet(torchvision.datasets.ImageFolder):
     """ImageNet dataset wrapper with optional local copy/extract workflow.
 
-    The class extends `torchvision.datasets.ImageFolder` and can stage data
-    from shared storage into local scratch space for faster multi-process
-    training on cluster environments.
+    Extends torchvision.datasets.ImageFolder to support data staging from
+    network storage to local scratch space for faster multi-process training
+    on cluster environments (e.g., SLURM).
+
+    Features:
+        - Optional data copying from network storage to local /scratch
+        - Extracts tar archives automatically on first access
+        - Supports train/validation splits
+        - Optional target indexing for balanced sampling
     """
 
     def __init__(
@@ -82,20 +115,19 @@ class ImageNet(torchvision.datasets.ImageFolder):
         copy_data=True,
         index_targets=False,
     ):
+        """Initialize ImageNet dataset.
+
+        Args:
+            root (str): Root network directory for ImageNet data.
+            image_folder (str): Path to images inside root (default: "imagenet_full_size/061417/").
+            tar_file (str): Name of tar archive to extract (default: "imagenet_full_size-061417.tar.gz").
+            transform (callable, optional): Transform to apply to images.
+            train (bool): Load train data if True, validation if False (default: True).
+            job_id (str, optional): SLURM job ID for local storage path.
+            local_rank (int, optional): Local process rank for coordination.
+            copy_data (bool): Copy data from network to local scratch (default: True).
+            index_targets (bool): Build index of image IDs per class (default: False).
         """
-        ImageNet
-
-        Dataset wrapper (can copy data locally to machine)
-
-        :param root: root network directory for ImageNet data
-        :param image_folder: path to images inside root network directory
-        :param tar_file: zipped image_folder inside root network directory
-        :param train: whether to load train data (or validation)
-        :param job_id: scheduler job-id used to create dir on local machine
-        :param copy_data: whether to copy data from network file locally
-        :param index_targets: whether to index the id of each labeled image
-        """
-
         suffix = "train/" if train else "val/"
         data_path = None
         if copy_data:
@@ -224,7 +256,7 @@ def copy_imgnt_locally(
                 start_time = time.time()
                 logger.info(f"Executing {cmnd}")
                 subprocess.run(cmnd)
-                logger.info(f"Cmnd took {(time.time()-start_time)/60.} min.")
+                logger.info(f"Cmnd took {(time.time() - start_time) / 60.0} min.")
             with open(tmp_sgnl_file, "+w") as f:
                 print("Done copying locally.", file=f)
         else:

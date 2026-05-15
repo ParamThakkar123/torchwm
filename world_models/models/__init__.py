@@ -1,35 +1,66 @@
+"""
+Models sub-module - Core world model implementations.
+
+Exported Components:
+    Agents (High-level training wrappers):
+        - DreamerAgent: High-level Dreamer training API
+        - JEPAAgent: JEPA agent for self-supervised learning
+        - Planet: PlaNet planning agent
+        - VisionTransformer: Vision Transformer for image encoding
+        - ModularRSSM: Modular RSSM with swappable components
+        - Genie: Generative Interactive Environment model
+
+    Core Models:
+        - Dreamer: Core Dreamer implementation with RSSM, actor, critic
+        - RSSM: Recurrent State-Space Model (Dreamer-style)
+        - RecurrentStateSpaceModel: PlaNet-style RSSM
+        - LatentActionModel: Latent action learning for Genie
+        - DynamicsModel: Future frame prediction for Genie
+
+    Factory Functions:
+        - create_genie, create_genie_small, create_genie_large
+        - create_modular_rssm
+        - create_latent_action_model, create_dynamics_model
+"""
+
 __all__ = [
+    # Agents
     "Dreamer",
-    "Planet",
     "DreamerAgent",
+    "Planet",
     "JEPAAgent",
     "VisionTransformer",
     "ModularRSSM",
     "create_modular_rssm",
     "Genie",
-    "LatentActionModel",
-    "DynamicsModel",
     "create_genie",
     "create_genie_small",
     "create_genie_large",
+    # RSSM Variants
+    "RSSM",
+    "RecurrentStateSpaceModel",
+    # Genie Sub-components
+    "LatentActionModel",
+    "DynamicsModel",
     "create_latent_action_model",
     "create_dynamics_model",
 ]
 
 
 def __getattr__(name):
+    # Agents
     if name == "Dreamer":
         from .dreamer import Dreamer
 
         return Dreamer
-    if name == "Planet":
-        from .planet import Planet
-
-        return Planet
     if name == "DreamerAgent":
         from .dreamer import DreamerAgent
 
         return DreamerAgent
+    if name == "Planet":
+        from .planet import Planet
+
+        return Planet
     if name == "JEPAAgent":
         from .jepa_agent import JEPAAgent
 
@@ -50,14 +81,6 @@ def __getattr__(name):
         from .genie import Genie
 
         return Genie
-    if name == "LatentActionModel":
-        from .latent_action_model import LatentActionModel
-
-        return LatentActionModel
-    if name == "DynamicsModel":
-        from .dynamics_model import DynamicsModel
-
-        return DynamicsModel
     if name == "create_genie":
         from .genie import create_genie
 
@@ -70,6 +93,26 @@ def __getattr__(name):
         from .genie import create_genie_large
 
         return create_genie_large
+
+    # RSSM Variants
+    if name == "RSSM":
+        from .dreamer_rssm import RSSM
+
+        return RSSM
+    if name == "RecurrentStateSpaceModel":
+        from .rssm import RecurrentStateSpaceModel
+
+        return RecurrentStateSpaceModel
+
+    # Genie Sub-components
+    if name == "LatentActionModel":
+        from .latent_action_model import LatentActionModel
+
+        return LatentActionModel
+    if name == "DynamicsModel":
+        from .dynamics_model import DynamicsModel
+
+        return DynamicsModel
     if name == "create_latent_action_model":
         from .latent_action_model import create_latent_action_model
 
@@ -78,4 +121,5 @@ def __getattr__(name):
         from .dynamics_model import create_dynamics_model
 
         return create_dynamics_model
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

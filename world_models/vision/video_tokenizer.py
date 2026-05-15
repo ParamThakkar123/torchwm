@@ -8,14 +8,51 @@ from world_models.blocks.st_transformer import STTransformer
 
 
 class VideoTokenizer(nn.Module):
-    """Video Tokenizer using VQ-VAE with ST-Transformer.
+    """Video Tokenizer using VQ-VAE with Spatiotemporal Transformer.
 
-    Compresses video frames into discrete tokens using a VQ-VAE objective.
-    Uses spatiotemporal transformer in both encoder and decoder for improved
-    temporal dynamics encoding.
+    This is a core component of Genie (Google DeepMind, 2024), used to compress
+    raw video frames into discrete latent tokens that can be processed by
+    downstream models like the LatentActionModel and DynamicsModel.
 
-    Based on Genie paper: "Neural Discrete Representation Learning" (VQ-VAE)
-    and "Spatiotemporal Transformer" architecture.
+    The tokenizer uses Vector Quantized Variational Autoencoder (VQ-VAE) objective
+    to learn a discrete codebook of video representations. Unlike standard VQ-VAE,
+    this uses a Spatiotemporal (ST) Transformer in both encoder and decoder to
+    better capture temporal dynamics in videos.
+
+    Architecture:
+        1. Patch Embedding: Convert (B, C, T, H, W) video to patch tokens
+        2. Encoder ST-Transformer: Process spatial-temporal patches
+        3. Vector Quantization: Discretize continuous embeddings to codebook entries
+        4. Decoder ST-Transformer: Reconstruct video from quantized tokens
+        5. Patch Unembedding: Convert tokens back to video frames
+
+    Key Features:
+        - Causal processing: Each frame's encoding only uses previous frames
+        - Discrete tokens: Enables autoregressive prediction with latent actions
+        - Memory efficient: Uses ST-Transformer instead of full ViT to reduce O(n²) complexity
+
+    Usage with Genie:
+        tokenizer = VideoTokenizer(
+            num_frames=16,
+            image_size=64,
+            patch_size=4,
+            vocab_size=1024,
+            embedding_dim=32
+        )
+        reconstructed, indices, loss_dict = tokenizer(video_frames)
+
+        # For discrete token input to dynamics model:
+        token_embeddings = tokenizer.decode_indices(indices)
+
+    Training:
+        The tokenizer is trained with VQ-VAE objective:
+        - Reconstruction loss: MSE between input and reconstructed video
+        - VQ loss: Commit to codebook embeddings (encourages learning useful codes)
+        - Commitment loss: Penalizes encoder outputs drifting from codebook
+
+    Reference:
+        Genie: Generative Interactive Environments
+        Bruce et al., Google DeepMind, 2024 - https://arxiv.org/abs/2402.15391
     """
 
     def __init__(

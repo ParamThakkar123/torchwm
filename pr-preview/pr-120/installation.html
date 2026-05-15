@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-120/installation.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Gymnasium and DM Control environments,, viz..." />
-<meta name="description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Gymnasium and DM Control environments,, viz..." />
+<meta property="og:description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Additional Gym environment dependencies (hu..." />
+<meta name="description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Additional Gym environment dependencies (hu..." />
 
     <title>Installation &#8212; TorchWM 0.3.2 documentation</title>
   
@@ -626,18 +626,19 @@
 <section id="from-pypi">
 <h2>From PyPI<a class="headerlink" href="#from-pypi" title="Link to this heading">#</a></h2>
 <p>For stable releases:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Minimal installation (core dependencies only)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Core dependencies (torch, torchvision, torchaudio, gym, gymnasium, etc.)</span>
 pip<span class="w"> </span>install<span class="w"> </span>torchwm
 
 <span class="c1"># With specific extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym<span class="o">]</span><span class="w">      </span><span class="c1"># Gym environments support</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>viz<span class="o">]</span><span class="w">      </span><span class="c1"># Visualization tools</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml<span class="o">]</span><span class="w">       </span><span class="c1"># Machine learning utilities</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>docs<span class="o">]</span><span class="w">     </span><span class="c1"># Documentation tools</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>dev<span class="o">]</span><span class="w">      </span><span class="c1"># Development tools (testing, linting)</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym<span class="o">]</span><span class="w">       </span><span class="c1"># Additional gym environments (huggingface-hub, pygame, autorom)</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml-agents<span class="o">]</span><span class="w"> </span><span class="c1"># Unity ML-Agents support</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml<span class="o">]</span><span class="w">        </span><span class="c1"># TensorBoard, Weights &amp; Biases, logging tools</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>viz<span class="o">]</span><span class="w">       </span><span class="c1"># FastAPI, Uvicorn, documentation tools</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>docs<span class="o">]</span><span class="w">      </span><span class="c1"># Sphinx and documentation tools</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>dev<span class="o">]</span><span class="w">       </span><span class="c1"># Testing and development tools (pytest, mypy, pre-commit)</span>
 
 <span class="c1"># Install multiple extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym,viz<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym,ml-agents,dev<span class="o">]</span>
 </pre></div>
 </div>
 <section id="available-extras">
@@ -650,24 +651,30 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gym</span></code></p></td>
-<td><p>Gymnasium and DM Control environments</p></td>
+<td><p>Additional Gym environment dependencies (huggingface-hub, pygame, autorom)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">viz</span></code></p></td>
-<td><p>Visualization and plotting tools</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ml-agents</span></code></p></td>
+<td><p>Unity ML-Agents support</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ml</span></code></p></td>
-<td><p>Additional ML utilities and helpers</p></td>
+<td><p>TensorBoard, Weights &amp; Biases, and logging tools</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
-<td><p>Documentation building tools</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">viz</span></code></p></td>
+<td><p>FastAPI, Uvicorn for visualization server</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
-<td><p>Development tools (pytest, ruff, mypy, pre-commit)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
+<td><p>Sphinx and documentation building tools</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
+<td><p>pytest, mypy, pre-commit for development</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>The minimal installation includes core dependencies: torch, torchvision, torchaudio, einops, pyyaml, tqdm.</p>
+</section>
+<section id="core-dependencies">
+<h3>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Link to this heading">#</a></h3>
+<p>The minimal installation includes: torch, torchvision, torchaudio, einops, pyyaml, tqdm, opencv-python, requests, gym, gymnasium, moviepy, h5py, plotly, ale-py, selenium, scikit-learn, umap-learn.</p>
 </section>
 </section>
 <section id="from-source">
@@ -676,11 +683,11 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ParamThakkar123/torchwm.git
 <span class="nb">cd</span><span class="w"> </span>torchwm
 
-<span class="c1"># Minimal installation</span>
+<span class="c1"># Core dependencies</span>
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 
 <span class="c1"># With extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[gym,viz,dev]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[gym,ml-agents,ml,viz,dev,docs]&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -694,20 +701,6 @@ uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </spa
 pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 </pre></div>
 </div>
-</section>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
-<section id="core-dependencies">
-<h3>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p>Python &gt;= 3.8</p></li>
-<li><p>PyTorch &gt;= 2.0</p></li>
-<li><p>torch, torchvision, torchaudio</p></li>
-<li><p>einops, pyyaml, tqdm</p></li>
-<li><p>NumPy, Pillow</p></li>
-</ul>
-<p>Optional dependencies are installed via extras (see Available Extras above).</p>
-</section>
 </section>
 <section id="docker">
 <h2>Docker<a class="headerlink" href="#docker" title="Link to this heading">#</a></h2>
@@ -783,14 +776,11 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-pypi">From PyPI</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#available-extras">Available Extras</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-dependencies">Core Dependencies</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-support">CUDA Support</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#requirements">Requirements</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-dependencies">Core Dependencies</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#docker">Docker</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verification">Verification</a></li>
 </ul>

@@ -20,13 +20,15 @@ Train Dreamer agents in just 3 lines of code. TorchWM provides a unified interfa
 ### Installation
 
 ```bash
-# Minimal installation (core dependencies only)
+# Core dependencies
 pip install torchwm
 
-# With extras for specific features
-pip install torchwm[gym]    # Gym environments
-pip install torchwm[viz]   # Visualization tools
-pip install torchwm[dev]   # Development tools
+# With extras
+pip install torchwm[gym]       # Additional gym environments
+pip install torchwm[ml-agents] # Unity ML-Agents
+pip install torchwm[ml]        # TensorBoard, W&B logging
+pip install torchwm[viz]       # FastAPI visualization
+pip install torchwm[dev]       # Testing and linting
 ```
 
 ### Training a Dreamer Agent

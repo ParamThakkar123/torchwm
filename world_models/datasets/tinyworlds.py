@@ -201,7 +201,7 @@ class TinyWorldsDataset(Dataset):
             self.raw_height = data.shape[2]
             self.raw_width = data.shape[3]
             self.channels = data.shape[4]
-            self.data_layout = "NCTHW" if data.shape[-1] <= 4 else "NTHWC"
+            self.data_layout = "NTHWC"
         elif len(data.shape) == 4:
             self.num_samples = data.shape[0]
             self.video_length = data.shape[1]
@@ -227,26 +227,12 @@ class TinyWorldsDataset(Dataset):
         if not isinstance(video, np.ndarray):
             video = np.array(video)
 
-        if idx == 0:
-            logger.info(
-                f"Sample video shape: {video.shape}, dtype: {video.dtype}, layout: {self.data_layout}"
-            )
-
-        if self.data_layout == "NCTHW":
-            video = np.transpose(video, (0, 2, 3, 1))
-        elif self.data_layout == "NTHWC":
-            video = np.transpose(video, (0, 1, 3, 2))
-        elif self.data_layout == "NTHW":
+        if self.data_layout == "NTHWC":
             pass
+        elif self.data_layout == "NTHW":
+            video = np.expand_dims(video, axis=-1)
         else:
             raise ValueError(f"Unknown data layout: {self.data_layout}")
-
-        if len(video.shape) == 3:
-            if video.shape[-1] == 1:
-                video = np.repeat(video, 3, axis=-1)
-            else:
-                video = np.expand_dims(video, axis=-1)
-                video = np.repeat(video, 3, axis=-1)
 
         total_frames = video.shape[0]
         if total_frames >= self.num_frames:
@@ -256,22 +242,20 @@ class TinyWorldsDataset(Dataset):
             padding = np.tile(video[-1:], (self.num_frames - total_frames, 1, 1, 1))
             video = np.concatenate([video, padding], axis=0)
 
-        processed = []
-        for frame in video:
-            if frame.max() <= 1.0 and frame.dtype != np.uint8:
-                frame = (frame * 255).astype(np.uint8)
-            img = Image.fromarray(frame)
-            img = img.resize(
-                (self.image_size, self.image_size), Image.Resampling.BILINEAR
-            )
-            processed.append(np.array(img))
-        video = np.stack(processed)
-
         if video.max() <= 1.0:
-            video = video / 255.0
+            video = (video * 255).astype(np.uint8)
+        else:
+            video = video.astype(np.uint8)
 
         video = torch.from_numpy(video).float()
-        video = video.permute(0, 3, 1, 2)  # (T, H, W, C) -> (T, C, H, W)
+        video = video.permute(0, 3, 1, 2)
+        if video.shape[1] == 1:
+            video = video.expand(-1, 3, -1, -1)
+        video = video.reshape(
+            video.shape[0] * video.shape[1], video.shape[2], video.shape[3]
+        )
+        C_val = video.shape[0] // self.num_frames
+        video = video.reshape(C_val, self.num_frames, video.shape[1], video.shape[2])
 
         return video
 

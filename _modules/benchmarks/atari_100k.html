@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>benchmarks.atari_100k &#8212; TorchWM 0.3.2 documentation</title>
+    <title>benchmarks.atari_100k &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1233,7 +1233,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="compute_human_normalized_score">
-<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.compute_human_normalized_score">[docs]</a>
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.compute_human_normalized_score">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_human_normalized_score</span><span class="p">(</span><span class="n">score</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">game</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute human-normalized score for a game.</span>
 
@@ -1250,7 +1250,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="run_single_game">
-<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.run_single_game">[docs]</a>
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.run_single_game">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">run_single_game</span><span class="p">(</span>
     <span class="n">game</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">IRISConfig</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1324,7 +1324,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="run_atari_100k">
-<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.run_atari_100k">[docs]</a>
+<a class="viewcode-back" href="../../api_reference.html#benchmarks.run_atari_100k">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">run_atari_100k</span><span class="p">(</span>
     <span class="n">games</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">IRISConfig</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1422,8 +1422,6 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<div class="viewcode-block" id="print_results_table">
-<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.print_results_table">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">print_results_table</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print a nice table of results.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Game&#39;</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Mean Return&#39;</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Std&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;HNS&#39;</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1432,12 +1430,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;game_name&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;20</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;mean_return&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;std_return&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;human_normalized_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;8.3f</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
 
 
-
-<div class="viewcode-block" id="main">
-<a class="viewcode-back" href="../../api_reference.html#benchmarks.atari_100k.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run full Atari 100k benchmark.&quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
@@ -1474,8 +1469,7 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
     <span class="c1"># Print results table</span>
-    <span class="n">print_results_table</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
-
+    <span class="n">print_results_table</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>

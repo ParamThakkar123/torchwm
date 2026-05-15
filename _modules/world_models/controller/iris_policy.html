@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.controller.iris_policy &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.controller.iris_policy &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1012,10 +1012,28 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="IRISActor">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.iris_policy.IRISActor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISActor</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor network for IRIS policy.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actor network for IRIS (Imagined Rollouts with Implicit Successor) policy.</span>
 
-<span class="sd">    Takes reconstructed frames as input and outputs action logits.</span>
-<span class="sd">    Uses CNN + LSTM architecture with burn-in mechanism.</span>
+<span class="sd">    Takes reconstructed frames as input and outputs action logits for policy control.</span>
+<span class="sd">    Uses a CNN feature extractor followed by an LSTM for temporal processing.</span>
+<span class="sd">    Supports a burn-in mechanism for initializing the hidden state with context frames.</span>
+
+<span class="sd">    Architecture:</span>
+<span class="sd">        - CNN: Extracts features from input frames (3x64x64 -&gt; 512)</span>
+<span class="sd">        - LSTM: Processes temporal sequences with configurable layers</span>
+<span class="sd">        - Linear: Maps hidden states to action logits</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        action_size (int): Number of discrete actions.</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size (default: 512).</span>
+<span class="sd">        num_layers (int): Number of LSTM layers (default: 4).</span>
+<span class="sd">        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        action_size (int): Number of discrete actions.</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size.</span>
+<span class="sd">        num_layers (int): Number of LSTM layers.</span>
+<span class="sd">        frame_shape (tuple): Input frame shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1158,7 +1176,28 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISCritic</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Critic network for IRIS value estimation.</span>
 
-<span class="sd">    Shares CNN and LSTM with actor, but has separate value head.</span>
+<span class="sd">    Estimates the value function for given frame sequences. Shares the CNN</span>
+<span class="sd">    feature extractor and LSTM backbone with the actor for efficiency, but</span>
+<span class="sd">    has a separate value head for estimating expected cumulative rewards.</span>
+
+<span class="sd">    Architecture:</span>
+<span class="sd">        - CNN: Shared feature extractor with actor (3x64x64 -&gt; 512)</span>
+<span class="sd">        - LSTM: Temporal processing with same architecture as actor</span>
+<span class="sd">        - Linear: Maps hidden states to scalar values</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size (default: 512).</span>
+<span class="sd">        num_layers (int): Number of LSTM layers (default: 4).</span>
+<span class="sd">        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size.</span>
+<span class="sd">        num_layers (int): Number of LSTM layers.</span>
+<span class="sd">        frame_shape (tuple): Input frame shape.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        values: Value estimates with shape (B, T).</span>
+<span class="sd">        hidden_state: Updated LSTM hidden state (h, c) tuple.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1241,9 +1280,27 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="CNNFeatureExtractor">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.iris_policy.CNNFeatureExtractor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CNNFeatureExtractor</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;CNN feature extractor shared between actor and critic.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CNN feature extractor shared between actor and critic networks.</span>
 
-<span class="sd">    Processes input frames into feature vectors.</span>
+<span class="sd">    Processes input frames through a series of convolutional layers to produce</span>
+<span class="sd">    fixed-size feature vectors. Architecture: Conv2d(3-&gt;32) -&gt; ReLU -&gt; stride2</span>
+<span class="sd">    repeated 4 times, followed by a linear projection to output_size.</span>
+
+<span class="sd">    Architecture:</span>
+<span class="sd">        - Conv layers: 32 -&gt; 64 -&gt; 128 -&gt; 256 channels</span>
+<span class="sd">        - Each conv has stride=2 for spatial downsampling</span>
+<span class="sd">        - Final linear layer projects to desired output dimension</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).</span>
+<span class="sd">        output_size (int): Size of output feature vector (default: 512).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        frame_shape (tuple): Input frame shape.</span>
+<span class="sd">        output_size (int): Output feature dimension.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        features: Feature vectors with shape (B, output_size).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1300,9 +1357,32 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="IRISPolicy">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.iris_policy.IRISPolicy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISPolicy</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combined policy module for IRIS.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combined policy module for IRIS (Imagined Rollouts with Implicit Successor).</span>
 
-<span class="sd">    Wraps actor and optionally critic for convenience.</span>
+<span class="sd">    Provides a unified interface for actor-only or actor-critic policies.</span>
+<span class="sd">    Used in the IRIS algorithm where the actor generates actions from reconstructed</span>
+<span class="sd">    frames and the critic estimates value functions for training.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        action_size (int): Number of discrete actions.</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size (default: 512).</span>
+<span class="sd">        num_layers (int): Number of LSTM layers (default: 4).</span>
+<span class="sd">        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        actor (IRISActor): The actor network for action selection.</span>
+<span class="sd">        hidden_size (int): LSTM hidden state size.</span>
+<span class="sd">        num_layers (int): Number of LSTM layers.</span>
+<span class="sd">        frame_shape (tuple): Input frame shape.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; policy = IRISPolicy(</span>
+<span class="sd">        ...     action_size=18,</span>
+<span class="sd">        ...     hidden_size=512,</span>
+<span class="sd">        ...     num_layers=4,</span>
+<span class="sd">        ...     frame_shape=(3, 64, 64)</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; action = policy.act(frame, temperature=1.0, deterministic=False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>

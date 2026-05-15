@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.models.diffusion.DiT &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.models.diffusion.DiT &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1028,8 +1028,27 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create sinusoidal timestep embeddings for diffusion conditioning.</span>
 
-<span class="sd">    Embeddings are scaled relative to configured diffusion timesteps and are</span>
-<span class="sd">    consumed by the DiT conditioning MLP.</span>
+<span class="sd">    This function generates positional-style embeddings for diffusion timesteps,</span>
+<span class="sd">    following the same pattern as transformer positional encodings. The embeddings</span>
+<span class="sd">    encode the noise level (t) and are used to condition the diffusion model.</span>
+
+<span class="sd">    Math:</span>
+<span class="sd">        embedding[t] = [sin(t/10000^(2i/d)), cos(t/10000^(2i/d))] for i in [0, d/2)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        timesteps: Tensor of integer timesteps, shape (B,) or (B, 1)</span>
+<span class="sd">        dim: Embedding dimension (must be even)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tensor of shape (B, dim) with sinusoidal embeddings</span>
+
+<span class="sd">    Usage with DiT:</span>
+<span class="sd">        t = torch.tensor([0, 500, 1000])  # Timesteps</span>
+<span class="sd">        emb = sinusoidal_time_embedding(t, dim=256)  # (3, 256)</span>
+
+<span class="sd">        # Condition the model:</span>
+<span class="sd">        # - Add to timestep embedding to MLP input</span>
+<span class="sd">        # - Use AdaLN for adaptive normalization</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">half</span> <span class="o">=</span> <span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span>
     <span class="n">freqs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
@@ -1048,8 +1067,26 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">PatchEmbed</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Patchify an image into a sequence of learnable patch tokens.</span>
 
-<span class="sd">    A strided convolution performs patch extraction and projects each patch</span>
-<span class="sd">    to the transformer hidden dimension with additive positional embeddings.</span>
+<span class="sd">    Used in Vision Transformers (ViT) and DiT to convert 2D images into</span>
+<span class="sd">    sequences of token embeddings that can be processed by transformers.</span>
+
+<span class="sd">    Process:</span>
+<span class="sd">        1. Conv2d with kernel_size=stride=patch_size extracts non-overlapping patches</span>
+<span class="sd">        2. Each patch is projected to embed_dim via linear layer (Conv2d)</span>
+<span class="sd">        3. Learnable positional embeddings are added for spatial information</span>
+
+<span class="sd">    Input: (B, C, H, W) images</span>
+<span class="sd">    Output: (B, N, embed_dim) where N = (H/patch_size) * (W/patch_size)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img_size: Image size (assumes square), e.g., 32 for CIFAR</span>
+<span class="sd">        patch_size: Size of each patch (typically 4, 8, or 16)</span>
+<span class="sd">        in_channels: Number of input channels (3 for RGB)</span>
+<span class="sd">        embed_dim: Output dimension for each patch token</span>
+
+<span class="sd">    Usage with DiT:</span>
+<span class="sd">        patch_embed = PatchEmbed(img_size=32, patch_size=4, in_channels=3, embed_dim=256)</span>
+<span class="sd">        tokens = patch_embed(images)  # (B, 64, 256) for 32x32 image with patch_size=4</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">):</span>
@@ -1302,7 +1339,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">def</span><span class="w"> </span><span class="nf">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model Parameters: </span><span class="si">{</span><span class="n">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">/</span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model Parameters: </span><span class="si">{</span><span class="n">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M&quot;</span><span class="p">)</span>
 
         <span class="n">ema_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">ema</span><span class="p">:</span>
@@ -1346,7 +1383,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
                     <span class="nb">print</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Epoch [</span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s2">] Step [</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">] Loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> Time Elapsed: </span><span class="si">{</span><span class="n">elapsed</span><span class="o">/</span><span class="mi">60</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> min&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Epoch [</span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s2">] Step [</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">] Loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> Time Elapsed: </span><span class="si">{</span><span class="n">elapsed</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">60</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> min&quot;</span>
                     <span class="p">)</span>
                     <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 

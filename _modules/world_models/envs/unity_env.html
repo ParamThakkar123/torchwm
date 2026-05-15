@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.envs.unity_env &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.envs.unity_env &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1013,7 +1013,28 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="make_unity_mlagents_env">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_unity_mlagents_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_unity_mlagents_env</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory helper for Unity ML-Agents environments.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a Unity ML-Agents environment wrapper.</span>
+
+<span class="sd">    Factory function that instantiates a UnityMLAgentsEnv with the provided</span>
+<span class="sd">    keyword arguments. Suitable for integrating Unity-based environments</span>
+<span class="sd">    with Dreamer-style world model pipelines.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        **kwargs: Keyword arguments passed to UnityMLAgentsEnv, including:</span>
+<span class="sd">            - file_name (str): Path to the Unity environment binary.</span>
+<span class="sd">            - behavior_name (str, optional): Name of the behavior to use.</span>
+<span class="sd">            - seed (int): Random seed (default: 0).</span>
+<span class="sd">            - size (tuple): Image size as (height, width) (default: (64, 64)).</span>
+<span class="sd">            - worker_id (int): Worker ID for multi-environment setup (default: 0).</span>
+<span class="sd">            - base_port (int): Base port for communication (default: 5005).</span>
+<span class="sd">            - no_graphics (bool): Disable graphics rendering (default: True).</span>
+<span class="sd">            - time_scale (float): Simulation time scale (default: 20.0).</span>
+<span class="sd">            - quality_level (int): Graphics quality level (default: 1).</span>
+<span class="sd">            - max_episode_steps (int): Max steps per episode (default: 1000).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        UnityMLAgentsEnv: A Gym-compatible wrapper for Unity environments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">UnityMLAgentsEnv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -1021,13 +1042,38 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="UnityMLAgentsEnv">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.UnityMLAgentsEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UnityMLAgentsEnv</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gym-like wrapper for a Unity ML-Agents environment.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-like wrapper for Unity ML-Agents environments.</span>
 
-<span class="sd">    Notes:</span>
-<span class="sd">    - Supports single-agent control.</span>
-<span class="sd">    - Supports continuous action spaces.</span>
-<span class="sd">    - Returns channel-first uint8 images in obs[&quot;image&quot;] for Dreamer-style pipelines.</span>
+<span class="sd">    Provides a unified interface for Unity-based environments, converting</span>
+<span class="sd">    observations to image format compatible with pixel-based world models.</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Supports single-agent control with continuous action spaces.</span>
+<span class="sd">        - Returns observations as {&quot;image&quot;: (C, H, W)} with uint8 values.</span>
+<span class="sd">        - Normalizes actions to [-1, 1] range.</span>
+<span class="sd">        - Includes rendered frames in observations for visual policies.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_name (str): Path to the Unity environment binary.</span>
+<span class="sd">        behavior_name (str, optional): Name of the behavior to use. If None,</span>
+<span class="sd">            uses the first available behavior.</span>
+<span class="sd">        seed (int): Random seed for environment (default: 0).</span>
+<span class="sd">        size (tuple): Target image size as (height, width) (default: (64, 64)).</span>
+<span class="sd">        worker_id (int): Worker ID for multi-environment setup (default: 0).</span>
+<span class="sd">        base_port (int): Base port for Unity environment communication (default: 5005).</span>
+<span class="sd">        no_graphics (bool): Disable graphics rendering for faster simulation (default: True).</span>
+<span class="sd">        time_scale (float): Simulation time scale multiplier (default: 20.0).</span>
+<span class="sd">        quality_level (int): Graphics quality level 0-5 (default: 1).</span>
+<span class="sd">        max_episode_steps (int): Maximum steps per episode (default: 1000).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        observation_space: Dict space with &quot;image&quot; key containing (3, H, W) Box.</span>
+<span class="sd">        action_space: Box space with actions in [-1, 1] range.</span>
+<span class="sd">        max_episode_steps: Maximum steps per episode.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If no behaviors found or action space is not continuous.</span>
+<span class="sd">        RuntimeError: If no agents available after reset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>

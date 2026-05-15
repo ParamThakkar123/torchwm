@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.envs.dmc &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.envs.dmc &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1015,6 +1015,28 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    The wrapper exposes DMC observations and actions through Gym spaces and</span>
 <span class="sd">    adds a rendered RGB image to each observation dict so image-based world</span>
 <span class="sd">    model pipelines can train consistently across backends.</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Parses domain-task names (e.g., &quot;cheetah-run&quot; -&gt; domain=&quot;cheetah&quot;, task=&quot;run&quot;)</span>
+<span class="sd">        - Automatically handles special cases like &quot;cup&quot; -&gt; &quot;ball_in_cup&quot;</span>
+<span class="sd">        - Renders RGB images at configurable resolution</span>
+<span class="sd">        - Returns observations as dict with both state vectors and images</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): Environment name in format &quot;domain-task&quot; (e.g., &quot;cheetah-run&quot;).</span>
+<span class="sd">        seed (int): Random seed for environment initialization.</span>
+<span class="sd">        size (tuple): Target image size as (height, width) (default: (64, 64)).</span>
+<span class="sd">        camera (int, optional): Camera ID for rendering. Defaults to 0 for most</span>
+<span class="sd">            domains, 2 for quadruped.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        observation_space (gym.spaces.Dict): Dict space with state keys and &quot;image&quot;.</span>
+<span class="sd">        action_space (gym.spaces.Box): Continuous action space from DMC spec.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; env = DeepMindControlEnv(&quot;cheetah-run&quot;, seed=0, size=(64, 64))</span>
+<span class="sd">        &gt;&gt;&gt; obs = env.reset()</span>
+<span class="sd">        &gt;&gt;&gt; print(obs.keys())  # dict_keys([&#39;position&#39;, &#39;velocity&#39;, &#39;image&#39;])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.memory.iris_memory &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.memory.iris_memory &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1010,10 +1010,38 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="IRISReplayBuffer">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISReplayBuffer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replay buffer for IRIS training.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replay buffer for IRIS (Imagined Rollouts with Implicit Successor) training.</span>
 
-<span class="sd">    Stores (observation, action, reward, terminal) tuples and supports</span>
-<span class="sd">    sampling contiguous sequences used by the world model and actor-critic.</span>
+<span class="sd">    Stores (observation, action, reward, terminal) tuples in a ring buffer</span>
+<span class="sd">    and supports sampling contiguous sequences for world model training.</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Ring buffer with fixed capacity (FIFO eviction when full)</span>
+<span class="sd">        - Stores uint8 images for memory efficiency</span>
+<span class="sd">        - Samples sequences with validation to avoid episode boundaries</span>
+<span class="sd">        - Supports sequence sampling for temporal learning</span>
+
+<span class="sd">    Memory Layout:</span>
+<span class="sd">        - observations: (capacity, C, H, W) uint8</span>
+<span class="sd">        - actions: (capacity, action_size) float32</span>
+<span class="sd">        - rewards: (capacity,) float32</span>
+<span class="sd">        - terminals: (capacity,) float32</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        size (int): Maximum number of transitions to store.</span>
+<span class="sd">        obs_shape (tuple): Shape of observations as (C, H, W).</span>
+<span class="sd">        action_size (int): Dimension of actions.</span>
+<span class="sd">        seq_len (int): Length of sequences to sample (default: 20).</span>
+<span class="sd">        batch_size (int): Number of sequences per batch (default: 64).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        size (int): Buffer capacity.</span>
+<span class="sd">        obs_shape (tuple): Observation shape.</span>
+<span class="sd">        action_size (int): Action dimension.</span>
+<span class="sd">        seq_len (int): Sequence length.</span>
+<span class="sd">        batch_size (int): Batch size.</span>
+<span class="sd">        steps (int): Total transitions added.</span>
+<span class="sd">        episodes (int): Number of episode terminations observed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1043,7 +1071,14 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="IRISReplayBuffer.add">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">terminal</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a transition to the buffer.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a transition to the buffer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            obs: Observation array with shape (C, H, W).</span>
+<span class="sd">            action: Action array with shape (action_size,).</span>
+<span class="sd">            reward: Scalar reward value.</span>
+<span class="sd">            terminal: Boolean indicating if episode terminated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">action</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rewards</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">reward</span>
@@ -1162,9 +1197,26 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="IRISOnPolicyBuffer">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.memory.iris_memory.IRISOnPolicyBuffer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISOnPolicyBuffer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Buffer for collecting trajectories during environment interaction.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;On-policy buffer for collecting trajectories during environment interaction.</span>
 
-<span class="sd">    Used to store current episode data before adding to main replay buffer.</span>
+<span class="sd">    Used to store the current episode data before adding to the main replay buffer.</span>
+<span class="sd">    Unlike the main replay buffer, this collects trajectories in a list-based</span>
+<span class="sd">    structure that&#39;s cleared after each episode.</span>
+
+<span class="sd">    Useful for:</span>
+<span class="sd">        - Collecting complete episode trajectories</span>
+<span class="sd">        - Storing data before batch processing</span>
+<span class="sd">        - Temporary storage during environment interaction</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        max_steps (int): Maximum number of steps to store (default: 1000).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        max_steps (int): Maximum buffer capacity.</span>
+<span class="sd">        observations (list): List of observations.</span>
+<span class="sd">        actions (list): List of actions.</span>
+<span class="sd">        rewards (list): List of rewards.</span>
+<span class="sd">        terminals (list): List of terminal flags.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>

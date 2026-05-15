@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.envs.gym_env &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.envs.gym_env &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1013,7 +1013,20 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="make_gym_env">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_gym_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_gym_env</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory helper for generic Gym/Gymnasium environments.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a GymImageEnv wrapper for generic Gym/Gymnasium environments.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        env: Either a string environment ID (e.g., &quot;Pendulum-v1&quot;) or a pre-built</span>
+<span class="sd">            gym environment instance.</span>
+<span class="sd">        **kwargs: Additional keyword arguments passed to GymImageEnv, including:</span>
+<span class="sd">            - seed (int): Random seed for environment (default: 0)</span>
+<span class="sd">            - size (tuple): Target image size as (height, width) (default: (64, 64))</span>
+<span class="sd">            - render_mode (str): Render mode for environment (default: &quot;rgb_array&quot;)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        GymImageEnv: A wrapper that always returns image observations in the</span>
+<span class="sd">            format {&quot;image&quot;: (C, H, W)} suitable for pixel-based world models.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -1021,13 +1034,29 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="GymImageEnv">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GymImageEnv</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Gym-like environment wrapper that always returns image observations.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-like environment wrapper that always returns image observations.</span>
 
-<span class="sd">    - Supports env IDs (string) and prebuilt env objects.</span>
-<span class="sd">    - For vector observations, it synthesizes an RGB image so pixel-based</span>
-<span class="sd">      world models can still train.</span>
-<span class="sd">    - For discrete actions, it exposes a vector action space and maps by argmax.</span>
+<span class="sd">    This wrapper normalizes diverse environment interfaces to return consistent</span>
+<span class="sd">    image-based observations suitable for pixel-based world models like Dreamer.</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Supports environment IDs (string) and pre-built environment objects.</span>
+<span class="sd">        - Synthesizes RGB images from vector observations for pixel-based training.</span>
+<span class="sd">        - Exposes continuous action spaces mapped to [-1, 1] range.</span>
+<span class="sd">        - Converts discrete actions to one-hot vectors.</span>
+<span class="sd">        - Returns observations as dict {&quot;image&quot;: (C, H, W)} with uint8 values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        env: Either a string environment ID (e.g., &quot;Pendulum-v1&quot;) or a pre-built</span>
+<span class="sd">            gym environment instance.</span>
+<span class="sd">        seed (int): Random seed for environment reset (default: 0).</span>
+<span class="sd">        size (tuple): Target image size as (height, width) (default: (64, 64)).</span>
+<span class="sd">        render_mode (str): Render mode for environment (default: &quot;rgb_array&quot;).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        observation_space: Dict space with &quot;image&quot; key containing (C, H, W) Box.</span>
+<span class="sd">        action_space: Box space with actions in [-1, 1] range.</span>
+<span class="sd">        max_episode_steps: Maximum steps per episode (default: 1000).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">):</span>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.datasets.imagenet1k &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.datasets.imagenet1k &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1035,10 +1035,37 @@ window.runMermaid = runMermaid;</script>
     <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">subset_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build an ImageNet-1K dataset and dataloader with distributed sampling support.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build an ImageNet-1K dataset and dataloader with distributed sampling.</span>
 
-<span class="sd">    This helper optionally restricts data to a subset file and returns the</span>
-<span class="sd">    `(dataset, dataloader, sampler)` tuple used by training scripts.</span>
+<span class="sd">    Factory function that creates an ImageNet dataset and returns a tuple of</span>
+<span class="sd">    (dataset, dataloader, sampler) for use in JEPA or other self-supervised</span>
+<span class="sd">    training pipelines.</span>
+
+<span class="sd">    Supports:</span>
+<span class="sd">        - Optional data staging from network storage to local scratch</span>
+<span class="sd">        - Subset filtering via text file listing allowed image IDs</span>
+<span class="sd">        - Distributed sampling for multi-GPU training</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transform: Transforms to apply to images.</span>
+<span class="sd">        batch_size (int): Number of samples per batch.</span>
+<span class="sd">        collator (callable, optional): Custom collate function (e.g., mask collator).</span>
+<span class="sd">        pin_mem (bool): Whether to pin memory for GPU transfer (default: True).</span>
+<span class="sd">        num_workers (int): Number of data loading workers (default: 8).</span>
+<span class="sd">        world_size (int): Number of distributed processes (default: 1).</span>
+<span class="sd">        rank (int): Rank of current process (default: 0).</span>
+<span class="sd">        root_path (str, optional): Root path containing ImageNet data.</span>
+<span class="sd">        image_folder (str, optional): Subfolder containing ImageNet data.</span>
+<span class="sd">        training (bool): Load train or validation split (default: True).</span>
+<span class="sd">        copy_data (bool): Copy data locally for faster loading (default: False).</span>
+<span class="sd">        drop_last (bool): Drop incomplete final batch (default: True).</span>
+<span class="sd">        subset_file (str, optional): Path to file listing allowed image IDs.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (dataset, dataloader, sampler)</span>
+<span class="sd">            - dataset: ImageNet dataset instance</span>
+<span class="sd">            - dataloader: DataLoader with distributed sampling</span>
+<span class="sd">            - sampler: DistributedSampler instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">ImageNet</span><span class="p">(</span>
         <span class="n">root</span><span class="o">=</span><span class="n">root_path</span><span class="p">,</span>
@@ -1075,9 +1102,15 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">ImageNet</span><span class="p">(</span><span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">ImageFolder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;ImageNet dataset wrapper with optional local copy/extract workflow.</span>
 
-<span class="sd">    The class extends `torchvision.datasets.ImageFolder` and can stage data</span>
-<span class="sd">    from shared storage into local scratch space for faster multi-process</span>
-<span class="sd">    training on cluster environments.</span>
+<span class="sd">    Extends torchvision.datasets.ImageFolder to support data staging from</span>
+<span class="sd">    network storage to local scratch space for faster multi-process training</span>
+<span class="sd">    on cluster environments (e.g., SLURM).</span>
+
+<span class="sd">    Features:</span>
+<span class="sd">        - Optional data copying from network storage to local /scratch</span>
+<span class="sd">        - Extracts tar archives automatically on first access</span>
+<span class="sd">        - Supports train/validation splits</span>
+<span class="sd">        - Optional target indexing for balanced sampling</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -1092,20 +1125,19 @@ window.runMermaid = runMermaid;</script>
         <span class="n">copy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">index_targets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        ImageNet</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ImageNet dataset.</span>
 
-<span class="sd">        Dataset wrapper (can copy data locally to machine)</span>
-
-<span class="sd">        :param root: root network directory for ImageNet data</span>
-<span class="sd">        :param image_folder: path to images inside root network directory</span>
-<span class="sd">        :param tar_file: zipped image_folder inside root network directory</span>
-<span class="sd">        :param train: whether to load train data (or validation)</span>
-<span class="sd">        :param job_id: scheduler job-id used to create dir on local machine</span>
-<span class="sd">        :param copy_data: whether to copy data from network file locally</span>
-<span class="sd">        :param index_targets: whether to index the id of each labeled image</span>
+<span class="sd">        Args:</span>
+<span class="sd">            root (str): Root network directory for ImageNet data.</span>
+<span class="sd">            image_folder (str): Path to images inside root (default: &quot;imagenet_full_size/061417/&quot;).</span>
+<span class="sd">            tar_file (str): Name of tar archive to extract (default: &quot;imagenet_full_size-061417.tar.gz&quot;).</span>
+<span class="sd">            transform (callable, optional): Transform to apply to images.</span>
+<span class="sd">            train (bool): Load train data if True, validation if False (default: True).</span>
+<span class="sd">            job_id (str, optional): SLURM job ID for local storage path.</span>
+<span class="sd">            local_rank (int, optional): Local process rank for coordination.</span>
+<span class="sd">            copy_data (bool): Copy data from network to local scratch (default: True).</span>
+<span class="sd">            index_targets (bool): Build index of image IDs per class (default: False).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;train/&quot;</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="s2">&quot;val/&quot;</span>
         <span class="n">data_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">copy_data</span><span class="p">:</span>
@@ -1243,7 +1275,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Executing </span><span class="si">{</span><span class="n">cmnd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmnd</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cmnd took </span><span class="si">{</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="p">)</span><span class="o">/</span><span class="mf">60.</span><span class="si">}</span><span class="s2"> min.&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cmnd took </span><span class="si">{</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">60.0</span><span class="si">}</span><span class="s2"> min.&quot;</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmp_sgnl_file</span><span class="p">,</span> <span class="s2">&quot;+w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done copying locally.&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>

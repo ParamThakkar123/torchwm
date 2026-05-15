@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.controller.rssm_policy &#8212; TorchWM 0.3.2 documentation</title>
+    <title>world_models.controller.rssm_policy &#8212; TorchWM 0.4.0 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=55c26ed414f5f8a31ebb" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=55c26ed414f5f8a31ebb" />
 
-    <script src="../../../_static/documentation_options.js?v=71d9d8e6"></script>
+    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -558,7 +558,7 @@ window.runMermaid = runMermaid;</script>
   
   
   
-    <p class="title logo__title">TorchWM 0.3.2 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
   
 </a></div>
     
@@ -1010,11 +1010,54 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="RSSMPolicy">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rssm_policy.RSSMPolicy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RSSMPolicy</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model-predictive controller that plans actions with the RSSM latent model.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model-predictive controller using Cross-Entropy Method (CEM) with RSSM.</span>
 
-<span class="sd">    The policy uses a Cross-Entropy Method style loop: it samples candidate</span>
-<span class="sd">    action sequences, rolls them forward in latent space, scores predicted</span>
-<span class="sd">    returns, and refits a Gaussian proposal to top-performing candidates.</span>
+<span class="sd">    Plans actions by optimizing a sequence of future actions in the RSSM&#39;s</span>
+<span class="sd">    latent space. Uses Cross-Entropy Method to refine action sequences based</span>
+<span class="sd">    on predicted returns.</span>
+
+<span class="sd">    Algorithm:</span>
+<span class="sd">        1. Initialize Gaussian distribution over action sequences</span>
+<span class="sd">        2. Sample N candidate action sequences</span>
+<span class="sd">        3. Rollout each sequence in RSSM latent space</span>
+<span class="sd">        4. Score by predicted cumulative rewards</span>
+<span class="sd">        5. Keep top K candidates, fit Gaussian to them</span>
+<span class="sd">        6. Repeat for T iterations</span>
+<span class="sd">        7. Execute first action from best sequence</span>
+
+<span class="sd">    Why latent space planning?</span>
+<span class="sd">        - Images are high-dimensional; latent states are compact</span>
+<span class="sd">        - Enables thousands of rollouts in parallel</span>
+<span class="sd">        - Dynamics model is more accurate in latent space</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: RSSM instance for latent dynamics</span>
+<span class="sd">        planning_horizon: Number of future steps to plan (H)</span>
+<span class="sd">        num_candidates: Number of action sequences to sample (N)</span>
+<span class="sd">        num_iterations: CEM refinement iterations (T)</span>
+<span class="sd">        top_candidates: Number of best candidates to keep (K)</span>
+<span class="sd">        device: torch device</span>
+
+<span class="sd">    Usage with Planet agent:</span>
+<span class="sd">        policy = RSSMPolicy(</span>
+<span class="sd">            model=rssm,</span>
+<span class="sd">            planning_horizon=12,</span>
+<span class="sd">            num_candidates=1000,</span>
+<span class="sd">            num_iterations=8,</span>
+<span class="sd">            top_candidates=100,</span>
+<span class="sd">            device=&#39;cuda&#39;</span>
+<span class="sd">        )</span>
+
+<span class="sd">        policy.reset()</span>
+<span class="sd">        action = policy.poll(observation)  # (1, action_dim)</span>
+
+<span class="sd">        # For continuous control:</span>
+<span class="sd">        next_obs, reward, done, info = env.step(action)</span>
+
+<span class="sd">    Comparison with Dreamer:</span>
+<span class="sd">        - RSSMPolicy: Online planning, chooses actions by optimization at each step</span>
+<span class="sd">        - DreamerActor: Train actor network to predict actions from states</span>
+<span class="sd">        - Dreamer is more sample-efficient for complex tasks; CEM is more flexible</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>

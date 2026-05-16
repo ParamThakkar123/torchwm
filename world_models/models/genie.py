@@ -194,7 +194,14 @@ class Genie(nn.Module):
         lam_vq_loss = lam_output["vq_loss"]
         lam_variance_loss = lam_output["variance_loss"]
 
-        total_loss = lam_recon_loss + lam_vq_loss + lam_variance_loss + dynamics_loss
+        total_loss = (
+            lam_recon_loss
+            + lam_vq_loss
+            + lam_variance_loss
+            + dynamics_loss
+            + tokenizer_loss_dict["recon_loss"]
+            + tokenizer_loss_dict["vq_loss"]
+        )
 
         return {
             "reconstructed_video": recon_video,
@@ -204,6 +211,7 @@ class Genie(nn.Module):
             "dynamics_logits": dynamics_logits,
             "tokenizer_loss": tokenizer_loss_dict,
             "vq_loss": tokenizer_loss_dict["vq_loss"],
+            "recon_loss": tokenizer_loss_dict["recon_loss"],
             "lam_recon_loss": lam_recon_loss,
             "lam_vq_loss": lam_vq_loss,
             "lam_variance_loss": lam_variance_loss,

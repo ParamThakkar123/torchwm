@@ -121,8 +121,8 @@ class GenieTrainer:
 
         outputs = self.model(batch, mask_prob=mask_prob)
 
-        recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
-        vq_loss = outputs["tokenizer_loss"].get("vq_loss", 0.0)
+        recon_loss = outputs.get("recon_loss", 0.0)
+        vq_loss = outputs.get("vq_loss", 0.0)
 
         dynamics_loss = outputs.get(
             "dynamics_loss", torch.tensor(0.0, device=self.device)

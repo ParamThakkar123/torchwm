@@ -264,6 +264,8 @@ class TinyWorldsDataset(Dataset):
             resize_transform = transforms.Resize((self.image_size, self.image_size))
             video = resize_transform(video)
 
+        video = video / 255.0
+
         return video
 
     def __del__(self):

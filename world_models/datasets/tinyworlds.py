@@ -16,6 +16,7 @@ import torch
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 from typing import Optional, Tuple, Dict, List
 from dataclasses import dataclass
 import logging
@@ -256,6 +257,10 @@ class TinyWorldsDataset(Dataset):
         )
         C_val = video.shape[0] // self.num_frames
         video = video.reshape(C_val, self.num_frames, video.shape[1], video.shape[2])
+
+        if self.image_size is not None and video.shape[2] != self.image_size:
+            resize_transform = transforms.Resize((self.image_size, self.image_size))
+            video = resize_transform(video)
 
         return video
 

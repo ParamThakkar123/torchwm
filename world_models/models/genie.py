@@ -216,6 +216,7 @@ class Genie(nn.Module):
             "lam_vq_loss": lam_vq_loss,
             "lam_variance_loss": lam_variance_loss,
             "dynamics_loss": dynamics_loss,
+            "z_q_for_dynamics": z_q_for_dynamics,
             "total_loss": total_loss,
         }
 

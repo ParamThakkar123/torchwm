@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Dict, Tuple
 import numpy as np
 from dataclasses import dataclass
+from world_models.models.genie import Genie
 
 
 @dataclass
@@ -128,6 +129,13 @@ class GenieTrainer:
             "dynamics_loss", torch.tensor(0.0, device=self.device)
         )
 
+        z_q_for_dynamics = outputs.get("z_q_for_dynamics", None)
+        z_q_for_dynamics_mean = (
+            z_q_for_dynamics.mean().item()
+            if isinstance(z_q_for_dynamics, torch.Tensor)
+            else None
+        )
+
         total_loss = outputs["total_loss"]
 
         self.optimizer.zero_grad()
@@ -148,6 +156,7 @@ class GenieTrainer:
             if isinstance(dynamics_loss, torch.Tensor)
             else dynamics_loss,
             "learning_rate": self.scheduler.get_last_lr()[0],
+            "z_q_for_dynamics_mean": z_q_for_dynamics_mean,
         }
 
     def validate(self, val_batch: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -255,8 +264,6 @@ def create_genie_trainer(
     """Factory function to create Genie trainer and model."""
     if config is None:
         config = GenieConfig()
-
-    from world_models.models.genie import Genie
 
     model = Genie(
         num_frames=config.num_frames,

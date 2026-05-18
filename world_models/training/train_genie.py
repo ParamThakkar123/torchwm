@@ -169,12 +169,9 @@ class GenieTrainer:
             Dictionary of validation metrics
         """
         self.model.eval()
-
         with torch.no_grad():
             outputs = self.model(val_batch, mask_prob=0.0)
-
             recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
-
             return {
                 "val_recon_loss": recon_loss.item()
                 if isinstance(recon_loss, torch.Tensor)
@@ -226,13 +223,10 @@ class GenieTrainer:
 
             if val_dataloader is not None and self.global_step % val_interval == 0:
                 val_iter = iter(val_dataloader)
-                try:
-                    val_batch = next(val_iter)
-                    val_batch = val_batch.to(self.device)
-                    val_metrics = self.validate(val_batch)
-                    print(f"Validation: {val_metrics}")
-                except StopIteration:
-                    pass
+                val_batch = next(val_iter)
+                val_batch = val_batch.to(self.device)
+                val_metrics = self.validate(val_batch)
+                print(f"Validation: {val_metrics}")
 
         print("Training complete!")
 

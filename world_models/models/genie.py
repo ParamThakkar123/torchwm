@@ -123,7 +123,7 @@ class Genie(nn.Module):
         Returns:
             Dictionary containing losses and predictions
         """
-        B, C, T, H, W = video.shape
+        B, _, T, _, _ = video.shape
 
         if training_phase == "tokenizer":
             # Phase 1: Train only video tokenizer
@@ -286,7 +286,7 @@ class Genie(nn.Module):
         Returns:
             generated_video: (B, C, num_frames, H, W)
         """
-        B, C, H, W = prompt_frame.shape
+        B, _, _, _ = prompt_frame.shape
 
         # Tokenize prompt frame
         prompt_frame_expanded = prompt_frame.unsqueeze(2).expand(
@@ -379,7 +379,7 @@ class Genie(nn.Module):
         Returns:
             next_frame: (B, C, H, W)
         """
-        B, C, H, W = current_frame.shape
+        B, _, _, _ = current_frame.shape
 
         if not isinstance(action, torch.Tensor):
             action = torch.tensor(action, device=current_frame.device)

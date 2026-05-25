@@ -21,10 +21,30 @@ _str_to_activation = {
 
 
 class TanhBijector(distributions.Transform):
-    """Bijective `tanh` transform used to squash Gaussian actions to `[-1, 1]`.
+    """Bijective tanh transform for squashing Gaussian distributions to [-1, 1].
 
-    Provides stable inverse and log-determinant Jacobian computations for
-    transformed-action distributions.
+    This transformation is essential for Dreamer's action policy. Raw neural network
+    outputs are Gaussian distributions over R^n, but actions in continuous control
+    environments are typically bounded in [-1, 1]. The tanh bijector provides:
+
+    1. **Bijective mapping**: tanh is invertible (with atanh as inverse)
+    2. **Stable log-det Jacobian**: Computable for gradient-based training
+    3. **Clipped actions**: During inference, actions are naturally bounded
+
+    Math:
+        Forward: y = tanh(x)
+        Inverse: x = atanh(y) = 0.5 * log((1+y)/(1-y))
+        Log-det: log|dy/dx| = 2*(log(2) - x - softplus(-2x))
+
+    Usage with Dreamer ActionDecoder:
+        dist = TransformedDistribution(
+            Normal(mean, std),
+            TanhBijector()
+        )
+        action = dist.sample()  # Bounded to [-1, 1]
+
+    Reference:
+        Building a Scalable Deep RL Library by Learning from Mistakes, Haarnoja et al.
     """
 
     def __init__(self):
@@ -55,14 +75,40 @@ class TanhBijector(distributions.Transform):
 
 
 class ConvDecoder(nn.Module):
-    """Convolutional Dreamer decoder from latent features to image distributions.
+    """Convolutional decoder for reconstructing observations from latent states.
 
-    Maps concatenated stochastic/deterministic states into transposed-conv
-    outputs and returns a factorized Normal distribution over pixels.
+    Part of Dreamer's world model, this decoder reconstructs image observations
+    from the combined stochastic (s) and deterministic (h) RSSM states.
+
+    Architecture:
+        Input: Concatenated [stoch_state, deter_state], shape (B, stoch+deter)
+        Process: Dense projection + 4 transposed convolutions (upsampling 2x each)
+        Output: Independent Normal distribution over observation pixels
+
+    The decoder mirrors the ConvEncoder's structure but in reverse (transposed convs
+    instead of regular convs). This creates a symmetric autoencoder where the encoder
+    and decoder can be trained jointly to learn compressed representations.
+
+    Output Distribution:
+        Returns torch.distributions.Independent(Normal(mean, std), len(shape))
+        This allows computing log_prob(observation) for reconstruction loss.
+
+    Usage in Dreamer world model:
+        decoder = ConvDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(3, 64, 64),  # RGB images
+            activation='relu'
+        )
+        obs_dist = decoder(latent_features)  # Returns distribution
+        log_prob = obs_dist.log_prob(target_observation)
+
+    Training:
+        The reconstruction loss is: -log_prob(observation)
+        This encourages the RSSM to learn states that capture observation information.
     """
 
     def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
-
         super().__init__()
 
         self.output_shape = output_shape
@@ -105,13 +151,47 @@ class ConvDecoder(nn.Module):
 class DenseDecoder(nn.Module):
     """MLP decoder for reward/value/discount prediction from latent features.
 
-    The output distribution type is configurable (`normal`, `binary`, or raw tensor).
+    Part of Dreamer's world model, this decoder predicts scalar quantities
+    (rewards, values, discount factors) from RSSM latent states.
+
+    Architecture:
+        Input: [stoch_state, deter_state] concatenated, shape (B, stoch+deter)
+        Process: MLP with configurable layers and hidden units
+        Output: Predicted quantity with distribution (normal, binary, or raw)
+
+    Supports three output types:
+        - 'normal': Gaussian distribution for regression (rewards, values)
+        - 'binary': Bernoulli distribution for binary classification (discount)
+        - 'none': Raw tensor for non-probabilistic outputs
+
+    Usage:
+        reward_decoder = DenseDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(1,),
+            n_layers=2,
+            units=400,
+            activation='elu',
+            dist='normal'
+        )
+        reward_dist = reward_decoder(latent_features)
+        reward_loss = -reward_dist.log_prob(target_reward)
+
+    For discount prediction (binary):
+        discount_decoder = DenseDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(1,),
+            n_layers=2,
+            units=400,
+            activation='elu',
+            dist='binary'  # Bernoulli for P(continue)
+        )
     """
 
     def __init__(
         self, stoch_size, deter_size, output_shape, n_layers, units, activation, dist
     ):
-
         super().__init__()
 
         self.input_size = stoch_size + deter_size
@@ -134,7 +214,6 @@ class DenseDecoder(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, features):
-
         out = self.model(features)
 
         if self.dist == "normal":
@@ -211,7 +290,6 @@ class ActionDecoder(nn.Module):
         init_std=5,
         mean_scale=5,
     ):
-
         super().__init__()
 
         self.action_size = action_size
@@ -236,7 +314,6 @@ class ActionDecoder(nn.Module):
         self.action_model = nn.Sequential(*layers)
 
     def forward(self, features, deter=False):
-
         out = self.action_model(features)
         mean, std = torch.chunk(out, 2, dim=-1)
 
@@ -255,5 +332,4 @@ class ActionDecoder(nn.Module):
             return dist.rsample()
 
     def add_exploration(self, action, action_noise=0.3):
-
         return torch.clamp(Normal(action, action_noise).rsample(), -1, 1)

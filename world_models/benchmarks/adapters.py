@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, List
 
 import numpy as np
 
@@ -152,7 +152,6 @@ class DreamerAdapter(BaseAdapter):
             env_backend = getattr(env_spec, "env_backend", None)
 
         algo = kwargs.get("algo", "dreamerv1")
-        device = kwargs.get("device", "cpu")
         config = kwargs.get("config", None)
         if config is None:
             cfg = DreamerConfig()

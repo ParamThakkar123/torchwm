@@ -3,10 +3,38 @@ from typing import Tuple, Optional
 
 
 class IRISReplayBuffer:
-    """Replay buffer for IRIS training.
+    """Replay buffer for IRIS (Imagined Rollouts with Implicit Successor) training.
 
-    Stores (observation, action, reward, terminal) tuples and supports
-    sampling contiguous sequences used by the world model and actor-critic.
+    Stores (observation, action, reward, terminal) tuples in a ring buffer
+    and supports sampling contiguous sequences for world model training.
+
+    Features:
+        - Ring buffer with fixed capacity (FIFO eviction when full)
+        - Stores uint8 images for memory efficiency
+        - Samples sequences with validation to avoid episode boundaries
+        - Supports sequence sampling for temporal learning
+
+    Memory Layout:
+        - observations: (capacity, C, H, W) uint8
+        - actions: (capacity, action_size) float32
+        - rewards: (capacity,) float32
+        - terminals: (capacity,) float32
+
+    Args:
+        size (int): Maximum number of transitions to store.
+        obs_shape (tuple): Shape of observations as (C, H, W).
+        action_size (int): Dimension of actions.
+        seq_len (int): Length of sequences to sample (default: 20).
+        batch_size (int): Number of sequences per batch (default: 64).
+
+    Attributes:
+        size (int): Buffer capacity.
+        obs_shape (tuple): Observation shape.
+        action_size (int): Action dimension.
+        seq_len (int): Sequence length.
+        batch_size (int): Batch size.
+        steps (int): Total transitions added.
+        episodes (int): Number of episode terminations observed.
     """
 
     def __init__(
@@ -34,7 +62,14 @@ class IRISReplayBuffer:
         self.terminals = np.zeros((size,), dtype=np.float32)
 
     def add(self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool):
-        """Add a transition to the buffer."""
+        """Add a transition to the buffer.
+
+        Args:
+            obs: Observation array with shape (C, H, W).
+            action: Action array with shape (action_size,).
+            reward: Scalar reward value.
+            terminal: Boolean indicating if episode terminated.
+        """
         self.observations[self.idx] = obs
         self.actions[self.idx] = action
         self.rewards[self.idx] = reward
@@ -143,9 +178,26 @@ class IRISReplayBuffer:
 
 
 class IRISOnPolicyBuffer:
-    """Buffer for collecting trajectories during environment interaction.
+    """On-policy buffer for collecting trajectories during environment interaction.
 
-    Used to store current episode data before adding to main replay buffer.
+    Used to store the current episode data before adding to the main replay buffer.
+    Unlike the main replay buffer, this collects trajectories in a list-based
+    structure that's cleared after each episode.
+
+    Useful for:
+        - Collecting complete episode trajectories
+        - Storing data before batch processing
+        - Temporary storage during environment interaction
+
+    Args:
+        max_steps (int): Maximum number of steps to store (default: 1000).
+
+    Attributes:
+        max_steps (int): Maximum buffer capacity.
+        observations (list): List of observations.
+        actions (list): List of actions.
+        rewards (list): List of rewards.
+        terminals (list): List of terminal flags.
     """
 
     def __init__(self, max_steps: int = 1000):

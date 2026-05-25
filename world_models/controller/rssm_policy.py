@@ -3,11 +3,54 @@ from torch.distributions import Normal
 
 
 class RSSMPolicy:
-    """Model-predictive controller that plans actions with the RSSM latent model.
+    """Model-predictive controller using Cross-Entropy Method (CEM) with RSSM.
 
-    The policy uses a Cross-Entropy Method style loop: it samples candidate
-    action sequences, rolls them forward in latent space, scores predicted
-    returns, and refits a Gaussian proposal to top-performing candidates.
+    Plans actions by optimizing a sequence of future actions in the RSSM's
+    latent space. Uses Cross-Entropy Method to refine action sequences based
+    on predicted returns.
+
+    Algorithm:
+        1. Initialize Gaussian distribution over action sequences
+        2. Sample N candidate action sequences
+        3. Rollout each sequence in RSSM latent space
+        4. Score by predicted cumulative rewards
+        5. Keep top K candidates, fit Gaussian to them
+        6. Repeat for T iterations
+        7. Execute first action from best sequence
+
+    Why latent space planning?
+        - Images are high-dimensional; latent states are compact
+        - Enables thousands of rollouts in parallel
+        - Dynamics model is more accurate in latent space
+
+    Args:
+        model: RSSM instance for latent dynamics
+        planning_horizon: Number of future steps to plan (H)
+        num_candidates: Number of action sequences to sample (N)
+        num_iterations: CEM refinement iterations (T)
+        top_candidates: Number of best candidates to keep (K)
+        device: torch device
+
+    Usage with Planet agent:
+        policy = RSSMPolicy(
+            model=rssm,
+            planning_horizon=12,
+            num_candidates=1000,
+            num_iterations=8,
+            top_candidates=100,
+            device='cuda'
+        )
+
+        policy.reset()
+        action = policy.poll(observation)  # (1, action_dim)
+
+        # For continuous control:
+        next_obs, reward, done, info = env.step(action)
+
+    Comparison with Dreamer:
+        - RSSMPolicy: Online planning, chooses actions by optimization at each step
+        - DreamerActor: Train actor network to predict actions from states
+        - Dreamer is more sample-efficient for complex tasks; CEM is more flexible
     """
 
     def __init__(

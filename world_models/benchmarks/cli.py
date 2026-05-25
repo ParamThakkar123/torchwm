@@ -70,7 +70,7 @@ def main():
         all_adapters = list(AGENTS.values())
         runner = MultiAgentBenchmarkRunner(adapters=all_adapters, out_dir=args.out_dir)
 
-        res = runner.run_all(
+        runner.run_all(
             env_spec={"game": args.game},
             seeds=seeds,
             num_episodes=args.episodes,
@@ -88,7 +88,7 @@ def main():
 
         env_spec = {"game": args.game}
 
-        res = runner.run(
+        runner.run(
             env_spec=env_spec,
             seeds=seeds,
             num_episodes=args.episodes,

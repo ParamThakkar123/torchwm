@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Dict, Tuple
 import numpy as np
 from dataclasses import dataclass
+from world_models.models.genie import Genie
 
 
 @dataclass
@@ -121,11 +122,18 @@ class GenieTrainer:
 
         outputs = self.model(batch, mask_prob=mask_prob)
 
-        recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
-        vq_loss = outputs["tokenizer_loss"].get("vq_loss", 0.0)
+        recon_loss = outputs.get("recon_loss", 0.0)
+        vq_loss = outputs.get("vq_loss", 0.0)
 
         dynamics_loss = outputs.get(
             "dynamics_loss", torch.tensor(0.0, device=self.device)
+        )
+
+        z_q_for_dynamics = outputs.get("z_q_for_dynamics", None)
+        z_q_for_dynamics_mean = (
+            z_q_for_dynamics.mean().item()
+            if isinstance(z_q_for_dynamics, torch.Tensor)
+            else None
         )
 
         total_loss = outputs["total_loss"]
@@ -148,6 +156,7 @@ class GenieTrainer:
             if isinstance(dynamics_loss, torch.Tensor)
             else dynamics_loss,
             "learning_rate": self.scheduler.get_last_lr()[0],
+            "z_q_for_dynamics_mean": z_q_for_dynamics_mean,
         }
 
     def validate(self, val_batch: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -160,12 +169,9 @@ class GenieTrainer:
             Dictionary of validation metrics
         """
         self.model.eval()
-
         with torch.no_grad():
             outputs = self.model(val_batch, mask_prob=0.0)
-
             recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
-
             return {
                 "val_recon_loss": recon_loss.item()
                 if isinstance(recon_loss, torch.Tensor)
@@ -217,13 +223,10 @@ class GenieTrainer:
 
             if val_dataloader is not None and self.global_step % val_interval == 0:
                 val_iter = iter(val_dataloader)
-                try:
-                    val_batch = next(val_iter)
-                    val_batch = val_batch.to(self.device)
-                    val_metrics = self.validate(val_batch)
-                    print(f"Validation: {val_metrics}")
-                except StopIteration:
-                    pass
+                val_batch = next(val_iter)
+                val_batch = val_batch.to(self.device)
+                val_metrics = self.validate(val_batch)
+                print(f"Validation: {val_metrics}")
 
         print("Training complete!")
 
@@ -256,11 +259,10 @@ def create_genie_trainer(
     if config is None:
         config = GenieConfig()
 
-    from world_models.models.genie import Genie
-
     model = Genie(
         num_frames=config.num_frames,
         image_size=config.image_size,
+        in_channels=config.in_channels,
         tokenizer_vocab_size=config.tokenizer_vocab_size,
         tokenizer_embedding_dim=config.tokenizer_embedding_dim,
         action_vocab_size=config.action_vocab_size,

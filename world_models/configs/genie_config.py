@@ -72,6 +72,9 @@ class GenieSmallConfig:
     warmup_steps: int = 1000
     max_steps: int = 50000
 
+    mask_prob_min: float = 0.5
+    mask_prob_max: float = 1.0
+
 
 @dataclass
 class STTransformerConfig:

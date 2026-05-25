@@ -31,7 +31,6 @@ class STSpatialAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
-        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -41,6 +40,7 @@ class STSpatialAttention(nn.Module):
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
 
         # QK Normalization (as per Genie paper - improves stability at large scale)
+        # Always apply LayerNorm to Q and K per-head (no runtime toggle).
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 
@@ -103,7 +103,6 @@ class STTemporalAttention(nn.Module):
         qk_scale: Optional[float] = None,
         attn_drop: float = 0.0,
         proj_drop: float = 0.0,
-        qk_norm: bool = True,
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -113,6 +112,7 @@ class STTemporalAttention(nn.Module):
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
 
         # QK Normalization (as per Genie paper - improves stability at large scale)
+        # Always apply LayerNorm to Q and K per-head (no runtime toggle).
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 

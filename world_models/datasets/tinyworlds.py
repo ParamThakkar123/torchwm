@@ -13,7 +13,10 @@ Available datasets:
 """
 
 import torch
+import numpy as np
+from PIL import Image
 from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 from typing import Optional, Tuple, Dict, List
 from dataclasses import dataclass
 import logging
@@ -98,6 +101,7 @@ class TinyWorldsDataset(Dataset):
         split: str = "train",
         cache_dir: Optional[str] = None,
         download: bool = True,
+        data_file: Optional[str] = None,
     ):
         if dataset_name not in self.DATASET_CONFIGS:
             raise ValueError(
@@ -110,12 +114,15 @@ class TinyWorldsDataset(Dataset):
         self.image_size = image_size
         self.split = split
         self.cache_dir = cache_dir or self._get_default_cache_dir()
+        self.data_file = data_file
 
         self._data_file = None
         self.num_samples = 0
         self.video_length = 0
 
-        if download:
+        if data_file:
+            self._load_data(Path(data_file))
+        elif download:
             self._download_or_load_data()
         else:
             self._load_data()
@@ -152,7 +159,17 @@ class TinyWorldsDataset(Dataset):
                 repo_type="dataset",
                 cache_dir=self.cache_dir,
             )
-            logger.info(f"Downloaded to: {downloaded_path}")
+            downloaded_file = Path(downloaded_path)
+            if not downloaded_file.exists():
+                raise FileNotFoundError(f"Downloaded file not found: {downloaded_path}")
+
+            local_path = self._get_local_path()
+            if downloaded_file != local_path and not local_path.exists():
+                import shutil
+
+                shutil.copy2(downloaded_file, local_path)
+
+            logger.info(f"Downloaded to: {local_path}")
             self._load_data()
         except Exception as e:
             raise RuntimeError(
@@ -161,8 +178,8 @@ class TinyWorldsDataset(Dataset):
                 f"https://huggingface.co/datasets/{self.config['repo_id']}/tree/main"
             )
 
-    def _load_data(self):
-        local_path = self._get_local_path()
+    def _load_data(self, file_path: Optional[Path] = None):
+        local_path = file_path or self._get_local_path()
 
         if not local_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {local_path}")
@@ -185,7 +202,7 @@ class TinyWorldsDataset(Dataset):
             self.raw_height = data.shape[2]
             self.raw_width = data.shape[3]
             self.channels = data.shape[4]
-            self.data_layout = "NCTHW" if data.shape[-1] <= 4 else "NTHWC"
+            self.data_layout = "NTHWC"
         elif len(data.shape) == 4:
             self.num_samples = data.shape[0]
             self.video_length = data.shape[1]
@@ -211,13 +228,12 @@ class TinyWorldsDataset(Dataset):
         if not isinstance(video, np.ndarray):
             video = np.array(video)
 
-        if self.data_layout == "NCTHW":
-            video = np.transpose(video, (0, 2, 3, 1))
-        elif self.data_layout == "NTHWC":
-            video = np.transpose(video, (0, 1, 3, 2))
-
-        if video.shape[-1] == 1:
-            video = np.repeat(video, 3, axis=-1)
+        if self.data_layout == "NTHWC":
+            pass
+        elif self.data_layout == "NTHW":
+            video = np.expand_dims(video, axis=-1)
+        else:
+            raise ValueError(f"Unknown data layout: {self.data_layout}")
 
         total_frames = video.shape[0]
         if total_frames >= self.num_frames:
@@ -227,25 +243,28 @@ class TinyWorldsDataset(Dataset):
             padding = np.tile(video[-1:], (self.num_frames - total_frames, 1, 1, 1))
             video = np.concatenate([video, padding], axis=0)
 
-        from PIL import Image
-        import numpy as np
-
-        processed = []
-        for frame in video:
-            if frame.max() <= 1.0 and frame.dtype != np.uint8:
-                frame = (frame * 255).astype(np.uint8)
-            img = Image.fromarray(frame)
-            img = img.resize(
-                (self.image_size, self.image_size), Image.Resampling.BILINEAR
-            )
-            processed.append(np.array(img))
-        video = np.stack(processed)
-
         if video.max() <= 1.0:
-            video = video / 255.0
+            video = (video * 255).astype(np.uint8)
+        else:
+            video = video.astype(np.uint8)
 
         video = torch.from_numpy(video).float()
         video = video.permute(0, 3, 1, 2)
+        if video.shape[1] == 1:
+            video = video.expand(-1, 3, -1, -1)
+        video = video.reshape(
+            video.shape[0] * video.shape[1], video.shape[2], video.shape[3]
+        )
+        C_val = video.shape[0] // self.num_frames
+        video = video.reshape(C_val, self.num_frames, video.shape[1], video.shape[2])
+
+        if self.image_size is not None and (
+            video.shape[2] != self.image_size or video.shape[3] != self.image_size
+        ):
+            resize_transform = transforms.Resize((self.image_size, self.image_size))
+            video = resize_transform(video)
+
+        video = video / 255.0
 
         return video
 
@@ -280,6 +299,7 @@ class TinyWorldsDataLoader:
         shuffle: bool = True,
         cache_dir: Optional[str] = None,
         download: bool = True,
+        data_file: Optional[str] = None,
     ) -> Tuple[TinyWorldsDataset, DataLoader]:
         """Create a dataloader for TinyWorlds dataset.
 
@@ -310,6 +330,7 @@ class TinyWorldsDataLoader:
             image_size=image_size,
             cache_dir=cache_dir,
             download=download,
+            data_file=data_file,
         )
 
         loader = DataLoader(
@@ -317,7 +338,7 @@ class TinyWorldsDataLoader:
             batch_size=batch_size,
             shuffle=shuffle,
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=False,
             drop_last=shuffle,
         )
 
@@ -353,6 +374,7 @@ def create_tinyworlds_dataloader(
     shuffle: bool = True,
     cache_dir: Optional[str] = None,
     download: bool = True,
+    data_file: Optional[str] = None,
 ) -> Tuple[TinyWorldsDataset, DataLoader]:
     """Factory function to create TinyWorlds dataloaders.
 
@@ -389,6 +411,7 @@ def create_tinyworlds_dataloader(
         shuffle=shuffle,
         cache_dir=cache_dir,
         download=download,
+        data_file=data_file,
     )
 
 

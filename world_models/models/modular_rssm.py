@@ -33,6 +33,9 @@ class EncoderBase(nn.Module, ABC):
         """Encode observations to embeddings."""
         pass
 
+    # Annotate expected attribute so type checkers know subclasses expose it.
+    embed_size: int
+
     def get_embed_size(self) -> int:
         """Return the embedding size. Override in subclasses."""
         raise NotImplementedError
@@ -68,6 +71,11 @@ class BackboneBase(nn.Module, ABC):
         """Initialize hidden state."""
         pass
 
+    # Expose expected size attributes to help mypy understand types on
+    # instances of concrete backbones.
+    stoch_size: int
+    deter_size: int
+
 
 class ConvEncoder(EncoderBase):
     """Convolutional encoder from Dreamer (image observations)."""
@@ -86,7 +94,8 @@ class ConvEncoder(EncoderBase):
         self.depth = depth
         self.kernels = [4, 4, 4, 4]
 
-        layers = []
+        # Use a generic module list since we append diverse nn.Module objects
+        layers: list[nn.Module] = []
         for i, kernel_size in enumerate(self.kernels):
             in_ch = input_shape[0] if i == 0 else self.depth * (2 ** (i - 1))
             out_ch = self.depth * (2**i)
@@ -123,7 +132,8 @@ class MLPEncoder(EncoderBase):
         self.embed_size = embed_size
         self.act_fn = _str_to_activation[activation]
 
-        layers = []
+        # Use a generic module list since we append diverse nn.Module objects
+        layers: list[nn.Module] = []
         in_dim = input_dim
         for hidden_size in hidden_sizes:
             layers.extend([nn.Linear(in_dim, hidden_size), self.act_fn])
@@ -227,7 +237,7 @@ class ConvDecoder(DecoderBase):
 
         self.dense = nn.Linear(stoch_size + deter_size, 32 * depth)
 
-        layers = []
+        layers: list[nn.Module] = []
         for i, kernel_size in enumerate(self.kernels):
             in_ch = 32 * depth if i == 0 else depth * (2 ** (len(self.kernels) - 1 - i))
             out_ch = (
@@ -597,7 +607,7 @@ class ModularRSSM(nn.Module):
         decoder: DecoderBase,
         backbone: BackboneBase,
         reward_decoder: Optional[DecoderBase] = None,
-    ):
+    ) -> None:
         super().__init__()
         self.encoder = encoder
         self.decoder = decoder
@@ -614,7 +624,10 @@ class ModularRSSM(nn.Module):
 
     @property
     def embed_size(self) -> int:
-        return self.backbone.embedding_size
+        # Some backbones may expose embedding_size as an int attribute or
+        # property. Cast to int to make the return type explicit for
+        # type-checkers.
+        return int(self.backbone.embedding_size)  # type: ignore[arg-type]
 
     def init_state(
         self, batch_size: int, device: torch.device

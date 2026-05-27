@@ -323,14 +323,17 @@ class IRISWorldModel(nn.Module):
 
         # Decode predictions to images (for visualization)
         # For each timestep, decode the predicted tokens
-        decoded_frames = []
+        decoded_frames_list: list[torch.Tensor] = []
         for t in range(T):
             next_tokens_pred = token_logits[:, t, :, :].argmax(dim=-1)  # Greedy
-            decoded_frames.append(
+            decoded_frames_list.append(
                 getattr(self.decoder, "decode_from_embeddings")(next_tokens_pred)
             )
 
-        decoded_frames = torch.stack(decoded_frames, dim=1) if decoded_frames else None
+        decoded_frames: Optional[torch.Tensor]
+        decoded_frames = (
+            torch.stack(decoded_frames_list, dim=1) if decoded_frames_list else None
+        )
 
         # Get actual next tokens for loss computation
         next_tokens = tokens[:, 1:]  # (B, T, K)

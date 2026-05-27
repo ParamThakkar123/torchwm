@@ -127,7 +127,8 @@ class UpsampleBlock(nn.Module):
         )
 
         # Skip connection projection if needed
-        self.skip = nn.Identity()
+        # Use the broad Module type because we may assign either Identity or Conv2d here.
+        self.skip: nn.Module = nn.Identity()
         if in_channels != out_channels:
             self.skip = nn.Conv2d(in_channels, out_channels, 1)
 

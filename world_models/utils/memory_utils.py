@@ -16,18 +16,37 @@ def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5
                 # torch.utils.checkpoint.checkpoint. We capture the original
                 # method to avoid recursive lookup and assign a plain
                 # function to the instance attribute (allowed at runtime).
-                orig_forward = module.forward
+                from typing import Callable, Any
 
-                def _checkpointed_forward(*args, **kwargs):
-                    return torch.utils.checkpoint.checkpoint(
+                orig_forward: Callable[..., Any] = module.forward  # capture
+
+                def _checkpointed_forward(*args: Any, **kwargs: Any) -> Any:
+                    # Torch's checkpoint API is present at runtime but some stubs
+                    # do not expose it. Ignore attribute errors from type-checker
+                    # here while preserving runtime behavior.
+                    return torch.utils.checkpoint.checkpoint(  # type: ignore[attr-defined]
                         orig_forward, *args, **kwargs, use_reentrant=False
                     )
 
-                setattr(module, "forward", _checkpointed_forward)
+                # Assigning a function to an instance method is a runtime pattern
+                # used to wrap behavior; mypy may complain about assigning to
+                # a method attribute, so silence that specific check.
+                setattr(module, "forward", _checkpointed_forward)  # type: ignore[assignment]
             elif hasattr(module, "checkpoint_forward"):
-                module.forward = torch.utils.checkpoint.checkpoint(
-                    module.checkpoint_forward, use_reentrant=False
-                )
+                # Create a wrapper that calls checkpoint at runtime. Do not
+                # call checkpoint here (that would execute the function and
+                # assign a Tensor to `forward`). Some torch stubs do not
+                # expose `utils.checkpoint`, so silence attribute checks.
+                from typing import Any
+
+                def _checkpointed_forward2(*args: Any, **kwargs: Any) -> Any:
+                    # Use a targeted ignore for the missing `checkpoint` attr in
+                    # some torch stubs while preserving runtime behaviour.
+                    return torch.utils.checkpoint.checkpoint(  # type: ignore[attr-defined]
+                        module.checkpoint_forward, *args, **kwargs, use_reentrant=False
+                    )
+
+                setattr(module, "forward", _checkpointed_forward2)  # type: ignore[assignment]
 
 
 def enable_mixed_precision(

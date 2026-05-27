@@ -770,6 +770,9 @@ def create_modular_rssm(
     if len(obs_shape) == 3:
         image_shape = (int(obs_shape[0]), int(obs_shape[1]), int(obs_shape[2]))  # type: ignore
 
+    # Declare with base types so mypy understands the variable may hold any
+    # concrete implementation chosen below.
+    encoder: EncoderBase
     if encoder_type == "conv":
         encoder = ConvEncoder(image_shape, embed_size, activation)
     elif encoder_type == "mlp":
@@ -779,6 +782,7 @@ def create_modular_rssm(
     else:
         raise ValueError(f"Unknown encoder type: {encoder_type}")
 
+    decoder: DecoderBase
     if decoder_type == "conv":
         decoder = ConvDecoder(stoch_size, deter_size, image_shape, activation)
     elif decoder_type == "mlp":
@@ -788,6 +792,7 @@ def create_modular_rssm(
     else:
         raise ValueError(f"Unknown decoder type: {decoder_type}")
 
+    backbone: BackboneBase
     if backbone_type == "gru":
         backbone = GRUBackbone(
             action_size, stoch_size, deter_size, hidden_size, embed_size, activation

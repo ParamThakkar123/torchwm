@@ -73,6 +73,8 @@ def make_imagenet1k(
     logger.info("ImageNet dataset created")
     # Explicitly annotate the distributed sampler variable for mypy.
     dist_sampler: torch.utils.data.distributed.DistributedSampler
+    # Explicit annotation to satisfy mypy's var-annotated checks.
+    dist_sampler: torch.utils.data.distributed.DistributedSampler
     dist_sampler = torch.utils.data.distributed.DistributedSampler(
         dataset=dataset, num_replicas=world_size, rank=rank
     )
@@ -295,6 +297,7 @@ def make_imagefolder(
         val_size = int(len(dataset) * val_split)
         train_size = len(dataset) - val_size
         dataset, _ = random_split(dataset, [train_size, val_size])
+    dist_sampler: torch.utils.data.distributed.DistributedSampler
     dist_sampler = torch.utils.data.distributed.DistributedSampler(
         dataset=dataset, num_replicas=world_size, rank=rank
     )

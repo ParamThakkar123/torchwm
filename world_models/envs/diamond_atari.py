@@ -87,17 +87,20 @@ class DiamondAtariWrapper(gym.Wrapper):
         assert obs is not None
         return obs, total_reward, done, info
 
-    def step(self, action: int) -> Tuple[Any, float, bool, bool, Dict[str, Any]]:
-        """Return signature follows gymnasium.Env.step: (obs, reward, terminated, truncated, info)."""
+    def step(self, action: int) -> Tuple[Any, float, bool, Dict[str, Any]]:
+        """Step the environment.
+
+        For backwards compatibility with older gym APIs this wrapper returns a
+        4-tuple: (obs, reward, done, info). Internally it supports gymnasium's
+        5-tuple and collapses (terminated, truncated) into a single `done` bool.
+        """
         obs, reward, done, info = self._apply_frameskip(action)
 
         if self.resize is not None:
             obs = self._resize_obs(obs)
 
-        # Map collapsed `done` to (terminated, truncated)
-        terminated = bool(done)
-        truncated = False
-        return obs, reward, terminated, truncated, info
+        # Return legacy 4-tuple (obs, reward, done, info)
+        return obs, reward, bool(done), info
 
     def reset(self, **kwargs) -> Tuple[Any, Dict[str, Any]]:
         obs, info = self.env.reset(**kwargs)

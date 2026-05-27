@@ -20,7 +20,7 @@ from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
 
-import yaml
+import yaml  # type: ignore[import]
 
 import collections
 import collections.abc

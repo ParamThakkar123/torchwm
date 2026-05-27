@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 
 class IRISReplayBuffer:
@@ -202,10 +202,11 @@ class IRISOnPolicyBuffer:
 
     def __init__(self, max_steps: int = 1000):
         self.max_steps = max_steps
-        self.observations = []
-        self.actions = []
-        self.rewards = []
-        self.terminals = []
+        # Typed lists to satisfy static type checkers
+        self.observations: List[np.ndarray] = []
+        self.actions: List[np.ndarray] = []
+        self.rewards: List[float] = []
+        self.terminals: List[float] = []
 
     def add(self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool):
         self.observations.append(obs)

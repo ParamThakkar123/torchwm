@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from ale_py.vector_env import AtariVectorEnv
 
 
@@ -31,7 +31,10 @@ def make_atari_vector_env(
         AtariVectorEnv: The vectorized Atari environment.
     """
 
-    return AtariVectorEnv(
+    # ale_py stubs do not accept some keyword args we pass at runtime; create
+    # the env and silence the call-arg check since the runtime accepts these
+    # parameters. We keep the return type as AtariVectorEnv for callers.
+    env: Any = AtariVectorEnv(
         game=game,
         num_envs=num_envs,
         obs_type=obs_type,
@@ -41,4 +44,6 @@ def make_atari_vector_env(
         max_episode_steps=max_episode_steps,
         seed=seed,
         **kwargs,
-    )
+    )  # type: ignore[call-arg]
+
+    return cast(AtariVectorEnv, env)

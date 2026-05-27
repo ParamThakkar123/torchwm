@@ -93,16 +93,6 @@ class DiamondAtariWrapper(gym.Wrapper):
         assert obs is not None
         return obs, total_reward, done, info
 
-    @overload
-    def step(self, action: int) -> Tuple[Any, float, bool, Dict[str, Any]]:  # older gym
-        ...
-
-    @overload
-    def step(
-        self, action: int
-    ) -> Tuple[Any, float, bool, bool, Dict[str, Any]]:  # gymnasium
-        ...
-
     def step(self, action: int) -> Any:  # type: ignore[override]
         """Step the environment.
 

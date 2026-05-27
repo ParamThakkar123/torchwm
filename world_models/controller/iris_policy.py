@@ -286,7 +286,8 @@ class CNNFeatureExtractor(nn.Module):
         self.output_size = output_size
 
         # CNN layers: 64 -> 32 -> 16 -> 8 -> 4
-        layers = []
+        # Use a generic Module list since we append Conv and activation modules
+        layers: list[nn.Module] = []
         in_channels = frame_shape[0]
 
         channels = [32, 64, 128, 256]

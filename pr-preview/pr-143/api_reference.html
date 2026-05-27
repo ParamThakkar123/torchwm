@@ -3906,7 +3906,7 @@ which leads to more stable training.</p>
 <dd class="field-odd"><p><strong>z</strong> (<em>torch.Tensor</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>Tuple</em>[torch.Tensor, torch.Tensor, dict]</p>
+<dd class="field-even"><p><em>Tuple</em>[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -5972,32 +5972,6 @@ imag_state, imag_reward, imag_action = planet.imagine(episodes)</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Episode.namedtuple">
-<span class="sig-name descname"><span class="pre">namedtuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field_names</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Episode.namedtuple" title="Link to this definition">#</a></dt>
-<dd><p>Returns a new subclass of tuple with named fields.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Point</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Point&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Point</span><span class="o">.</span><span class="vm">__doc__</span>                   <span class="c1"># docstring for the new class</span>
-<span class="go">&#39;Point(x, y)&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>             <span class="c1"># instantiate with positional args or keywords</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                     <span class="c1"># indexable like a plain tuple</span>
-<span class="go">33</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">p</span>                        <span class="c1"># unpack like a regular tuple</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span>
-<span class="go">(11, 22)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">y</span>                       <span class="c1"># fields also accessible by name</span>
-<span class="go">33</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()</span>                 <span class="c1"># convert to a dictionary</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-<span class="go">11</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Point</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span>                      <span class="c1"># convert from a dictionary</span>
-<span class="go">Point(x=11, y=22)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>               <span class="c1"># _replace() is like str.replace() but targets named fields</span>
-<span class="go">Point(x=100, y=22)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Episode.append">
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#Episode.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.Episode.append" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
@@ -7577,7 +7551,6 @@ video previews during Dreamer training/evaluation.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Episode"><code class="docutils literal notranslate"><span class="pre">Episode</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Episode.namedtuple"><code class="docutils literal notranslate"><span class="pre">Episode.namedtuple()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Episode.append"><code class="docutils literal notranslate"><span class="pre">Episode.append()</span></code></a></li>
 </ul>
 </li>

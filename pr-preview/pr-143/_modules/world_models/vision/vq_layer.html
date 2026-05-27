@@ -1037,7 +1037,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="VectorQuantizer.forward">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.vision.vq_layer.VectorQuantizer.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Quantize the input latents.</span>
 
 <span class="sd">        Args:</span>
@@ -1104,7 +1106,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">indices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">indices</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="n">loss</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">loss</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;vq_loss&quot;</span><span class="p">:</span> <span class="n">commitment_loss</span><span class="p">,</span>
             <span class="s2">&quot;perplexity&quot;</span><span class="p">:</span> <span class="n">perplexity</span><span class="p">,</span>
         <span class="p">}</span>
@@ -1170,7 +1172,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="VectorQuantizerEMA.forward">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.vision.vq_layer.VectorQuantizerEMA.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Quantize with EMA updates.&quot;&quot;&quot;</span>
         <span class="c1"># Flatten spatial dims</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">shape</span>
@@ -1224,7 +1228,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">avg_probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">encodings</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">perplexity</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">avg_probs</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)))</span>
 
-        <span class="n">loss</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">loss</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;vq_loss&quot;</span><span class="p">:</span> <span class="n">codebook_loss</span> <span class="o">+</span> <span class="n">commitment_loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">commitment_weight</span><span class="p">,</span>
             <span class="s2">&quot;perplexity&quot;</span><span class="p">:</span> <span class="n">perplexity</span><span class="p">,</span>
         <span class="p">}</span>

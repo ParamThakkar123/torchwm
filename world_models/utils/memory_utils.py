@@ -12,9 +12,18 @@ def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5
         # For custom modules, apply selective checkpointing
         for name, module in model.named_modules():
             if isinstance(module, nn.TransformerEncoderLayer):
-                module.forward = torch.utils.checkpoint.checkpoint(
-                    module.forward, use_reentrant=False
-                )
+                # Wrap the original forward in a callable that uses
+                # torch.utils.checkpoint.checkpoint. We capture the original
+                # method to avoid recursive lookup and assign a plain
+                # function to the instance attribute (allowed at runtime).
+                orig_forward = module.forward
+
+                def _checkpointed_forward(*args, **kwargs):
+                    return torch.utils.checkpoint.checkpoint(
+                        orig_forward, *args, **kwargs, use_reentrant=False
+                    )
+
+                setattr(module, "forward", _checkpointed_forward)
             elif hasattr(module, "checkpoint_forward"):
                 module.forward = torch.utils.checkpoint.checkpoint(
                     module.checkpoint_forward, use_reentrant=False

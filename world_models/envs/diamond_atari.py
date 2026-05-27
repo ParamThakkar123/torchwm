@@ -1,7 +1,7 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from typing import Tuple, Dict, Optional, Any
+from typing import Tuple, Dict, Optional, Any, overload
 
 
 class DiamondAtariWrapper(gym.Wrapper):
@@ -68,8 +68,14 @@ class DiamondAtariWrapper(gym.Wrapper):
                 break
 
             if self.terminate_on_life_loss:
-                if hasattr(self.env, "ale") and hasattr(self.env.ale, "lives"):
+                # ale attribute may or may not exist depending on backend; runtime
+                # checks are used here. Type-checkers don't know about `ale`, so
+                # use hasattr guards and ignore the attribute access for mypy.
+                if hasattr(self.env, "ale") and hasattr(
+                    getattr(self.env, "ale"), "lives"
+                ):
                     try:
+                        # type: ignore[attr-defined]
                         self.lives = self.env.ale.lives()
                     except Exception:
                         # some backends expose lives as attribute or method; ignore failures
@@ -87,7 +93,17 @@ class DiamondAtariWrapper(gym.Wrapper):
         assert obs is not None
         return obs, total_reward, done, info
 
-    def step(self, action: int) -> Tuple[Any, float, bool, Dict[str, Any]]:
+    @overload
+    def step(self, action: int) -> Tuple[Any, float, bool, Dict[str, Any]]:  # older gym
+        ...
+
+    @overload
+    def step(
+        self, action: int
+    ) -> Tuple[Any, float, bool, bool, Dict[str, Any]]:  # gymnasium
+        ...
+
+    def step(self, action: int) -> Any:  # type: ignore[override]
         """Step the environment.
 
         For backwards compatibility with older gym APIs this wrapper returns a

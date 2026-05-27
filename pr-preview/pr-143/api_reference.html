@@ -5838,6 +5838,17 @@ obs_batch, action_batch, reward_batch, term_batch = buffer.sample()
 <p>The buffer stores observations as {“image”: …} dicts but returns
 just the image arrays for training efficiency.</p>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>int</em>)</p></li>
+<li><p><strong>obs_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>...</em><em>]</em>)</p></li>
+<li><p><strong>action_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>seq_len</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.memory.dreamer_memory.ReplayBuffer.add">
 <span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">done</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#ReplayBuffer.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.ReplayBuffer.add" title="Link to this definition">#</a></dt>
@@ -5845,11 +5856,14 @@ just the image arrays for training efficiency.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>obs</strong> – Observation dict with ‘image’ key containing the observation</p></li>
-<li><p><strong>ac</strong> – Action taken, shape (action_size,)</p></li>
-<li><p><strong>rew</strong> – Reward received, scalar</p></li>
-<li><p><strong>done</strong> – Terminal flag, 1.0 if episode ended, 0.0 otherwise</p></li>
+<li><p><strong>obs</strong> (<em>dict</em>) – Observation dict with ‘image’ key containing the observation</p></li>
+<li><p><strong>ac</strong> (<em>ndarray</em>) – Action taken, shape (action_size,)</p></li>
+<li><p><strong>rew</strong> (<em>float</em>) – Reward received, scalar</p></li>
+<li><p><strong>done</strong> (<em>float</em>) – Terminal flag, 1.0 if episode ended, 0.0 otherwise</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -5897,104 +5911,6 @@ memory.append(obs, action, reward, done, info)
 batch = random.sample(memory, batch_size=32)</p>
 </dd>
 </dl>
-<dl class="py class">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">deque</span></span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A list-like sequence optimized for data accesses near its endpoints.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.append">
-<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.append" title="Link to this definition">#</a></dt>
-<dd><p>Add an element to the right side of the deque.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.appendleft">
-<span class="sig-name descname"><span class="pre">appendleft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.appendleft" title="Link to this definition">#</a></dt>
-<dd><p>Add an element to the left side of the deque.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.clear">
-<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.clear" title="Link to this definition">#</a></dt>
-<dd><p>Remove all elements from the deque.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.copy" title="Link to this definition">#</a></dt>
-<dd><p>Return a shallow copy of a deque.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.count">
-<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.count" title="Link to this definition">#</a></dt>
-<dd><p>Return number of occurrences of value.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.extend">
-<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.extend" title="Link to this definition">#</a></dt>
-<dd><p>Extend the right side of the deque with elements from the iterable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.extendleft">
-<span class="sig-name descname"><span class="pre">extendleft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.extendleft" title="Link to this definition">#</a></dt>
-<dd><p>Extend the left side of the deque with elements from the iterable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.index">
-<span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.index" title="Link to this definition">#</a></dt>
-<dd><p>Return first index of value.</p>
-<p>Raises ValueError if the value is not present.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.insert">
-<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.insert" title="Link to this definition">#</a></dt>
-<dd><p>Insert value before index.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.maxlen">
-<span class="sig-name descname"><span class="pre">maxlen</span></span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.maxlen" title="Link to this definition">#</a></dt>
-<dd><p>maximum size of a deque or None if unbounded</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.pop">
-<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.pop" title="Link to this definition">#</a></dt>
-<dd><p>Remove and return the rightmost element.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.popleft">
-<span class="sig-name descname"><span class="pre">popleft</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.popleft" title="Link to this definition">#</a></dt>
-<dd><p>Remove and return the leftmost element.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.remove">
-<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.remove" title="Link to this definition">#</a></dt>
-<dd><p>Remove first occurrence of value.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.reverse">
-<span class="sig-name descname"><span class="pre">reverse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.reverse" title="Link to this definition">#</a></dt>
-<dd><p>Reverse <em>IN PLACE</em>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.deque.rotate">
-<span class="sig-name descname"><span class="pre">rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.deque.rotate" title="Link to this definition">#</a></dt>
-<dd><p>Rotate the deque n steps to the right.  If n is negative, rotates left.</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Memory.append">
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#Memory.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.Memory.append" title="Link to this definition">#</a></dt>
@@ -6003,6 +5919,9 @@ batch = random.sample(memory, batch_size=32)</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*args</strong> – Variable length argument list containing transition data.
 Typically (observation, action, reward, done, info).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6081,7 +6000,12 @@ imag_state, imag_reward, imag_action = planet.imagine(episodes)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.memory.dreamer_memory.Episode.append">
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/dreamer_memory.html#Episode.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.dreamer_memory.Episode.append" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -6182,7 +6106,7 @@ before storing (e.g., normalization). Default: identity function.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.memory.planet_memory.Memory">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.memory.planet_memory.</span></span><span class="sig-name descname"><span class="pre">Memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/memory/planet_memory.html#Memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.memory.planet_memory.Memory" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#world_models.memory.dreamer_memory.Memory.deque" title="collections.deque"><code class="xref py py-class docutils literal notranslate"><span class="pre">deque</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">deque</span></code></p>
 <p>Episode-based replay memory for PlaNet/RSSM training.</p>
 <p>Stores episodes as variable-length trajectories and supports sampling
 sub-sequences for training. Implements a ring-buffer style eviction
@@ -6208,7 +6132,7 @@ deque grows without limit (useful for unpickling).</p>
 <dd><p>Collection of Episode objects.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#world_models.memory.dreamer_memory.Memory.deque" title="world_models.memory.dreamer_memory.Memory.deque">deque</a></p>
+<dd class="field-odd"><p>deque</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6219,7 +6143,7 @@ deque grows without limit (useful for unpickling).</p>
 <dd><p>Length of each episode.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#world_models.memory.dreamer_memory.Memory.deque" title="world_models.memory.dreamer_memory.Memory.deque">deque</a></p>
+<dd class="field-odd"><p>deque</p>
 </dd>
 </dl>
 </dd></dl>
@@ -7648,24 +7572,6 @@ video previews during Dreamer training/evaluation.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory"><code class="docutils literal notranslate"><span class="pre">Memory</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque"><code class="docutils literal notranslate"><span class="pre">Memory.deque</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.append"><code class="docutils literal notranslate"><span class="pre">Memory.deque.append()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.appendleft"><code class="docutils literal notranslate"><span class="pre">Memory.deque.appendleft()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.clear"><code class="docutils literal notranslate"><span class="pre">Memory.deque.clear()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.copy"><code class="docutils literal notranslate"><span class="pre">Memory.deque.copy()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.count"><code class="docutils literal notranslate"><span class="pre">Memory.deque.count()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.extend"><code class="docutils literal notranslate"><span class="pre">Memory.deque.extend()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.extendleft"><code class="docutils literal notranslate"><span class="pre">Memory.deque.extendleft()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.index"><code class="docutils literal notranslate"><span class="pre">Memory.deque.index()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.insert"><code class="docutils literal notranslate"><span class="pre">Memory.deque.insert()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.maxlen"><code class="docutils literal notranslate"><span class="pre">Memory.deque.maxlen</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.pop"><code class="docutils literal notranslate"><span class="pre">Memory.deque.pop()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.popleft"><code class="docutils literal notranslate"><span class="pre">Memory.deque.popleft()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.remove"><code class="docutils literal notranslate"><span class="pre">Memory.deque.remove()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.reverse"><code class="docutils literal notranslate"><span class="pre">Memory.deque.reverse()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.deque.rotate"><code class="docutils literal notranslate"><span class="pre">Memory.deque.rotate()</span></code></a></li>
-</ul>
-</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.append"><code class="docutils literal notranslate"><span class="pre">Memory.append()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.memory.dreamer_memory.Memory.sample"><code class="docutils literal notranslate"><span class="pre">Memory.sample()</span></code></a></li>
 </ul>

@@ -1,4 +1,6 @@
 import numpy as np
+from typing import Tuple, Deque, Any
+from collections import deque, namedtuple
 
 
 class ReplayBuffer:
@@ -51,7 +53,14 @@ class ReplayBuffer:
         just the image arrays for training efficiency.
     """
 
-    def __init__(self, size, obs_shape, action_size, seq_len, batch_size):
+    def __init__(
+        self,
+        size: int,
+        obs_shape: Tuple[int, ...],
+        action_size: int,
+        seq_len: int,
+        batch_size: int,
+    ):
         """Initialize replay buffer with fixed capacity.
 
         Args:
@@ -74,7 +83,7 @@ class ReplayBuffer:
         self.terminals = np.empty((size,), dtype=np.float32)
         self.steps, self.episodes = 0, 0
 
-    def add(self, obs, ac, rew, done):
+    def add(self, obs: dict, ac: np.ndarray, rew: float, done: float) -> None:
         """Add a transition to the buffer.
 
         Args:
@@ -92,7 +101,7 @@ class ReplayBuffer:
         self.steps += 1
         self.episodes = self.episodes + (1 if done else 0)
 
-    def _sample_idx(self, L):
+    def _sample_idx(self, L: int) -> np.ndarray:
         """Sample valid starting indices for a sequence of length L.
 
         Ensures the sampled sequence doesn't span episode boundaries
@@ -104,14 +113,23 @@ class ReplayBuffer:
         Returns:
             Array of L indices into the buffer
         """
+        # ensure idxs is defined for static checkers
+        idxs: np.ndarray = np.array([], dtype=int)
         valid_idx = False
+        # compute a safe upper bound for randint (must be > 0)
+        max_end = self.size if self.full else self.idx
+        upper = max_end - L
+        if upper <= 0:
+            # not enough data yet; return a default contiguous window starting at 0
+            return np.arange(0, L) % max(1, self.size)
+
         while not valid_idx:
-            idx = np.random.randint(0, self.size if self.full else self.idx - L)
+            idx = np.random.randint(0, upper)
             idxs = np.arange(idx, idx + L) % self.size
             valid_idx = self.idx not in idxs[1:]
         return idxs
 
-    def _retrieve_batch(self, idxs, n, L):
+    def _retrieve_batch(self, idxs: np.ndarray, n: int, L: int):
         """Retrieve batch of sequences given indices.
 
         Args:
@@ -167,12 +185,11 @@ class Memory:
         batch = random.sample(memory, batch_size=32)
     """
 
-    from collections import deque
+    def __init__(self, capacity: int = 10000) -> None:
+        # typed deque for stored transitions
+        self.memory: Deque[tuple[Any, ...]] = deque(maxlen=capacity)
 
-    def __init__(self, capacity: int = 10000):
-        self.memory = self.deque(maxlen=capacity)
-
-    def append(self, *args):
+    def append(self, *args) -> None:
         """Append a transition to memory.
 
         Args:
@@ -194,7 +211,7 @@ class Memory:
 
         return sample(self.memory, batch_size)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.memory)
 
 
@@ -240,7 +257,7 @@ class Episode:
             self.terminal = []
         self.info = info if info is not None else {}
 
-    def append(self, action, observation, reward, terminal, info=None):
+    def append(self, action, observation, reward, terminal, info=None) -> None:
         self.action.append(action)
         self.observation.append(observation)
         self.reward.append(reward)
@@ -251,5 +268,5 @@ class Episode:
                     self.info[k] = []
                 self.info[k].append(v)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.observation)

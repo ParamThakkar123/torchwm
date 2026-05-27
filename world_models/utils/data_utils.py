@@ -32,7 +32,7 @@ def prefetch_iterator(iterator: Iterator, buffer_size: int = 3):
     """Add prefetching to any iterator."""
     from collections import deque
 
-    buffer = deque()
+    buffer: "deque" = deque()
 
     def fill_buffer():
         for item in iterator:

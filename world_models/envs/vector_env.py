@@ -142,8 +142,8 @@ class VectorizedEnv(ABC):
         self.seed = seed
 
         # Create communication queues
-        self.command_queues = [Queue() for _ in range(num_workers)]
-        self.result_queues = [Queue() for _ in range(num_workers)]
+        self.command_queues: List[Queue] = [Queue() for _ in range(num_workers)]
+        self.result_queues: List[Queue] = [Queue() for _ in range(num_workers)]
 
         # Start workers
         self.workers = []
@@ -167,12 +167,12 @@ class VectorizedEnv(ABC):
             dummy_env.close()
 
     @abstractmethod
-    def step_batch(self, actions: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def step_batch(self, actions: torch.Tensor) -> Dict[str, Any]:
         """Step all environments with batched actions."""
         pass
 
     @abstractmethod
-    def reset_batch(self) -> Dict[str, torch.Tensor]:
+    def reset_batch(self) -> Dict[str, Any]:
         """Reset all environments."""
         pass
 
@@ -214,7 +214,7 @@ class TorchVectorizedEnv(VectorizedEnv):
         # This is a simple way to sync; could be improved
         pass
 
-    def step_batch(self, actions: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def step_batch(self, actions: torch.Tensor) -> Dict[str, Any]:
         """
         Step all environments with batched actions.
 
@@ -257,6 +257,7 @@ class TorchVectorizedEnv(VectorizedEnv):
         reward_tensor = torch.tensor(all_rewards, dtype=torch.float32)
         done_tensor = torch.tensor(all_dones, dtype=torch.bool)
 
+        # Return a mapping where obs is nested dict and info remains a list
         return {
             "obs": {"image": obs_tensor},
             "reward": reward_tensor,
@@ -264,7 +265,7 @@ class TorchVectorizedEnv(VectorizedEnv):
             "info": all_infos,  # Keep as list for now
         }
 
-    def reset_batch(self) -> Dict[str, torch.Tensor]:
+    def reset_batch(self) -> Dict[str, Any]:
         """Reset all environments and return initial observations."""
         for q in self.command_queues:
             q.put(("reset", None))

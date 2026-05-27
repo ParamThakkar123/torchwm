@@ -71,8 +71,10 @@ def make_imagenet1k(
     if subset_file is not None:
         dataset = ImageNetSubset(dataset, subset_file)
     logger.info("ImageNet dataset created")
-    dist_sampler = torch.utils.data.distributed.DistributedSampler(
-        dataset=dataset, num_replicas=world_size, rank=rank
+    dist_sampler: torch.utils.data.distributed.DistributedSampler = (
+        torch.utils.data.distributed.DistributedSampler(
+            dataset=dataset, num_replicas=world_size, rank=rank
+        )
     )
     data_loader = torch.utils.data.DataLoader(
         dataset,

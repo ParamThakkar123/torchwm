@@ -133,7 +133,7 @@ GYM_ENVS = [
     "Pusher-v2",
 ]
 
-UNITY_ENVS = []
+UNITY_ENVS: list[str] = []
 
 ATARI_ENVS: list[str] = []
 try:

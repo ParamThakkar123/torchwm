@@ -30,7 +30,9 @@ class VectorQuantizer(nn.Module):
         self.codebook = nn.Embedding(vocab_size, embedding_dim)
         self.codebook.weight.data.uniform_(-1.0 / vocab_size, 1.0 / vocab_size)
 
-    def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, dict]:
+    def forward(
+        self, z: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         """Quantize the input latents.
 
         Args:
@@ -97,7 +99,7 @@ class VectorQuantizer(nn.Module):
             indices.reshape(B, H, W) if z.dim() == 4 else indices.squeeze(-1)
         )
 
-        loss = {
+        loss: dict[str, torch.Tensor] = {
             "vq_loss": commitment_loss,
             "perplexity": perplexity,
         }
@@ -154,7 +156,9 @@ class VectorQuantizerEMA(nn.Module):
         self.register_buffer("ema_cluster_size", torch.zeros(vocab_size))
         self.register_buffer("ema_embed_avg", self.codebook.weight.data.clone())
 
-    def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, dict]:
+    def forward(
+        self, z: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         """Quantize with EMA updates."""
         # Flatten spatial dims
         B, C, H, W = z.shape
@@ -208,7 +212,7 @@ class VectorQuantizerEMA(nn.Module):
         avg_probs = torch.mean(encodings, dim=0)
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
 
-        loss = {
+        loss: dict[str, torch.Tensor] = {
             "vq_loss": codebook_loss + commitment_loss * self.commitment_weight,
             "perplexity": perplexity,
         }

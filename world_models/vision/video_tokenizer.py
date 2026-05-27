@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 
 from world_models.vision.vq_layer import VectorQuantizer, VectorQuantizerEMA
 from world_models.blocks.st_transformer import STTransformer
@@ -108,6 +108,9 @@ class VideoTokenizer(nn.Module):
 
         self.to_vq_embedding = nn.Linear(encoder_dim, embedding_dim)
 
+        # vq can be either the EMA variant or the plain VectorQuantizer
+        self.vq: Union[VectorQuantizer, VectorQuantizerEMA]
+
         if use_ema:
             self.vq = VectorQuantizerEMA(
                 vocab_size=vocab_size,
@@ -177,7 +180,7 @@ class VideoTokenizer(nn.Module):
 
         z_all = []
         indices_all = []
-        vq_loss_all = {}
+        vq_loss_all: dict[str, list[torch.Tensor]] = {}
 
         for t in range(T):
             x_t = x[:, t, :, :, :]

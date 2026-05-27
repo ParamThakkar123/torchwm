@@ -7,7 +7,8 @@ import pathlib
 import numpy as np
 
 if not hasattr(np, "bool8"):
-    np.bool8 = np.bool_
+    # Some NumPy builds don't expose `bool8` as an attribute; set it safely
+    setattr(np, "bool8", np.bool_)
 
 import plotly
 from plotly.graph_objs import Scatter, Line

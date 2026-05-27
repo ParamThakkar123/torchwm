@@ -237,8 +237,6 @@ class Episode:
         imag_state, imag_reward, imag_action = planet.imagine(episodes)
     """
 
-    from collections import namedtuple
-
     _fields = ["observation", "action", "reward", "terminal", "info"]
 
     def __init__(self, observation, action=None, reward=None, terminal=None, info=None):

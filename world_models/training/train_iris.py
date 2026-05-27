@@ -60,8 +60,8 @@ class IRISTrainer:
             device=self.device,
         )
 
-        # Metrics
-        self.metrics = defaultdict(list)
+        # Metrics: map metric name -> series of numeric values
+        self.metrics: defaultdict[str, list[float]] = defaultdict(list)
 
     def preprocess_frame(self, frame: np.ndarray) -> np.ndarray:
         """Preprocess frame: resize to 64x64 and normalize."""

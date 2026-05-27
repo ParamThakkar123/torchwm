@@ -1001,7 +1001,7 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for world_models.envs.ale_atari_vector_env</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ale_py.vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtariVectorEnv</span>
 
 
@@ -1036,7 +1036,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        AtariVectorEnv: The vectorized Atari environment.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">AtariVectorEnv</span><span class="p">(</span>
+    <span class="c1"># ale_py stubs do not accept some keyword args we pass at runtime; create</span>
+    <span class="c1"># the env and silence the call-arg check since the runtime accepts these</span>
+    <span class="c1"># parameters. We keep the return type as AtariVectorEnv for callers.</span>
+    <span class="n">env</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">AtariVectorEnv</span><span class="p">(</span>
         <span class="n">game</span><span class="o">=</span><span class="n">game</span><span class="p">,</span>
         <span class="n">num_envs</span><span class="o">=</span><span class="n">num_envs</span><span class="p">,</span>
         <span class="n">obs_type</span><span class="o">=</span><span class="n">obs_type</span><span class="p">,</span>
@@ -1046,7 +1049,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">max_episode_steps</span><span class="o">=</span><span class="n">max_episode_steps</span><span class="p">,</span>
         <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span></div>
+    <span class="p">)</span>  <span class="c1"># type: ignore[call-arg]</span>
+
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">AtariVectorEnv</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span></div>
 
 </pre></div>
 

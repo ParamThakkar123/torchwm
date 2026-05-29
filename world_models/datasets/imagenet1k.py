@@ -65,7 +65,8 @@ def make_imagenet1k(
             - dataloader: DataLoader with distributed sampling
             - sampler: DistributedSampler instance
     """
-    dataset = ImageNet(
+    # Annotate as Any because we may wrap the ImageNet with ImageNetSubset
+    dataset: Any = ImageNet(
         root=root_path,
         image_folder=image_folder,
         transform=transform,
@@ -78,12 +79,10 @@ def make_imagenet1k(
     logger.info("ImageNet dataset created")
     # Explicitly annotate the distributed sampler variable for mypy.
     dist_sampler: torch.utils.data.distributed.DistributedSampler
-    # Explicit annotation to satisfy mypy's var-annotated checks.
-    dist_sampler: torch.utils.data.distributed.DistributedSampler
     dist_sampler = torch.utils.data.distributed.DistributedSampler(
         dataset=dataset, num_replicas=world_size, rank=rank
     )
-    data_loader = torch.utils.data.DataLoader(
+    data_loader: torch.utils.data.DataLoader = torch.utils.data.DataLoader(
         dataset,
         collate_fn=collator,
         sampler=dist_sampler,
@@ -298,8 +297,14 @@ def make_imagefolder(
     Supports optional train/validation split and distributed sampling, making
     it a drop-in replacement for ImageNet loaders in training scripts.
     """
+    # Build a string root path for ImageFolder; coerce None -> empty string
+    if image_folder:
+        root_arg = os.path.join(root_path or "", image_folder)
+    else:
+        root_arg = root_path or ""
+
     dataset = torchvision.datasets.ImageFolder(
-        root=os.path.join(root_path, image_folder) if image_folder else root_path,
+        root=root_arg,
         transform=transform,
     )
     if val_split:

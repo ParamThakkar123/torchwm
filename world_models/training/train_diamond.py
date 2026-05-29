@@ -55,6 +55,9 @@ class DiamondAgent:
         )
 
         # action_space may be different Space types; prefer Discrete.n when available
+        # Declare attribute type for static checkers
+        self.action_dim: int = 0
+
         if isinstance(self.env.action_space, Discrete):
             self.action_dim = int(self.env.action_space.n)
         elif isinstance(self.env.action_space, Box):

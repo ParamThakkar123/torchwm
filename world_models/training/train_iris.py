@@ -4,7 +4,7 @@ from collections import defaultdict
 import os
 from tqdm import tqdm
 import random
-from typing import Optional
+from typing import Optional, cast
 from gym.spaces import Discrete, Box
 
 from world_models.configs.iris_config import IRISConfig
@@ -44,6 +44,9 @@ class IRISTrainer:
         )
 
         # Get action space robustly (Discrete or Box)
+        # Declare attribute type for static checkers
+        self.action_size: int = 0
+
         if isinstance(self.env.action_space, Discrete):
             self.action_size = int(self.env.action_space.n)
         elif isinstance(self.env.action_space, Box):
@@ -104,7 +107,7 @@ class IRISTrainer:
         obs = self.preprocess_frame(obs)
 
         episode_returns = []
-        current_return = 0
+        current_return: float = 0.0
         steps_in_episode = 0
 
         for step in range(num_steps):
@@ -124,7 +127,7 @@ class IRISTrainer:
             next_obs = self.preprocess_frame(next_obs)
 
             # Store in replay buffer
-            action_one_hot = np.zeros(self.action_size, dtype=np.float32)
+            action_one_hot: np.ndarray = np.zeros(self.action_size, dtype=np.float32)
             action_one_hot[action] = 1.0
 
             self.replay_buffer.add(
@@ -139,7 +142,7 @@ class IRISTrainer:
 
             if done:
                 episode_returns.append(current_return)
-                current_return = 0
+                current_return = 0.0
                 steps_in_episode = 0
                 obs, _ = self.env.reset()
                 obs = self.preprocess_frame(obs)
@@ -172,6 +175,7 @@ class IRISTrainer:
         # Only update components after warm-start periods
         if epoch >= self.config.start_autoencoder_after:
             # Phase 2: Update autoencoder
+            ae_metrics: dict = {}
             for _ in range(self.config.training_steps_per_epoch):
                 # Sample random frames
                 indices = np.random.randint(
@@ -276,7 +280,7 @@ class IRISTrainer:
             raw_obs, _ = self.env.reset()
             obs = self.preprocess_frame(raw_obs)
 
-            episode_return = 0
+            episode_return: float = 0.0
             done = False
             frames: list[np.ndarray] = []
 
@@ -319,7 +323,7 @@ class IRISTrainer:
                     # If encoder fails, skip latent for this step
                     pass
 
-                episode_return += reward
+                episode_return += float(reward)
                 obs = self.preprocess_frame(next_raw) if not done else obs
 
             episode_returns.append(episode_return)
@@ -351,7 +355,7 @@ class IRISTrainer:
 
     def train(
         self,
-        total_epochs: int = None,
+        total_epochs: Optional[int] = None,
         eval_interval: int = 50,
         save_dir: str = "checkpoints/iris",
     ):
@@ -392,7 +396,9 @@ class IRISTrainer:
                 epoch % eval_interval == 0
                 and epoch >= self.config.start_actor_critic_after
             ):
-                eval_metrics = self.evaluate(num_episodes=self.config.eval_episodes)
+                eval_metrics = cast(
+                    dict, self.evaluate(num_episodes=self.config.eval_episodes)
+                )
                 print(f"\nEvaluation at epoch {epoch}:")
                 print(
                     f"  Mean return: {eval_metrics['eval_mean_return']:.2f} +/- {eval_metrics['eval_std_return']:.2f}"

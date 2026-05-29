@@ -16,6 +16,7 @@ from world_models.configs.diamond_config import DiamondConfig
 from world_models.models.dreamer import DreamerAgent
 from world_models.configs.dreamer_config import DreamerConfig
 
+
 class BenchmarkRunner:
     """Run evaluations for adapters across seeds and export results.
 
@@ -168,23 +169,13 @@ class MultiAgentBenchmarkRunner:
 
         for adapter_cls in self.adapters:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
-            if adapter_name not in checkpoints:
-                raise ValueError(
-                    f"Checkpoint path required for {adapter_name}. Only trained models should be benchmarked."
-                )
-            checkpoint = checkpoints[adapter_name]
-
-        all_results: Dict[str, Any] = {}
-
-        for adapter_cls in self.adapters:
-            adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Running benchmark for {adapter_name}...")
 
             runner = BenchmarkRunner(
                 adapter_cls=adapter_cls,
                 out_dir=os.path.join(self.out_dir, adapter_name),
             )
-            checkpoint = checkpoints.get(adapter_name)
+            checkpoint: Optional[str] = checkpoints.get(adapter_name)
 
             result = runner.run(
                 env_spec=env_spec,
@@ -226,6 +217,12 @@ class MultiAgentBenchmarkRunner:
         for adapter_cls in self.adapters:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Training {adapter_name}...")
+
+            # Use dynamic typing for per-adapter config/agent to avoid type
+            # narrowing across branches (different adapters use different
+            # config/agent classes).
+            config: Any = None
+            agent: Any = None
 
             if adapter_name == "iris":
                 trainer = IRISTrainer(game=env_spec["game"], device=device)

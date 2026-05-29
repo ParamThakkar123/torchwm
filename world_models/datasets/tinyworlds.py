@@ -17,7 +17,7 @@ import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from typing import Optional, Tuple, Dict, List
+from typing import Optional, Tuple, Dict, List, Any
 from dataclasses import dataclass
 import logging
 import os
@@ -35,8 +35,10 @@ except ImportError:
     h5py = None
     logger.warning("h5py not installed. Install with: pip install h5py")
 
+hf_hub_download: Any = None
+list_repo_files: Any = None
 try:
-    from huggingface_hub import hf_hub_download, list_repo_files
+    from huggingface_hub import hf_hub_download, list_repo_files  # type: ignore
 
     HF_AVAILABLE = True
 except ImportError:
@@ -116,7 +118,7 @@ class TinyWorldsDataset(Dataset):
         self.cache_dir = cache_dir or self._get_default_cache_dir()
         self.data_file = data_file
 
-        self._data_file = None
+        self._data_file: Optional[Any] = None
         self.num_samples = 0
         self.video_length = 0
 
@@ -179,39 +181,52 @@ class TinyWorldsDataset(Dataset):
             )
 
     def _load_data(self, file_path: Optional[Path] = None):
+        if h5py is None:
+            raise RuntimeError(
+                "h5py not installed. Cannot load dataset files. Install with: pip install h5py"
+            )
+
         local_path = file_path or self._get_local_path()
 
         if not local_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {local_path}")
 
-        self._data_file = h5py.File(local_path, "r")
+        f = h5py.File(local_path, "r")
+        self._data_file = f
 
-        if "videos" in self._data_file:
-            data = self._data_file["videos"]
-        elif "frames" in self._data_file:
-            data = self._data_file["frames"]
+        if "videos" in f:
+            data = f["videos"]
+        elif "frames" in f:
+            data = f["frames"]
         else:
-            available_keys = list(self._data_file.keys())
+            available_keys = list(f.keys())
             raise KeyError(
                 f"No 'videos' or 'frames' key found. Available: {available_keys}"
             )
 
-        if len(data.shape) == 5:
-            self.num_samples = data.shape[0]
-            self.video_length = data.shape[1]
-            self.raw_height = data.shape[2]
-            self.raw_width = data.shape[3]
-            self.channels = data.shape[4]
+        # h5py dataset objects are dynamically typed; access shape via getattr
+        shape = getattr(data, "shape", None)
+        if not isinstance(shape, tuple):
+            raise ValueError(
+                f"Unable to determine data shape for dataset: {self.dataset_name}"
+            )
+
+        if len(shape) == 5:
+            self.num_samples = shape[0]
+            self.video_length = shape[1]
+            self.raw_height = shape[2]
+            self.raw_width = shape[3]
+            self.channels = shape[4]
             self.data_layout = "NTHWC"
-        elif len(data.shape) == 4:
-            self.num_samples = data.shape[0]
-            self.video_length = data.shape[1]
-            self.raw_height = data.shape[2]
-            self.raw_width = data.shape[3]
+        elif len(shape) == 4:
+            self.num_samples = shape[0]
+            self.video_length = shape[1]
+            self.raw_height = shape[2]
+            self.raw_width = shape[3]
             self.channels = 1
             self.data_layout = "NTHW"
         else:
-            raise ValueError(f"Unexpected data shape: {data.shape}")
+            raise ValueError(f"Unexpected data shape: {shape}")
 
         logger.info(
             f"Loaded {self.dataset_name}: {self.num_samples} videos, "
@@ -222,7 +237,9 @@ class TinyWorldsDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx: int) -> torch.Tensor:
-        data = self._data_file["videos" if "videos" in self._data_file else "frames"]
+        f = self._data_file
+        assert f is not None, "Data file is not loaded"
+        data = f["videos" if "videos" in f else "frames"]
         video = data[idx][:]
 
         if not isinstance(video, np.ndarray):
@@ -415,7 +432,7 @@ def create_tinyworlds_dataloader(
     )
 
 
-def download_all_datasets(cache_dir: Optional[str] = None) -> Dict[str, str]:
+def download_all_datasets(cache_dir: Optional[str] = None) -> Dict[str, Optional[str]]:
     """Download all available TinyWorlds datasets.
 
     Args:
@@ -425,7 +442,7 @@ def download_all_datasets(cache_dir: Optional[str] = None) -> Dict[str, str]:
         Dictionary mapping dataset names to local file paths
     """
     cache_dir = cache_dir or os.path.expanduser("~/.cache/tinyworlds")
-    results = {}
+    results: Dict[str, Optional[str]] = {}
 
     for dataset_name in TinyWorldsDataLoader.list_available_datasets():
         logger.info(f"Downloading {dataset_name}...")

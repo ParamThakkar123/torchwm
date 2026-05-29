@@ -177,10 +177,13 @@ class SequenceDataset(torch.utils.data.Dataset):
 
         obs_seq = torch.from_numpy(obs_seq).float().to(device) / 255.0
         # (T, H, W, C) -> (T, C, H, W)
-        obs_seq = obs_seq.permute(0, 3, 1, 2)
+        if obs_seq.ndim == 4:
+            obs_seq = obs_seq.permute(0, 3, 1, 2)
 
         next_obs = torch.from_numpy(next_obs).float().to(device) / 255.0
-        next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
+        # ensure next_obs is (C, H, W)
+        if next_obs.ndim == 3:
+            next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
 
         action_seq = torch.from_numpy(action_seq).long().to(device)
         if action_seq.ndim > 1 and action_seq.shape[-1] == 1:

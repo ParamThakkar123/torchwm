@@ -5,9 +5,13 @@ from typing import Optional
 
 def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5):
     """Apply gradient checkpointing to reduce memory usage during training."""
-    if hasattr(model, "gradient_checkpointing_enable"):
-        # For transformers
-        model.gradient_checkpointing_enable()
+    # Some models expose gradient_checkpointing_enable as a callable while
+    # others may have an attribute with the same name that isn't callable.
+    # Use getattr and only call when it's actually callable to avoid mypy
+    # complaining about "Tensor" not callable at type-check time.
+    gc_enable = getattr(model, "gradient_checkpointing_enable", None)
+    if callable(gc_enable):
+        gc_enable()
     else:
         # For custom modules, apply selective checkpointing
         for name, module in model.named_modules():

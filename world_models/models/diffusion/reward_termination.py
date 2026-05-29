@@ -80,7 +80,7 @@ class RewardTerminationModel(nn.Module):
         obs: torch.Tensor,
         actions: torch.Tensor,
         hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
         Forward pass of reward/termination model.
 
@@ -123,7 +123,7 @@ class RewardTerminationModel(nn.Module):
         obs: torch.Tensor,
         actions: torch.Tensor,
         hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-    ) -> Tuple[torch.Tensor, bool, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
         Predict reward and termination for a single step.
 
@@ -133,8 +133,8 @@ class RewardTerminationModel(nn.Module):
             hidden_state: Optional (h, c) hidden states
 
         Returns:
-            reward: Predicted reward (as class index 0,1,2 -> -1,0,1)
-            terminated: Predicted termination as boolean
+            reward: Predicted reward classes as tensor (values -1,0,1)
+            terminated: Predicted termination tensor (bool tensor)
             hidden_state: Updated (h, c) hidden states
         """
         obs = obs.unsqueeze(1)

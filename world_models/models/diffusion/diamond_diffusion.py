@@ -45,6 +45,9 @@ class ResBlock(nn.Module):
         self.norm2 = AdaptiveGroupNorm(32, out_channels, cond_dim)
         self.dropout = nn.Dropout(dropout)
 
+        # skip connection may be either a Conv2d or an Identity - annotate as
+        # generic nn.Module to satisfy static type checkers.
+        self.skip: nn.Module
         if in_channels != out_channels:
             self.skip = nn.Conv2d(in_channels, out_channels, 1)
         else:
@@ -122,6 +125,8 @@ class DownBlock(nn.Module):
             self.res_blocks.append(ResBlock(in_channels, out_channels, cond_dim))
             in_channels = out_channels
 
+        # attn can be AttentionBlock or None
+        self.attn: Optional[AttentionBlock]
         if attention:
             self.attn = AttentionBlock(out_channels, cond_dim)
         else:
@@ -152,6 +157,8 @@ class UpBlock(nn.Module):
             self.res_blocks.append(ResBlock(in_channels, out_channels, cond_dim))
             in_channels = out_channels
 
+        # attn can be AttentionBlock or None
+        self.attn: Optional[AttentionBlock]
         if attention:
             self.attn = AttentionBlock(out_channels, cond_dim)
         else:

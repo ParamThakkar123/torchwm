@@ -683,6 +683,8 @@ checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Minimal configuration container for JEPA training.
 Converts to the nested dict expected by <cite>train_jepa.main</cite>.</p>
+<dl class="field-list simple">
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.configs.JEPAConfig.to_dict">
 <span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/configs/jepa_config.html#JEPAConfig.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.JEPAConfig.to_dict" title="Link to this definition">#</a></dt>
@@ -4655,7 +4657,7 @@ frames and the critic estimates value functions for training.</p>
 <li><p><strong>game</strong> (<em>str</em>)</p></li>
 <li><p><strong>device</strong> (<em>str</em>)</p></li>
 <li><p><strong>seed</strong> (<em>int</em>)</p></li>
-<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -5671,7 +5673,7 @@ training pipelines.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>transform</strong> – Transforms to apply to images.</p></li>
+<li><p><strong>transform</strong> (<em>Any</em>) – Transforms to apply to images.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Number of samples per batch.</p></li>
 <li><p><strong>collator</strong> (<em>callable</em><em>, </em><em>optional</em>) – Custom collate function (e.g., mask collator).</p></li>
 <li><p><strong>pin_mem</strong> (<em>bool</em>) – Whether to pin memory for GPU transfer (default: True).</p></li>
@@ -5758,7 +5760,22 @@ once per job and synchronizing worker processes with a signal file.</p>
 it a drop-in replacement for ImageNet loaders in training scripts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>val_split</strong> (<em>float</em><em> | </em><em>None</em>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transform</strong> (<em>Any</em>)</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>collator</strong> (<em>Any</em>)</p></li>
+<li><p><strong>pin_mem</strong> (<em>bool</em>)</p></li>
+<li><p><strong>num_workers</strong> (<em>int</em>)</p></li>
+<li><p><strong>world_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>rank</strong> (<em>int</em>)</p></li>
+<li><p><strong>root_path</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>image_folder</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>drop_last</strong> (<em>bool</em>)</p></li>
+<li><p><strong>val_split</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[torch.utils.data.Dataset, torch.utils.data.DataLoader, torch.utils.data.distributed.DistributedSampler]</p>
 </dd>
 </dl>
 </dd></dl>

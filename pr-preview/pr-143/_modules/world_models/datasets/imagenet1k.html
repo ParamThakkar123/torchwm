@@ -1008,6 +1008,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchvision</span>
@@ -1019,20 +1020,24 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="make_imagenet1k">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.datasets.imagenet1k.make_imagenet1k">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_imagenet1k</span><span class="p">(</span>
-    <span class="n">transform</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="p">,</span>
-    <span class="n">collator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">pin_mem</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-    <span class="n">world_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">root_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">image_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">copy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">subset_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+    <span class="n">transform</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">collator</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pin_mem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">root_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">image_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">training</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">copy_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">drop_last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">subset_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">,</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span><span class="p">,</span>
+<span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build an ImageNet-1K dataset and dataloader with distributed sampling.</span>
 
 <span class="sd">    Factory function that creates an ImageNet dataset and returns a tuple of</span>
@@ -1292,18 +1297,22 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="make_imagefolder">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.datasets.imagenet1k.make_imagefolder">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_imagefolder</span><span class="p">(</span>
-    <span class="n">transform</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="p">,</span>
-    <span class="n">collator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">pin_mem</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-    <span class="n">world_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="n">root_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">image_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">transform</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">collator</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">pin_mem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">world_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">root_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">image_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">drop_last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">val_split</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">,</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span><span class="p">,</span>
+<span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an ImageFolder dataset loader for custom folder-structured datasets.</span>
 
 <span class="sd">    Supports optional train/validation split and distributed sampling, making</span>

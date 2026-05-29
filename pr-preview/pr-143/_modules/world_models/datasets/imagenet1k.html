@@ -1070,7 +1070,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">            - dataloader: DataLoader with distributed sampling</span>
 <span class="sd">            - sampler: DistributedSampler instance</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">ImageNet</span><span class="p">(</span>
+    <span class="c1"># Annotate as Any because we may wrap the ImageNet with ImageNetSubset</span>
+    <span class="n">dataset</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">ImageNet</span><span class="p">(</span>
         <span class="n">root</span><span class="o">=</span><span class="n">root_path</span><span class="p">,</span>
         <span class="n">image_folder</span><span class="o">=</span><span class="n">image_folder</span><span class="p">,</span>
         <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
@@ -1083,12 +1084,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ImageNet dataset created&quot;</span><span class="p">)</span>
     <span class="c1"># Explicitly annotate the distributed sampler variable for mypy.</span>
     <span class="n">dist_sampler</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span>
-    <span class="c1"># Explicit annotation to satisfy mypy&#39;s var-annotated checks.</span>
-    <span class="n">dist_sampler</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span>
     <span class="n">dist_sampler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span><span class="p">(</span>
         <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">num_replicas</span><span class="o">=</span><span class="n">world_size</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="n">rank</span>
     <span class="p">)</span>
-    <span class="n">data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
+    <span class="n">data_loader</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
         <span class="n">dataset</span><span class="p">,</span>
         <span class="n">collate_fn</span><span class="o">=</span><span class="n">collator</span><span class="p">,</span>
         <span class="n">sampler</span><span class="o">=</span><span class="n">dist_sampler</span><span class="p">,</span>
@@ -1318,8 +1317,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Supports optional train/validation split and distributed sampling, making</span>
 <span class="sd">    it a drop-in replacement for ImageNet loaders in training scripts.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Build a string root path for ImageFolder; coerce None -&gt; empty string</span>
+    <span class="k">if</span> <span class="n">image_folder</span><span class="p">:</span>
+        <span class="n">root_arg</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">image_folder</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">root_arg</span> <span class="o">=</span> <span class="n">root_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
+
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">ImageFolder</span><span class="p">(</span>
-        <span class="n">root</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_path</span><span class="p">,</span> <span class="n">image_folder</span><span class="p">)</span> <span class="k">if</span> <span class="n">image_folder</span> <span class="k">else</span> <span class="n">root_path</span><span class="p">,</span>
+        <span class="n">root</span><span class="o">=</span><span class="n">root_arg</span><span class="p">,</span>
         <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">val_split</span><span class="p">:</span>

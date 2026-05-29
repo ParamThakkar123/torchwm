@@ -23,7 +23,7 @@ except Exception:  # pragma: no cover - runtime guard
     print("Please install 'typer' to use the CLI: pip install typer[all]")
     raise
 
-app = typer.Typer(help="TorchWM command-line tool")
+app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("torchwm.cli")
 
@@ -241,6 +241,9 @@ def train(
     extra_args: List[str] = typer.Argument(
         None, help="Extra args passed to training script"
     ),
+    inproc: bool = typer.Option(
+        False, help="Run training in-process instead of spawning subprocess"
+    ),
 ) -> None:
     """Launch an existing training entrypoint as a subprocess.
 
@@ -261,6 +264,37 @@ def train(
         raise typer.Exit(code=1)
 
     module = mapping[key]
+    if inproc:
+        # Try to import the module and call a `main` entrypoint directly.
+        try:
+            import importlib
+
+            mod = importlib.import_module(module)
+            main_fn = getattr(mod, "main", None)
+            if callable(main_fn):
+                print(f"Running in-process: {module}.main()")
+                # If main expects args, we try to pass nothing and let it parse sys.argv
+                try:
+                    main_fn()
+                except TypeError:
+                    # Some mains accept args; attempt to pass extra_args if provided
+                    if extra_args:
+                        main_fn(extra_args)
+                    else:
+                        main_fn()
+                raise typer.Exit(code=0)
+            else:
+                print(
+                    f"Module {module} has no callable main(); falling back to subprocess"
+                )
+        except KeyboardInterrupt:
+            print("Training interrupted by user")
+            raise typer.Exit(code=1)
+        except Exception as e:
+            logger.exception("In-process training failed: %s", e)
+            print("Falling back to subprocess execution")
+
+    # Spawn subprocess as fallback / default
     cmd = [sys.executable, "-m", module]
     if extra_args:
         cmd.extend(extra_args)

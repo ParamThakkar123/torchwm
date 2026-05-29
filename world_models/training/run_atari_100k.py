@@ -10,7 +10,7 @@ from world_models.configs.iris_config import IRISConfig
 import numpy as np
 import json
 import os
-from typing import List, Dict
+from typing import List, Dict, Optional, cast
 
 
 # Atari 100k benchmark games
@@ -121,7 +121,9 @@ def compute_human_normalized_score(score: float, game: str) -> float:
     return (score - random) / (human - random)
 
 
-def run_single_game(game: str, config: IRISConfig = None, device: str = "cuda") -> Dict:
+def run_single_game(
+    game: str, config: Optional[IRISConfig] = None, device: str = "cuda"
+) -> Dict:
     """Run IRIS on a single game.
 
     Args:
@@ -137,37 +139,44 @@ def run_single_game(game: str, config: IRISConfig = None, device: str = "cuda") 
     print(f"{'=' * 50}")
 
     try:
+        # Ensure we have a config object
+        cfg = config if config is not None else IRISConfig()
+
         trainer = IRISTrainer(
             game=game,
             device=device,
-            config=config,
+            config=cfg,
         )
 
         # Train for full 100k steps
-        trainer.train(total_epochs=config.total_epochs, eval_interval=100)
+        trainer.train(total_epochs=cfg.total_epochs, eval_interval=100)
 
-        # Evaluate
-        eval_metrics = trainer.evaluate(num_episodes=100)
+        # Evaluate (explicit non-render mode so the return type is a dict)
+        eval_metrics = trainer.evaluate(num_episodes=100, render=False)
+        # Trainer.evaluate can return different shapes when `render=True` (tuple)
+        # Statically cast to a mapping of numeric metrics for downstream access.
+        # We expect the evaluate() dictionary to contain numeric metric values
+        # (floats/ints), so cast to Dict[str, float] to make subsequent
+        # conversions to `float(...)` type-check cleanly.
+        eval_metrics = cast(Dict[str, float], eval_metrics)
 
         # Get game name without ALE/ prefix
         game_name = game.replace("ALE/", "").replace("-v5", "")
 
         # Compute human-normalized score
-        hns = compute_human_normalized_score(
-            eval_metrics["eval_mean_return"],
-            game_name,
-        )
+        mean_return_val = float(eval_metrics.get("eval_mean_return", 0.0))
+        hns = compute_human_normalized_score(mean_return_val, game_name)
 
         result = {
             "game": game,
             "game_name": game_name,
-            "mean_return": eval_metrics["eval_mean_return"],
-            "std_return": eval_metrics["std_return"],
+            "mean_return": mean_return_val,
+            "std_return": float(eval_metrics.get("std_return", 0.0)),
             "human_normalized_score": hns,
         }
 
         print(f"\nResults for {game_name}:")
-        print(f"  Mean return: {eval_metrics['eval_mean_return']:.2f}")
+        print(f"  Mean return: {mean_return_val:.2f}")
         print(f"  Human-normalized: {hns:.3f}")
 
         return result
@@ -181,8 +190,8 @@ def run_single_game(game: str, config: IRISConfig = None, device: str = "cuda") 
 
 
 def run_atari_100k(
-    games: List[str] = None,
-    config: IRISConfig = None,
+    games: Optional[List[str]] = None,
+    config: Optional[IRISConfig] = None,
     device: str = "cuda",
     output_file: str = "results/iris_atari100k.json",
 ):

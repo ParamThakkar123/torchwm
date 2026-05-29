@@ -146,17 +146,22 @@ class GenieTrainer:
 
         self.global_step += 1
 
+        # Normalize all returned metrics to torch.Tensor for consistent typing
+        def as_tensor(x):
+            if isinstance(x, torch.Tensor):
+                return x.detach().cpu()
+            try:
+                return torch.tensor(float(x))
+            except Exception:
+                return torch.tensor(float("nan"))
+
         return {
-            "total_loss": total_loss.item(),
-            "recon_loss": recon_loss.item()
-            if isinstance(recon_loss, torch.Tensor)
-            else recon_loss,
-            "vq_loss": vq_loss.item() if isinstance(vq_loss, torch.Tensor) else vq_loss,
-            "dynamics_loss": dynamics_loss.item()
-            if isinstance(dynamics_loss, torch.Tensor)
-            else dynamics_loss,
-            "learning_rate": self.scheduler.get_last_lr()[0],
-            "z_q_for_dynamics_mean": z_q_for_dynamics_mean,
+            "total_loss": as_tensor(total_loss),
+            "recon_loss": as_tensor(recon_loss),
+            "vq_loss": as_tensor(vq_loss),
+            "dynamics_loss": as_tensor(dynamics_loss),
+            "learning_rate": torch.tensor(float(self.scheduler.get_last_lr()[0])),
+            "z_q_for_dynamics_mean": as_tensor(z_q_for_dynamics_mean),
         }
 
     def validate(self, val_batch: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -173,9 +178,9 @@ class GenieTrainer:
             outputs = self.model(val_batch, mask_prob=0.0)
             recon_loss = outputs["tokenizer_loss"].get("recon_loss", 0.0)
             return {
-                "val_recon_loss": recon_loss.item()
+                "val_recon_loss": recon_loss.detach().cpu()
                 if isinstance(recon_loss, torch.Tensor)
-                else recon_loss,
+                else torch.tensor(float(recon_loss)),
             }
 
     def train(
@@ -244,7 +249,11 @@ class GenieTrainer:
 
     def load_checkpoint(self, path: str):
         """Load model checkpoint."""
-        checkpoint = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(
+            path,
+            map_location=self.device,
+            weights_only=False,
+        )
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])

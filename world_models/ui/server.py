@@ -15,7 +15,7 @@ import traceback
 from collections import defaultdict
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, cast, AsyncGenerator
 
 import cv2
 import numpy as np
@@ -58,7 +58,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Global storage for last latents
-last_latents = None
+last_latents: Any = None
 
 
 SUPPORTED_MODELS: dict[str, dict[str, str]] = {
@@ -133,7 +133,7 @@ GYM_ENVS = [
     "Pusher-v2",
 ]
 
-UNITY_ENVS = []
+UNITY_ENVS: list[str] = []
 
 ATARI_ENVS: list[str] = []
 try:
@@ -417,7 +417,9 @@ class TrainingController:
 
         self._latest_metrics: dict[str, float] = {}
 
-        self.last_latents_ref = [last_latents]
+        # typed as a one-element list so training/eval routines can update
+        # the reference in-place for cross-thread visibility.
+        self.last_latents_ref: list[Any] = [last_latents]
 
     def available_environments(self, model_name: str | None) -> list[str]:
         if model_name is None:
@@ -702,7 +704,11 @@ class TrainingController:
     def _run_dreamer(self) -> None:
         with self._lock:
             env_name = self._environment_name
-            model_cfg = dict(DEFAULT_MODEL_CONFIGS[self._model_name])
+            model_name = self._model_name
+            if model_name is None:
+                raise ValueError("Dreamer requires a loaded model name.")
+            # Use .get to be safe for unknown models and keep typing narrow
+            model_cfg = dict(DEFAULT_MODEL_CONFIGS.get(model_name, {}))
             model_cfg.update(self._model_config)
             model_cfg.update(self._environment_config)
             train_cfg = dict(self._training_config)
@@ -818,13 +824,28 @@ class TrainingController:
                     next_obs, _, _, _ = agent.test_env.step(action_np)
                     if isinstance(next_obs, dict) and "image" in next_obs:
                         frame_img = next_obs["image"]
-                        if hasattr(frame_img, "shape"):
-                            if frame_img.shape[-1] == 3:
-                                self._set_frame(frame_img)
-                            elif frame_img.shape[0] == 3:
-                                self._set_frame(frame_img.transpose(1, 2, 0))
-                    elif hasattr(next_obs, "shape") and next_obs.shape[-1] == 3:
-                        self._set_frame(next_obs)
+                        # frame_img may sometimes be a nested dict; ensure it's
+                        # array-like before accessing its shape. Avoid directly
+                        # indexing `frame_img.shape` on objects that could be
+                        # dicts to keep static typing happy.
+                        # Convert to numpy array for robust shape checks and
+                        # avoid calling instance methods on dict-like objects.
+                        try:
+                            arr = np.asarray(frame_img)
+                            if arr.ndim >= 3 and arr.shape[-1] == 3:
+                                self._set_frame(arr)
+                            elif arr.ndim >= 3 and arr.shape[0] == 3:
+                                self._set_frame(np.transpose(arr, (1, 2, 0)))
+                        except Exception:
+                            pass
+                    else:
+                        # next_obs may sometimes be a numpy array-like; check shape safely
+                        try:
+                            arr = np.asarray(next_obs)
+                            if arr.ndim >= 3 and arr.shape[-1] == 3:
+                                self._set_frame(arr)
+                        except Exception:
+                            pass
                 except Exception:
                     pass
 
@@ -864,7 +885,7 @@ class TrainingController:
                 )
                 try:
                     if getattr(self, "last_latents_ref", None) is not None:
-                        self.last_latents_ref[0] = eval_latents
+                        self.last_latents_ref[0] = cast(Any, eval_latents)
                 except Exception:
                     pass
 
@@ -971,9 +992,21 @@ class TrainingController:
                 if values
             }
 
-            planet.memory.append(planet.rollout_gen.rollout_once(explore=True))
-            eval_episode, eval_frames, eval_metrics = planet.rollout_gen.rollout_eval()
-            planet.memory.append(eval_episode)
+            # Append warmup rollout (wrap/annotate with cast to appease static checker)
+            planet.memory.append(
+                cast(Any, planet.rollout_gen.rollout_once(explore=True))
+            )
+            # rollout_eval may return different shaped tuples across versions (3-tuple or 4-tuple).
+            res = planet.rollout_gen.rollout_eval()
+            if isinstance(res, (tuple, list)):
+                eval_episode = res[0] if len(res) > 0 else None
+                eval_frames = res[1] if len(res) > 1 else None
+                eval_metrics = res[2] if len(res) > 2 else {}
+            else:
+                eval_episode = res
+                eval_frames = None
+                eval_metrics = {}
+            planet.memory.append(cast(Any, eval_episode))
 
             flat_eval = flatten_dict(eval_metrics)
             for key, value in flat_eval.items():
@@ -1064,7 +1097,7 @@ class TrainingController:
                     try:
                         if getattr(self, "last_latents_ref", None) is not None:
                             # eval_latents may be empty array
-                            self.last_latents_ref[0] = eval_latents
+                            self.last_latents_ref[0] = cast(Any, eval_latents)
                     except Exception:
                         logger.exception("Failed to set last_latents_ref for IRIS")
 
@@ -1181,7 +1214,7 @@ def broadcast_update(keys: list[str], extra: dict | None = None) -> None:
 
 
 @app.get("/api/events")
-async def sse_events():
+async def sse_events() -> StreamingResponse:
     """Server-Sent Events endpoint that streams simple JSON update notifications.
 
     Clients should connect and listen for `data: {...}` lines. Each message is a JSON
@@ -1191,7 +1224,7 @@ async def sse_events():
     loop = asyncio.get_event_loop()
     SUBSCRIBERS.append((q, loop))
 
-    async def event_generator():
+    async def event_generator() -> AsyncGenerator[str, None]:
         try:
             while True:
                 msg = await q.get()
@@ -1384,14 +1417,14 @@ def _check_dependency(name: str) -> bool:
 def get_dependencies() -> dict[str, Any]:
     deps = []
     for dep in TRAINING_DEPENDENCIES:
-        installed = _check_dependency(dep["name"])
+        # TRAINING_DEPENDENCIES may be untyped in some contexts; coerce values to
+        # expected primitive types before passing to _check_dependency or returning
+        name = str(dep.get("name", ""))
+        label = str(dep.get("label", name))
+        required = bool(dep.get("required", False))
+        installed = _check_dependency(name)
         deps.append(
-            {
-                "name": dep["name"],
-                "label": dep["label"],
-                "required": dep["required"],
-                "installed": installed,
-            }
+            {"name": name, "label": label, "required": required, "installed": installed}
         )
     return {"dependencies": deps}
 

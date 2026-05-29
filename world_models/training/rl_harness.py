@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from typing import Dict
+from typing import Dict, Any, List
 import logging
 
 from world_models.envs.vector_env import TorchVectorizedEnv
@@ -108,10 +108,11 @@ class PPOTrainer:
 
     def collect_trajectories(self, num_steps: int) -> Dict[str, torch.Tensor]:
         """Collect trajectories using the vectorized environment."""
-        obs_batch = self.vec_env.reset_batch()
+        obs_batch: Any = self.vec_env.reset_batch()
         obs = obs_batch["obs"]["image"].to(self.device)
 
-        trajectories = {
+        # Collect lists of tensors, convert to stacked tensors before returning
+        trajectories: Dict[str, List[torch.Tensor]] = {
             "obs": [],
             "actions": [],
             "log_probs": [],
@@ -144,22 +145,25 @@ class PPOTrainer:
 
             obs = next_obs
 
-        # Convert to tensors
-        for key in trajectories:
-            trajectories[key] = torch.stack(trajectories[key])
+        # Convert lists to stacked tensors for return
+        result: Dict[str, torch.Tensor] = {}
+        for key, lst in trajectories.items():
+            result[key] = torch.stack(lst)
 
-        return trajectories
+        return result
 
     def compute_gae(
         self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor
     ) -> torch.Tensor:
         """Compute Generalized Advantage Estimation."""
         advantages = torch.zeros_like(rewards)
-        last_gae = 0
+        # ensure last_gae is a tensor matching per-step value shape
+        # values[t] has the same shape as rewards[t]
+        last_gae = torch.zeros_like(values[0])
 
         for t in reversed(range(len(rewards))):
             if t == len(rewards) - 1:
-                next_value = 0
+                next_value = torch.zeros_like(values[t])
             else:
                 next_value = values[t + 1]
 
@@ -168,9 +172,10 @@ class PPOTrainer:
                 + self.gamma * next_value * (1 - dones[t].float())
                 - values[t]
             )
-            advantages[t] = last_gae = (
+            last_gae = (
                 delta + self.gamma * self.gae_lambda * (1 - dones[t].float()) * last_gae
             )
+            advantages[t] = last_gae
 
         return advantages
 
@@ -251,7 +256,8 @@ class PPOTrainer:
             trajectories = self.collect_trajectories(
                 min(2048, total_timesteps - timestep)
             )
-            timestep += len(trajectories["obs"]) * self.vec_env.total_envs
+            # trajectories["obs"] is a tensor; ensure int arithmetic for timestep
+            timestep += int(len(trajectories["obs"])) * self.vec_env.total_envs
 
             # Train
             self.train_step(trajectories)

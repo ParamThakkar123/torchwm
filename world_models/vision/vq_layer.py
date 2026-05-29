@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple
+from typing import Tuple, Dict
 
 
 class VectorQuantizer(nn.Module):
@@ -30,7 +30,9 @@ class VectorQuantizer(nn.Module):
         self.codebook = nn.Embedding(vocab_size, embedding_dim)
         self.codebook.weight.data.uniform_(-1.0 / vocab_size, 1.0 / vocab_size)
 
-    def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, dict]:
+    def forward(
+        self, z: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         """Quantize the input latents.
 
         Args:
@@ -42,7 +44,13 @@ class VectorQuantizer(nn.Module):
             loss: Dictionary containing VQ loss components
         """
         # Reshape for quantization
-        original_shape = z.shape
+        original_shape: torch.Size = z.shape
+
+        z_flat: torch.Tensor
+        B: int
+        C: int
+        H: int
+        W: int
 
         if z.dim() == 4:  # (B, C, H, W)
             B, C, H, W = z.shape
@@ -50,6 +58,9 @@ class VectorQuantizer(nn.Module):
             z_flat = z.permute(0, 2, 3, 1).reshape(B, H * W, C)
         elif z.dim() == 2:  # (B, C)
             B = z.shape[0]
+            C = z.shape[1]
+            H = 1
+            W = 1
             z_flat = z.unsqueeze(1)  # (B, 1, C)
         else:
             raise ValueError(f"Expected 2D or 4D input, got {z.dim()}D")
@@ -57,35 +68,37 @@ class VectorQuantizer(nn.Module):
         # Compute distances to codebook entries
         # ||z - e||^2 = ||z||^2 + ||e||^2 - 2 * z·e
         z_flat = z_flat.float()
-        codebook = self.codebook.weight.float()
+        codebook: torch.Tensor = self.codebook.weight.float()
 
-        d = (
+        d: torch.Tensor = (
             torch.sum(z_flat**2, dim=-1, keepdim=True)
             + torch.sum(codebook**2, dim=-1)
             - 2 * torch.matmul(z_flat, codebook.t())
         )  # (B, H*W, vocab_size)
 
         # Find nearest codebook entries (indices)
-        indices = torch.argmin(d, dim=-1)  # (B, H*W) or (B, 1)
+        indices: torch.Tensor = torch.argmin(d, dim=-1)  # (B, H*W) or (B, 1)
 
         # Get the quantized values (straight-through)
-        z_q = F.embedding(indices, codebook)
+        z_q: torch.Tensor = F.embedding(indices, codebook)
 
         # Straight-through estimator: use z_q for forward, z for backward
         # This allows gradients to flow through while using discrete codes
-        z_q_detached = z_q.detach()
+        z_q_detached: torch.Tensor = z_q.detach()
 
         # Compute losses
         # 1. Reconstruction loss: ||z - z_q||^2 (stop gradient on z_q)
-        commitment_loss = F.mse_loss(z_q_detached, z_flat)
+        commitment_loss: torch.Tensor = F.mse_loss(z_q_detached, z_flat)
 
         # 2. Codebook loss: encourage z_q to move toward z (stop gradient on z)
         # Actually this is handled by the commitment loss since we use detached z_q
 
         # 3. Perplexity: measure of how many codebook entries are used
-        encodings = F.one_hot(indices, self.vocab_size).float()
-        avg_probs = torch.mean(encodings, dim=0)
-        perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
+        encodings: torch.Tensor = F.one_hot(indices, self.vocab_size).float()
+        avg_probs: torch.Tensor = torch.mean(encodings, dim=0)
+        perplexity: torch.Tensor = torch.exp(
+            -torch.sum(avg_probs * torch.log(avg_probs + 1e-10))
+        )
 
         # Reshape back to original spatial dimensions
         if z.dim() == 4:
@@ -93,11 +106,11 @@ class VectorQuantizer(nn.Module):
         else:
             z_q = z_q.squeeze(1)
 
-        indices_reshaped = (
+        indices_reshaped: torch.Tensor = (
             indices.reshape(B, H, W) if z.dim() == 4 else indices.squeeze(-1)
         )
 
-        loss = {
+        loss: Dict[str, torch.Tensor] = {
             "vq_loss": commitment_loss,
             "perplexity": perplexity,
         }
@@ -151,41 +164,50 @@ class VectorQuantizerEMA(nn.Module):
         self.codebook.weight.data.uniform_(-1.0 / vocab_size, 1.0 / vocab_size)
 
         # EMA tracking
+        # Annotate buffers so the type checker knows these are tensors
         self.register_buffer("ema_cluster_size", torch.zeros(vocab_size))
-        self.register_buffer("ema_embed_avg", self.codebook.weight.data.clone())
+        self.ema_cluster_size: torch.Tensor = self.ema_cluster_size  # type: ignore[name-defined]
 
-    def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, dict]:
+        self.register_buffer("ema_embed_avg", self.codebook.weight.data.clone())
+        self.ema_embed_avg: torch.Tensor = self.ema_embed_avg  # type: ignore[name-defined]
+
+    def forward(
+        self, z: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         """Quantize with EMA updates."""
         # Flatten spatial dims
         B, C, H, W = z.shape
-        z_flat = z.permute(0, 2, 3, 1).reshape(B, H * W, C).float()
+        z_flat: torch.Tensor = z.permute(0, 2, 3, 1).reshape(B, H * W, C).float()
 
         # Compute distances
-        codebook = self.codebook.weight.float()
-        d = (
+        codebook: torch.Tensor = self.codebook.weight.float()
+        d: torch.Tensor = (
             torch.sum(z_flat**2, dim=-1, keepdim=True)
             + torch.sum(codebook**2, dim=-1)
             - 2 * torch.matmul(z_flat, codebook.t())
         )
 
-        indices = torch.argmin(d, dim=-1)
+        indices: torch.Tensor = torch.argmin(d, dim=-1)
 
         # Quantize (using straight-through)
-        z_q = F.embedding(indices, codebook)
+        z_q: torch.Tensor = F.embedding(indices, codebook)
 
         # EMA update (only during training)
         if self.training:
             with torch.no_grad():
-                encodings = F.one_hot(indices, self.vocab_size).float()
+                encodings_train: torch.Tensor = F.one_hot(
+                    indices, self.vocab_size
+                ).float()
                 self.ema_cluster_size.mul_(self.ema_decay).add_(
-                    encodings.sum(dim=(0, 1, 2)), alpha=1 - self.ema_decay
+                    encodings_train.sum(dim=(0, 1, 2)), alpha=1 - self.ema_decay
                 )
 
                 # Update cluster averages
-                n = self.ema_cluster_size.sum()
-                new_ema_embed_avg = (
+                n: torch.Tensor = self.ema_cluster_size.sum()
+                new_ema_embed_avg: torch.Tensor = (
                     self.ema_embed_avg * self.ema_decay
-                    + (z_flat.transpose(1, 2) @ encodings).sum(0) * (1 - self.ema_decay)
+                    + (z_flat.transpose(1, 2) @ encodings_train).sum(0)
+                    * (1 - self.ema_decay)
                 ) / (n + self.epsilon)
 
                 self.ema_embed_avg.copy_(new_ema_embed_avg)
@@ -199,16 +221,18 @@ class VectorQuantizerEMA(nn.Module):
 
         # Compute losses
         # Codebook loss: move codebook toward encoder output (stop gradient on encoder)
-        codebook_loss = F.mse_loss(z_q, z.detach())
+        codebook_loss: torch.Tensor = F.mse_loss(z_q, z.detach())
         # Commitment loss: move encoder output toward codebook (stop gradient on codebook)
-        commitment_loss = F.mse_loss(z_q.detach(), z)
+        commitment_loss: torch.Tensor = F.mse_loss(z_q.detach(), z)
 
         # Perplexity
-        encodings = F.one_hot(indices, self.vocab_size).float()
-        avg_probs = torch.mean(encodings, dim=0)
-        perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
+        encodings_eval: torch.Tensor = F.one_hot(indices, self.vocab_size).float()
+        avg_probs: torch.Tensor = torch.mean(encodings_eval, dim=0)
+        perplexity: torch.Tensor = torch.exp(
+            -torch.sum(avg_probs * torch.log(avg_probs + 1e-10))
+        )
 
-        loss = {
+        loss: Dict[str, torch.Tensor] = {
             "vq_loss": codebook_loss + commitment_loss * self.commitment_weight,
             "perplexity": perplexity,
         }

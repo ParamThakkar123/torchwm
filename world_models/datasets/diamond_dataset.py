@@ -166,28 +166,32 @@ class SequenceDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         """Get a sequence starting at idx."""
         indices = np.arange(idx, idx + self.sequence_length + 1)
-        obs_seq = self.replay_buffer.observations[indices[:-1]]
-        action_seq = self.replay_buffer.actions[indices[:-1]]
-        reward_seq = self.replay_buffer.rewards[indices[:-1]]
-        done_seq = self.replay_buffer.dones[indices[:-1]]
-        next_obs = self.replay_buffer.next_observations[indices[-1]]
+        # keep numpy arrays separate to avoid mypy inferring ndarray types
+        obs_seq_np = self.replay_buffer.observations[indices[:-1]]
+        action_seq_np = self.replay_buffer.actions[indices[:-1]]
+        reward_seq_np = self.replay_buffer.rewards[indices[:-1]]
+        done_seq_np = self.replay_buffer.dones[indices[:-1]]
+        next_obs_np = self.replay_buffer.next_observations[indices[-1]]
 
         # convert and move to device
         device = self.replay_buffer.device
 
-        obs_seq = torch.from_numpy(obs_seq).float().to(device) / 255.0
+        obs_seq = torch.from_numpy(obs_seq_np).float().to(device) / 255.0
         # (T, H, W, C) -> (T, C, H, W)
-        obs_seq = obs_seq.permute(0, 3, 1, 2)
+        if obs_seq.ndim == 4:
+            obs_seq = obs_seq.permute(0, 3, 1, 2)
 
-        next_obs = torch.from_numpy(next_obs).float().to(device) / 255.0
-        next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
+        next_obs = torch.from_numpy(next_obs_np).float().to(device) / 255.0
+        # ensure next_obs is (C, H, W)
+        if next_obs.ndim == 3:
+            next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
 
-        action_seq = torch.from_numpy(action_seq).long().to(device)
+        action_seq = torch.from_numpy(action_seq_np).long().to(device)
         if action_seq.ndim > 1 and action_seq.shape[-1] == 1:
             action_seq = action_seq.squeeze(-1)
 
-        rewards = torch.from_numpy(reward_seq).float().to(device)
-        dones = torch.from_numpy(done_seq).bool().to(device)
+        rewards = torch.from_numpy(reward_seq_np).float().to(device)
+        dones = torch.from_numpy(done_seq_np).bool().to(device)
 
         return {
             "obs_seq": obs_seq,

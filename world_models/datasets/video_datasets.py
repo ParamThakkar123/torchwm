@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from typing import Optional, Callable, List, Tuple, Union
+from typing import Optional, Callable, List, Tuple, Union, Any, cast, Sequence
 from pathlib import Path
 import numpy as np
 from dataclasses import dataclass
@@ -33,21 +33,25 @@ class VideoDatasetBase(Dataset):
 
     def __init__(
         self,
-        data_source: Union[str, List[str]],
+        data_source: Union[str, Path, List[str], List[Path]],
         num_frames: int = 16,
         image_size: int = 64,
         transform: Optional[Callable] = None,
         normalize: bool = True,
     ):
-        self.data_source = data_source
+        self.data_source: Union[str, Path, List[str], List[Path]] = data_source
         self.num_frames = num_frames
         self.image_size = image_size
         self.transform = transform
         self.normalize = normalize
 
-        self.video_paths = self._get_video_paths()
+        # video_paths is a list of Path-like objects or numeric indices for in-memory datasets
+        # Use a union element type so subclasses may return either Path or int indices.
+        # video_paths may be a sequence of Path objects (file-based datasets)
+        # or integer indices (in-memory datasets). Use Sequence for flexibility.
+        self.video_paths: Sequence[Union[Path, int]] = self._get_video_paths()
 
-    def _get_video_paths(self) -> List[Path]:
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         """Get list of video file paths. Override in subclass."""
         raise NotImplementedError
 
@@ -97,11 +101,11 @@ class VideoFolderDataset(VideoDatasetBase):
         self.recursive = recursive
         super().__init__(data_source, num_frames, image_size, transform, normalize)
 
-    def _get_video_paths(self) -> List[Path]:
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(self.data_source)
+        data_path = Path(cast(Union[str, Path], self.data_source))
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -109,33 +113,34 @@ class VideoFolderDataset(VideoDatasetBase):
         if data_path.is_file():
             return [data_path]
 
-        video_paths = []
+        video_paths: List[Path] = []
 
         if self.recursive:
             for ext in self.extensions:
-                video_paths.extend(data_path.rglob(f"*{ext}"))
+                video_paths.extend(list(data_path.rglob(f"*{ext}")))
         else:
             for ext in self.extensions:
-                video_paths.extend(data_path.glob(f"*{ext}"))
+                video_paths.extend(list(data_path.glob(f"*{ext}")))
 
         return sorted(video_paths)
 
     def _load_video(self, idx: int) -> torch.Tensor:
-        video_path = self.video_paths[idx]
+        video_path = cast(Path, self.video_paths[idx])
 
         cap = cv2.VideoCapture(str(video_path))
-        frames = []
+        frames_list: List[np.ndarray] = []
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            frames_list.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         cap.release()
-        frames = np.array(frames)
 
-        frames = self._sample_frames(frames)
+        frames_arr = np.array(frames_list)
 
-        frames_pil = [Image.fromarray(frame) for frame in frames]
+        frames_arr = self._sample_frames(frames_arr)
+
+        frames_pil = [Image.fromarray(frame) for frame in frames_arr]
         frames_resized = [
             f.resize((self.image_size, self.image_size)) for f in frames_pil
         ]
@@ -143,8 +148,11 @@ class VideoFolderDataset(VideoDatasetBase):
         frames_array = np.stack([np.array(f) for f in frames_resized])
         return torch.from_numpy(frames_array).float()
 
-    def _sample_frames(self, frames: np.ndarray) -> np.ndarray:
-        total_frames = len(frames)
+    def _sample_frames(self, frames: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+        # Accept either an ndarray or a list of frames and normalize to ndarray
+        if isinstance(frames, list):
+            frames = np.array(frames)
+        total_frames = int(len(frames))
 
         if total_frames == self.num_frames:
             return frames
@@ -186,11 +194,11 @@ class ImageFolderDataset(VideoDatasetBase):
         )
         super().__init__(data_source, num_frames, image_size, transform, normalize)
 
-    def _get_video_paths(self) -> List[Path]:
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(self.data_source)
+        data_path = Path(cast(Union[str, Path], self.data_source))
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -202,9 +210,9 @@ class ImageFolderDataset(VideoDatasetBase):
         return sorted(sequences)
 
     def _load_video(self, idx: int) -> torch.Tensor:
-        seq_path = self.video_paths[idx]
+        seq_path = cast(Path, self.video_paths[idx])
 
-        image_files = []
+        image_files: List[Path] = []
         for ext in self.extensions:
             image_files.extend(seq_path.glob(f"*{ext}"))
 
@@ -267,7 +275,8 @@ class NumPyDataset(VideoDatasetBase):
 
         super().__init__(data_source, num_frames, image_size, transform, normalize)
 
-    def _get_video_paths(self) -> List[Path]:
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
+        # For numpy-backed datasets we represent entries as integer indices
         return list(range(self.num_samples))
 
     def _load_video(self, idx: int) -> torch.Tensor:
@@ -316,8 +325,8 @@ class RLEnvironmentDataset(VideoDatasetBase):
         self.obs_key = obs_key
         super().__init__(data_source, num_frames, image_size, transform, normalize)
 
-    def _get_video_paths(self) -> List[Path]:
-        data_path = Path(self.data_source)
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
+        data_path = Path(cast(Union[str, Path], self.data_source))
 
         if data_path.is_file() and data_path.suffix == ".npz":
             self.single_file = True
@@ -328,10 +337,10 @@ class RLEnvironmentDataset(VideoDatasetBase):
 
     def _load_video(self, idx: int) -> torch.Tensor:
         if hasattr(self, "single_file") and self.single_file:
-            data = np.load(self.video_paths[idx], allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
             observations = data[self.obs_key]
         else:
-            data = np.load(self.video_paths[idx], allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
             observations = data[self.obs_key]
 
         if isinstance(observations, dict):
@@ -413,19 +422,20 @@ class HDF5Dataset(VideoDatasetBase):
                 raise KeyError(
                     f"Key '{key}' not found in HDF5. Available: {available_keys}"
                 )
-            data = f[key]
+            data = cast(Any, f[key])
+            # mypy doesn't understand h5py dataset types; treat as Any for shape access
             if len(data.shape) == 5:
-                self.num_samples = data.shape[0]
-                self.video_length = data.shape[1]
-                self.raw_height = data.shape[2]
-                self.raw_width = data.shape[3]
-                self.channels = data.shape[4]
+                self.num_samples = int(data.shape[0])
+                self.video_length = int(data.shape[1])
+                self.raw_height = int(data.shape[2])
+                self.raw_width = int(data.shape[3])
+                self.channels = int(data.shape[4])
                 self.data_layout = "NCTHW" if data.shape[-1] <= 4 else "NTHWC"
             elif len(data.shape) == 4:
-                self.num_samples = data.shape[0]
-                self.video_length = data.shape[1]
-                self.raw_height = data.shape[2]
-                self.raw_width = data.shape[3]
+                self.num_samples = int(data.shape[0])
+                self.video_length = int(data.shape[1])
+                self.raw_height = int(data.shape[2])
+                self.raw_width = int(data.shape[3])
                 self.channels = 1
                 self.data_layout = "NTHW"
             else:
@@ -433,7 +443,7 @@ class HDF5Dataset(VideoDatasetBase):
 
         super().__init__(data_source, num_frames, image_size, transform, normalize)
 
-    def _get_video_paths(self) -> List[Path]:
+    def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         return list(range(self.num_samples))
 
     def _open_h5(self):
@@ -443,7 +453,7 @@ class HDF5Dataset(VideoDatasetBase):
 
     def _load_video(self, idx: int) -> torch.Tensor:
         f = self._open_h5()
-        data = f[self.key]
+        data = cast(Any, f[self.key])
 
         if self.memmap:
             video = data[idx]

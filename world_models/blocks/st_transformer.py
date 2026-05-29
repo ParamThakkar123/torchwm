@@ -163,7 +163,7 @@ class STMLP(nn.Module):
         in_features: int,
         hidden_features: Optional[int] = None,
         out_features: Optional[int] = None,
-        act_layer: nn.Module = nn.GELU,
+        act_layer: type[nn.Module] = nn.GELU,
         drop: float = 0.0,
     ):
         super().__init__()
@@ -181,6 +181,7 @@ class STMLP(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
+
 
 class STTransformerBlock(nn.Module):
     """Combined spatiotemporal transformer block with interleaved attention.
@@ -235,8 +236,8 @@ class STTransformerBlock(nn.Module):
         drop: float = 0.0,
         attn_drop: float = 0.0,
         drop_path: float = 0.0,
-        act_layer: nn.Module = nn.GELU,
-        norm_layer: nn.Module = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
     ):
         super().__init__()
         self.norm1_spatial = norm_layer(dim)
@@ -337,7 +338,7 @@ class STTransformer(nn.Module):
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
         drop_path_rate: float = 0.0,
-        norm_layer: nn.Module = nn.LayerNorm,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
     ):
         super().__init__()
         self.num_frames = num_frames

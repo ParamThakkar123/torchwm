@@ -5,6 +5,7 @@ import time
 import numpy as np
 
 from logging import getLogger
+from typing import Any, Tuple
 
 import torch
 import torchvision
@@ -14,20 +15,24 @@ logger = getLogger()
 
 
 def make_imagenet1k(
-    transform,
-    batch_size,
-    collator=None,
-    pin_mem=True,
-    num_workers=8,
-    world_size=1,
-    rank=0,
-    root_path=None,
-    image_folder=None,
-    training=True,
-    copy_data=False,
-    drop_last=True,
-    subset_file=None,
-):
+    transform: Any,
+    batch_size: int,
+    collator: Any = None,
+    pin_mem: bool = True,
+    num_workers: int = 8,
+    world_size: int = 1,
+    rank: int = 0,
+    root_path: str | None = None,
+    image_folder: str | None = None,
+    training: bool = True,
+    copy_data: bool = False,
+    drop_last: bool = True,
+    subset_file: str | None = None,
+) -> Tuple[
+    torch.utils.data.Dataset,
+    torch.utils.data.DataLoader,
+    torch.utils.data.distributed.DistributedSampler,
+]:
     """Build an ImageNet-1K dataset and dataloader with distributed sampling.
 
     Factory function that creates an ImageNet dataset and returns a tuple of
@@ -60,7 +65,8 @@ def make_imagenet1k(
             - dataloader: DataLoader with distributed sampling
             - sampler: DistributedSampler instance
     """
-    dataset = ImageNet(
+    # Annotate as Any because we may wrap the ImageNet with ImageNetSubset
+    dataset: Any = ImageNet(
         root=root_path,
         image_folder=image_folder,
         transform=transform,
@@ -71,10 +77,12 @@ def make_imagenet1k(
     if subset_file is not None:
         dataset = ImageNetSubset(dataset, subset_file)
     logger.info("ImageNet dataset created")
+    # Explicitly annotate the distributed sampler variable for mypy.
+    dist_sampler: torch.utils.data.distributed.DistributedSampler
     dist_sampler = torch.utils.data.distributed.DistributedSampler(
         dataset=dataset, num_replicas=world_size, rank=rank
     )
-    data_loader = torch.utils.data.DataLoader(
+    data_loader: torch.utils.data.DataLoader = torch.utils.data.DataLoader(
         dataset,
         collate_fn=collator,
         sampler=dist_sampler,
@@ -268,31 +276,42 @@ def copy_imgnt_locally(
 
 
 def make_imagefolder(
-    transform,
-    batch_size,
-    collator=None,
-    pin_mem=True,
-    num_workers=8,
-    world_size=1,
-    rank=0,
-    root_path=None,
-    image_folder=None,
-    drop_last=True,
+    transform: Any,
+    batch_size: int,
+    collator: Any = None,
+    pin_mem: bool = True,
+    num_workers: int = 8,
+    world_size: int = 1,
+    rank: int = 0,
+    root_path: str | None = None,
+    image_folder: str | None = None,
+    drop_last: bool = True,
     val_split: float | None = None,
-):
+) -> Tuple[
+    torch.utils.data.Dataset,
+    torch.utils.data.DataLoader,
+    torch.utils.data.distributed.DistributedSampler,
+]:
     """Create an ImageFolder dataset loader for custom folder-structured datasets.
 
     Supports optional train/validation split and distributed sampling, making
     it a drop-in replacement for ImageNet loaders in training scripts.
     """
+    # Build a string root path for ImageFolder; coerce None -> empty string
+    if image_folder:
+        root_arg = os.path.join(root_path or "", image_folder)
+    else:
+        root_arg = root_path or ""
+
     dataset = torchvision.datasets.ImageFolder(
-        root=os.path.join(root_path, image_folder) if image_folder else root_path,
+        root=root_arg,
         transform=transform,
     )
     if val_split:
         val_size = int(len(dataset) * val_split)
         train_size = len(dataset) - val_size
         dataset, _ = random_split(dataset, [train_size, val_size])
+    dist_sampler: torch.utils.data.distributed.DistributedSampler
     dist_sampler = torch.utils.data.distributed.DistributedSampler(
         dataset=dataset, num_replicas=world_size, rank=rank
     )

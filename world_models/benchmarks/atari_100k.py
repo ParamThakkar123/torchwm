@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from tqdm import tqdm
 
 from world_models.configs.diamond_config import (
@@ -14,7 +14,7 @@ def evaluate_atari_100k(
     game: str,
     num_seeds: int = 5,
     checkpoint_path: Optional[str] = None,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """
     Evaluate DIAMOND on a single Atari game following the Atari 100k protocol.
 
@@ -89,7 +89,7 @@ def run_atari_100k_benchmark(
     return results
 
 
-def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
+def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, Any]:
     """
     Compute aggregate metrics across all games.
 
@@ -99,7 +99,7 @@ def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
     Returns:
         Dictionary with aggregate metrics
     """
-    all_hns = []
+    all_hns: List[float] = []
     superhuman_count = 0
 
     for game, game_results in results.items():
@@ -109,18 +109,18 @@ def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
         if any(hns >= 1.0 for hns in hns_scores):
             superhuman_count += 1
 
-    all_hns = np.array(all_hns)
+    all_hns_arr = np.array(all_hns)
 
     return {
-        "mean_hns": np.mean(all_hns),
-        "median_hns": np.median(all_hns),
-        "iqm_hns": np.mean(np.percentile(all_hns, [25, 50, 75])),
-        "superhuman_games": superhuman_count,
-        "total_games": len(results),
+        "mean_hns": float(np.mean(all_hns_arr)),
+        "median_hns": float(np.median(all_hns_arr)),
+        "iqm_hns": float(np.mean(np.percentile(all_hns_arr, [25, 50, 75]))),
+        "superhuman_games": int(superhuman_count),
+        "total_games": int(len(results)),
     }
 
 
-def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, float]):
+def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, Any]):
     """Print a formatted table of results."""
     print("\n" + "=" * 100)
     print(f"{'Game':<20} {'Mean Score':>12} {'Std':>8} {'Mean HNS':>10} {'Std HNS':>8}")

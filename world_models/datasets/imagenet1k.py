@@ -5,6 +5,7 @@ import time
 import numpy as np
 
 from logging import getLogger
+from typing import Any, Tuple
 
 import torch
 import torchvision
@@ -14,20 +15,24 @@ logger = getLogger()
 
 
 def make_imagenet1k(
-    transform,
-    batch_size,
-    collator=None,
-    pin_mem=True,
-    num_workers=8,
-    world_size=1,
-    rank=0,
-    root_path=None,
-    image_folder=None,
-    training=True,
-    copy_data=False,
-    drop_last=True,
-    subset_file=None,
-):
+    transform: Any,
+    batch_size: int,
+    collator: Any = None,
+    pin_mem: bool = True,
+    num_workers: int = 8,
+    world_size: int = 1,
+    rank: int = 0,
+    root_path: str | None = None,
+    image_folder: str | None = None,
+    training: bool = True,
+    copy_data: bool = False,
+    drop_last: bool = True,
+    subset_file: str | None = None,
+) -> Tuple[
+    torch.utils.data.Dataset,
+    torch.utils.data.DataLoader,
+    torch.utils.data.distributed.DistributedSampler,
+]:
     """Build an ImageNet-1K dataset and dataloader with distributed sampling.
 
     Factory function that creates an ImageNet dataset and returns a tuple of
@@ -272,18 +277,22 @@ def copy_imgnt_locally(
 
 
 def make_imagefolder(
-    transform,
-    batch_size,
-    collator=None,
-    pin_mem=True,
-    num_workers=8,
-    world_size=1,
-    rank=0,
-    root_path=None,
-    image_folder=None,
-    drop_last=True,
+    transform: Any,
+    batch_size: int,
+    collator: Any = None,
+    pin_mem: bool = True,
+    num_workers: int = 8,
+    world_size: int = 1,
+    rank: int = 0,
+    root_path: str | None = None,
+    image_folder: str | None = None,
+    drop_last: bool = True,
     val_split: float | None = None,
-):
+) -> Tuple[
+    torch.utils.data.Dataset,
+    torch.utils.data.DataLoader,
+    torch.utils.data.distributed.DistributedSampler,
+]:
     """Create an ImageFolder dataset loader for custom folder-structured datasets.
 
     Supports optional train/validation split and distributed sampling, making

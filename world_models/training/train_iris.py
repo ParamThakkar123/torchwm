@@ -4,6 +4,8 @@ from collections import defaultdict
 import os
 from tqdm import tqdm
 import random
+from typing import Optional
+from gym.spaces import Discrete, Box
 
 from world_models.configs.iris_config import IRISConfig
 from world_models.models.iris_agent import IRISAgent
@@ -19,7 +21,7 @@ class IRISTrainer:
         game: str = "ALE/Pong-v5",
         device: str = "cuda",
         seed: int = 42,
-        config: IRISConfig = None,
+        config: Optional[IRISConfig] = None,
     ):
         self.game = game
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
@@ -41,8 +43,21 @@ class IRISTrainer:
             max_episode_steps=27000,  # Standard Atari limit
         )
 
-        # Get action space
-        self.action_size = self.env.action_space.n
+        # Get action space robustly (Discrete or Box)
+        if isinstance(self.env.action_space, Discrete):
+            self.action_size = int(self.env.action_space.n)
+        elif isinstance(self.env.action_space, Box):
+            shape = getattr(self.env.action_space, "shape", None)
+            if shape is None:
+                raise TypeError("Box action_space has no shape")
+            self.action_size = int(np.prod(tuple(shape)))
+        else:
+            if hasattr(self.env.action_space, "n"):
+                self.action_size = int(getattr(self.env.action_space, "n"))
+            else:
+                raise TypeError(
+                    f"Unsupported action_space type: {type(self.env.action_space)}"
+                )
 
         # Create replay buffer
         self.replay_buffer = IRISReplayBuffer(
@@ -119,7 +134,7 @@ class IRISTrainer:
                 done,
             )
 
-            current_return += reward
+            current_return += float(reward)
             steps_in_episode += 1
 
             if done:
@@ -131,7 +146,7 @@ class IRISTrainer:
             else:
                 obs = next_obs
 
-        return np.mean(episode_returns) if episode_returns else 0.0
+        return float(np.mean(episode_returns)) if episode_returns else 0.0
 
     def train_epoch(self, epoch: int) -> dict:
         """Train for one epoch.

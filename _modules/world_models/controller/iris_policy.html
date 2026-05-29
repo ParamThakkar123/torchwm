@@ -1312,7 +1312,8 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span> <span class="o">=</span> <span class="n">output_size</span>
 
         <span class="c1"># CNN layers: 64 -&gt; 32 -&gt; 16 -&gt; 8 -&gt; 4</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Use a generic Module list since we append Conv and activation modules</span>
+        <span class="n">layers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">in_channels</span> <span class="o">=</span> <span class="n">frame_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">]</span>

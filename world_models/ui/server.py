@@ -15,7 +15,7 @@ import traceback
 from collections import defaultdict
 from io import BytesIO
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, AsyncGenerator
 
 import cv2
 import numpy as np
@@ -1214,7 +1214,7 @@ def broadcast_update(keys: list[str], extra: dict | None = None) -> None:
 
 
 @app.get("/api/events")
-async def sse_events():
+async def sse_events() -> StreamingResponse:
     """Server-Sent Events endpoint that streams simple JSON update notifications.
 
     Clients should connect and listen for `data: {...}` lines. Each message is a JSON
@@ -1224,7 +1224,7 @@ async def sse_events():
     loop = asyncio.get_event_loop()
     SUBSCRIBERS.append((q, loop))
 
-    async def event_generator():
+    async def event_generator() -> AsyncGenerator[str, None]:
         try:
             while True:
                 msg = await q.get()

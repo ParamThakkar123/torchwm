@@ -157,11 +157,13 @@ class PPOTrainer:
     ) -> torch.Tensor:
         """Compute Generalized Advantage Estimation."""
         advantages = torch.zeros_like(rewards)
-        last_gae = 0
+        # ensure last_gae is a tensor matching per-step value shape
+        # values[t] has the same shape as rewards[t]
+        last_gae = torch.zeros_like(values[0])
 
         for t in reversed(range(len(rewards))):
             if t == len(rewards) - 1:
-                next_value = 0
+                next_value = torch.zeros_like(values[t])
             else:
                 next_value = values[t + 1]
 
@@ -170,9 +172,10 @@ class PPOTrainer:
                 + self.gamma * next_value * (1 - dones[t].float())
                 - values[t]
             )
-            advantages[t] = last_gae = (
+            last_gae = (
                 delta + self.gamma * self.gae_lambda * (1 - dones[t].float()) * last_gae
             )
+            advantages[t] = last_gae
 
         return advantages
 

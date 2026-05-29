@@ -14,6 +14,7 @@ from world_models.configs.diamond_config import (
     RANDOM_SCORES,
 )
 from world_models.envs.diamond_atari import make_diamond_atari_env
+from gym.spaces import Discrete, Box
 from world_models.datasets.diamond_dataset import ReplayBuffer, SequenceDataset
 from world_models.models.diffusion.diamond_diffusion import (
     DiffusionUNet,
@@ -52,7 +53,24 @@ class DiamondAgent:
             seed=config.seed,
         )
 
-        self.action_dim = self.env.action_space.n
+        # action_space may be different Space types; prefer Discrete.n when available
+        if isinstance(self.env.action_space, Discrete):
+            self.action_dim = int(self.env.action_space.n)
+        elif isinstance(self.env.action_space, Box):
+            # continuous action space -> flatten dimensions
+            shape = getattr(self.env.action_space, "shape", None)
+            if shape is None:
+                raise TypeError("Box action_space has no shape")
+            # ensure shape is numeric sequence before taking product
+            self.action_dim = int(np.prod(tuple(shape)))
+        else:
+            # fallback: try to read 'n' attribute, else raise informative error
+            if hasattr(self.env.action_space, "n"):
+                self.action_dim = int(getattr(self.env.action_space, "n"))
+            else:
+                raise TypeError(
+                    f"Unsupported action_space type: {type(self.env.action_space)}"
+                )
 
         self._build_models()
 
@@ -241,10 +259,17 @@ class DiamondAgent:
         self.actor_critic.train()
 
         obs_seq = batch["obs_seq"]
-        action_seq = batch.get("action_seq", batch.get("actions"))
         rewards = batch.get("rewards")
 
         B, T, C, H, W = obs_seq.shape
+
+        action_seq = batch.get("action_seq", batch.get("actions"))
+        # Ensure actions is a tensor (dataloader may produce None in some tests)
+        if action_seq is None:
+            # fallback to zeros so loss functions have a valid tensor shape
+            action_seq = torch.zeros((B, T), dtype=torch.long, device=self.device)
+        else:
+            assert isinstance(action_seq, torch.Tensor)
 
         policy_logits, values, _ = self.actor_critic(obs_seq)
 

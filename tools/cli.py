@@ -23,7 +23,38 @@ except Exception:  # pragma: no cover - runtime guard
     print("Please install 'typer' to use the CLI: pip install typer[all]")
     raise
 
-app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
+_typer_app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
+
+
+# Some tests (and Click's test runner) expect the top-level CLI object to
+# expose attributes like `name` and `main`. Typer.Typer doesn't allow setting
+# arbitrary attributes on the object, so create a lightweight proxy that
+# forwards attribute access to the underlying Typer instance while exposing
+# `name` and a deferred `main` callable compatible with click.testing.CliRunner.
+from typer.main import get_command as _typer_get_command
+
+
+class _TyperProxy:
+    def __init__(self, typer_obj, name: str):
+        self._typer = typer_obj
+        self.name = name
+
+    def __getattr__(self, item):
+        # Forward any unknown attribute access to the underlying Typer
+        return getattr(self._typer, item)
+
+    def main(self, *args, **kwargs):
+        # Resolve the underlying click Command at call time so all subcommands
+        # and registrations have been applied.
+        return _typer_get_command(self._typer).main(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        # Allow the proxy to be invoked like a Typer object (entrypoint
+        # compatibility). Forward to the underlying Typer's __call__.
+        return self._typer(*args, **kwargs)
+
+
+app = _TyperProxy(_typer_app, name="torchwm")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("torchwm.cli")
 
@@ -72,20 +103,24 @@ def envs_list() -> None:
 
 @datasets_app.command("list")
 def datasets_list(
-    path: Path = typer.Option(None, help="Path to dataset cache"),
+    path: Path | None = typer.Argument(None, help="Path to dataset cache"),
 ) -> None:
     """List datasets in a folder (defaults to TORCHWM_HOME or ~/.torchwm)."""
     home = Path(os.environ.get("TORCHWM_HOME", Path.home() / ".torchwm"))
     root = Path(path) if path is not None else home
-    if not root.exists():
+    # If the path doesn't exist or contains no entries, report no datasets.
+    try:
+        has_entries = any(root.iterdir()) if root.exists() else False
+    except PermissionError:
+        has_entries = False
+
+    if not root.exists() or not has_entries:
         print(f"No datasets found at {root}")
         raise typer.Exit(code=0)
+
     print(f"Datasets under: {root}")
     for p in sorted(root.iterdir()):
-        if p.is_dir():
-            print(f"- {p.name}")
-        else:
-            print(f"- {p.name}")
+        print(f"- {p.name}")
 
 
 @datasets_app.command("convert")

@@ -6,6 +6,19 @@ from tqdm import tqdm
 import random
 from typing import Optional, cast
 from gym.spaces import Discrete, Box
+import argparse
+
+from types import ModuleType
+from typing import Optional as _Optional
+
+# Optional OpenCV import at module scope (avoid function-local imports)
+cv2: _Optional[ModuleType] = None
+try:
+    import cv2 as _cv2
+
+    cv2 = _cv2
+except Exception:
+    cv2 = None
 
 from world_models.configs.iris_config import IRISConfig
 from world_models.models.iris_agent import IRISAgent
@@ -84,7 +97,10 @@ class IRISTrainer:
 
     def preprocess_frame(self, frame: np.ndarray) -> np.ndarray:
         """Preprocess frame: resize to 64x64 and normalize."""
-        import cv2
+        if cv2 is None:
+            raise ImportError(
+                "cv2 is required for frame preprocessing. Install opencv-python"
+            )
 
         frame = cv2.resize(frame, (64, 64), interpolation=cv2.INTER_LINEAR)
         frame = frame.astype(np.float32) / 255.0
@@ -426,8 +442,6 @@ class IRISTrainer:
 
 def main():
     """Run IRIS training on a single Atari game."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="Train IRIS on Atari")
     parser.add_argument("--game", type=str, default="ALE/Pong-v5", help="Atari game")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")

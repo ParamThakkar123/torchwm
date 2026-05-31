@@ -3,6 +3,12 @@ import gymnasium as gym
 from gymnasium import spaces
 from typing import Tuple, Dict, Optional, Any, overload
 
+# Optional OpenCV import at module scope to avoid repeated imports
+try:
+    import cv2 as _cv2
+except Exception:
+    _cv2 = None
+
 
 class DiamondAtariWrapper(gym.Wrapper):
     """
@@ -152,9 +158,17 @@ class DiamondAtariWrapper(gym.Wrapper):
         if obs.shape[:2] == (self._height, self._width):
             return obs
 
-        import cv2
+        # Prefer OpenCV if available (imported at module scope), otherwise fall back to PIL
+        if _cv2 is not None:
+            obs = _cv2.resize(
+                obs, (self._width, self._height), interpolation=_cv2.INTER_AREA
+            )
+        else:
+            from PIL import Image
 
-        obs = cv2.resize(obs, (self._width, self._height), interpolation=cv2.INTER_AREA)
+            img = Image.fromarray(obs)
+            img = img.resize((self._width, self._height), Image.BILINEAR)
+            obs = np.asarray(img)
         return obs.astype(np.uint8)
 
 

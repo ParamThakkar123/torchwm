@@ -7,15 +7,7 @@ Saves output to tools/render_check/ with screenshots and console logs.
 from pathlib import Path
 import sys
 import time
-
-try:
-    from playwright.sync_api import sync_playwright
-except Exception as e:
-    print("Playwright not installed:", e)
-    print(
-        "Install with: python -m pip install playwright && python -m playwright install chromium"
-    )
-    sys.exit(2)
+from playwright.sync_api import sync_playwright
 
 
 OUT_DIR = Path("tools/render_check")

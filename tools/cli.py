@@ -17,12 +17,17 @@ import logging
 from pathlib import Path
 from typing import List
 import importlib
+import gym
+import numpy as _np
+from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
+from world_models.utils.utils import save_video
+import webbrowser
 
+from world_models.catalog import ENV_BACKENDS  # import lightweight catalog
+from typer.main import get_command as _typer_get_command
 import typer
 
 _typer_app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
-
-from world_models.catalog import ENV_BACKENDS  # import lightweight catalog
 
 
 # Some tests (and Click's test runner) expect the top-level CLI object to
@@ -30,7 +35,6 @@ from world_models.catalog import ENV_BACKENDS  # import lightweight catalog
 # arbitrary attributes on the object, so create a lightweight proxy that
 # forwards attribute access to the underlying Typer instance while exposing
 # `name` and a deferred `main` callable compatible with click.testing.CliRunner.
-from typer.main import get_command as _typer_get_command
 
 
 class _TyperProxy:
@@ -56,15 +60,6 @@ class _TyperProxy:
 app = _TyperProxy(_typer_app, name="torchwm")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("torchwm.cli")
-
-import gym
-import numpy as _np
-from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
-from world_models.utils.utils import save_video
-from world_models.envs import make_env
-import uvicorn  # type: ignore
-import webbrowser
-
 
 @app.command("version")
 def version() -> None:
@@ -343,24 +338,7 @@ def train(
         raise typer.Exit(code=1)
 
 
-@app.command("serve")
-def serve(host: str = "127.0.0.1", port: int = 8000, open_browser: bool = True) -> None:
-    """Run the FastAPI UI server (thin wrapper around uvicorn).
-
-    This command delegates to uvicorn to avoid duplicating the ASGI startup.
-    """
-    # Ensure importable package path when running from repo root
-    repo_root = Path(__file__).resolve().parents[1]
-    if str(repo_root) not in sys.path:
-        sys.path.insert(0, str(repo_root))
-
-    if uvicorn is None:
-        print("Please install uvicorn to serve the UI: pip install 'uvicorn[standard]'")
-        raise typer.Exit(code=1)
-
-    # Placeholder: UI/server will be re-added later. For now, do nothing
-    # and exit quietly so callers (and tests) are not disrupted.
-    return
+# The server command was removed; UI/server removed from the project.
 
 
 def run() -> None:

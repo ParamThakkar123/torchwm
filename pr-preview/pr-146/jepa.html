@@ -51,7 +51,7 @@
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
 
 
 
@@ -1088,13 +1088,13 @@ future representations in latent space, without relying on generative modeling.<
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <pre  class="mermaid">
         graph TD
-    subgraph &quot;JEPA Architecture&quot;
-        A[Frame t] --&gt; B[Enc_s&lt;br/&gt;Target Encoder]
-        C[Frame t+k] --&gt; D[Enc_s&lt;br/&gt;Target Encoder&lt;br/&gt;Frozen]
-        B --&gt; E[Target&lt;br/&gt;z_t]
+    subgraph JA[&quot;JEPA Architecture&quot;]
+        A[&quot;Context frame&quot;] --&gt; B[&quot;Target encoder&quot;]
+        C[&quot;Future frame&quot;] --&gt; D[&quot;Frozen target encoder&quot;]
+        B --&gt; E[&quot;Target representation&quot;]
         D --&gt; E
-        F[Predictor&lt;br/&gt;token] --&gt; G[Predict&lt;br/&gt;z_t']
-        G --&gt; H[Prediction loss]
+        F[&quot;Predictor token&quot;] --&gt; G[&quot;Predicted representation&quot;]
+        G --&gt; H[&quot;Prediction loss&quot;]
         E --&gt; H
     end
 

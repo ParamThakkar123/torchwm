@@ -20,26 +20,26 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ```{mermaid}
 graph TD
-    subgraph "World Model (RSSM)"
-        A[Encoder<br/>CNN 64x64] --> B[Latent Model<br/>GRU + Stochastic]
-        B --> C[Decoder<br/>Transposed CNN]
-        B --> D[Prior stochastic state]
-        E[Recurrent update]
+    subgraph WM["World Model RSSM"]
+        A["Encoder CNN 64x64"] --> B["Latent model GRU and stochastic state"]
+        B --> C["Decoder transposed CNN"]
+        B --> D["Prior stochastic state"]
+        E["Recurrent state update"] --> B
     end
 
-    subgraph "Imagination Rollout"
-        F[s_0] --> G[a_0]
-        G --> H[s_1]
-        H --> I[a_1]
-        I --> J[s_2]
-        J --> K[...]
-        K --> L[s_H]
-        L --> M[Lambda-return target]
+    subgraph IR["Imagination Rollout"]
+        F["Latent state 0"] --> G["Action 0"]
+        G --> H["Latent state 1"]
+        H --> I["Action 1"]
+        I --> J["Latent state 2"]
+        J --> K["Future steps"]
+        K --> L["Latent horizon state"]
+        L --> M["Lambda return target"]
     end
 
-    subgraph "Actor-Critic Learning"
-        N[Actor policy<br/>REINFORCE with baseline]
-        O[Critic value<br/>MSE on lambda returns]
+    subgraph AC["Actor Critic Learning"]
+        N["Actor policy with baseline"]
+        O["Critic value model"]
     end
 
     C --> F

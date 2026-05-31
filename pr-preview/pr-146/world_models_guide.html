@@ -51,7 +51,7 @@
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.4.0/dist/mermaid.esm.min.mjs";
 
 
 
@@ -1084,13 +1084,13 @@ window.runMermaid = runMermaid;</script>
 <p>The exact terms change by family: Dreamer and PlaNet emphasize latent state-space dynamics, IRIS and Genie emphasize discrete token dynamics, JEPA emphasizes representation prediction without pixel reconstruction, and DiT/DIAMOND emphasize diffusion-based generation.</p>
 <pre  class="mermaid">
         graph LR
-    A[Observation x_t] --&gt; B[Encoder or Tokenizer]
-    B --&gt; C[Latent state z_t]
-    D[Action a_t] --&gt; E[Dynamics model]
+    A[&quot;Observation&quot;] --&gt; B[&quot;Encoder or tokenizer&quot;]
+    B --&gt; C[&quot;Latent state&quot;]
+    D[&quot;Action&quot;] --&gt; E[&quot;Dynamics model&quot;]
     C --&gt; E
-    E --&gt; F[Predicted latent z_{t+1}]
-    F --&gt; G[Decoder / reward / value heads]
-    G --&gt; H[Planning, policy learning, or generation]
+    E --&gt; F[&quot;Predicted next latent state&quot;]
+    F --&gt; G[&quot;Decoder reward and value heads&quot;]
+    G --&gt; H[&quot;Planning policy learning or generation&quot;]
     </pre></section>
 <section id="quick-model-chooser">
 <h2>Quick model chooser<a class="headerlink" href="#quick-model-chooser" title="Link to this heading">#</a></h2>
@@ -1169,14 +1169,14 @@ window.runMermaid = runMermaid;</script>
 <h3>Mental model<a class="headerlink" href="#mental-model" title="Link to this heading">#</a></h3>
 <pre  class="mermaid">
         graph TD
-    A[Image observation] --&gt; B[ConvEncoder]
-    B --&gt; C[RSSM posterior q]
-    D[Previous latent and action] --&gt; E[RSSM prior p]
-    C --&gt; F[Decoder, reward, discount]
-    E --&gt; G[Imagination rollout]
-    G --&gt; H[Actor]
-    G --&gt; I[Critic]
-    I --&gt; J[Return targets]
+    A[&quot;Image observation&quot;] --&gt; B[&quot;Convolutional encoder&quot;]
+    B --&gt; C[&quot;RSSM posterior&quot;]
+    D[&quot;Previous latent and action&quot;] --&gt; E[&quot;RSSM prior&quot;]
+    C --&gt; F[&quot;Decoder reward and discount heads&quot;]
+    E --&gt; G[&quot;Imagination rollout&quot;]
+    G --&gt; H[&quot;Actor&quot;]
+    G --&gt; I[&quot;Critic&quot;]
+    I --&gt; J[&quot;Return targets&quot;]
     J --&gt; H
     </pre></section>
 <section id="what-to-study">
@@ -1243,14 +1243,14 @@ window.runMermaid = runMermaid;</script>
 <p>IRIS represents frames as discrete tokens and trains an autoregressive transformer world model. An actor-critic then learns from imagined token rollouts. This model family is useful for studying the connection between language-model-style sequence prediction and model-based RL.</p>
 <pre  class="mermaid">
         graph TD
-    A[Frame] --&gt; B[Discrete autoencoder]
-    B --&gt; C[Token sequence]
-    C --&gt; D[Autoregressive transformer]
-    E[Action] --&gt; D
-    D --&gt; F[Next tokens]
-    D --&gt; G[Reward and terminal heads]
-    F --&gt; H[Imagined frame/state]
-    H --&gt; I[Actor critic]
+    A[&quot;Frame&quot;] --&gt; B[&quot;Discrete autoencoder&quot;]
+    B --&gt; C[&quot;Token sequence&quot;]
+    C --&gt; D[&quot;Autoregressive transformer&quot;]
+    E[&quot;Action&quot;] --&gt; D
+    D --&gt; F[&quot;Next tokens&quot;]
+    D --&gt; G[&quot;Reward and terminal heads&quot;]
+    F --&gt; H[&quot;Imagined frame or state&quot;]
+    H --&gt; I[&quot;Actor critic&quot;]
     </pre><section id="important-ideas">
 <h3>Important ideas<a class="headerlink" href="#important-ideas" title="Link to this heading">#</a></h3>
 <ul class="simple">

@@ -16,23 +16,23 @@ by learning entirely in the imagination of a world model:
 
 ```{mermaid}
 graph TD
-    subgraph "Discrete Autoencoder"
-        A[Encoder<br/>CNN 64x64] --> B[VQVAE<br/>512 vocab<br/>16 tokens]
-        B --> C[Decoder<br/>Transposed CNN]
+    subgraph DA["Discrete Autoencoder"]
+        A["Encoder CNN 64x64"] --> B["VQ VAE visual tokens"]
+        B --> C["Decoder transposed CNN"]
     end
 
-    subgraph "Autoregressive Transformer"
-        D[z_t<br/>16 tokens] --> E[a_t]
-        E --> F[z_{t+1}<br/>16 tokens]
-        D --> G[Reward]
-        E --> H[Termination]
-        F --> I[Reward...]
-        J[GPT-style<br/>10 layers, 4 heads<br/>256 embedding dim]
+    subgraph AT["Autoregressive Transformer"]
+        D["Current visual tokens"] --> E["Action token"]
+        E --> F["Next visual tokens"]
+        D --> G["Reward head"]
+        E --> H["Termination head"]
+        F --> I["Future reward prediction"]
+        J["GPT style token model"] --> F
     end
 
-    subgraph "Actor-Critic in Imagination"
-        K[Actor<br/>CNN+LSTM<br/>λ-return<br/>REINFORCE]
-        L[Critic<br/>CNN+LSTM<br/>MSE loss]
+    subgraph AC["Actor Critic in Imagination"]
+        K["Actor CNN LSTM policy"]
+        L["Critic CNN LSTM value"]
     end
 
     C --> D

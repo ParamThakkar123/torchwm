@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import gymnasium as gym
 import numpy as np
 from PIL import Image
 
 
-def make_unity_mlagents_env(**kwargs):
+def make_unity_mlagents_env(env_id: "Optional[str]" = None, **kwargs):
     """Create a Unity ML-Agents environment wrapper.
 
     Factory function that instantiates a UnityMLAgentsEnv with the provided
@@ -28,6 +30,8 @@ def make_unity_mlagents_env(**kwargs):
     Returns:
         UnityMLAgentsEnv: A Gym-compatible wrapper for Unity environments.
     """
+    # `env_id` is accepted for API compatibility with generic factory
+    # callers that forward an env id as the first positional argument.
     return UnityMLAgentsEnv(**kwargs)
 
 

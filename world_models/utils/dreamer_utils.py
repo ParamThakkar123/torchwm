@@ -8,8 +8,15 @@ import cv2
 from typing import Iterable
 from torch.nn import Module
 
+from types import ModuleType
+from typing import Optional
+
+# Optional WandB import; keep typed for static checkers.
+wandb: Optional[ModuleType] = None
 try:
-    import wandb
+    import wandb as _wandb
+
+    wandb = _wandb
 except ImportError:
     wandb = None
 

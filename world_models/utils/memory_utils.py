@@ -54,11 +54,11 @@ def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5
 
 
 def enable_mixed_precision(
-    model: nn.Module, scaler: Optional[torch.cuda.amp.GradScaler] = None
+    model: nn.Module, scaler: Optional[torch.amp.GradScaler] = None
 ):
     """Enable mixed precision training."""
     if scaler is None:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler()
     return scaler
 
 

@@ -4,9 +4,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from tqdm import tqdm
 import os
+from pathlib import Path
+import argparse
 
 from world_models.configs.diamond_config import (
     DiamondConfig,
@@ -86,10 +88,15 @@ class DiamondAgent:
         )
 
         self.obs_history: List[np.ndarray] = []
+        # keep a raw-uint8 history in parallel with the normalized history
+        self.obs_history_raw: List[np.ndarray] = []
         self.action_history: List[int] = []
 
         self.total_steps = 0
         self.global_step = 0
+        # last LSTM hidden states (saved for reproducible imagined rollouts)
+        self.last_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+        self.last_reward_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
 
     def _build_models(self):
         """Initialize all DIAMOND models."""
@@ -122,6 +129,7 @@ class DiamondAgent:
             sigma_max=self.config.sigma_max,
             rho=self.config.rho,
             num_steps=self.config.num_sampling_steps,
+            edm_precond=self.edm_precond,
         )
 
         self.reward_model = RewardTerminationModel(
@@ -191,6 +199,9 @@ class DiamondAgent:
         precond = self.edm_precond.get_preconditioners(sigma)
         model_input = precond["c_in"] * noisy_target
 
+        # use c_noise (log-sigma transform) for time conditioning as in EDM
+        t_cond = precond["c_noise"].squeeze(-1).squeeze(-1)
+
         # Debug asserts: ensure shapes are as expected
         try:
             # obs_seq: [B, T, C, H, W], obs_history: [B, L, C, H, W], next_obs [B, C, H, W]
@@ -204,7 +215,7 @@ class DiamondAgent:
 
         model_output = self.diffusion_model(
             x=model_input,
-            t=sigma.squeeze(-1).squeeze(-1),
+            t=t_cond,
             obs_history=obs_history,
             actions=action_seq[:, -self.config.num_conditioning_frames :],
         )
@@ -259,48 +270,137 @@ class DiamondAgent:
     def _update_actor_critic(
         self, batch: Dict[str, torch.Tensor]
     ) -> Tuple[float, float]:
-        """Update actor-critic in imagination."""
+        """Update actor-critic using imagined rollouts.
+
+        This replaces using real dataset trajectories for policy/value updates
+        and follows the paper: compute policy and value losses on imagined
+        trajectories produced by the diffusion world model.
+        """
         self.actor_critic.train()
 
         obs_seq = batch["obs_seq"]
-        rewards = batch.get("rewards")
-
-        B, T, C, H, W = obs_seq.shape
-
         action_seq = batch.get("action_seq", batch.get("actions"))
-        # Ensure actions is a tensor (dataloader may produce None in some tests)
+
+        B, seq_T, C, H, W = obs_seq.shape
+
+        # Determine burn-in / conditioning length and horizon
+        burn_in = self.config.burn_in_length
+        horizon = self.config.imagination_horizon
+
+        # safety checks
+        assert seq_T >= burn_in, "Sequence shorter than burn-in"
+
+        # initial conditioning sequences for imagination
+        obs_history = obs_seq[:, :burn_in]
         if action_seq is None:
-            # fallback to zeros so loss functions have a valid tensor shape
-            action_seq = torch.zeros((B, T), dtype=torch.long, device=self.device)
+            action_history = torch.zeros(
+                (B, burn_in), dtype=torch.long, device=self.device
+            )
         else:
-            assert isinstance(action_seq, torch.Tensor)
+            action_history = action_seq[:, :burn_in]
 
-        policy_logits, values, _ = self.actor_critic(obs_seq)
+        # init reward model hidden state for batched imagination. Prefer a
+        # restored last_reward_hidden when available (broadcast if needed).
+        reward_hidden = None
+        if self.last_reward_hidden is not None:
+            try:
+                h_saved, c_saved = self.last_reward_hidden
+                saved_B = h_saved.shape[1]
+                if saved_B == B:
+                    reward_hidden = (h_saved.to(self.device), c_saved.to(self.device))
+                elif saved_B == 1:
+                    reward_hidden = (
+                        h_saved.to(self.device).repeat(1, B, 1),
+                        c_saved.to(self.device).repeat(1, B, 1),
+                    )
+                else:
+                    reward_hidden = None
+            except Exception:
+                reward_hidden = None
 
-        # values: [B, T, 1] -> squeeze to [B, T]
+        if reward_hidden is None:
+            reward_hidden = self.reward_model.init_hidden(B, self.device)
+
+        # prime the policy LSTM with the burn-in observations to obtain a
+        # proper initial hidden state for imagined rollouts. If a saved
+        # last_policy_hidden exists (restored from checkpoint), prefer it so
+        # imagined rollouts can be exactly reproduced across runs. If the
+        # saved hidden state's batch dimension is 1, broadcast it to current
+        # batch size.
+        policy_hidden_init = None
+        if self.last_policy_hidden is not None:
+            try:
+                h_saved, c_saved = self.last_policy_hidden
+                saved_B = h_saved.shape[1]
+                if saved_B == B:
+                    policy_hidden_init = (
+                        h_saved.to(self.device),
+                        c_saved.to(self.device),
+                    )
+                elif saved_B == 1:
+                    policy_hidden_init = (
+                        h_saved.to(self.device).repeat(1, B, 1),
+                        c_saved.to(self.device).repeat(1, B, 1),
+                    )
+                else:
+                    policy_hidden_init = None
+            except Exception:
+                policy_hidden_init = None
+
+        if policy_hidden_init is None:
+            with torch.no_grad():
+                _, _, policy_hidden_init = self.actor_critic(obs_history)
+            # store a CPU copy so checkpoints are device independent
+            try:
+                self.last_policy_hidden = (
+                    policy_hidden_init[0].detach().cpu(),
+                    policy_hidden_init[1].detach().cpu(),
+                )
+            except Exception:
+                self.last_policy_hidden = None
+
+        # Imagine a trajectory and obtain policy actions taken during imagination
+        (
+            obs_imag,
+            rewards_imag,
+            dones_imag,
+            policy_actions_imag,
+            reward_hidden,
+        ) = self._imagine_trajectory(
+            obs_history, action_history, reward_hidden, policy_hidden=policy_hidden_init
+        )
+
+        # store the final reward hidden state (CPU) for checkpointing / replay
+        try:
+            self.last_reward_hidden = (
+                reward_hidden[0].detach().cpu(),
+                reward_hidden[1].detach().cpu(),
+            )
+        except Exception:
+            self.last_reward_hidden = None
+
+        # Compute policy logits and values for imagined observations using the
+        # same initial policy hidden state used during imagination so the
+        # logits align with the sampled actions.
+        policy_logits, values, _ = self.actor_critic(obs_imag, policy_hidden_init)
+
+        # values: [B, H, 1] -> squeeze to [B, H]
         values_squeezed = values.squeeze(-1)
-        # append bootstrap last value to make [B, T+1]
+        # append bootstrap last value to make [B, H+1]
         values_with_bootstrap = torch.cat(
             [values_squeezed, values_squeezed[:, -1:].detach()], dim=1
         )
 
-        # If rewards are not present, use zeros (safe fallback for smoke test)
-        if rewards is None:
-            rewards_for_returns = torch.zeros(B, T, device=self.device)
-        else:
-            # align rewards to length T
-            rewards_for_returns = rewards[:, :T]
-
+        # lambda-returns on imagined rewards
         lambda_returns = self.rl_loss_fn.compute_lambda_returns(
-            rewards=rewards_for_returns,
+            rewards=rewards_imag,
             values=values_with_bootstrap,
-            dones=torch.zeros(B, T, dtype=torch.bool, device=self.device),
+            dones=dones_imag,
         )
 
-        # Pass full tensors to RLLoss (it handles slicing internally)
         policy_loss = self.rl_loss_fn.policy_loss(
             policy_logits=policy_logits,
-            actions=action_seq,
+            actions=policy_actions_imag,
             lambda_returns=lambda_returns,
             values=values_with_bootstrap,
         )
@@ -323,9 +423,11 @@ class DiamondAgent:
         rewards = []
 
         if len(self.obs_history) == 0:
-            obs, _ = self.env.reset()
-            obs = obs.astype(np.float32) / 255.0
-            self.obs_history = [obs] * self.config.num_conditioning_frames
+            raw_obs, _ = self.env.reset()
+            norm_obs = raw_obs.astype(np.float32) / 255.0
+            # maintain both normalized and raw histories
+            self.obs_history = [norm_obs] * self.config.num_conditioning_frames
+            self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
 
         for _ in range(num_steps):
             # build tensor [1, L, C, H, W] with channels-first
@@ -346,25 +448,31 @@ class DiamondAgent:
 
             next_obs, reward, done, _ = self.env.step(action)
 
-            next_obs = next_obs.astype(np.float32) / 255.0
+            # env typically returns uint8 frames; keep raw and normalized
+            next_obs_raw = next_obs
+            next_obs = next_obs_raw.astype(np.float32) / 255.0
 
+            # store raw uint8 frames in the replay buffer (avoid lossy casts)
             self.replay_buffer.add(
-                obs=self.obs_history[-1].astype(np.uint8),
+                obs=self.obs_history_raw[-1],
                 action=action,
                 reward=reward,
                 done=done,
-                next_obs=next_obs.astype(np.uint8),
+                next_obs=next_obs_raw,
             )
 
             rewards.append(reward)
 
+            # update both normalized and raw histories
             self.obs_history.append(next_obs)
+            self.obs_history_raw.append(next_obs_raw)
             self.action_history.append(action)
 
             if done:
-                obs, _ = self.env.reset()
-                obs = obs.astype(np.float32) / 255.0
-                self.obs_history = [obs] * self.config.num_conditioning_frames
+                raw_obs, _ = self.env.reset()
+                norm_obs = raw_obs.astype(np.float32) / 255.0
+                self.obs_history = [norm_obs] * self.config.num_conditioning_frames
+                self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
                 self.action_history = []
 
         return rewards
@@ -375,8 +483,13 @@ class DiamondAgent:
         obs_history: torch.Tensor,
         action_history: torch.Tensor,
         hidden_state: Tuple[torch.Tensor, torch.Tensor],
+        policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
     ) -> Tuple[
-        torch.Tensor, torch.Tensor, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        Tuple[torch.Tensor, torch.Tensor],
     ]:
         """
         Imagine a trajectory using the diffusion world model.
@@ -401,6 +514,14 @@ class DiamondAgent:
 
         obs_current = obs_history
         actions_current = action_history
+
+        # initialize a policy hidden state for batched policy sampling during imagination
+        # allow caller to provide an initial policy hidden state (primed by
+        # burn-in sequence); otherwise initialize fresh hidden state
+        if policy_hidden is None:
+            policy_hidden = self.actor_critic.init_hidden(B, self.device)
+
+        policy_actions_list = []
 
         for t in range(horizon):
             # sampler returns [B, C, H, W]
@@ -428,14 +549,25 @@ class DiamondAgent:
             next_obs_seq = sampled.unsqueeze(1)
             obs_current = torch.cat([obs_current[:, 1:], next_obs_seq], dim=1)
 
-            actions_current = torch.cat(
-                [actions_current[:, 1:], reward.long().unsqueeze(-1)], dim=1
+            # Batch-query the policy for the next actions for all samples at once
+            # Maintain and update the policy LSTM hidden state across imagined
+            # timesteps so the policy can condition on the imagined trajectory.
+            policy_actions, policy_hidden = self.actor_critic.get_actions(
+                sampled, policy_hidden, deterministic=False
             )
+
+            # collect the actions (B,) per timestep
+            policy_actions_list.append(policy_actions)
+
+            # policy_actions: [B] -> make [B, 1] so it can be concatenated
+            policy_actions = policy_actions.unsqueeze(-1)
+            actions_current = torch.cat([actions_current[:, 1:], policy_actions], dim=1)
 
         return (
             torch.stack(obs_trajectory, dim=1),
             torch.stack(rewards_list, dim=1),
             torch.stack(dones_list, dim=1),
+            torch.stack(policy_actions_list, dim=1),
             hidden_state,
         )
 
@@ -471,8 +603,14 @@ class DiamondAgent:
             policy_losses = []
             value_losses = []
 
+            # iterate over the dataloader properly; avoid recreating iterator each step
+            data_iter = iter(dataloader)
             for _ in range(self.config.training_steps_per_epoch):
-                batch = next(iter(dataloader))
+                try:
+                    batch = next(data_iter)
+                except StopIteration:
+                    data_iter = iter(dataloader)
+                    batch = next(data_iter)
 
                 diffusion_loss = self._update_diffusion_model(batch)
                 diffusion_losses.append(diffusion_loss)
@@ -514,7 +652,9 @@ class DiamondAgent:
             obs = obs.astype(np.float32) / 255.0
 
             obs_history = [obs] * self.config.num_conditioning_frames
-            hidden_state = self.reward_model.init_hidden(1, self.device)
+            # initialize separate hidden states for reward model and policy
+            reward_hidden = self.reward_model.init_hidden(1, self.device)
+            policy_hidden = self.actor_critic.init_hidden(1, self.device)
 
             done = False
             episode_reward = 0.0
@@ -525,9 +665,9 @@ class DiamondAgent:
                 obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
                 # pass batched observation [1, C, H, W]
-                action, hidden_state = self.actor_critic.get_action(
+                action, policy_hidden = self.actor_critic.get_action(
                     obs_tensor[:, -1],
-                    hidden_state,
+                    policy_hidden,
                     deterministic=True,
                 )
 
@@ -553,9 +693,63 @@ class DiamondAgent:
 
         return (score - random) / (human - random)
 
-    def save_checkpoint(self, path: str):
-        """Save model checkpoint."""
-        os.makedirs("checkpoints/diamond", exist_ok=True)
+    def save_checkpoint(self, path: Optional[Union[str, os.PathLike]] = None):
+        """Save model checkpoint.
+
+        Args:
+            path: Optional path where to write the checkpoint. If `path` is None
+                or a bare filename, the file is written into
+                `checkpoints/diamond/<filename>`. If `path` contains a directory
+                component or is an absolute/relative path, it is used directly.
+                When `path` is None, the legacy behavior is preserved and the
+                checkpoint is written to `checkpoints/diamond/checkpoint.pt`.
+        """
+        # Determine output path. Preserve existing behaviour when path is None
+        # or a bare filename by writing into checkpoints/diamond.
+
+        default_dir = Path("checkpoints/diamond")
+        if path is None:
+            default_dir.mkdir(parents=True, exist_ok=True)
+            out_path = default_dir / "checkpoint.pt"
+        else:
+            pathp = Path(path)
+            if pathp.parent != Path(""):
+                pathp.parent.mkdir(parents=True, exist_ok=True)
+                out_path = pathp
+            else:
+                default_dir.mkdir(parents=True, exist_ok=True)
+                out_path = default_dir / pathp
+        # Trim replay buffer arrays to current size to avoid saving full-capacity
+        # arrays which are wasteful for checkpoints and can blow up memory.
+        # Trim and persist replay buffer arrays to separate numpy file(s) to
+        # avoid saving large Python objects inside the torch checkpoint. This
+        # reduces checkpoint size and avoids unsafe pickle/unpickle usage when
+        # restoring Python lists/containers.
+        rb_state_trim = None
+        replay_file = None
+        obs_file = None
+        try:
+            rb_state = self.replay_buffer.state_dict()
+            n = int(self.replay_buffer.size)
+            if n > 0:
+                rb_state_trim = {
+                    "observations": rb_state["observations"][:n].copy(),
+                    "next_observations": rb_state["next_observations"][:n].copy(),
+                    "actions": rb_state["actions"][:n].copy(),
+                    "rewards": rb_state["rewards"][:n].copy(),
+                    "dones": rb_state["dones"][:n].copy(),
+                    "position": int(self.replay_buffer.position),
+                    "size": int(n),
+                    "capacity": int(n),
+                }
+            else:
+                rb_state_trim = rb_state
+        except Exception:
+            rb_state_trim = None
+
+        # Prepare checkpoint (model weights + metadata). We keep hidden states
+        # in the torch checkpoint but save large numpy arrays to separate files
+        # with a common basename derived from the output path.
         checkpoint = {
             "config": self.config.__dict__,
             "diffusion_model": self.diffusion_model.state_dict(),
@@ -564,18 +758,151 @@ class DiamondAgent:
             "diffusion_opt": self.diffusion_opt.state_dict(),
             "reward_opt": self.reward_opt.state_dict(),
             "actor_opt": self.actor_opt.state_dict(),
+            # optional LSTM hidden states saved for reproducible imagination
+            "last_policy_hidden": self.last_policy_hidden,
+            "last_reward_hidden": self.last_reward_hidden,
         }
-        torch.save(checkpoint, f"checkpoints/diamond/{path}")
 
-    def load_checkpoint(self, path: str):
-        """Load model checkpoint."""
-        checkpoint = torch.load(path, map_location=self.device)
+        # If we have a trimmed replay buffer, write it to a compressed npz in
+        # the same directory as the checkpoint. Also write obs_history_raw as
+        # a stacked numpy file if present. Record filenames inside the torch
+        # checkpoint for later restoration.
+        base = os.path.splitext(str(out_path))[0]
+        if rb_state_trim is not None:
+            replay_file = base + "_replay.npz"
+            # np.savez_compressed will store arrays with the provided keys
+            try:
+                np.savez_compressed(replay_file, **rb_state_trim)
+                checkpoint["replay_buffer_file"] = replay_file
+            except Exception:
+                # If saving fails, do not embed large Python objects in the
+                # torch checkpoint; simply omit the replay buffer files and
+                # warn the caller.
+                print("Warning: failed to write replay buffer file; skipping embedding")
+
+        if self.obs_history_raw is not None and len(self.obs_history_raw) > 0:
+            obs_file = base + "_obs.npy"
+            try:
+                # Stack into a single array (N, H, W, C)
+                obs_arr = np.stack(self.obs_history_raw)
+                np.save(obs_file, obs_arr)
+                checkpoint["obs_history_file"] = obs_file
+            except Exception:
+                print("Warning: failed to write obs_history file; skipping embedding")
+
+        torch.save(checkpoint, out_path)
+
+    def load_checkpoint(self, path: Optional[str] = None):
+        """Load model checkpoint.
+
+        Args:
+            path: Optional path to checkpoint. If None, the default
+                `checkpoints/diamond/checkpoint.pt` is loaded. If a bare
+                filename is provided, we try `checkpoints/diamond/<filename>`;
+                if a path with directory components is provided we use it
+                directly.
+        """
+        # Resolve path similarly to save_checkpoint behaviour
+        default_dir = "checkpoints/diamond"
+        if path is None:
+            fpath = os.path.join(default_dir, "checkpoint.pt")
+        else:
+            if os.path.exists(path):
+                fpath = path
+            else:
+                alt = os.path.join(default_dir, path)
+                if os.path.exists(alt):
+                    fpath = alt
+                else:
+                    raise FileNotFoundError(f"Checkpoint not found at {path} or {alt}")
+
+        # Use full (unsafe) load to restore Python objects (numpy arrays, lists)
+        # required for replay buffer and obs history restoration.
+        # Load the torch checkpoint (weights + metadata). This file should be
+        # safe to load because it contains only tensor state dicts and small
+        # metadata fields. Larger numpy arrays may be stored separately and
+        # are loaded below when present.
+        checkpoint = torch.load(fpath, map_location=self.device, weights_only=False)
         self.diffusion_model.load_state_dict(checkpoint["diffusion_model"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
         self.actor_critic.load_state_dict(checkpoint["actor_critic"])
         self.diffusion_opt.load_state_dict(checkpoint["diffusion_opt"])
         self.reward_opt.load_state_dict(checkpoint["reward_opt"])
         self.actor_opt.load_state_dict(checkpoint["actor_opt"])
+        # restore optional last hidden states (move to configured device)
+        if (
+            "last_policy_hidden" in checkpoint
+            and checkpoint["last_policy_hidden"] is not None
+        ):
+            h, c = checkpoint["last_policy_hidden"]
+            self.last_policy_hidden = (h.to(self.device), c.to(self.device))
+        else:
+            self.last_policy_hidden = None
+
+        if (
+            "last_reward_hidden" in checkpoint
+            and checkpoint["last_reward_hidden"] is not None
+        ):
+            h, c = checkpoint["last_reward_hidden"]
+            self.last_reward_hidden = (h.to(self.device), c.to(self.device))
+        else:
+            self.last_reward_hidden = None
+
+        # restore replay buffer from separate npz file if provided; fall back
+        # to embedded dict when necessary.
+        if "replay_buffer_file" in checkpoint:
+            try:
+                replay_file = checkpoint["replay_buffer_file"]
+                with np.load(replay_file, allow_pickle=False) as data:
+                    rb_state = {k: data[k] for k in data.files}
+                self.replay_buffer.load_state_dict(rb_state)
+            except Exception:
+                print(
+                    "Warning: failed to load replay_buffer from file; trying embedded state"
+                )
+                try:
+                    self.replay_buffer.load_state_dict(
+                        checkpoint.get("replay_buffer", {})
+                    )
+                except Exception:
+                    print("Warning: failed to load replay_buffer from checkpoint")
+        elif "replay_buffer" in checkpoint and checkpoint["replay_buffer"] is not None:
+            try:
+                self.replay_buffer.load_state_dict(checkpoint["replay_buffer"])
+            except Exception:
+                print("Warning: failed to load replay_buffer from checkpoint")
+
+        # restore obs_history_raw from separate .npy file if present
+        if "obs_history_file" in checkpoint:
+            try:
+                obs_file = checkpoint["obs_history_file"]
+                obs_arr = np.load(obs_file, allow_pickle=False)
+                self.obs_history_raw = [o for o in obs_arr]
+                self.obs_history = [
+                    o.astype(np.float32) / 255.0 for o in self.obs_history_raw
+                ]
+            except Exception:
+                print(
+                    "Warning: failed to load obs_history from file; trying embedded state"
+                )
+                try:
+                    self.obs_history_raw = checkpoint.get("obs_history_raw", [])
+                    self.obs_history = [
+                        o.astype(np.float32) / 255.0 for o in self.obs_history_raw
+                    ]
+                except Exception:
+                    print("Warning: failed to load obs_history_raw from checkpoint")
+        elif (
+            "obs_history_raw" in checkpoint
+            and checkpoint["obs_history_raw"] is not None
+        ):
+            try:
+                self.obs_history_raw = checkpoint["obs_history_raw"]
+                self.obs_history = [
+                    o.astype(np.float32) / 255.0 for o in self.obs_history_raw
+                ]
+            except Exception:
+                print("Warning: failed to load obs_history_raw from checkpoint")
 
 
 def train_diamond(
@@ -597,8 +924,6 @@ def train_diamond(
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--game", type=str, default="Breakout-v5")
     parser.add_argument("--seed", type=int, default=0)

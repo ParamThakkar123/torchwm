@@ -47,7 +47,7 @@ class ActorCriticNetwork(nn.Module):
         self,
         obs: torch.Tensor,
         hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
         Forward pass of actor-critic network.
 
@@ -86,7 +86,7 @@ class ActorCriticNetwork(nn.Module):
         obs: torch.Tensor,
         hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         deterministic: bool = False,
-    ) -> Tuple[int, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> Tuple[int, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """
         Get action from a single observation.
 
@@ -99,23 +99,57 @@ class ActorCriticNetwork(nn.Module):
             action: Selected action [B]
             hidden_state: (h, c)
         """
-        obs = obs.unsqueeze(1)
-        policy_logits, values, hidden_state = self.forward(obs, hidden_state)
+        # delegate to the batched interface for a single-sample convenience
+        actions, hidden_state = self.get_actions(
+            obs.unsqueeze(0), hidden_state, deterministic=deterministic
+        )
+        # get scalar action for the single sample
+        return int(actions[0].item()), hidden_state
 
-        policy_logits = policy_logits.squeeze(1)
+    def get_actions(
+        self,
+        obs: torch.Tensor,
+        hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        deterministic: bool = False,
+    ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
+        """
+        Batched version of get_action.
+
+        Args:
+            obs: Tensor of shape [B, C, H, W]
+            hidden_state: Optional LSTM hidden state tuple matching batch size
+            deterministic: If True, take argmax; else sample from policy
+
+        Returns:
+            actions: LongTensor of shape [B]
+            hidden_state: updated LSTM hidden state tuple
+        """
+        # convert to [B, T=1, C, H, W] expected by forward
+        if obs.ndim == 4:
+            obs_in = obs.unsqueeze(1)
+        elif obs.ndim == 5:
+            obs_in = obs
+        else:
+            raise ValueError(f"Unexpected obs ndim {obs.ndim}")
+
+        policy_logits, values, hidden_state = self.forward(obs_in, hidden_state)
+        # policy_logits: [B, T, A] -> take last timestep
+        logits = policy_logits[:, -1, :]
 
         if deterministic:
-            action = policy_logits.argmax(dim=-1)
+            actions = logits.argmax(dim=-1)
         else:
-            action = torch.multinomial(F.softmax(policy_logits, dim=-1), 1).squeeze(-1)
+            probs = F.softmax(logits, dim=-1)
+            # torch.multinomial expects 2D probs and returns [B, k]
+            actions = torch.multinomial(probs, num_samples=1).squeeze(-1)
 
-        return int(action.item()), hidden_state
+        return actions.long(), hidden_state
 
     def get_value(
         self,
         obs: torch.Tensor,
         hidden_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
-    ) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
         """Get value for a single observation."""
         obs = obs.unsqueeze(1)
         _, values, hidden_state = self.forward(obs, hidden_state)

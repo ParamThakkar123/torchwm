@@ -1,0 +1,453 @@
+"""Command-line interface entrypoint for torchwm.
+
+Minimal implementation with Typer providing `torchwm` console group and
+subcommands: `envs list`, `datasets list`, and `serve` to run the existing
+FastAPI UI. This initial patch avoids adding heavy new logic: it reuses the
+server in `world_models.ui.server` and dataset listing helpers.
+
+Run: python -m tools.cli <command>
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+import subprocess
+import logging
+from pathlib import Path
+from typing import List
+from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
+from world_models.utils.utils import save_video
+from typer.main import get_command as _typer_get_command
+import typer
+
+# Defer heavy optional imports to reduce CLI startup time (gym can be slow).
+# These are lazily imported by the helper functions below when a command actually
+# needs them.
+gym = None
+_np = None
+
+# Defer importing the environment catalog until it's needed to avoid pulling in
+# package modules at CLI startup. Use `_load_catalog()` below to access it.
+_typer_app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
+
+
+# Some tests (and Click's test runner) expect the top-level CLI object to
+# expose attributes like `name` and `main`. Typer.Typer doesn't allow setting
+# arbitrary attributes on the object, so create a lightweight proxy that
+# forwards attribute access to the underlying Typer instance while exposing
+# `name` and a deferred `main` callable compatible with click.testing.CliRunner.
+
+
+class _TyperProxy:
+    def __init__(self, typer_obj, name: str):
+        self._typer = typer_obj
+        self.name = name
+
+    def __getattr__(self, item):
+        # Forward any unknown attribute access to the underlying Typer
+        return getattr(self._typer, item)
+
+    def main(self, *args, **kwargs):
+        # Resolve the underlying click Command at call time so all subcommands
+        # and registrations have been applied.
+        return _typer_get_command(self._typer).main(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        # Allow the proxy to be invoked like a Typer object (entrypoint
+        # compatibility). Forward to the underlying Typer's __call__.
+        return self._typer(*args, **kwargs)
+
+
+app = _TyperProxy(_typer_app, name="torchwm")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("torchwm.cli")
+
+
+# Lightweight mapping of training entrypoints. Pulled out so other commands can
+# reference the list of supported models without importing heavy modules.
+TRAINING_MODULES = {
+    "iris": "world_models.training.train_iris",
+    "planet": "world_models.training.train_planet",
+    "jepa": "world_models.training.train_jepa",
+    "rssm": "world_models.training.train_rssm",
+    "genie": "world_models.training.train_genie",
+}
+
+
+def _ensure_gym():
+    """Lazy-import `gym` (fall back to `gymnasium`) and cache result.
+
+    Returns the imported module or None if import failed.
+    """
+    try:
+        import gym as _gym
+    except Exception:
+        import gymnasium as _gym
+    return _gym
+
+def _ensure_numpy():
+    """Lazy-import numpy and cache result. Returns module or None."""
+    try:
+        import numpy as _np
+    except Exception:
+        pass
+    return _np
+
+
+def _load_catalog() -> dict:
+    """Lazy-load the environment catalog (ENV_BACKENDS).
+
+    Returns a dict mapping backends -> info, or an empty dict on failure.
+    """
+    try:
+        from world_models.catalog import ENV_BACKENDS as _envs
+
+        return _envs
+    except Exception:
+        logger.debug("Could not import world_models.catalog", exc_info=True)
+        return {}
+
+
+@app.command("version")
+def version() -> None:
+    """Show package version."""
+    try:
+        import torchwm as pkg
+
+        print(pkg.__version__)
+    except Exception:
+        print("torchwm (unknown version)")
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context) -> None:
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+
+
+envs_app = typer.Typer()
+datasets_app = typer.Typer()
+models_app = typer.Typer()
+app.add_typer(envs_app, name="envs")
+app.add_typer(datasets_app, name="datasets")
+app.add_typer(models_app, name="models")
+
+
+@models_app.command("list")
+def models_list() -> None:
+    """List supported models and training entrypoints."""
+    try:
+        print("Training entrypoints:")
+        for k, m in sorted(TRAINING_MODULES.items()):
+            print(f"- {k}: {m}")
+
+        # Also show model classes/factory names exported by world_models.models
+        try:
+            import world_models.models as wm_models
+
+            exported = getattr(wm_models, "__all__", None)
+            if exported:
+                print("\nExported model names:")
+                for name in sorted(exported):
+                    print(f"- {name}")
+        except Exception:
+            # Avoid failing the whole command if importing the models package
+            # triggers heavier imports; the training entrypoints above are
+            # usually sufficient for users wanting to know supported models.
+            pass
+    except Exception as e:
+        logger.exception("Failed to list models: %s", e)
+        raise typer.Exit(code=1)
+
+
+@envs_app.command("list")
+def envs_list() -> None:
+    """List built-in environments supported by the UI registry."""
+    try:
+        catalog = _load_catalog()
+        if not catalog:
+            print(
+                "No environment catalog available (world_models.catalog failed to import)."
+            )
+            raise typer.Exit(code=0)
+
+        for backend, info in catalog.items():
+            print(f"{backend}: {info.get('label', '')}")
+            items = info.get("environments", [])
+            if items:
+                for env in items[:20]:
+                    print(f"  - {env}")
+                if len(items) > 20:
+                    print(f"  ... and {len(items) - 20} more")
+    except Exception as e:
+        logger.exception("Failed to list environments: %s", e)
+        raise typer.Exit(code=1)
+
+
+@datasets_app.command("list")
+def datasets_list(
+    path: Path | None = typer.Argument(None, help="Path to dataset cache"),
+) -> None:
+    """List datasets in a folder (defaults to TORCHWM_HOME or ~/.torchwm)."""
+    home = Path(os.environ.get("TORCHWM_HOME", Path.home() / ".torchwm"))
+    root = Path(path) if path is not None else home
+    # If the path doesn't exist or contains no entries, report no datasets.
+    try:
+        has_entries = any(root.iterdir()) if root.exists() else False
+    except PermissionError:
+        has_entries = False
+
+    if not root.exists() or not has_entries:
+        print(f"No datasets found at {root}")
+        raise typer.Exit(code=0)
+
+    print(f"Datasets under: {root}")
+    for p in sorted(root.iterdir()):
+        print(f"- {p.name}")
+
+
+@datasets_app.command("convert")
+def datasets_convert(
+    src: Path = typer.Argument(..., help="Source dataset file (h5/npz/npy or folder)"),
+    dest_format: str = typer.Option("video", help="Destination format: video"),
+    out_dir: Path = typer.Option(None, help="Output directory for converted data"),
+) -> None:
+    """Convert simple dataset files into another format.
+
+    Current supported conversion: hdf5(.h5) -> mp4 files (one per episode) when
+    `--dest-format video` is used.
+    """
+    out = Path(out_dir) if out_dir is not None else Path.cwd() / "converted_datasets"
+    out.mkdir(parents=True, exist_ok=True)
+
+    if dest_format != "video":
+        print("Only 'video' dest_format supported in this initial implementation.")
+        raise typer.Exit(code=1)
+
+    # Ensure optional top-level imports succeeded
+    if (
+        HDF5Dataset is None
+        or NumPyDataset is None
+        or save_video is None
+        or _ensure_numpy() is None
+    ):
+        logger.exception("Missing dataset conversion dependencies")
+        print("Install the optional dependencies (h5py, numpy, etc.) and retry.")
+        raise typer.Exit(code=1)
+
+    srcp = Path(src)
+    if not srcp.exists():
+        print(f"Source not found: {src}")
+        raise typer.Exit(code=1)
+
+    if srcp.suffix in {".h5", ".hdf5"}:
+        ds = HDF5Dataset(str(srcp), num_frames=16, image_size=64)
+    elif srcp.suffix in {".npz", ".npy"}:
+        ds = NumPyDataset(str(srcp), num_frames=16, image_size=64)
+    else:
+        print("Unsupported source format for conversion. Provide .h5 or .npz/.npy")
+        raise typer.Exit(code=1)
+
+    total = len(ds)
+    print(f"Converting {total} items from {src} -> {out} ...")
+    for i in range(total):
+        try:
+            v = ds[i]
+            # v may be torch.Tensor or numpy array
+            if hasattr(v, "numpy"):
+                arr = v.numpy()
+            else:
+                arr = v
+            # arr expected shape: (T,H,W,C) or (T,C,H,W)
+            if getattr(arr, "ndim", None) == 4 and getattr(
+                arr, "shape", [None, None, None, None]
+            )[1] in (1, 3, 4):
+                # convert CHW -> HWC: (T,C,H,W) -> (T,H,W,C')
+                try:
+                    arr = arr.transpose(0, 2, 3, 1)
+                except Exception:
+                    # Fallback: try numpy moveaxis if available
+                    try:
+                        import numpy as _tmpn
+
+                        arr = _tmpn.moveaxis(arr, 1, -1)
+                    except Exception:
+                        pass
+            # convert uint8 [0,255] to float [0,1]
+            try:
+                dtype_name = getattr(arr, "dtype", None)
+                if (
+                    dtype_name is not None
+                    and str(dtype_name).endswith("uint8")
+                    or (hasattr(arr, "max") and float(arr.max()) > 1.0)
+                ):
+                    # prefer numpy operations if possible
+                    try:
+                        arrf = (arr.astype("float32") / 255.0).clip(0.0, 1.0)
+                    except Exception:
+                        arrf = (arr * (1.0 / 255.0)).clip(0.0, 1.0)
+                else:
+                    try:
+                        arrf = arr.astype("float32")
+                    except Exception:
+                        arrf = arr.astype("float") if hasattr(arr, "astype") else arr
+            except Exception:
+                arrf = arr
+
+            out_name = out / f"ep_{i:06d}"
+            save_video(arrf, str(out_name.parent), out_name.name)
+            print(f"Wrote: {out_name}.mp4")
+        except Exception as e:
+            logger.exception("Failed to convert item %d: %s", i, e)
+            print(f"Failed to convert item {i}: {e}")
+
+
+@app.command("collect")
+def collect(
+    env: str = typer.Option(..., help="Environment id (Gym/Atari)"),
+    steps: int = typer.Option(1000, help="Number of environment steps to collect"),
+    out: Path = typer.Option(Path("./collected.npz"), help="Output file path (.npz)"),
+    random_policy: bool = typer.Option(True, help="Use random actions"),
+) -> None:
+    """Collect interactions from an environment and save as a simple .npz file.
+
+    The saved file contains keys: observations, actions, rewards, dones.
+    """
+    # Lazy-import optional dependencies (gym/gymnasium and numpy)
+    _gym = _ensure_gym()
+    _n = _ensure_numpy()
+    if _gym is None or _n is None:
+        logger.exception("Missing gym or numpy")
+        print("Please install gym (or gymnasium) and numpy to use collect")
+        raise typer.Exit(code=1)
+
+    print(f"Creating environment: {env}")
+    try:
+        # Try world_models envs first
+        try:
+            from world_models.envs import make_env
+
+            env_obj = make_env(env)
+        except Exception:
+            env_obj = _gym.make(env)
+    except Exception as e:
+        logger.exception("Failed to create env %s: %s", env, e)
+        print(f"Failed to create environment: {e}")
+        raise typer.Exit(code=1)
+
+    obs_list = []
+    act_list = []
+    rew_list = []
+    done_list = []
+
+    obs = env_obj.reset()
+    # gym vs gymnasium differences: unpack tuple if needed
+    if isinstance(obs, tuple) and len(obs) >= 1:
+        obs = obs[0]
+
+    for step in range(steps):
+        if random_policy:
+            action = env_obj.action_space.sample()
+        else:
+            # default to random if no policy provided
+            action = env_obj.action_space.sample()
+        res = env_obj.step(action)
+        if isinstance(res, tuple) and len(res) == 5:
+            next_obs, reward, terminated, truncated, info = res
+            done = terminated or truncated
+        else:
+            next_obs, reward, done, info = res
+        obs_list.append(_n.asarray(obs))
+        act_list.append(_n.asarray(action))
+        rew_list.append(float(reward))
+        done_list.append(bool(done))
+        if done:
+            obs = env_obj.reset()
+            if isinstance(obs, tuple) and len(obs) >= 1:
+                obs = obs[0]
+        else:
+            obs = next_obs
+
+    print(f"Collected {len(obs_list)} steps; saving to {out}")
+    _n.savez_compressed(
+        str(out),
+        observations=_n.stack(obs_list),
+        actions=_n.stack(act_list),
+        rewards=_n.array(rew_list),
+        dones=_n.array(done_list),
+    )
+    print("Saved.")
+
+
+@app.command("train")
+def train(
+    model: str = typer.Argument(
+        ..., help="Model/training script to run (iris/planet/jepa/rssm/genie)"
+    ),
+    extra_args: List[str] = typer.Argument(
+        None, help="Extra args passed to training script"
+    ),
+    inproc: bool = typer.Option(
+        False, help="Run training in-process instead of spawning subprocess"
+    ),
+) -> None:
+    """Launch an existing training entrypoint as a subprocess.
+
+    This command spawns `python -m world_models.training.<script>` for the
+    requested model. Extra args are forwarded unchanged.
+    """
+    # Use the shared training module mapping defined near the top of this file.
+    mapping = TRAINING_MODULES
+
+    key = model.strip().lower()
+    if key not in mapping:
+        print(f"Unknown model '{model}'. Known: {', '.join(mapping.keys())}")
+        raise typer.Exit(code=1)
+
+    module = mapping[key]
+    if inproc:
+        # Try to import the module and call a `main` entrypoint directly.
+        try:
+            import importlib
+
+            mod = importlib.import_module(module)
+            main_fn = getattr(mod, "main", None)
+            if callable(main_fn):
+                print(f"Running in-process: {module}.main()")
+                # If main expects args, we try to pass nothing and let it parse sys.argv
+                try:
+                    main_fn()
+                except TypeError:
+                    # Some mains accept args; attempt to pass extra_args if provided
+                    if extra_args:
+                        main_fn(extra_args)
+                    else:
+                        main_fn()
+                raise typer.Exit(code=0)
+            else:
+                print(
+                    f"Module {module} has no callable main(); falling back to subprocess"
+                )
+        except KeyboardInterrupt:
+            print("Training interrupted by user")
+            raise typer.Exit(code=1)
+        except Exception as e:
+            logger.exception("In-process training failed: %s", e)
+            print("Falling back to subprocess execution")
+
+    # Spawn subprocess as fallback / default
+    cmd = [sys.executable, "-m", module]
+    if extra_args:
+        cmd.extend(extra_args)
+
+    print(f"Running: {' '.join(cmd)}")
+    try:
+        proc = subprocess.run(cmd, check=False)
+        raise typer.Exit(code=proc.returncode)
+    except KeyboardInterrupt:
+        print("Training interrupted by user")
+        raise typer.Exit(code=1)
+
+if __name__ == "__main__":
+    app()

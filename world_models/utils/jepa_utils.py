@@ -4,8 +4,15 @@ from logging import getLogger
 import os
 import torch.distributed as dist
 
+from types import ModuleType
+from typing import Optional
+
+# Optional WandB import; keep typed for static checkers.
+wandb: Optional[ModuleType] = None
 try:
-    import wandb
+    import wandb as _wandb
+
+    wandb = _wandb
 except ImportError:
     wandb = None
 

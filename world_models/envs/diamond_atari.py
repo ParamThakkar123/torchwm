@@ -2,6 +2,7 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from typing import Tuple, Dict, Optional, Any, overload
+import cv2
 
 
 class DiamondAtariWrapper(gym.Wrapper):
@@ -152,8 +153,8 @@ class DiamondAtariWrapper(gym.Wrapper):
         if obs.shape[:2] == (self._height, self._width):
             return obs
 
-        import cv2
-
+        # Use OpenCV for resize. Import is done at module scope to keep
+        # behavior consistent and straightforward.
         obs = cv2.resize(obs, (self._width, self._height), interpolation=cv2.INTER_AREA)
         return obs.astype(np.uint8)
 

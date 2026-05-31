@@ -11,7 +11,6 @@ The original implementations live in the submodules to keep code organized.
 
 from .cli import (
     app as cli_app,
-    run as cli_run,
     main as cli_main,
     version,
     envs_list,
@@ -30,7 +29,6 @@ from .check_docs_render import (
 
 __all__ = [
     "cli_app",
-    "cli_run",
     "cli_main",
     "version",
     "envs_list",

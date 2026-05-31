@@ -3646,6 +3646,11 @@ docs = [
     { name = "sphinxcontrib-mermaid" },
     { name = "sphinxext-opengraph" },
 ]
+gpu = [
+    { name = "torch" },
+    { name = "torchaudio" },
+    { name = "torchvision" },
+]
 gym = [
     { name = "autorom" },
     { name = "huggingface-hub" },
@@ -3705,8 +3710,11 @@ requires-dist = [
     { name = "sphinxext-opengraph", marker = "extra == 'docs'", specifier = ">=0.13.0" },
     { name = "tensorboard", marker = "extra == 'ml'", specifier = ">=2.20.0" },
     { name = "tensorboardx", marker = "extra == 'ml'", specifier = ">=2.6.4" },
+    { name = "torch", marker = "extra == 'gpu'", specifier = ">=1.13.0" },
     { name = "torch", specifier = ">=1.13.0" },
+    { name = "torchaudio", marker = "extra == 'gpu'", specifier = ">=2.10.0" },
     { name = "torchaudio", specifier = ">=2.10.0" },
+    { name = "torchvision", marker = "extra == 'gpu'", specifier = ">=0.14.0" },
     { name = "torchvision", specifier = ">=0.14.0" },
     { name = "torchwm", extras = ["gym", "viz", "ml", "ml-agents", "dev", "docs"], marker = "extra == 'all'" },
     { name = "tqdm", specifier = ">=4.67.1" },
@@ -3714,7 +3722,7 @@ requires-dist = [
     { name = "uvicorn", marker = "extra == 'viz'", specifier = ">=0.35.0" },
     { name = "wandb", marker = "extra == 'ml'", specifier = ">=0.16.0" },
 ]
-provides-extras = ["gym", "ml-agents", "viz", "ml", "dev", "all", "docs"]
+provides-extras = ["gpu", "gym", "ml-agents", "viz", "ml", "dev", "all", "docs"]
 
 [[package]]
 name = "tornado"

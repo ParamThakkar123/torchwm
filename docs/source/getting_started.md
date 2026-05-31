@@ -5,8 +5,16 @@
 Install from PyPI:
 
 ```bash
+# CPU build (default)
 pip install torchwm
+
+# GPU build
+pip install torchwm[gpu]
 ```
+
+Use `pip install torchwm` for the CPU-compatible default install. Use
+`pip install torchwm[gpu]` on GPU machines when you want the CUDA-enabled
+PyTorch stack.
 
 Install from source:
 

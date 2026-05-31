@@ -442,14 +442,20 @@ class EulerSampler:
             Generated samples [B, C, H, W]
         """
         B = shape[0]
-        x = torch.randn(shape, device=device) * self.t_steps[0]
+        # Ensure t_steps and t_next are on the same device and dtype as model inputs.
+        # self.t_steps and self.t_next are created on CPU in __init__, so move/cast here.
+        t_steps = self.t_steps.to(device=device, dtype=torch.get_default_dtype())
+        t_next = self.t_next.to(device=device, dtype=torch.get_default_dtype())
+
+        x = torch.randn(shape, device=device) * t_steps[0]
 
         for i in range(self.num_steps):
-            t_cur = self.t_steps[i].expand(B)
-            t_next = self.t_next[i].expand(B)
+            t_cur = t_steps[i].expand(B).to(device)
+            t_nxt = t_next[i].expand(B).to(device)
 
             sigma_cur = t_cur.view(-1, 1, 1, 1)
 
+            # model expects t on the same device/dtype as x
             model_output = model(
                 x,
                 t_cur,
@@ -460,6 +466,6 @@ class EulerSampler:
             denoised = x + model_output * sigma_cur
 
             d_cur = (denoised - x) / sigma_cur
-            x = denoised + (t_next.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
+            x = denoised + (t_nxt.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
 
         return x.clamp(0, 1)

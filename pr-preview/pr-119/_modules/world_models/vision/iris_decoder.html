@@ -1029,6 +1029,11 @@ window.runMermaid = runMermaid;</script>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>
+        <span class="c1"># optional mapping from token indices -&gt; embeddings so decoder can</span>
+        <span class="c1"># accept discrete token indices directly. This provides a convenient</span>
+        <span class="c1"># API for sampling/decoding from predicted tokens.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">=</span> <span class="n">vocab_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frame_shape</span> <span class="o">=</span> <span class="n">frame_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_channels</span> <span class="o">=</span> <span class="n">out_channels</span>
 
@@ -1121,6 +1126,36 @@ window.runMermaid = runMermaid;</script>
             <span class="n">z</span> <span class="o">=</span> <span class="n">z_flat</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">z</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IRISDecoder.decode_from_indices">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.vision.iris_decoder.IRISDecoder.decode_from_indices">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode_from_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode discrete token indices into images.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            indices: Tensor of shape (B, H, W) or (B, H*W) containing integer</span>
+<span class="sd">                token indices in the range [0, vocab_size).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Reconstructed images (B, C, H, W)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">indices</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">B</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">flat</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">HW</span> <span class="o">=</span> <span class="n">H</span> <span class="o">*</span> <span class="n">W</span>
+        <span class="k">elif</span> <span class="n">indices</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">B</span><span class="p">,</span> <span class="n">HW</span> <span class="o">=</span> <span class="n">indices</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">W</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">HW</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">flat</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;indices must be shape (B, H, W) or (B, H*W)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># (B, HW, C)</span>
+        <span class="n">emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_embedding</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+        <span class="c1"># convert to (B, C, H, W)</span>
+        <span class="n">emb</span> <span class="o">=</span> <span class="n">emb</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">emb</span><span class="p">)</span></div>
 </div>
 
 
@@ -1141,7 +1176,8 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
         <span class="c1"># Skip connection projection if needed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+        <span class="c1"># Use the broad Module type because we may assign either Identity or Conv2d here.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skip</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">in_channels</span> <span class="o">!=</span> <span class="n">out_channels</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
@@ -1207,7 +1243,6 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">IRISDecoder</span><span class="p">(</span>
-            <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
             <span class="n">embedding_dim</span><span class="o">=</span><span class="n">embedding_dim</span><span class="p">,</span>
             <span class="n">base_channels</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>  <span class="c1"># decoder uses smaller channels</span>
             <span class="n">out_channels</span><span class="o">=</span><span class="n">frame_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>

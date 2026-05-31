@@ -19,7 +19,6 @@ release = world_models.__version__
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
@@ -31,7 +30,6 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = []
 
-autosummary_generate = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_inherit_docstrings = False
@@ -84,6 +82,13 @@ autodoc_mock_imports = [
     "gymnasium",
     "wandb",
     "PIL",
+    "sklearn",
+    "sklearn.manifold",
+    "h5py",
+    "huggingface_hub",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "umap",
     "torch",
     "torch.nn",
     "torch._C",

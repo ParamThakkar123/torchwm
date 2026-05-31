@@ -10,15 +10,7 @@ Public package surface
 
 These modules expose the most common imports and lazy constructors.
 
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   world_models
-   world_models.models
-   world_models.configs
-   world_models.envs
-   world_models.inference
+**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.envs``, and ``world_models.inference``.
 
 .. automodule:: world_models
    :members:
@@ -36,24 +28,7 @@ Model catalog
 Core model families
 ~~~~~~~~~~~~~~~~~~~
 
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   world_models.models.dreamer.Dreamer
-   world_models.models.dreamer.DreamerAgent
-   world_models.models.dreamer_rssm.RSSM
-   world_models.models.rssm.RecurrentStateSpaceModel
-   world_models.models.planet.Planet
-   world_models.models.modular_rssm.ModularRSSM
-   world_models.models.jepa_agent.JEPAAgent
-   world_models.models.vit.VisionTransformer
-   world_models.models.iris_agent.IRISAgent
-   world_models.models.iris_transformer.IRISTransformer
-   world_models.models.iris_transformer.IRISWorldModel
-   world_models.models.genie.Genie
-   world_models.models.latent_action_model.LatentActionModel
-   world_models.models.dynamics_model.DynamicsModel
+**Key classes:** ``Dreamer``, ``DreamerAgent``, ``RSSM``, ``RecurrentStateSpaceModel``, ``Planet``, ``ModularRSSM``, ``JEPAAgent``, ``VisionTransformer``, ``IRISAgent``, ``IRISTransformer``, ``IRISWorldModel``, ``Genie``, ``LatentActionModel``, and ``DynamicsModel``.
 
 .. automodule:: world_models.models.dreamer
    :members:
@@ -118,17 +93,7 @@ Core model families
 Diffusion and DIAMOND components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   world_models.models.diffusion.DDPM.DDPM
-   world_models.models.diffusion.DiT.DiT
-   world_models.models.diffusion.diamond_diffusion.DiffusionUNet
-   world_models.models.diffusion.diamond_diffusion.EDMPreconditioner
-   world_models.models.diffusion.diamond_diffusion.EulerSampler
-   world_models.models.diffusion.reward_termination.RewardTerminationModel
-   world_models.models.diffusion.actor_critic.ActorCriticNetwork
+**Key classes:** ``DDPM``, ``DiT``, ``DiffusionUNet``, ``EDMPreconditioner``, ``EulerSampler``, ``RewardTerminationModel``, and ``ActorCriticNetwork``.
 
 .. automodule:: world_models.models.diffusion
    :members:
@@ -163,24 +128,7 @@ Diffusion and DIAMOND components
 Vision, tokenization, and layers
 --------------------------------
 
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   world_models.vision.dreamer_encoder.ConvEncoder
-   world_models.vision.dreamer_decoder.ConvDecoder
-   world_models.vision.dreamer_decoder.DenseDecoder
-   world_models.vision.dreamer_decoder.ActionDecoder
-   world_models.vision.planet_encoder.CNNEncoder
-   world_models.vision.planet_decoder.CNNDecoder
-   world_models.vision.iris_encoder.IRISEncoder
-   world_models.vision.iris_decoder.IRISDecoder
-   world_models.vision.iris_decoder.DiscreteAutoencoder
-   world_models.vision.vq_layer.VectorQuantizer
-   world_models.vision.vq_layer.VectorQuantizerEMA
-   world_models.vision.video_tokenizer.VideoTokenizer
-   world_models.blocks.mhsa.MultiHeadSelfAttention
-   world_models.blocks.st_transformer.STTransformer
+**Key classes:** ``ConvEncoder``, ``ConvDecoder``, ``DenseDecoder``, ``ActionDecoder``, ``CNNEncoder``, ``CNNDecoder``, ``IRISEncoder``, ``IRISDecoder``, ``DiscreteAutoencoder``, ``VectorQuantizer``, ``VectorQuantizerEMA``, ``VideoTokenizer``, ``MultiHeadSelfAttention``, and ``STTransformer``.
 
 .. automodule:: world_models.vision.dreamer_encoder
    :members:

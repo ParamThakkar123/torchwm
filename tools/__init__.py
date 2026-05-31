@@ -19,7 +19,6 @@ from .cli import (
     datasets_convert,
     collect,
     train,
-    serve,
 )
 
 from .check_docs_render import (
@@ -39,7 +38,6 @@ __all__ = [
     "datasets_convert",
     "collect",
     "train",
-    "serve",
     "check_docs_main",
     "check_page",
     "file_url",

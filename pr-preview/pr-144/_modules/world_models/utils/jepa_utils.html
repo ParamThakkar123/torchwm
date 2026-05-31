@@ -1007,8 +1007,15 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="c1"># Optional WandB import; keep typed for static checkers.</span>
+<span class="n">wandb</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ModuleType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">wandb</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">wandb</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_wandb</span>
+
+    <span class="n">wandb</span> <span class="o">=</span> <span class="n">_wandb</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">wandb</span> <span class="o">=</span> <span class="kc">None</span>
 

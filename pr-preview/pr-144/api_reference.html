@@ -2139,14 +2139,15 @@ uses the first available behavior.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.envs.make_unity_mlagents_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_unity_mlagents_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#make_unity_mlagents_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_unity_mlagents_env" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_unity_mlagents_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#make_unity_mlagents_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_unity_mlagents_env" title="Link to this definition">#</a></dt>
 <dd><p>Create a Unity ML-Agents environment wrapper.</p>
 <p>Factory function that instantiates a UnityMLAgentsEnv with the provided
 keyword arguments. Suitable for integrating Unity-based environments
 with Dreamer-style world model pipelines.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Keyword arguments passed to UnityMLAgentsEnv, including:
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to UnityMLAgentsEnv, including:
 - file_name (str): Path to the Unity environment binary.
 - behavior_name (str, optional): Name of the behavior to use.
 - seed (int): Random seed (default: 0).
@@ -2156,7 +2157,9 @@ with Dreamer-style world model pipelines.</p>
 - no_graphics (bool): Disable graphics rendering (default: True).
 - time_scale (float): Simulation time scale (default: 20.0).
 - quality_level (int): Graphics quality level (default: 1).
-- max_episode_steps (int): Max steps per episode (default: 1000).</p>
+- max_episode_steps (int): Max steps per episode (default: 1000).</p></li>
+<li><p><strong>env_id</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A Gym-compatible wrapper for Unity environments.</p>
@@ -3709,6 +3712,24 @@ Uses transposed convolutions to upsample from 4x4 to 64x64.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Reconstructed images</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.vision.iris_decoder.IRISDecoder.decode_from_indices">
+<span class="sig-name descname"><span class="pre">decode_from_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/iris_decoder.html#IRISDecoder.decode_from_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.iris_decoder.IRISDecoder.decode_from_indices" title="Link to this definition">#</a></dt>
+<dd><p>Decode discrete token indices into images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indices</strong> (<em>torch.Tensor</em>) – Tensor of shape (B, H, W) or (B, H*W) containing integer
+token indices in the range [0, vocab_size).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Reconstructed images (B, C, H, W)</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
@@ -7360,6 +7381,7 @@ video previews during Dreamer training/evaluation.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder"><code class="docutils literal notranslate"><span class="pre">IRISDecoder</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder.forward"><code class="docutils literal notranslate"><span class="pre">IRISDecoder.forward()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder.decode_from_embeddings"><code class="docutils literal notranslate"><span class="pre">IRISDecoder.decode_from_embeddings()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.IRISDecoder.decode_from_indices"><code class="docutils literal notranslate"><span class="pre">IRISDecoder.decode_from_indices()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.vision.iris_decoder.UpsampleBlock"><code class="docutils literal notranslate"><span class="pre">UpsampleBlock</span></code></a><ul class="nav section-nav flex-column">

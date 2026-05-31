@@ -18,25 +18,24 @@ needing explicit action labels.
 
 ## Architecture
 
-.. mermaid::
+```{mermaid}
+graph TD
+    subgraph "Genie Architecture"
+        A[Video Frames] --> B[Video<br/>Tokenizer]
+        B --> C[Video<br/>Tokens]
+        C --> D[Dynamics<br/>Model]
+        E[Frames t,t+1] --> F[Latent Action<br/>Model LAM]
+        F --> G[Latent<br/>Actions]
+        G --> D
+        D --> H[Predicted<br/>Tokens]
+        H --> I[Decoded<br/>Frames]
+    end
 
-   graph TD
-       subgraph "Genie Architecture"
-           A[Video Frames] --> B[Video<br/>Tokenizer]
-           B --> C[Video<br/>Tokens]
-           C --> D[Dynamics<br/>Model]
-           E[Frames t,t+1] --> F[Latent Action<br/>Model LAM]
-           F --> G[Latent<br/>Actions]
-           G --> D
-           D --> H[Predicted<br/>Tokens]
-           H --> I[Decoded<br/>Frames]
-       end
-        
-       style B fill:#cce5ff
-       style F fill:#cce5ff
-       style D fill:#d4edda
-       style I fill:#fff3cd
-
+    style B fill:#cce5ff
+    style F fill:#cce5ff
+    style D fill:#d4edda
+    style I fill:#fff3cd
+```
 ## Components
 
 ### 1. Video Tokenizer

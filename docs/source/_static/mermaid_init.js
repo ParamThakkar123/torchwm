@@ -1,118 +1,96 @@
-// Robust Mermaid initialization: wait for mermaid to load, then render any
-// <div class="mermaid"> elements. Re-run on DOM mutations.
+// Reliable Mermaid bootstrap for Sphinx + MyST pages.
+// sphinxcontrib-mermaid may emit either <div class="mermaid"> blocks or
+// <script type="text/vnd.mermaid"> blocks depending on version/output mode.
+// This script normalizes both forms and calls the Mermaid v10 API correctly.
 (() => {
-  const MAX_WAIT = 5000; // ms
-  const INTERVAL = 100; // ms
+  const MAX_WAIT_MS = 5000;
+  const POLL_MS = 100;
 
-  function tryInit() {
-    if (window.mermaid) {
-      try {
-        // Convert any <script type="text/vnd.mermaid"> blocks into
-        // <div class="mermaid"> so mermaid.run/init can process them.
-        try {
-          document.querySelectorAll('script[type="text/vnd.mermaid"]').forEach((s) => {
-            let txt = s.textContent || s.innerText || '';
-            // Normalize common typographic characters that break Mermaid parsing
-            // - smart quotes -> straight quotes
-            // - en/em dashes -> hyphen
-            // - arrow-like sequences (e.g. –> from copy/paste) -> -->
-            // - replace Unicode minus with ASCII minus
-            try {
-              txt = txt.replace(/[\u201C\u201D]/g, '"'); // “ ”
-              txt = txt.replace(/[\u2018\u2019\u201B]/g, "'"); // ‘ ’ ‛
-              txt = txt.replace(/[\u2013\u2014\u2012]/g, '-'); // – — ‒ -> -
-              // Convert en-dash/emdash followed by > into proper mermaid arrow
-              txt = txt.replace(/[-\u2013\u2014]+>/g, '-->');
-              // Convert right arrow glyphs to ASCII
-              txt = txt.replace(/\u2192/g, '->');
-              // Unicode minus to ASCII hyphen
-              txt = txt.replace(/\u2212/g, '-');
-            } catch (e) {
-              // ignore normalization errors
-            }
-            const d = document.createElement('div');
-            d.className = 'mermaid';
-            d.textContent = txt;
-            s.parentNode.replaceChild(d, s);
-          });
-        } catch (e) {
-          // ignore conversion errors
-        }
-        // Use loose security to allow HTML labels; don't auto-start (we'll run)
-        // Configure theme based on document theme attribute (light/dark)
-        const dark = document.documentElement.dataset.theme === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;
-        window.mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: dark ? 'dark' : 'default' });
-        // Render existing mermaid blocks. If MathJax is present, wait for
-        // MathJax to finish typesetting so Mermaid doesn't try to render
-        // content that MathJax will rewrite (avoids parse/type conflicts).
-        try {
-          const doRender = () => {
-            if (typeof window.mermaid.run === 'function') {
-              window.mermaid.run(document.querySelectorAll('.mermaid'));
-            } else if (typeof window.mermaid.init === 'function') {
-              window.mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-            }
-          };
-
-          if (window.MathJax && window.MathJax.startup && typeof window.MathJax.startup.typesetPromise === 'function') {
-            // Wait for MathJax typesetting to complete, then render Mermaid
-            window.MathJax.startup.typesetPromise().then(() => {
-              try { doRender(); } catch (e) { console.warn('Mermaid render failed after MathJax', e); }
-            }).catch(() => {
-              // If MathJax errors, fall back to delayed render
-              setTimeout(doRender, 100);
-            });
-          } else {
-            // No MathJax or older API — render after a short delay
-            setTimeout(doRender, 50);
-          }
-        } catch (e) {
-          console.warn('Mermaid render failed', e);
-        }
-        return true;
-      } catch (e) {
-        console.warn('Mermaid initialize failed', e);
-        return false;
-      }
-    }
-    return false;
+  function normalizeSource(source) {
+    return (source || '')
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019\u201B]/g, "'")
+      .replace(/[\u2013\u2014\u2012]/g, '-')
+      .replace(/[-\u2013\u2014]+>/g, '-->')
+      .replace(/\u2192/g, '->')
+      .replace(/\u2212/g, '-');
   }
 
-  // Poll for mermaid availability for a short time
-  let waited = 0;
-  const poll = setInterval(() => {
-    if (tryInit() || (waited > MAX_WAIT)) {
-      clearInterval(poll);
-    }
-    waited += INTERVAL;
-  }, INTERVAL);
-
-  // Re-render mermaid blocks when new content appears (Thebe or dynamic sections)
-  const observer = new MutationObserver((mutations) => {
-    if (!window.mermaid) return;
-    try {
-      const nodes = (typeof document.querySelectorAll === 'function') ? document.querySelectorAll('.mermaid') : null;
-      if (nodes && nodes.length) {
-        if (typeof window.mermaid.init === 'function') {
-          window.mermaid.init(undefined, nodes);
-        } else if (typeof window.mermaid.run === 'function') {
-          // prefer calling run without args; fall back to nodes if needed
-          try { window.mermaid.run(); } catch (err) { try { window.mermaid.run(nodes); } catch (e) { /* swallow */ } }
-        }
-      }
-    } catch (e) {
-      // swallow errors
-    }
-  });
-  // Observe the body if available; otherwise observe the documentElement as a fallback
-  const targetNode = document.body || document.documentElement || null;
-  if (targetNode) {
-    observer.observe(targetNode, { childList: true, subtree: true });
-  } else {
-    // If neither exists yet, attach when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      const t = document.body || document.documentElement;
-      if (t) observer.observe(t, { childList: true, subtree: true });
+  function normalizeMermaidBlocks() {
+    document.querySelectorAll('script[type="text/vnd.mermaid"]').forEach((script) => {
+      const block = document.createElement('div');
+      block.className = 'mermaid';
+      block.textContent = normalizeSource(script.textContent || script.innerText || '');
+      script.replaceWith(block);
     });
+
+    document.querySelectorAll('.mermaid').forEach((block) => {
+      if (!block.dataset.originalMermaid) {
+        block.dataset.originalMermaid = normalizeSource(block.textContent || '');
+        block.textContent = block.dataset.originalMermaid;
+      }
+    });
+  }
+
+  async function renderMermaid() {
+    if (!window.mermaid) return false;
+
+    normalizeMermaidBlocks();
+    const nodes = Array.from(document.querySelectorAll('.mermaid:not([data-processed="true"])'));
+    if (!nodes.length) return true;
+
+    const dark = document.documentElement.dataset.theme === 'dark'
+      || window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: dark ? 'dark' : 'default',
+    });
+
+    try {
+      if (typeof window.mermaid.run === 'function') {
+        await window.mermaid.run({ nodes });
+      } else if (typeof window.mermaid.init === 'function') {
+        window.mermaid.init(undefined, nodes);
+      }
+      return true;
+    } catch (error) {
+      console.warn('Mermaid render failed', error);
+      nodes.forEach((node) => {
+        node.dataset.processed = 'false';
+      });
+      return false;
+    }
+  }
+
+  function startPolling() {
+    let waited = 0;
+    const poll = window.setInterval(() => {
+      renderMermaid().then((done) => {
+        if (done || waited >= MAX_WAIT_MS) window.clearInterval(poll);
+      });
+      waited += POLL_MS;
+    }, POLL_MS);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startPolling, { once: true });
+  } else {
+    startPolling();
+  }
+
+  const observer = new MutationObserver(() => {
+    if (window.mermaid) renderMermaid();
+  });
+
+  const observe = () => {
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observe, { once: true });
+  } else {
+    observe();
   }
 })();

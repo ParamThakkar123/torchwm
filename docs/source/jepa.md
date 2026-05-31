@@ -18,23 +18,22 @@ This approach avoids the complexity of pixel-level generation while learning ric
 
 ## Architecture
 
-.. mermaid::
+```{mermaid}
+graph TD
+    subgraph "JEPA Architecture"
+        A[Frame t] --> B[Enc_s<br/>Target Encoder]
+        C[Frame t+k] --> D[Enc_s<br/>Target Encoder<br/>Frozen]
+        B --> E[Target<br/>z_t]
+        D --> E
+        F[Predictor<br/>token] --> G[Predict<br/>z_t']
+        G --> H[Prediction loss]
+        E --> H
+    end
 
-   graph TD
-       subgraph "JEPA Architecture"
-           A[Frame t] --> B[Enc_s<br/>Target Encoder]
-           C[Frame t+k] --> D[Enc_s<br/>Target Encoder<br/>Frozen]
-           B --> E[Target<br/>z_t]
-           D --> E
-           F[Predictor<br/>token] --> G[Predict<br/>z_t']
-           G --> H[Loss<br/>||z_t' - z_t||²]
-           E --> H
-       end
-       
-       style B fill:#fff3cd
-       style D fill:#fff3cd
-       style H fill:#f8d7da
-
+    style B fill:#fff3cd
+    style D fill:#fff3cd
+    style H fill:#f8d7da
+```
 ## Components
 
 ### 1. Encoder (Target Encoder)

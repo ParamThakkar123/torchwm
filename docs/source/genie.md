@@ -20,15 +20,15 @@ needing explicit action labels.
 
 ```{mermaid}
 graph TD
-    subgraph "Genie Architecture"
-        A[Video Frames] --> B[Video<br/>Tokenizer]
-        B --> C[Video<br/>Tokens]
-        C --> D[Dynamics<br/>Model]
-        E[Frames t,t+1] --> F[Latent Action<br/>Model LAM]
-        F --> G[Latent<br/>Actions]
+    subgraph GA["Genie Architecture"]
+        A["Video frames"] --> B["Video tokenizer"]
+        B --> C["Video tokens"]
+        C --> D["Dynamics model"]
+        E["Consecutive frames"] --> F["Latent action model"]
+        F --> G["Latent actions"]
         G --> D
-        D --> H[Predicted<br/>Tokens]
-        H --> I[Decoded<br/>Frames]
+        D --> H["Predicted tokens"]
+        H --> I["Decoded frames"]
     end
 
     style B fill:#cce5ff

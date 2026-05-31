@@ -105,7 +105,7 @@ html_theme_options = {
 # sphinxcontrib-mermaid emits raw Mermaid blocks and we render them client-side
 # with the vendored Mermaid runtime plus _static/mermaid_init.js.
 mermaid_output_format = "raw"
-mermaid_version = "10.9.1"
+mermaid_version = "10.4.0"
 mermaid_init_js = "mermaid.initialize({startOnLoad:false, securityLevel:'loose'});"
 
 html_js_files = [

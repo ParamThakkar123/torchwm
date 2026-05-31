@@ -20,13 +20,13 @@ This approach avoids the complexity of pixel-level generation while learning ric
 
 ```{mermaid}
 graph TD
-    subgraph "JEPA Architecture"
-        A[Frame t] --> B[Enc_s<br/>Target Encoder]
-        C[Frame t+k] --> D[Enc_s<br/>Target Encoder<br/>Frozen]
-        B --> E[Target<br/>z_t]
+    subgraph JA["JEPA Architecture"]
+        A["Context frame"] --> B["Target encoder"]
+        C["Future frame"] --> D["Frozen target encoder"]
+        B --> E["Target representation"]
         D --> E
-        F[Predictor<br/>token] --> G[Predict<br/>z_t']
-        G --> H[Prediction loss]
+        F["Predictor token"] --> G["Predicted representation"]
+        G --> H["Prediction loss"]
         E --> H
     end
 

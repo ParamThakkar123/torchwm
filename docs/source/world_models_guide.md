@@ -20,13 +20,13 @@ The exact terms change by family: Dreamer and PlaNet emphasize latent state-spac
 
 ```{mermaid}
 graph LR
-    A[Observation x_t] --> B[Encoder or Tokenizer]
-    B --> C[Latent state z_t]
-    D[Action a_t] --> E[Dynamics model]
+    A["Observation"] --> B["Encoder or tokenizer"]
+    B --> C["Latent state"]
+    D["Action"] --> E["Dynamics model"]
     C --> E
-    E --> F[Predicted latent z_{t+1}]
-    F --> G[Decoder / reward / value heads]
-    G --> H[Planning, policy learning, or generation]
+    E --> F["Predicted next latent state"]
+    F --> G["Decoder reward and value heads"]
+    G --> H["Planning policy learning or generation"]
 ```
 
 ## Quick model chooser
@@ -78,14 +78,14 @@ Dreamer learns a Recurrent State-Space Model (RSSM), then trains an actor-critic
 
 ```{mermaid}
 graph TD
-    A[Image observation] --> B[ConvEncoder]
-    B --> C[RSSM posterior q]
-    D[Previous latent and action] --> E[RSSM prior p]
-    C --> F[Decoder, reward, discount]
-    E --> G[Imagination rollout]
-    G --> H[Actor]
-    G --> I[Critic]
-    I --> J[Return targets]
+    A["Image observation"] --> B["Convolutional encoder"]
+    B --> C["RSSM posterior"]
+    D["Previous latent and action"] --> E["RSSM prior"]
+    C --> F["Decoder reward and discount heads"]
+    E --> G["Imagination rollout"]
+    G --> H["Actor"]
+    G --> I["Critic"]
+    I --> J["Return targets"]
     J --> H
 ```
 
@@ -154,14 +154,14 @@ IRIS represents frames as discrete tokens and trains an autoregressive transform
 
 ```{mermaid}
 graph TD
-    A[Frame] --> B[Discrete autoencoder]
-    B --> C[Token sequence]
-    C --> D[Autoregressive transformer]
-    E[Action] --> D
-    D --> F[Next tokens]
-    D --> G[Reward and terminal heads]
-    F --> H[Imagined frame/state]
-    H --> I[Actor critic]
+    A["Frame"] --> B["Discrete autoencoder"]
+    B --> C["Token sequence"]
+    C --> D["Autoregressive transformer"]
+    E["Action"] --> D
+    D --> F["Next tokens"]
+    D --> G["Reward and terminal heads"]
+    F --> H["Imagined frame or state"]
+    H --> I["Actor critic"]
 ```
 
 ### Important ideas

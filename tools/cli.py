@@ -17,21 +17,20 @@ import logging
 from pathlib import Path
 from typing import List
 import importlib
+from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
+from world_models.utils.utils import save_video
+import webbrowser
+from typer.main import get_command as _typer_get_command
+import typer
 
 # Defer heavy optional imports to reduce CLI startup time (gym can be slow).
 # These are lazily imported by the helper functions below when a command actually
 # needs them.
 gym = None
 _np = None
-from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
-from world_models.utils.utils import save_video
-import webbrowser
 
 # Defer importing the environment catalog until it's needed to avoid pulling in
 # package modules at CLI startup. Use `_load_catalog()` below to access it.
-from typer.main import get_command as _typer_get_command
-import typer
-
 _typer_app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
 
 
@@ -83,32 +82,18 @@ def _ensure_gym():
 
     Returns the imported module or None if import failed.
     """
-    global gym
-    if gym is None:
-        try:
-            import gym as _gym
-
-            gym = _gym
-        except Exception:
-            try:
-                import gymnasium as _gym
-
-                gym = _gym
-            except Exception:
-                gym = None
-    return gym
-
+    try:
+        import gym as _gym
+    except Exception:
+        import gymnasium as _gym
+    return _gym
 
 def _ensure_numpy():
     """Lazy-import numpy and cache result. Returns module or None."""
-    global _np
-    if _np is None:
-        try:
-            import numpy as _n
-
-            _np = _n
-        except Exception:
-            _np = None
+    try:
+        import numpy as _np
+    except Exception:
+        pass
     return _np
 
 
@@ -466,13 +451,5 @@ def train(
         print("Training interrupted by user")
         raise typer.Exit(code=1)
 
-
-# The server command was removed; UI/server removed from the project.
-
-
-def run() -> None:
-    app()
-
-
 if __name__ == "__main__":
-    run()
+    app()

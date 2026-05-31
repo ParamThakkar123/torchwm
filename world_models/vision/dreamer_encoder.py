@@ -12,7 +12,6 @@ _str_to_activation = {
     "identity": nn.Identity(),
 }
 
-
 class ConvEncoder(nn.Module):
     """Convolutional observation encoder used by Dreamer world models.
 

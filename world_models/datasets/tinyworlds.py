@@ -167,8 +167,6 @@ class TinyWorldsDataset(Dataset):
 
             local_path = self._get_local_path()
             if downloaded_file != local_path and not local_path.exists():
-                import shutil
-
                 shutil.copy2(downloaded_file, local_path)
 
             logger.info(f"Downloaded to: {local_path}")

@@ -11,7 +11,7 @@ class ReplayBuffer:
 
     def __init__(
         self,
-        capacity: int = 100000,
+        capacity: int = 1000,
         obs_shape: Tuple[int, int, int] = (64, 64, 3),
         action_dim: int = 1,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
@@ -142,6 +142,59 @@ class ReplayBuffer:
     def is_ready(self, min_size: int) -> bool:
         """Check if buffer has enough samples."""
         return self.size >= min_size
+
+    def state_dict(self) -> dict:
+        """Return a serializable state dict for checkpointing.
+
+        Contains numpy arrays and scalar metadata so it can be saved with
+        torch.save or numpy.save.
+        """
+        return {
+            "observations": self.observations,
+            "actions": self.actions,
+            "rewards": self.rewards,
+            "dones": self.dones,
+            "next_observations": self.next_observations,
+            "position": int(self.position),
+            "size": int(self.size),
+            "capacity": int(self.capacity),
+        }
+
+    def load_state_dict(self, state: dict):
+        """Load state previously produced by `state_dict()`.
+
+        This will resize internal arrays if the saved capacity differs from the
+        current buffer capacity.
+        """
+        obs = state["observations"]
+        actions = state["actions"]
+        rewards = state["rewards"]
+        dones = state["dones"]
+        next_obs = state["next_observations"]
+        pos = int(state.get("position", 0))
+        size = int(state.get("size", 0))
+
+        # allocate arrays with saved capacity shapes
+        self.capacity = int(state.get("capacity", obs.shape[0]))
+        self.observations = np.zeros((self.capacity,) + self.obs_shape, dtype=np.uint8)
+        self.next_observations = np.zeros(
+            (self.capacity,) + self.obs_shape, dtype=np.uint8
+        )
+        self.actions = np.zeros((self.capacity, self.action_dim), dtype=np.int64)
+        self.rewards = np.zeros((self.capacity,), dtype=np.float32)
+        self.dones = np.zeros((self.capacity,), dtype=np.bool_)
+
+        # copy available data up to saved size
+        n = min(size, obs.shape[0], self.capacity)
+        if n > 0:
+            self.observations[:n] = obs[:n]
+            self.next_observations[:n] = next_obs[:n]
+            self.actions[:n] = actions[:n]
+            self.rewards[:n] = rewards[:n]
+            self.dones[:n] = dones[:n]
+
+        self.position = int(pos) % self.capacity if self.capacity > 0 else 0
+        self.size = min(int(size), self.capacity)
 
 
 class SequenceDataset(torch.utils.data.Dataset):

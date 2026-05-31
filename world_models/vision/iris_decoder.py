@@ -24,6 +24,11 @@ class IRISDecoder(nn.Module):
         super().__init__()
 
         self.embedding_dim = embedding_dim
+        # optional mapping from token indices -> embeddings so decoder can
+        # accept discrete token indices directly. This provides a convenient
+        # API for sampling/decoding from predicted tokens.
+        self.vocab_size = vocab_size
+        self.index_to_embedding = nn.Embedding(self.vocab_size, self.embedding_dim)
         self.frame_shape = frame_shape
         self.out_channels = out_channels
 
@@ -112,6 +117,33 @@ class IRISDecoder(nn.Module):
 
         return self.forward(z)
 
+    def decode_from_indices(self, indices: torch.Tensor) -> torch.Tensor:
+        """Decode discrete token indices into images.
+
+        Args:
+            indices: Tensor of shape (B, H, W) or (B, H*W) containing integer
+                token indices in the range [0, vocab_size).
+
+        Returns:
+            Reconstructed images (B, C, H, W)
+        """
+        if indices.dim() == 3:
+            B, H, W = indices.shape
+            flat = indices.view(B, -1)
+            HW = H * W
+        elif indices.dim() == 2:
+            B, HW = indices.shape
+            H = W = int(HW**0.5)
+            flat = indices
+        else:
+            raise ValueError("indices must be shape (B, H, W) or (B, H*W)")
+
+        # (B, HW, C)
+        emb = self.index_to_embedding(flat)
+        # convert to (B, C, H, W)
+        emb = emb.permute(0, 2, 1).reshape(B, self.embedding_dim, H, W)
+        return self.forward(emb)
+
 
 class UpsampleBlock(nn.Module):
     """Upsampling block with optional residual connection."""
@@ -182,7 +214,6 @@ class DiscreteAutoencoder(nn.Module):
         )
 
         self.decoder = IRISDecoder(
-            vocab_size=vocab_size,
             embedding_dim=embedding_dim,
             base_channels=32,  # decoder uses smaller channels
             out_channels=frame_shape[0],

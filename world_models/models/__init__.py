@@ -54,7 +54,7 @@ def __getattr__(name):
 
         return Dreamer
     if name == "DreamerAgent":
-        from .dreamer import DreamerAgent
+        from .dreamer_agent import DreamerAgent
 
         return DreamerAgent
     if name == "Planet":

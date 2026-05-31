@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser(description="Train IRIS agent")
     parser.add_argument(
-        "--env", type=str, default="cartpole_balance", help="Environment name"
+        "--env", type=str, default="cartpole-balance", help="Environment name"
     )
     parser.add_argument(
         "--total-steps", type=int, default=10000, help="Total training steps"

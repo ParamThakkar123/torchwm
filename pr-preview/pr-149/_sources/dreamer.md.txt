@@ -18,38 +18,37 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ## Architecture
 
-```{mermaid}
-flowchart TD
-    subgraph world_model [World Model RSSM]
-        A[Encoder CNN 64x64] --> B[Latent Model GRU plus stochastic state]
-        B --> C[Decoder Transposed CNN]
-        B --> D[Stochastic state sampled from prior]
-        E[Recurrent update from previous state and action] --> B
-    end
-
-    subgraph rollout [Imagination Rollout]
-        F[State s0] --> G[Action a0]
-        G --> H[State s1]
-        H --> I[Action a1]
-        I --> J[State s2]
-        J --> K[More imagined states]
-        K --> L[State sH]
-        L --> M[Lambda return target reward plus discounted value]
-    end
-
-    subgraph actor_critic [Actor Critic Learning]
-        N[Actor policy REINFORCE with baseline]
-        O[Critic value MSE on lambda returns]
-    end
-
-    C --> F
-    M --> N
-    M --> O
-
-    style A fill:#e1f5fe
-    style N fill:#e8f5e8
-    style O fill:#e8f5e8
-```
+<div class="architecture-diagram" aria-label="Dreamer architecture diagram">
+  <section class="diagram-section">
+    <h3>World Model RSSM</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Encoder CNN 64x64</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">GRU plus stochastic latent model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Decoder transposed CNN</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Imagination Rollout</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">State s0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Action a0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Imagined future states</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Lambda-return target</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Actor-Critic Learning</h3>
+    <div class="diagram-row">
+      <span class="diagram-node success">Actor policy</span>
+      <span class="diagram-node success">Critic value model</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

@@ -21,21 +21,22 @@ Instead of using CNNs (like U-Net) for diffusion, DiT uses a Vision Transformer 
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 
-```{mermaid}
-flowchart TD
-    A[Input noisy image x t] --> B[Patch Embedding plus Positional Encoding]
-    C[Timestep Embedding] --> D[Linear Projection to tokens]
-    E[Optional Condition Embedding] --> D
-    B --> D
-    D --> F[DiT Block 1 Self Attention plus MLP Adaptive Layer Norm]
-    F --> G[DiT Block 2]
-    G --> H[DiT Block N]
-    H --> I[Output Head Linear Projection Predicted Noise]
-    I --> J[Output epsilon prediction]
-
-    style A fill:#e1f5fe
-    style J fill:#e8f5e8
-```
+<div class="architecture-diagram" aria-label="DiT architecture diagram">
+  <section class="diagram-section">
+    <h3>Diffusion Transformer</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Noisy image input</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Patch and position embeddings</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Timestep and condition tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">DiT transformer blocks</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Predicted noise output</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

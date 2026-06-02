@@ -114,6 +114,26 @@
     if (unprocessedNodes().length || document.querySelector('script[type="text/vnd.mermaid"]')) {
       queueRender(100);
     }
+  }
+
+  function startPolling() {
+    let waited = 0;
+    const poll = window.setInterval(() => {
+      renderMermaid().then((done) => {
+        if (done || waited >= MAX_WAIT_MS) window.clearInterval(poll);
+      });
+      waited += POLL_MS;
+    }, POLL_MS);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startPolling, { once: true });
+  } else {
+    startPolling();
+  }
+
+  const observer = new MutationObserver(() => {
+    if (window.mermaid) renderMermaid();
   });
 
   const observe = () => {

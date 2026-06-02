@@ -20,6 +20,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    inference_guide
    environments_guide
    package_overview
+   world_models_guide
 
 .. toctree::
    :maxdepth: 1

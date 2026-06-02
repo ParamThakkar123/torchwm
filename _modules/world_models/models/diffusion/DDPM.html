@@ -46,7 +46,6 @@
     <script src="../../../../_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="../../../../_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="../../../../_static/fix_navbar.js?v=92322e29"></script>
-    <script src="../../../../_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/_modules/world_models/models/diffusion/DDPM.html" />
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -351,6 +350,8 @@
         <span class="k">return</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise</span></div>
 
 
+<div class="viewcode-block" id="DDPM.sample">
+<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DDPM.DDPM.sample">[docs]</a>
     <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">channels</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">img_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
@@ -360,6 +361,7 @@
             <span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">n</span><span class="p">,),</span> <span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_sample</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+</div>
 
 </pre></div>
 

@@ -46,7 +46,6 @@
     <script src="../../../_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="../../../_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="../../../_static/fix_navbar.js?v=92322e29"></script>
-    <script src="../../../_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/_modules/world_models/configs/diamond_config.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -292,13 +291,18 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 
+<div class="viewcode-block" id="get_default_device">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.get_default_device">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_default_device</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;cpu&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;cpu&quot;</span></div>
 
 
+
+<div class="viewcode-block" id="ModelPreset">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.ModelPreset">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModelPreset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Model architecture preset for different hardware tiers.&quot;&quot;&quot;</span>
@@ -309,7 +313,8 @@
     <span class="n">reward_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">reward_lstm_dim</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">actor_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-    <span class="n">actor_lstm_dim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">actor_lstm_dim</span><span class="p">:</span> <span class="nb">int</span></div>
+
 
 
 <span class="n">MODEL_PRESETS</span> <span class="o">=</span> <span class="p">{</span>

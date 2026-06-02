@@ -18,22 +18,27 @@ This approach avoids the complexity of pixel-level generation while learning ric
 
 ## Architecture
 
-.. mermaid::
-
-   graph TD
-       subgraph "JEPA Architecture"
-           A[Frame t] --> B[Enc_s<br/>Target Encoder]
-           C[Frame t+k] --> D[Enc_s<br/>Target Encoder<br/>Frozen]
-           B --> E[Target<br/>z_t]
-           D --> E
-           F[Predictor<br/>token] --> G[Predict<br/>z_t']
-           G --> H[Loss<br/>||z_t' - z_t||²]
-           E --> H
-       end
-       
-       style B fill:#fff3cd
-       style D fill:#fff3cd
-       style H fill:#f8d7da
+<div class="architecture-diagram" aria-label="JEPA architecture diagram">
+  <section class="diagram-section">
+    <h3>JEPA Architecture</h3>
+    <div class="diagram-row">
+      <span class="diagram-node warning">Current frame encoder</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Predictor token</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Predicted representation</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node danger">MSE loss</span>
+    </div>
+    <div class="diagram-row">
+      <span class="diagram-node warning">Future frame frozen encoder</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Target representation</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node danger">MSE loss</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

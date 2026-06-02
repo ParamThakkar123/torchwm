@@ -18,24 +18,31 @@ needing explicit action labels.
 
 ## Architecture
 
-.. mermaid::
-
-   graph TD
-       subgraph "Genie Architecture"
-           A[Video Frames] --> B[Video<br/>Tokenizer]
-           B --> C[Video<br/>Tokens]
-           C --> D[Dynamics<br/>Model]
-           E[Frames t,t+1] --> F[Latent Action<br/>Model LAM]
-           F --> G[Latent<br/>Actions]
-           G --> D
-           D --> H[Predicted<br/>Tokens]
-           H --> I[Decoded<br/>Frames]
-       end
-        
-       style B fill:#cce5ff
-       style F fill:#cce5ff
-       style D fill:#d4edda
-       style I fill:#fff3cd
+<div class="architecture-diagram" aria-label="Genie architecture diagram">
+  <section class="diagram-section">
+    <h3>Genie Architecture</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">Video frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Video tokenizer</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Video tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node warning">Decoded frames</span>
+    </div>
+    <div class="diagram-row">
+      <span class="diagram-node">Consecutive frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Latent action model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Latent actions</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

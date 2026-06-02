@@ -14,35 +14,37 @@ by learning entirely in the imagination of a world model:
 
 ## Architecture
 
-.. mermaid::
-
-   graph TD
-       subgraph "Discrete Autoencoder"
-           A[Encoder<br/>CNN 64x64] --> B[VQVAE<br/>512 vocab<br/>16 tokens]
-           B --> C[Decoder<br/>Transposed CNN]
-       end
-       
-       subgraph "Autoregressive Transformer"
-           D[z_t<br/>16 tokens] --> E[a_t]
-           E --> F[z_{t+1}<br/>16 tokens]
-           D --> G[Reward]
-           E --> H[Termination]
-           F --> I[Reward...]
-           J[GPT-style<br/>10 layers, 4 heads<br/>256 embedding dim]
-       end
-       
-       subgraph "Actor-Critic in Imagination"
-           K[Actor<br/>CNN+LSTM<br/>λ-return<br/>REINFORCE]
-           L[Critic<br/>CNN+LSTM<br/>MSE loss]
-       end
-       
-       C --> D
-       F --> K
-       F --> L
-       
-       style A fill:#e1f5fe
-       style K fill:#e8f5e8
-       style L fill:#e8f5e8
+<div class="architecture-diagram" aria-label="IRIS architecture diagram">
+  <section class="diagram-section">
+    <h3>Discrete Autoencoder</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Encoder CNN 64x64</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">VQ-VAE 512 vocab 16 tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Decoder transposed CNN</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Autoregressive Transformer</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">Latent tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Action token</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Next latent tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Reward and termination heads</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Actor-Critic in Imagination</h3>
+    <div class="diagram-row">
+      <span class="diagram-node success">Actor CNN and LSTM</span>
+      <span class="diagram-node success">Critic CNN and LSTM</span>
+    </div>
+  </section>
+</div>
 
 ## Key Components
 

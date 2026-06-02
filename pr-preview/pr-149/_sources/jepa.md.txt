@@ -19,14 +19,14 @@ This approach avoids the complexity of pixel-level generation while learning ric
 ## Architecture
 
 ```{mermaid}
-graph TD
-    subgraph jepa_architecture["JEPA Architecture"]
-        A["Frame t"] --> B["Target encoder<br/>online branch"]
-        C["Frame t plus k"] --> D["Target encoder<br/>frozen branch"]
-        B --> E["Target representation z_t"]
+flowchart TD
+    subgraph jepa_architecture [JEPA Architecture]
+        A[Frame t] --> B[Target encoder online branch]
+        C[Frame t plus k] --> D[Target encoder frozen branch]
+        B --> E[Target representation z t]
         D --> E
-        F["Predictor token"] --> G["Predicted representation"]
-        G --> H["Loss<br/>MSE between prediction and target"]
+        F[Predictor token] --> G[Predicted representation]
+        G --> H[Loss MSE between prediction and target]
         E --> H
     end
 

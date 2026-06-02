@@ -489,7 +489,7 @@ window.runMermaid = runMermaid;</script>
     <script src="_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/mermaid.min.js?v=890a76c0"></script>
-    <script src="_static/mermaid_init.js?v=0e8aefc0"></script>
+    <script src="_static/mermaid_init.js?v=58e24b29"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <script src="_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-149/genie.html" />
@@ -797,16 +797,16 @@ needing explicit action labels.</p>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <pre  class="mermaid">
-        graph TD
-    subgraph genie_architecture[&quot;Genie Architecture&quot;]
-        A[&quot;Video Frames&quot;] --&gt; B[&quot;Video&lt;br/&gt;Tokenizer&quot;]
-        B --&gt; C[&quot;Video&lt;br/&gt;Tokens&quot;]
-        C --&gt; D[&quot;Dynamics&lt;br/&gt;Model&quot;]
-        E[&quot;Consecutive Frames&quot;] --&gt; F[&quot;Latent Action&lt;br/&gt;Model LAM&quot;]
-        F --&gt; G[&quot;Latent&lt;br/&gt;Actions&quot;]
+        flowchart TD
+    subgraph genie_architecture [Genie Architecture]
+        A[Video Frames] --&gt; B[Video Tokenizer]
+        B --&gt; C[Video Tokens]
+        C --&gt; D[Dynamics Model]
+        E[Consecutive Frames] --&gt; F[Latent Action Model LAM]
+        F --&gt; G[Latent Actions]
         G --&gt; D
-        D --&gt; H[&quot;Predicted&lt;br/&gt;Tokens&quot;]
-        H --&gt; I[&quot;Decoded&lt;br/&gt;Frames&quot;]
+        D --&gt; H[Predicted Tokens]
+        H --&gt; I[Decoded Frames]
     end
 
     style B fill:#cce5ff

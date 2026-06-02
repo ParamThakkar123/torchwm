@@ -490,7 +490,7 @@ window.runMermaid = runMermaid;</script>
     <script src="_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/mermaid.min.js?v=890a76c0"></script>
-    <script src="_static/mermaid_init.js?v=0e8aefc0"></script>
+    <script src="_static/mermaid_init.js?v=58e24b29"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <script src="_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-149/dreamer.html" />
@@ -801,27 +801,27 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <pre  class="mermaid">
-        graph TD
-    subgraph world_model[&quot;World Model RSSM&quot;]
-        A[&quot;Encoder&lt;br/&gt;CNN 64x64&quot;] --&gt; B[&quot;Latent Model&lt;br/&gt;GRU plus stochastic state&quot;]
-        B --&gt; C[&quot;Decoder&lt;br/&gt;Transposed CNN&quot;]
-        B --&gt; D[&quot;Stochastic state&lt;br/&gt;sampled from prior&quot;]
-        E[&quot;Recurrent update&lt;br/&gt;h_t from previous state and action&quot;] --&gt; B
+        flowchart TD
+    subgraph world_model [World Model RSSM]
+        A[Encoder CNN 64x64] --&gt; B[Latent Model GRU plus stochastic state]
+        B --&gt; C[Decoder Transposed CNN]
+        B --&gt; D[Stochastic state sampled from prior]
+        E[Recurrent update from previous state and action] --&gt; B
     end
 
-    subgraph rollout[&quot;Imagination Rollout&quot;]
-        F[&quot;State s_0&quot;] --&gt; G[&quot;Action a_0&quot;]
-        G --&gt; H[&quot;State s_1&quot;]
-        H --&gt; I[&quot;Action a_1&quot;]
-        I --&gt; J[&quot;State s_2&quot;]
-        J --&gt; K[&quot;...&quot;]
-        K --&gt; L[&quot;State s_H&quot;]
-        L --&gt; M[&quot;Lambda-return target&lt;br/&gt;reward plus discounted value&quot;]
+    subgraph rollout [Imagination Rollout]
+        F[State s0] --&gt; G[Action a0]
+        G --&gt; H[State s1]
+        H --&gt; I[Action a1]
+        I --&gt; J[State s2]
+        J --&gt; K[More imagined states]
+        K --&gt; L[State sH]
+        L --&gt; M[Lambda return target reward plus discounted value]
     end
 
-    subgraph actor_critic[&quot;Actor-Critic Learning&quot;]
-        N[&quot;Actor policy&lt;br/&gt;REINFORCE with baseline&quot;]
-        O[&quot;Critic value&lt;br/&gt;MSE on lambda-returns&quot;]
+    subgraph actor_critic [Actor Critic Learning]
+        N[Actor policy REINFORCE with baseline]
+        O[Critic value MSE on lambda returns]
     end
 
     C --&gt; F

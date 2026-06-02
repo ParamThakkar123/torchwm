@@ -490,7 +490,7 @@ window.runMermaid = runMermaid;</script>
     <script src="_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/mermaid.min.js?v=890a76c0"></script>
-    <script src="_static/mermaid_init.js?v=0e8aefc0"></script>
+    <script src="_static/mermaid_init.js?v=58e24b29"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <script src="_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-149/dit.html" />
@@ -801,16 +801,16 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 </p>
 *Figure 1: DiT architecture overview from the DiT paper (Peebles & Xie, 2023). Shows the transformer-based diffusion model with patch embedding, timestep conditioning, and noise prediction.*
 <pre  class="mermaid">
-        graph TD
-    A[&quot;Input x_t&lt;br/&gt;noisy image&quot;] --&gt; B[&quot;Patch Embedding&lt;br/&gt;plus Positional Encoding&quot;]
-    C[&quot;Timestep Embedding&quot;] --&gt; D[&quot;Linear Projection&lt;br/&gt;to tokens&quot;]
-    E[&quot;Condition Embedding&lt;br/&gt;optional&quot;] --&gt; D
+        flowchart TD
+    A[Input noisy image x t] --&gt; B[Patch Embedding plus Positional Encoding]
+    C[Timestep Embedding] --&gt; D[Linear Projection to tokens]
+    E[Optional Condition Embedding] --&gt; D
     B --&gt; D
-    D --&gt; F[&quot;DiT Block 1&lt;br/&gt;Self-Attention plus MLP&lt;br/&gt;Adaptive Layer Norm&quot;]
-    F --&gt; G[&quot;DiT Block 2&lt;br/&gt;...&quot;]
-    G --&gt; H[&quot;DiT Block N&quot;]
-    H --&gt; I[&quot;Output Head&lt;br/&gt;Linear Projection&lt;br/&gt;Predicted Noise&quot;]
-    I --&gt; J[&quot;Output epsilon prediction&quot;]
+    D --&gt; F[DiT Block 1 Self Attention plus MLP Adaptive Layer Norm]
+    F --&gt; G[DiT Block 2]
+    G --&gt; H[DiT Block N]
+    H --&gt; I[Output Head Linear Projection Predicted Noise]
+    I --&gt; J[Output epsilon prediction]
 
     style A fill:#e1f5fe
     style J fill:#e8f5e8

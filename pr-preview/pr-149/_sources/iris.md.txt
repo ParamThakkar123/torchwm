@@ -15,24 +15,24 @@ by learning entirely in the imagination of a world model:
 ## Architecture
 
 ```{mermaid}
-graph TD
-    subgraph autoencoder["Discrete Autoencoder"]
-        A["Encoder<br/>CNN 64x64"] --> B["VQ-VAE<br/>512 vocab<br/>16 tokens"]
-        B --> C["Decoder<br/>Transposed CNN"]
+flowchart TD
+    subgraph autoencoder [Discrete Autoencoder]
+        A[Encoder CNN 64x64] --> B[VQ VAE 512 vocab 16 tokens]
+        B --> C[Decoder Transposed CNN]
     end
 
-    subgraph transformer["Autoregressive Transformer"]
-        D["Latent tokens z_t<br/>16 tokens"] --> E["Action a_t"]
-        E --> F["Next latent tokens<br/>16 tokens"]
-        D --> G["Reward head"]
-        E --> H["Termination head"]
-        F --> I["Next reward head"]
-        J["GPT-style model<br/>10 layers, 4 heads<br/>256 embedding dim"]
+    subgraph transformer [Autoregressive Transformer]
+        D[Latent tokens z t 16 tokens] --> E[Action a t]
+        E --> F[Next latent tokens 16 tokens]
+        D --> G[Reward head]
+        E --> H[Termination head]
+        F --> I[Next reward head]
+        J[GPT style model 10 layers 4 heads 256 embedding dim]
     end
 
-    subgraph imagination["Actor-Critic in Imagination"]
-        K["Actor<br/>CNN and LSTM<br/>lambda-return<br/>REINFORCE"]
-        L["Critic<br/>CNN and LSTM<br/>MSE loss"]
+    subgraph imagination [Actor Critic in Imagination]
+        K[Actor CNN and LSTM lambda return REINFORCE]
+        L[Critic CNN and LSTM MSE loss]
     end
 
     C --> D

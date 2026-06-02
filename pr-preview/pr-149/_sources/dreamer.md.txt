@@ -19,27 +19,27 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 ## Architecture
 
 ```{mermaid}
-graph TD
-    subgraph world_model["World Model RSSM"]
-        A["Encoder<br/>CNN 64x64"] --> B["Latent Model<br/>GRU plus stochastic state"]
-        B --> C["Decoder<br/>Transposed CNN"]
-        B --> D["Stochastic state<br/>sampled from prior"]
-        E["Recurrent update<br/>h_t from previous state and action"] --> B
+flowchart TD
+    subgraph world_model [World Model RSSM]
+        A[Encoder CNN 64x64] --> B[Latent Model GRU plus stochastic state]
+        B --> C[Decoder Transposed CNN]
+        B --> D[Stochastic state sampled from prior]
+        E[Recurrent update from previous state and action] --> B
     end
 
-    subgraph rollout["Imagination Rollout"]
-        F["State s_0"] --> G["Action a_0"]
-        G --> H["State s_1"]
-        H --> I["Action a_1"]
-        I --> J["State s_2"]
-        J --> K["..."]
-        K --> L["State s_H"]
-        L --> M["Lambda-return target<br/>reward plus discounted value"]
+    subgraph rollout [Imagination Rollout]
+        F[State s0] --> G[Action a0]
+        G --> H[State s1]
+        H --> I[Action a1]
+        I --> J[State s2]
+        J --> K[More imagined states]
+        K --> L[State sH]
+        L --> M[Lambda return target reward plus discounted value]
     end
 
-    subgraph actor_critic["Actor-Critic Learning"]
-        N["Actor policy<br/>REINFORCE with baseline"]
-        O["Critic value<br/>MSE on lambda-returns"]
+    subgraph actor_critic [Actor Critic Learning]
+        N[Actor policy REINFORCE with baseline]
+        O[Critic value MSE on lambda returns]
     end
 
     C --> F

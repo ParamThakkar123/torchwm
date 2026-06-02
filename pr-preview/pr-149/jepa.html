@@ -490,7 +490,7 @@ window.runMermaid = runMermaid;</script>
     <script src="_static/mathjax_config.js?v=90e9db6d"></script>
     <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/mermaid.min.js?v=890a76c0"></script>
-    <script src="_static/mermaid_init.js?v=0e8aefc0"></script>
+    <script src="_static/mermaid_init.js?v=58e24b29"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <script src="_static/mathjax_init.js?v=795fead4"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-149/jepa.html" />
@@ -798,14 +798,14 @@ future representations in latent space, without relying on generative modeling.<
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
 <pre  class="mermaid">
-        graph TD
-    subgraph jepa_architecture[&quot;JEPA Architecture&quot;]
-        A[&quot;Frame t&quot;] --&gt; B[&quot;Target encoder&lt;br/&gt;online branch&quot;]
-        C[&quot;Frame t plus k&quot;] --&gt; D[&quot;Target encoder&lt;br/&gt;frozen branch&quot;]
-        B --&gt; E[&quot;Target representation z_t&quot;]
+        flowchart TD
+    subgraph jepa_architecture [JEPA Architecture]
+        A[Frame t] --&gt; B[Target encoder online branch]
+        C[Frame t plus k] --&gt; D[Target encoder frozen branch]
+        B --&gt; E[Target representation z t]
         D --&gt; E
-        F[&quot;Predictor token&quot;] --&gt; G[&quot;Predicted representation&quot;]
-        G --&gt; H[&quot;Loss&lt;br/&gt;MSE between prediction and target&quot;]
+        F[Predictor token] --&gt; G[Predicted representation]
+        G --&gt; H[Loss MSE between prediction and target]
         E --&gt; H
     end
 

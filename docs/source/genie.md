@@ -19,16 +19,16 @@ needing explicit action labels.
 ## Architecture
 
 ```{mermaid}
-graph TD
-    subgraph genie_architecture["Genie Architecture"]
-        A["Video Frames"] --> B["Video<br/>Tokenizer"]
-        B --> C["Video<br/>Tokens"]
-        C --> D["Dynamics<br/>Model"]
-        E["Consecutive Frames"] --> F["Latent Action<br/>Model LAM"]
-        F --> G["Latent<br/>Actions"]
+flowchart TD
+    subgraph genie_architecture [Genie Architecture]
+        A[Video Frames] --> B[Video Tokenizer]
+        B --> C[Video Tokens]
+        C --> D[Dynamics Model]
+        E[Consecutive Frames] --> F[Latent Action Model LAM]
+        F --> G[Latent Actions]
         G --> D
-        D --> H["Predicted<br/>Tokens"]
-        H --> I["Decoded<br/>Frames"]
+        D --> H[Predicted Tokens]
+        H --> I[Decoded Frames]
     end
 
     style B fill:#cce5ff

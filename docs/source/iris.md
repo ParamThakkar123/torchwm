@@ -14,35 +14,38 @@ by learning entirely in the imagination of a world model:
 
 ## Architecture
 
-```{mermaid}
-graph TD
-    subgraph DA["Discrete Autoencoder"]
-        A["Encoder CNN 64x64"] --> B["VQ VAE visual tokens"]
-        B --> C["Decoder transposed CNN"]
-    end
+<div class="architecture-diagram" aria-label="IRIS architecture diagram">
+  <section class="diagram-section">
+    <h3>Discrete Autoencoder</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Encoder CNN 64x64</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">VQ-VAE 512 vocab 16 tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Decoder transposed CNN</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Autoregressive Transformer</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">Latent tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Action token</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Next latent tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Reward and termination heads</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Actor-Critic in Imagination</h3>
+    <div class="diagram-row">
+      <span class="diagram-node success">Actor CNN and LSTM</span>
+      <span class="diagram-node success">Critic CNN and LSTM</span>
+    </div>
+  </section>
+</div>
 
-    subgraph AT["Autoregressive Transformer"]
-        D["Current visual tokens"] --> E["Action token"]
-        E --> F["Next visual tokens"]
-        D --> G["Reward head"]
-        E --> H["Termination head"]
-        F --> I["Future reward prediction"]
-        J["GPT style token model"] --> F
-    end
-
-    subgraph AC["Actor Critic in Imagination"]
-        K["Actor CNN LSTM policy"]
-        L["Critic CNN LSTM value"]
-    end
-
-    C --> D
-    F --> K
-    F --> L
-
-    style A fill:#e1f5fe
-    style K fill:#e8f5e8
-    style L fill:#e8f5e8
-```
 ## Key Components
 
 ### 1. Discrete Autoencoder (VQVAE)

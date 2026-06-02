@@ -24,7 +24,6 @@ extensions = [
     "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
-    "sphinxcontrib.mermaid",
 ]
 
 templates_path = ["_templates"]
@@ -99,18 +98,29 @@ html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "navigation_depth": 2,
     "show_nav_level": 1,
-    "navbar_end": ["navbar-icon-links", "search-field"],
+    # Keep the top navbar intentionally minimal: project title/logo,
+    # documentation search, and the GitHub redirect link only.
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": [],
+    "navbar_end": ["search-field", "navbar-icon-links"],
+    "navbar_persistent": [],
 }
 
-# sphinxcontrib-mermaid emits raw Mermaid blocks and we render them client-side
-# with the vendored Mermaid runtime plus _static/mermaid_init.js.
-mermaid_output_format = "raw"
-mermaid_version = "10.4.0"
-mermaid_init_js = "mermaid.initialize({startOnLoad:false, securityLevel:'loose'});"
-
+# Include client-side assets in a controlled order:
+# 1) MathJax config + runtime so math renders reliably
+# 2) Navbar/search cleanup
+# 3) MathJax typeset helper
 html_js_files = [
-    "mermaid.min.js",
-    "mermaid_init.js",
+    # MathJax config (local) and runtime (CDN)
+    # Load MathJax config and runtime locally to avoid runtime ordering issues
+    "mathjax_config.js",
+    # Local loader that will load a vendored runtime (mathjax_runtime.js)
+    # when present. Do NOT prefix with `_static/` here; Sphinx will copy the
+    # referenced files into the built `_static/` dir and reference them as
+    # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
+    # paths in the output which break file:// viewing.
+    "mathjax_local.js",
+    # Small script to tidy duplicated navbar elements caused by theme options
     "fix_navbar.js",
 ]
 

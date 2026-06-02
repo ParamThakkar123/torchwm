@@ -10,7 +10,30 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.appendChild(overlay);
   
   var input = overlay.querySelector('input');
-  
+
+  function simplifyNavbar() {
+    var header = document.querySelector('.bd-header');
+    if (!header) {
+      return;
+    }
+
+    // Remove generated top-level page navigation while leaving the brand,
+    // search field, and GitHub icon link in place.
+    header.querySelectorAll('.navbar-header-items__center, .navbar-nav.bd-navbar-elements').forEach(function(el) {
+      el.remove();
+    });
+
+    // PyData may inject theme/version controls depending on the installed
+    // theme version. Keep only search and icon-link controls at navbar end.
+    header.querySelectorAll('.theme-switch-button, .navbar-version, .pst-navbar-icon').forEach(function(el) {
+      var link = el.closest('a');
+      if (!link || !/github\.com/.test(link.href || '')) {
+        el.remove();
+      }
+    });
+  }
+
+  simplifyNavbar();
   function openSearchOverlay() {
     if (!isOpen) {
       isOpen = true;

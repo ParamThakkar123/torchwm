@@ -18,24 +18,31 @@ needing explicit action labels.
 
 ## Architecture
 
-```{mermaid}
-flowchart TD
-    subgraph genie_architecture [Genie Architecture]
-        A[Video Frames] --> B[Video Tokenizer]
-        B --> C[Video Tokens]
-        C --> D[Dynamics Model]
-        E[Consecutive Frames] --> F[Latent Action Model LAM]
-        F --> G[Latent Actions]
-        G --> D
-        D --> H[Predicted Tokens]
-        H --> I[Decoded Frames]
-    end
-
-    style B fill:#cce5ff
-    style F fill:#cce5ff
-    style D fill:#d4edda
-    style I fill:#fff3cd
-```
+<div class="architecture-diagram" aria-label="Genie architecture diagram">
+  <section class="diagram-section">
+    <h3>Genie Architecture</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">Video frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Video tokenizer</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Video tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node warning">Decoded frames</span>
+    </div>
+    <div class="diagram-row">
+      <span class="diagram-node">Consecutive frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Latent action model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Latent actions</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

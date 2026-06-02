@@ -1,0 +1,102 @@
+CLI
+===
+
+The project exposes a small command-line interface for common developer tasks:
+
+- Run the CLI with: `python -m tools.cli <command>`; after installing the
+  package an installed entrypoint is available as `torchwm <command>`. Tests
+  may invoke the top-level Typer app (`tools.cli.app`).
+- The CLI uses lazy imports to keep startup fast; some commands require optional
+  dependencies (listed below).
+
+Commands
+--------
+
+- `version` - Print the installed `torchwm` package version (or "unknown" if
+  the package cannot be imported).
+
+- `envs list` - List built-in environment backends and example environment ids.
+  This reads the environment catalog from `world_models.catalog` if available.
+
+- `datasets list [PATH]` - List dataset entries under `PATH`. If `PATH` is not
+  provided the command uses `TORCHWM_HOME` or defaults to `~/.torchwm`.
+
+- `datasets convert <src> [--dest-format video] [--out-dir DIR]` - Convert a
+  simple dataset file into another format. The initial implementation supports
+  converting HDF5 (`.h5`) or NumPy (`.npz`/`.npy`) datasets into MP4 video
+  files (one file per episode) when `--dest-format video` is used. Output files
+  are written to the specified `--out-dir` or `./converted_datasets` by
+  default.
+
+- `collect --env <ENV_ID> [--steps N] [--out PATH] [--random-policy]` - Run a
+  (random) policy for a number of environment steps and save interactions to
+  a compressed `.npz` with keys `observations`, `actions`, `rewards`,
+  `dones`.
+
+- `train <model> [extra args...] [--inproc]` - Launch an existing training
+  entrypoint. The CLI maps simple model names to modules in
+  `world_models.training` (e.g. `iris`, `planet`, `jepa`, `rssm`, `genie`). By
+  default `train` spawns a subprocess running `python -m world_models.training.<name>`
+  and forwards any extra args. Use `--inproc` to attempt running the training
+  entrypoint in-process (calls the module's `main()` if available).
+
+- `models list` - Print the known training entrypoints and (when available)
+  exported model names from `world_models.models`.
+
+Environment / optional dependencies
+----------------------------------
+
+- TORCHWM_HOME - Directory used by `datasets list` when no path is provided.
+
+- The following commands require optional packages which may not be installed
+  in all environments:
+  - `collect`: requires `gym`/`gymnasium` and `numpy`.
+  - `datasets convert`: requires `h5py`, `numpy` and video helpers used by the
+    repository.
+
+Notes and examples
+------------------
+
+- Example: show version
+
+```bash
+torchwm version
+```
+
+- Example: list environments
+
+```bash
+torchwm envs list
+```
+
+- Example: list datasets in default location
+
+```bash
+torchwm datasets list
+```
+
+- Example: convert a local HDF5 dataset to MP4 files
+
+```bash
+torchwm datasets convert data/my_dataset.h5 --out-dir /tmp/videos
+```
+
+- Example: collect 1000 steps from Pong and save as `pong.npz`
+
+```bash
+torchwm collect --env ALE/Pong-v5 --steps 1000 --out pong.npz
+```
+
+- Example: run training for the `iris` entrypoint in a subprocess
+
+```bash
+torchwm train iris -- --config configs/iris.yaml
+```
+
+Recommended next steps
+----------------------
+
+1. Add a link to this page from the docs index (`docs/source/index` or the
+   project's navigation file) so users discover the CLI docs.
+2. If you add new CLI commands, update this file with their usage and any new
+   optional dependencies.

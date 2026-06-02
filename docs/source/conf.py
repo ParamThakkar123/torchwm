@@ -28,7 +28,6 @@ extensions = [
     # can cause a race between the config and the runtime.
     "myst_parser",
     "sphinxext.opengraph",
-    "sphinxcontrib.mermaid",
 ]
 
 # Prevent myst_parser from auto-inserting MathJax runtime; we manage MathJax
@@ -82,16 +81,18 @@ html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "navigation_depth": 2,
     "show_nav_level": 1,
-    "navbar_end": ["navbar-icon-links", "search-field"],
+    # Keep the top navbar intentionally minimal: project title/logo,
+    # documentation search, and the GitHub redirect link only.
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": [],
+    "navbar_end": ["search-field", "navbar-icon-links"],
+    "navbar_persistent": [],
 }
-
-# sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render
-mermaid_output_format = "raw"
 
 # Include client-side assets in a controlled order:
 # 1) MathJax config + runtime so math renders reliably
-# 2) Mermaid runtime + init so diagrams convert and render client-side
-# 3) Thebe for runnable code blocks
+# 2) Navbar/search cleanup
+# 3) MathJax typeset helper
 html_js_files = [
     # MathJax config (local) and runtime (CDN)
     # Load MathJax config and runtime locally to avoid runtime ordering issues
@@ -102,11 +103,6 @@ html_js_files = [
     # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
     # paths in the output which break file:// viewing.
     "mathjax_local.js",
-    # Load Mermaid runtime from our vendored copy in `_static` so docs work
-    # even when CDN access is unreliable.
-    "mermaid.min.js",
-    # Local init file that converts script blocks to .mermaid divs then runs Mermaid
-    "mermaid_init.js",
     # Small script to tidy duplicated navbar elements caused by theme options
     "fix_navbar.js",
     # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded

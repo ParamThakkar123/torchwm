@@ -42,7 +42,9 @@ class SimWorker(mp.Process):
         self.last_obs = []
         for i in range(self.num_envs):
             env_seed = (
-                self.seed + self.worker_id * self.num_envs + i if self.seed else None
+                self.seed + self.worker_id * self.num_envs + i
+                if self.seed is not None
+                else None
             )
             env = self.env_factory()
             if env_seed is not None and hasattr(env, "seed"):

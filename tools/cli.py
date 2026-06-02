@@ -16,8 +16,6 @@ import subprocess
 import logging
 from pathlib import Path
 from typing import List
-from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
-from world_models.utils.utils import save_video
 from typer.main import get_command as _typer_get_command
 import typer
 
@@ -75,6 +73,49 @@ TRAINING_MODULES = {
 }
 
 
+BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
+
+
+def _parse_benchmark_seeds(value: str) -> List[int]:
+    """Parse benchmark seed syntax shared with the benchmark module CLI."""
+    if "," in value:
+        return [int(item.strip()) for item in value.split(",") if item.strip()]
+    if value.isdigit():
+        return list(range(int(value)))
+    return [int(value)]
+
+
+def _load_benchmark_runtime():
+    """Lazy-load benchmark runtime classes after lightweight validation passes."""
+    from world_models.benchmarks.cli import AGENTS
+    from world_models.benchmarks.runner import (
+        BenchmarkRunner,
+        MultiAgentBenchmarkRunner,
+    )
+    import torch
+
+    return AGENTS, BenchmarkRunner, MultiAgentBenchmarkRunner, torch
+
+
+def _parse_checkpoint_map(values: List[str] | None) -> dict[str, str]:
+    """Parse repeated ``--checkpoint-map agent=path`` values."""
+    checkpoints: dict[str, str] = {}
+    for value in values or []:
+        if "=" not in value:
+            raise ValueError(
+                f"Invalid checkpoint map '{value}'. Expected AGENT=PATH, for example iris=checkpoints/iris.pt."
+            )
+        agent, path = value.split("=", 1)
+        agent = agent.strip().lower()
+        path = path.strip()
+        if not agent or not path:
+            raise ValueError(
+                f"Invalid checkpoint map '{value}'. Agent and path must both be non-empty."
+            )
+        checkpoints[agent] = path
+    return checkpoints
+
+
 def _ensure_gym():
     """Lazy-import `gym` (fall back to `gymnasium`) and cache result.
 
@@ -85,6 +126,7 @@ def _ensure_gym():
     except Exception:
         import gymnasium as _gym
     return _gym
+
 
 def _ensure_numpy():
     """Lazy-import numpy and cache result. Returns module or None."""
@@ -225,15 +267,14 @@ def datasets_convert(
         print("Only 'video' dest_format supported in this initial implementation.")
         raise typer.Exit(code=1)
 
-    # Ensure optional top-level imports succeeded
-    if (
-        HDF5Dataset is None
-        or NumPyDataset is None
-        or save_video is None
-        or _ensure_numpy() is None
-    ):
-        logger.exception("Missing dataset conversion dependencies")
-        print("Install the optional dependencies (h5py, numpy, etc.) and retry.")
+    # Import conversion dependencies only when this command is invoked so the
+    # rest of the CLI can start in lightweight environments.
+    from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
+    from world_models.utils.utils import save_video
+
+    if _ensure_numpy() is None:
+        logger.exception("Missing numpy")
+        print("Install the optional dependencies (numpy, h5py, etc.) and retry.")
         raise typer.Exit(code=1)
 
     srcp = Path(src)
@@ -301,6 +342,155 @@ def datasets_convert(
         except Exception as e:
             logger.exception("Failed to convert item %d: %s", i, e)
             print(f"Failed to convert item {i}: {e}")
+
+
+@app.command("benchmark")
+def benchmark(
+    agent: str | None = typer.Option(
+        None,
+        "--agent",
+        "-a",
+        help="Agent adapter to evaluate (for example: iris, diamond, dreamerv1, dreamerv2).",
+    ),
+    all_agents: bool = typer.Option(
+        False,
+        "--all-agents",
+        help="Run all registered benchmark adapters on the same environment.",
+    ),
+    game: str = typer.Option(
+        ...,
+        "--game",
+        "-g",
+        help="Gym/ALE environment id to benchmark, such as ALE/Pong-v5.",
+    ),
+    seeds: str = typer.Option(
+        "1",
+        "--seeds",
+        help="Either N (creates seeds 0..N-1) or a comma-separated seed list.",
+    ),
+    episodes: int = typer.Option(
+        5, "--episodes", "-n", help="Evaluation episodes to run per seed."
+    ),
+    checkpoint: Path | None = typer.Option(
+        None,
+        "--checkpoint",
+        "-c",
+        help="Checkpoint path for a single-agent benchmark.",
+    ),
+    checkpoint_map: List[str] | None = typer.Option(
+        None,
+        "--checkpoint-map",
+        help="For --all-agents, repeat as AGENT=PATH (for example --checkpoint-map iris=ckpt.pt).",
+    ),
+    out_dir: Path = typer.Option(
+        Path("results/bench"),
+        "--out-dir",
+        "--out_dir",
+        help="Directory where JSON/CSV/Markdown/LaTeX benchmark reports are written.",
+    ),
+    device: str | None = typer.Option(
+        None,
+        "--device",
+        help="Device passed to adapters. Defaults to CUDA when available, otherwise CPU.",
+    ),
+    preset: str | None = typer.Option(
+        None,
+        "--preset",
+        help="Optional adapter/model preset to forward to benchmark adapters.",
+    ),
+    train_epochs: int | None = typer.Option(
+        None,
+        "--train-epochs",
+        help="For --all-agents only: train agents first for this many epochs if no checkpoints are supplied.",
+    ),
+) -> None:
+    """Run TorchWM benchmark evaluations and write report artifacts.
+
+    This is the packaged `torchwm` entrypoint for the benchmark harness that can
+    also be invoked with `python -m world_models.benchmarks.cli`. Benchmarking
+    trained agents requires checkpoints; `--train-epochs` is available for
+    multi-agent smoke runs that intentionally train before evaluating.
+    """
+    try:
+        if not all_agents and not agent:
+            print("Either --agent or --all-agents must be specified")
+            raise typer.Exit(code=1)
+
+        if all_agents and agent:
+            print("--agent and --all-agents cannot be used together")
+            raise typer.Exit(code=1)
+
+        if agent:
+            agent = agent.strip().lower()
+            if agent not in BENCHMARK_AGENT_NAMES:
+                print(
+                    f"Unknown benchmark agent '{agent}'. Known: {', '.join(sorted(BENCHMARK_AGENT_NAMES))}"
+                )
+                raise typer.Exit(code=1)
+            if checkpoint is None:
+                print(
+                    "--checkpoint is required when using --agent. Only trained models should be benchmarked."
+                )
+                raise typer.Exit(code=1)
+
+        seed_values = _parse_benchmark_seeds(seeds)
+        env_spec = {"game": game}
+
+        if all_agents:
+            checkpoints = _parse_checkpoint_map(checkpoint_map)
+            unknown_checkpoints = sorted(
+                set(checkpoints).difference(BENCHMARK_AGENT_NAMES)
+            )
+            if unknown_checkpoints:
+                print(
+                    f"Unknown benchmark checkpoint agent(s): {', '.join(unknown_checkpoints)}. Known: {', '.join(sorted(BENCHMARK_AGENT_NAMES))}"
+                )
+                raise typer.Exit(code=1)
+            if not checkpoints and train_epochs is None:
+                print(
+                    "Provide --checkpoint-map AGENT=PATH at least once, or provide --train-epochs for --all-agents."
+                )
+                raise typer.Exit(code=1)
+
+        AGENTS, BenchmarkRunner, MultiAgentBenchmarkRunner, torch = (
+            _load_benchmark_runtime()
+        )
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        extra_kwargs = {"device": device, "preset": preset}
+
+        if all_agents:
+            runner = MultiAgentBenchmarkRunner(
+                adapters=list(AGENTS.values()), out_dir=str(out_dir)
+            )
+            runner.run_all(
+                env_spec=env_spec,
+                seeds=seed_values,
+                num_episodes=episodes,
+                checkpoints=checkpoints or None,
+                extra_kwargs=extra_kwargs,
+                train_epochs=train_epochs,
+            )
+            print(f"Multi-agent benchmark finished. Results written to: {out_dir}")
+            raise typer.Exit(code=0)
+
+        assert agent is not None
+        assert checkpoint is not None
+        runner = BenchmarkRunner(adapter_cls=AGENTS[agent], out_dir=str(out_dir))
+        runner.run(
+            env_spec=env_spec,
+            seeds=seed_values,
+            num_episodes=episodes,
+            checkpoint=str(checkpoint),
+            extra_kwargs=extra_kwargs,
+        )
+        print(f"Benchmark finished. Results written to: {out_dir}")
+    except ValueError as e:
+        print(str(e))
+        raise typer.Exit(code=1)
+    except KeyboardInterrupt:
+        print("Benchmark interrupted by user")
+        raise typer.Exit(code=1)
 
 
 @app.command("collect")
@@ -448,6 +638,7 @@ def train(
     except KeyboardInterrupt:
         print("Training interrupted by user")
         raise typer.Exit(code=1)
+
 
 if __name__ == "__main__":
     app()

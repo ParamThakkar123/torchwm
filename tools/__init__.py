@@ -17,6 +17,7 @@ from .cli import (
     datasets_list,
     datasets_convert,
     collect,
+    benchmark,
     train,
 )
 
@@ -35,6 +36,7 @@ __all__ = [
     "datasets_list",
     "datasets_convert",
     "collect",
+    "benchmark",
     "train",
     "check_docs_main",
     "check_page",

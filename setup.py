@@ -27,6 +27,7 @@ setup(
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
         "tqdm>=4.67.1",
+        "typer>=0.12.0",
     ],
     extras_require={
         "gym": [

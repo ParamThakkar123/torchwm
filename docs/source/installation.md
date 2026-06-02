@@ -7,8 +7,11 @@ TorchWM supports multiple installation methods depending on your use case.
 For stable releases:
 
 ```bash
-# Core dependencies (torch, torchvision, torchaudio, gym, gymnasium, etc.)
+# CPU build (default core dependencies: torch, torchvision, torchaudio, gym, etc.)
 pip install torchwm
+
+# GPU build (CUDA-enabled PyTorch stack)
+pip install torchwm[gpu]
 
 # With specific extras
 pip install torchwm[gym]       # Additional gym environments (huggingface-hub, pygame, autorom)
@@ -19,13 +22,14 @@ pip install torchwm[docs]      # Sphinx and documentation tools
 pip install torchwm[dev]       # Testing and development tools (pytest, mypy, pre-commit)
 
 # Install multiple extras
-pip install torchwm[gym,ml-agents,dev]
+pip install torchwm[gpu,gym,ml-agents,dev]
 ```
 
 ### Available Extras
 
 | Extra | Description |
 |-------|-------------|
+| `gpu` | CUDA-enabled PyTorch, torchvision, and torchaudio stack |
 | `gym` | Additional Gym environment dependencies (huggingface-hub, pygame, autorom) |
 | `ml-agents` | Unity ML-Agents support |
 | `ml` | TensorBoard, Weights & Biases, and logging tools |
@@ -52,17 +56,21 @@ pip install -e .
 pip install -e ".[gym,ml-agents,ml,viz,dev,docs]"
 ```
 
-## CUDA Support
+## CPU and CUDA PyTorch Selection
 
-For GPU acceleration, install PyTorch with CUDA:
+TorchWM installs the CPU-compatible PyTorch stack by default so `pip install torchwm`
+works consistently on machines without a GPU. If a GPU is available and you want
+CUDA acceleration, request the GPU extra:
 
 ```bash
-# Using uv (recommended)
-uv add torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
-# Or using pip
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install torchwm[gpu]
 ```
+
+When installing with `uv`, TorchWM's project metadata no longer forces the CUDA
+PyTorch index for default installs, and routes the `gpu` extra to the CUDA 12.1
+PyTorch wheel index. If your environment needs a different CUDA wheel family,
+install the matching PyTorch packages from the official PyTorch index before
+installing TorchWM.
 
 ## Docker
 

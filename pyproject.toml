@@ -38,6 +38,11 @@ dependencies = [
 torchwm = "tools.cli:run"
 
 [project.optional-dependencies]
+gpu = [
+    "torch>=1.13.0",
+    "torchvision>=0.14.0",
+    "torchaudio>=2.10.0",
+]
 gym = [
     "huggingface-hub>=0.23.0",
     "pygame>=2.6.1",
@@ -80,13 +85,17 @@ docs = [
 ]
 
 [tool.uv]
-index-url = "https://download.pytorch.org/whl/cu121"
-extra-index-url = ["https://pypi.org/simple"]
 index-strategy = "unsafe-best-match"
 
+[tool.uv.sources]
+torch = { index = "pytorch-cu121", extra = "gpu" }
+torchvision = { index = "pytorch-cu121", extra = "gpu" }
+torchaudio = { index = "pytorch-cu121", extra = "gpu" }
+
 [[tool.uv.index]]
+name = "pytorch-cu121"
 url = "https://download.pytorch.org/whl/cu121"
-default = true
+explicit = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]

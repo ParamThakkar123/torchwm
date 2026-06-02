@@ -20,8 +20,11 @@ Train Dreamer agents in just 3 lines of code. TorchWM provides a unified interfa
 ### Installation
 
 ```bash
-# Core dependencies
+# CPU build (default)
 pip install torchwm
+
+# GPU build
+pip install torchwm[gpu]
 
 # With extras
 pip install torchwm[gym]       # Additional gym environments
@@ -30,6 +33,11 @@ pip install torchwm[ml]        # TensorBoard, W&B logging
 pip install torchwm[viz]       # FastAPI visualization
 pip install torchwm[dev]       # Testing and linting
 ```
+
+TorchWM keeps `pip install torchwm` CPU-first for portable installs. Use
+`pip install torchwm[gpu]` when you want the CUDA-enabled PyTorch stack; with
+`uv`, TorchWM no longer forces the CUDA PyTorch index for default installs and
+switches to the CUDA 12.1 PyTorch index when the `gpu` extra is requested.
 
 ### Training a Dreamer Agent
 
@@ -204,9 +212,11 @@ TorchWM provides a unified interface for training and deploying world models.
 ### Installation
 
 ```bash
+# CPU build (default)
 pip install torchwm
-# or with uv
-uv add torch torchvision torchaudio
+
+# GPU build
+pip install torchwm[gpu]
 ```
 
 ### Training a Dreamer Agent

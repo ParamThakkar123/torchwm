@@ -18,24 +18,32 @@ needing explicit action labels.
 
 ## Architecture
 
-```{mermaid}
-graph TD
-    subgraph GA["Genie Architecture"]
-        A["Video frames"] --> B["Video tokenizer"]
-        B --> C["Video tokens"]
-        C --> D["Dynamics model"]
-        E["Consecutive frames"] --> F["Latent action model"]
-        F --> G["Latent actions"]
-        G --> D
-        D --> H["Predicted tokens"]
-        H --> I["Decoded frames"]
-    end
+<div class="architecture-diagram" aria-label="Genie architecture diagram">
+  <section class="diagram-section">
+    <h3>Genie Architecture</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">Video frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Video tokenizer</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Video tokens</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node warning">Decoded frames</span>
+    </div>
+    <div class="diagram-row">
+      <span class="diagram-node">Consecutive frames</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node info">Latent action model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Latent actions</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node success">Dynamics model</span>
+    </div>
+  </section>
+</div>
 
-    style B fill:#cce5ff
-    style F fill:#cce5ff
-    style D fill:#d4edda
-    style I fill:#fff3cd
-```
 ## Components
 
 ### 1. Video Tokenizer

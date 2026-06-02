@@ -18,38 +18,38 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ## Architecture
 
-```{mermaid}
-graph TD
-    subgraph WM["World Model RSSM"]
-        A["Encoder CNN 64x64"] --> B["Latent model GRU and stochastic state"]
-        B --> C["Decoder transposed CNN"]
-        B --> D["Prior stochastic state"]
-        E["Recurrent state update"] --> B
-    end
+<div class="architecture-diagram" aria-label="Dreamer architecture diagram">
+  <section class="diagram-section">
+    <h3>World Model RSSM</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Encoder CNN 64x64</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">GRU plus stochastic latent model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Decoder transposed CNN</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Imagination Rollout</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">State s0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Action a0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Imagined future states</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Lambda-return target</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Actor-Critic Learning</h3>
+    <div class="diagram-row">
+      <span class="diagram-node success">Actor policy</span>
+      <span class="diagram-node success">Critic value model</span>
+    </div>
+  </section>
+</div>
 
-    subgraph IR["Imagination Rollout"]
-        F["Latent state 0"] --> G["Action 0"]
-        G --> H["Latent state 1"]
-        H --> I["Action 1"]
-        I --> J["Latent state 2"]
-        J --> K["Future steps"]
-        K --> L["Latent horizon state"]
-        L --> M["Lambda return target"]
-    end
-
-    subgraph AC["Actor Critic Learning"]
-        N["Actor policy with baseline"]
-        O["Critic value model"]
-    end
-
-    C --> F
-    M --> N
-    M --> O
-
-    style A fill:#e1f5fe
-    style N fill:#e8f5e8
-    style O fill:#e8f5e8
-```
 ## Components
 
 ### 1. Recurrent State Space Model (RSSM)

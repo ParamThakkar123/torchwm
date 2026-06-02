@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* === COMPACT NAVBAR === */
+/* === MINIMAL NAVBAR === */
 .bd-header {
     min-height: 44px !important;
     padding: 0 !important;
@@ -59,6 +59,20 @@
 .navbar-toggler {
     padding: 0.2rem 0.4rem !important;
     font-size: 0.8rem !important;
+}
+
+/* Remove all primary navigation links from the top navbar. Theme options
+   do most of this, while these rules keep generated/prebuilt pages tidy. */
+.bd-header .navbar-header-items__center,
+.bd-header .navbar-nav.bd-navbar-elements {
+    display: none !important;
+}
+
+.bd-header .navbar-header-items__end {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
 }
 
 /* Search - inline in navbar */
@@ -162,6 +176,92 @@
     margin: 0 0.15rem;
 }
 
+
+/* === STATIC ARCHITECTURE DIAGRAMS === */
+.architecture-diagram {
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--pst-color-surface);
+    border: 1px solid var(--pst-color-border);
+    border-radius: 12px;
+}
+
+.diagram-section {
+    border: 1px solid var(--pst-color-border);
+    border-radius: 10px;
+    padding: 0.9rem;
+    background: var(--pst-color-background);
+}
+
+.diagram-section h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.diagram-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.diagram-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--pst-color-border);
+    border-radius: 8px;
+    background: var(--pst-color-background);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.diagram-node.info {
+    background: #e1f5fe;
+}
+
+.diagram-node.success {
+    background: #e8f5e8;
+}
+
+.diagram-node.warning {
+    background: #fff3cd;
+}
+
+.diagram-node.danger {
+    background: #f8d7da;
+}
+
+.diagram-arrow {
+    color: var(--pst-color-text-muted);
+    font-weight: 700;
+}
+
+[data-theme="dark"] .diagram-node.info,
+[data-theme="dark"] .diagram-node.success,
+[data-theme="dark"] .diagram-node.warning,
+[data-theme="dark"] .diagram-node.danger {
+    color: #0f172a;
+}
+
+@media (max-width: 720px) {
+    .diagram-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .diagram-arrow {
+        transform: rotate(90deg);
+        align-self: center;
+    }
+}
+
 /* === SIDEBAR === */
 .bd-sidebar {
     display: block !important;
@@ -190,8 +290,9 @@
     padding: 0.5rem 0.75rem 0.25rem !important;
 }
 
-/* Hide secondary search button */
-.search-button-field {
+/* Hide duplicate sidebar search controls while keeping the main navbar search field. */
+.bd-sidebar .bd-search,
+.bd-sidebar-secondary .bd-search {
     display: none !important;
 }
 

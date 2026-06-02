@@ -1,66 +1,118 @@
-// Reliable Mermaid bootstrap for Sphinx + MyST pages.
-// sphinxcontrib-mermaid may emit either <div class="mermaid"> blocks or
-// <script type="text/vnd.mermaid"> blocks depending on version/output mode.
-// This script normalizes both forms and calls the Mermaid v10 API correctly.
+// Robust Mermaid initialization: wait for mermaid to load, then render only
+// unprocessed Mermaid source blocks. Mermaid replaces each rendered block with
+// SVG and marks it as data-processed; re-rendering those SVG containers causes
+// Mermaid to parse SVG text as diagram source and show "Syntax error in text".
 (() => {
-  const MAX_WAIT_MS = 5000;
-  const POLL_MS = 100;
+  const MAX_WAIT = 5000;
+  const INTERVAL = 100;
+  let initialized = false;
+  let renderQueued = false;
 
-  function normalizeSource(source) {
-    return (source || '')
+  function normalizeMermaidText(txt) {
+    return (txt || '')
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/[\u2018\u2019\u201B]/g, "'")
       .replace(/[\u2013\u2014\u2012]/g, '-')
       .replace(/[-\u2013\u2014]+>/g, '-->')
       .replace(/\u2192/g, '->')
-      .replace(/\u2212/g, '-');
+      .replace(/\u2212/g, '-')
+      .trim();
   }
 
-  function normalizeMermaidBlocks() {
+  function convertScriptBlocks() {
     document.querySelectorAll('script[type="text/vnd.mermaid"]').forEach((script) => {
-      const block = document.createElement('div');
-      block.className = 'mermaid';
-      block.textContent = normalizeSource(script.textContent || script.innerText || '');
-      script.replaceWith(block);
+      const div = document.createElement('div');
+      div.className = 'mermaid';
+      div.textContent = normalizeMermaidText(script.textContent || script.innerText || '');
+      script.parentNode.replaceChild(div, script);
     });
+  }
 
-    document.querySelectorAll('.mermaid').forEach((block) => {
-      if (!block.dataset.originalMermaid) {
-        block.dataset.originalMermaid = normalizeSource(block.textContent || '');
-        block.textContent = block.dataset.originalMermaid;
+  function normalizeUnprocessedDivs() {
+    document.querySelectorAll('.mermaid:not([data-processed="true"])').forEach((node) => {
+      if (!node.querySelector('svg')) {
+        node.textContent = normalizeMermaidText(node.textContent || node.innerText || '');
       }
     });
   }
 
-  async function renderMermaid() {
-    if (!window.mermaid) return false;
+  function unprocessedNodes() {
+    return Array.from(document.querySelectorAll('.mermaid:not([data-processed="true"])'))
+      .filter((node) => !node.querySelector('svg') && normalizeMermaidText(node.textContent || node.innerText || ''));
+  }
 
-    normalizeMermaidBlocks();
-    const nodes = Array.from(document.querySelectorAll('.mermaid:not([data-processed="true"])'));
-    if (!nodes.length) return true;
+  function renderMermaid() {
+    if (!window.mermaid || !initialized) return;
+    convertScriptBlocks();
+    normalizeUnprocessedDivs();
 
-    const dark = document.documentElement.dataset.theme === 'dark'
-      || window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    window.mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'loose',
-      theme: dark ? 'dark' : 'default',
-    });
+    const nodes = unprocessedNodes();
+    if (!nodes.length) return;
 
     try {
+      let result;
       if (typeof window.mermaid.run === 'function') {
-        await window.mermaid.run({ nodes });
+        result = window.mermaid.run({ nodes });
       } else if (typeof window.mermaid.init === 'function') {
-        window.mermaid.init(undefined, nodes);
+        result = window.mermaid.init(undefined, nodes);
       }
-      return true;
-    } catch (error) {
-      console.warn('Mermaid render failed', error);
-      nodes.forEach((node) => {
-        node.dataset.processed = 'false';
-      });
-      return false;
+      if (result && typeof result.catch === 'function') {
+        result.catch((e) => console.warn('Mermaid render failed', e));
+      }
+    } catch (e) {
+      console.warn('Mermaid render failed', e);
+    }
+  }
+
+  function queueRender(delay = 50) {
+    if (renderQueued) return;
+    renderQueued = true;
+    setTimeout(() => {
+      renderQueued = false;
+      renderMermaid();
+    }, delay);
+  }
+
+  function tryInit() {
+    if (!window.mermaid) return false;
+    if (!initialized) {
+      try {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const dark = document.documentElement.dataset.theme === 'dark' || prefersDark;
+        window.mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          theme: dark ? 'dark' : 'default',
+        });
+        initialized = true;
+      } catch (e) {
+        console.warn('Mermaid initialize failed', e);
+        return false;
+      }
+    }
+
+    if (window.MathJax && window.MathJax.startup && typeof window.MathJax.startup.typesetPromise === 'function') {
+      window.MathJax.startup.typesetPromise()
+        .then(() => queueRender(0))
+        .catch(() => queueRender(100));
+    } else {
+      queueRender(50);
+    }
+    return true;
+  }
+
+  let waited = 0;
+  const poll = setInterval(() => {
+    if (tryInit() || waited > MAX_WAIT) {
+      clearInterval(poll);
+    }
+    waited += INTERVAL;
+  }, INTERVAL);
+
+  const observer = new MutationObserver(() => {
+    if (!window.mermaid || !initialized) return;
+    if (unprocessedNodes().length || document.querySelector('script[type="text/vnd.mermaid"]')) {
+      queueRender(100);
     }
   }
 
@@ -85,7 +137,10 @@
   });
 
   const observe = () => {
-    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    const targetNode = document.body || document.documentElement;
+    if (targetNode) {
+      observer.observe(targetNode, { childList: true, subtree: true });
+    }
   };
 
   if (document.readyState === 'loading') {

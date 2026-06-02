@@ -19,25 +19,16 @@ release = world_models.__version__
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    # We load MathJax manually (config + runtime) so we control ordering and
-    # avoid Sphinx injecting the runtime before our config. Do NOT enable the
-    # built-in mathjax extension because it inserts its own script tag which
-    # can cause a race between the config and the runtime.
+    "sphinx.ext.mathjax",
     "myst_parser",
     "sphinxext.opengraph",
 ]
 
-# Prevent myst_parser from auto-inserting MathJax runtime; we manage MathJax
-# inclusion/order manually via html_js_files so config can be applied first.
-myst_update_mathjax = False
-
 templates_path = ["_templates"]
 exclude_patterns = []
 
-autosummary_generate = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_inherit_docstrings = False
@@ -52,11 +43,30 @@ napoleon_numpy_docstring = True
 
 myst_enable_extensions = [
     "colon_fence",
+    "dollarmath",
     "amsmath",
     "deflist",
     "fieldlist",
 ]
 
+# Let MyST/Sphinx emit math nodes and let sphinx.ext.mathjax load MathJax in a
+# deterministic order. This is more reliable than hand-loading a placeholder
+# runtime from _static and supports both ```{math}``` fences and $...$ spans.
+myst_update_mathjax = False
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+mathjax3_config = {
+    "tex": {
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        "displayMath": [["$$", "$$"], ["\\[", "\\]"]],
+        "packages": {"[+]": ["ams"]},
+    },
+    "options": {
+        "skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"],
+    },
+}
+
+# Heavy optional runtimes are mocked so the API reference can build in a docs
+# environment without installing all simulation backends.
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",
@@ -71,6 +81,13 @@ autodoc_mock_imports = [
     "gymnasium",
     "wandb",
     "PIL",
+    "sklearn",
+    "sklearn.manifold",
+    "h5py",
+    "huggingface_hub",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "umap",
     "torch",
     "torch.nn",
     "torch._C",
@@ -105,19 +122,10 @@ html_js_files = [
     "mathjax_local.js",
     # Small script to tidy duplicated navbar elements caused by theme options
     "fix_navbar.js",
-    # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded
-    "mathjax_init.js",
-    # (Thebe assets removed — Thebe integration disabled to avoid runtime
-    # kernel/build attempts and to keep the static site lightweight.)
 ]
 
-# Thebe configuration for interactive code execution
-# Thebe integration has been removed from html_js_files and extensions to
-# prevent the client from attempting to start kernels or trigger remote
-# builds. If you want to re-enable Thebe in the future, re-add the
-# "sphinx_thebe" extension and the corresponding JS entries above.
-# Copy both our _static assets and the `images/` dir so images referenced
-# from pages are available at build time (placed under _static/).
+# Copy both our _static assets and the `images/` dir so images referenced from
+# pages are available at build time (placed under _static/).
 html_static_path = ["_static", "images"]
 
 html_css_files = [

@@ -48,12 +48,19 @@ def check_page(page_path: Path, name: str):
         # give client-side scripts time to run (Mermaid/MathJax)
         time.sleep(2)
 
-        # wait briefly for mermaid svg if present
-        try:
-            page.wait_for_selector(".mermaid svg", timeout=3000)
-            print("Found .mermaid svg element")
-        except Exception:
-            print("No .mermaid svg found within timeout")
+        # wait briefly for rendered Mermaid/MathJax if the page contains source blocks.
+        if page.locator(".mermaid").count():
+            try:
+                page.wait_for_selector(".mermaid svg", timeout=3000)
+                print("Found .mermaid svg element")
+            except Exception:
+                print("No .mermaid svg found within timeout")
+        if page.locator(".math").count():
+            try:
+                page.wait_for_function("() => window.MathJax && document.querySelector('.MathJax, mjx-container')", timeout=3000)
+                print("Found rendered MathJax element")
+            except Exception:
+                print("No rendered MathJax element found within timeout")
 
         # capture screenshot and save page html
         screenshot = OUT_DIR / f"{name}.png"
@@ -79,6 +86,9 @@ def main():
         (base / "dreamer.html", "dreamer"),
         (base / "jepa.html", "jepa"),
         (base / "iris.html", "iris"),
+        (base / "genie.html", "genie"),
+        (base / "world_models_guide.html", "world_models_guide"),
+        (base / "api_reference.html", "api_reference"),
     ]
     for path, name in pages:
         if path.exists():

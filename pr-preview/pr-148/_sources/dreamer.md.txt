@@ -18,38 +18,37 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ## Architecture
 
-.. mermaid::
-
-   graph TD
-       subgraph "World Model (RSSM)"
-           A[Encoder<br/>CNN 64x64] --> B[Latent Model<br/>GRU + Stochastic]
-           B --> C[Decoder<br/>Transposed CNN]
-           B --> D[s_t ~ p(s_t | h_t)]
-           E[h_t = f(h_{t-1}, s_{t-1}, a)]
-       end
-       
-       subgraph "Imagination Rollout"
-           F[s_0] --> G[a_0]
-           G --> H[s_1]
-           H --> I[a_1]
-           I --> J[s_2]
-           J --> K[...]
-           K --> L[s_H]
-           L --> M[λ-return target<br/>G_t = r_t + γ(1-λ)v + λG_{t+1}]
-       end
-       
-       subgraph "Actor-Critic Learning"
-           N[Actor: π(a_t | s_t, h_t)<br/>REINFORCE with baseline]
-           O[Critic: v(s_t, h_t)<br/>MSE on λ-returns]
-       end
-       
-       C --> F
-       M --> N
-       M --> O
-       
-       style A fill:#e1f5fe
-       style N fill:#e8f5e8
-       style O fill:#e8f5e8
+<div class="architecture-diagram" aria-label="Dreamer architecture diagram">
+  <section class="diagram-section">
+    <h3>World Model RSSM</h3>
+    <div class="diagram-row">
+      <span class="diagram-node info">Encoder CNN 64x64</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">GRU plus stochastic latent model</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Decoder transposed CNN</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Imagination Rollout</h3>
+    <div class="diagram-row">
+      <span class="diagram-node">State s0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Action a0</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Imagined future states</span>
+      <span class="diagram-arrow">→</span>
+      <span class="diagram-node">Lambda-return target</span>
+    </div>
+  </section>
+  <section class="diagram-section">
+    <h3>Actor-Critic Learning</h3>
+    <div class="diagram-row">
+      <span class="diagram-node success">Actor policy</span>
+      <span class="diagram-node success">Critic value model</span>
+    </div>
+  </section>
+</div>
 
 ## Components
 

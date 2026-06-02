@@ -82,7 +82,12 @@ html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "navigation_depth": 2,
     "show_nav_level": 1,
-    "navbar_end": ["navbar-icon-links", "search-field"],
+    # Keep the top navbar intentionally minimal: project title/logo,
+    # documentation search, and the GitHub redirect link only.
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": [],
+    "navbar_end": ["search-field", "navbar-icon-links"],
+    "navbar_persistent": [],
 }
 
 # sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render

@@ -14,35 +14,35 @@ by learning entirely in the imagination of a world model:
 
 ## Architecture
 
-.. mermaid::
+```{mermaid}
+graph TD
+    subgraph autoencoder["Discrete Autoencoder"]
+        A["Encoder<br/>CNN 64x64"] --> B["VQ-VAE<br/>512 vocab<br/>16 tokens"]
+        B --> C["Decoder<br/>Transposed CNN"]
+    end
 
-   graph TD
-       subgraph "Discrete Autoencoder"
-           A[Encoder<br/>CNN 64x64] --> B[VQVAE<br/>512 vocab<br/>16 tokens]
-           B --> C[Decoder<br/>Transposed CNN]
-       end
-       
-       subgraph "Autoregressive Transformer"
-           D[z_t<br/>16 tokens] --> E[a_t]
-           E --> F[z_{t+1}<br/>16 tokens]
-           D --> G[Reward]
-           E --> H[Termination]
-           F --> I[Reward...]
-           J[GPT-style<br/>10 layers, 4 heads<br/>256 embedding dim]
-       end
-       
-       subgraph "Actor-Critic in Imagination"
-           K[Actor<br/>CNN+LSTM<br/>λ-return<br/>REINFORCE]
-           L[Critic<br/>CNN+LSTM<br/>MSE loss]
-       end
-       
-       C --> D
-       F --> K
-       F --> L
-       
-       style A fill:#e1f5fe
-       style K fill:#e8f5e8
-       style L fill:#e8f5e8
+    subgraph transformer["Autoregressive Transformer"]
+        D["Latent tokens z_t<br/>16 tokens"] --> E["Action a_t"]
+        E --> F["Next latent tokens<br/>16 tokens"]
+        D --> G["Reward head"]
+        E --> H["Termination head"]
+        F --> I["Next reward head"]
+        J["GPT-style model<br/>10 layers, 4 heads<br/>256 embedding dim"]
+    end
+
+    subgraph imagination["Actor-Critic in Imagination"]
+        K["Actor<br/>CNN and LSTM<br/>lambda-return<br/>REINFORCE"]
+        L["Critic<br/>CNN and LSTM<br/>MSE loss"]
+    end
+
+    C --> D
+    F --> K
+    F --> L
+
+    style A fill:#e1f5fe
+    style K fill:#e8f5e8
+    style L fill:#e8f5e8
+```
 
 ## Key Components
 

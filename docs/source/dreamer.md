@@ -18,38 +18,38 @@ The key innovation is learning behaviors purely in imagination - no gradients fl
 
 ## Architecture
 
-.. mermaid::
+```{mermaid}
+graph TD
+    subgraph world_model["World Model RSSM"]
+        A["Encoder<br/>CNN 64x64"] --> B["Latent Model<br/>GRU plus stochastic state"]
+        B --> C["Decoder<br/>Transposed CNN"]
+        B --> D["Stochastic state<br/>sampled from prior"]
+        E["Recurrent update<br/>h_t from previous state and action"] --> B
+    end
 
-   graph TD
-       subgraph "World Model (RSSM)"
-           A[Encoder<br/>CNN 64x64] --> B[Latent Model<br/>GRU + Stochastic]
-           B --> C[Decoder<br/>Transposed CNN]
-           B --> D[s_t ~ p(s_t | h_t)]
-           E[h_t = f(h_{t-1}, s_{t-1}, a)]
-       end
-       
-       subgraph "Imagination Rollout"
-           F[s_0] --> G[a_0]
-           G --> H[s_1]
-           H --> I[a_1]
-           I --> J[s_2]
-           J --> K[...]
-           K --> L[s_H]
-           L --> M[λ-return target<br/>G_t = r_t + γ(1-λ)v + λG_{t+1}]
-       end
-       
-       subgraph "Actor-Critic Learning"
-           N[Actor: π(a_t | s_t, h_t)<br/>REINFORCE with baseline]
-           O[Critic: v(s_t, h_t)<br/>MSE on λ-returns]
-       end
-       
-       C --> F
-       M --> N
-       M --> O
-       
-       style A fill:#e1f5fe
-       style N fill:#e8f5e8
-       style O fill:#e8f5e8
+    subgraph rollout["Imagination Rollout"]
+        F["State s_0"] --> G["Action a_0"]
+        G --> H["State s_1"]
+        H --> I["Action a_1"]
+        I --> J["State s_2"]
+        J --> K["..."]
+        K --> L["State s_H"]
+        L --> M["Lambda-return target<br/>reward plus discounted value"]
+    end
+
+    subgraph actor_critic["Actor-Critic Learning"]
+        N["Actor policy<br/>REINFORCE with baseline"]
+        O["Critic value<br/>MSE on lambda-returns"]
+    end
+
+    C --> F
+    M --> N
+    M --> O
+
+    style A fill:#e1f5fe
+    style N fill:#e8f5e8
+    style O fill:#e8f5e8
+```
 
 ## Components
 

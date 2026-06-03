@@ -37,6 +37,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
@@ -48,12 +49,12 @@
     <script src="_static/documentation_options.js?v=6c02275b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=3a14cefc"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}, "processEscapes": true, "processEnvironments": true}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dit';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="_static/mathjax_config.js?v=90e9db6d"></script>
-    <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/dit.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -265,6 +266,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -391,7 +393,10 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 <li><p>Add positional embeddings</p></li>
 </ul>
 <div class="math notranslate nohighlight">
-\[\mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}\]</div>
+\[\begin{split}\begin{aligned}
+\mathbf{x} &amp;\in \mathbb{R}^{C \times H \times W} \\
+&amp;\rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
+\end{aligned}\end{split}\]</div>
 </section>
 <section id="timestep-condition-embeddings">
 <h3>2. Timestep &amp; Condition Embeddings<a class="headerlink" href="#timestep-condition-embeddings" title="Link to this heading">#</a></h3>
@@ -440,9 +445,12 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 </pre></div>
 </div>
 <div class="math notranslate nohighlight">
-\[q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})\]</div>
+\[q(\mathbf{x}_t \mid \mathbf{x}_0)
+= \mathcal{N}\left(\sqrt{\bar{\alpha}_t}\,\mathbf{x}_0,
+(1 - \bar{\alpha}_t)\mathbf{I}\right)\]</div>
 <div class="math notranslate nohighlight">
-\[p(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2 \mathbf{I})\]</div>
+\[p(\mathbf{x}_{t-1} \mid \mathbf{x}_t)
+= \mathcal{N}\left(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2\mathbf{I}\right)\]</div>
 <section id="key-hyperparameters">
 <h3>Key Hyperparameters<a class="headerlink" href="#key-hyperparameters" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -511,7 +519,11 @@ It treats diffusion as a sequence modeling problem where the transformer predict
 <h3>Classifier-Free Guidance<a class="headerlink" href="#classifier-free-guidance" title="Link to this heading">#</a></h3>
 <p>For conditional generation, use classifier-free guidance:</p>
 <div class="math notranslate nohighlight">
-\[\epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)\]</div>
+\[\begin{split}\begin{aligned}
+\epsilon_\mathrm{cond}
+&amp;= (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) \\
+&amp;\quad - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
+\end{aligned}\end{split}\]</div>
 <p>where <code class="docutils literal notranslate"><span class="pre">w</span></code> is guidance weight (typically 1-10).</p>
 </section>
 </section>

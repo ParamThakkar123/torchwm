@@ -37,6 +37,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
@@ -48,12 +49,12 @@
     <script src="_static/documentation_options.js?v=6c02275b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=3a14cefc"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}, "processEscapes": true, "processEnvironments": true}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'world_models_guide';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="_static/mathjax_config.js?v=90e9db6d"></script>
-    <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/world_models_guide.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -265,6 +266,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">World Models Study Guide</a></li>
 </ul>
@@ -350,11 +352,13 @@
 <p>A <strong>world model</strong> is a learned simulator. It compresses observations into a latent state, predicts how that state changes after actions, and optionally predicts rewards, terminal flags, or future pixels/tokens. In reinforcement learning, this lets an agent train or plan in imagination instead of relying only on expensive environment interaction.</p>
 <p>A common objective decomposes into reconstruction, dynamics, and task losses:</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{L}
-= \mathcal{L}_{\text{recon}}(x_t, \hat{x}_t)
-+ \beta\,D_{\mathrm{KL}}\big(q(z_t \mid x_{\le t}, a_{&lt;t})\;\|\;p(z_t \mid z_{&lt;t}, a_{&lt;t})\big)
-+ \mathcal{L}_{\text{reward}}
-+ \mathcal{L}_{\text{policy}}.\]</div>
+\[\begin{split}\begin{aligned}
+\mathcal{L}
+&amp;= \mathcal{L}_{\text{recon}}(x_t, \hat{x}_t) \\
+&amp;\quad + \beta\,D_{\mathrm{KL}}\!\left(q(z_t \mid x_{\le t}, a_{&lt;t})\;\middle\|\;p(z_t \mid z_{&lt;t}, a_{&lt;t})\right) \\
+&amp;\quad + \mathcal{L}_{\text{reward}}
+ + \mathcal{L}_{\text{policy}}.
+\end{aligned}\end{split}\]</div>
 <p>The exact terms change by family: Dreamer and PlaNet emphasize latent state-space dynamics, IRIS and Genie emphasize discrete token dynamics, JEPA emphasizes representation prediction without pixel reconstruction, and DiT/DIAMOND emphasize diffusion-based generation.</p>
 </section>
 <section id="quick-model-chooser">
@@ -531,9 +535,12 @@
 <h2>DDPM, DiT, and DIAMOND-style diffusion models<a class="headerlink" href="#ddpm-dit-and-diamond-style-diffusion-models" title="Link to this heading">#</a></h2>
 <p>Diffusion models learn to denoise corrupted data. Instead of predicting a single deterministic next frame, they learn a reverse process from noise to clean samples.</p>
 <div class="math notranslate nohighlight">
-\[q(x_t \mid x_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I\right),
-\qquad
-\mathcal{L}_{\text{DDPM}} = \left\|\epsilon - \epsilon_\theta(x_t, t, c)\right\|_2^2.\]</div>
+\[\begin{split}\begin{aligned}
+q(x_t \mid x_0)
+&amp;= \mathcal{N}\left(\sqrt{\bar{\alpha}_t}\,x_0, (1-\bar{\alpha}_t)I\right), \\
+\mathcal{L}_{\text{DDPM}}
+&amp;= \left\|\epsilon - \epsilon_\theta(x_t, t, c)\right\|_2^2.
+\end{aligned}\end{split}\]</div>
 <section id="id3">
 <h3>TorchWM pieces<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <ul class="simple">

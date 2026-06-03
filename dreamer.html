@@ -37,6 +37,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
@@ -48,12 +49,12 @@
     <script src="_static/documentation_options.js?v=6c02275b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=3a14cefc"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}, "processEscapes": true, "processEnvironments": true}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dreamer';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="_static/mathjax_config.js?v=90e9db6d"></script>
-    <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/dreamer.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -265,6 +266,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -409,10 +411,10 @@ from images and trains a behavior policy entirely in the latent space.</p>
 \[\mathbf{h}_t = f(\mathbf{h}_{t-1}, \mathbf{s}_{t-1}, \mathbf{a}_{t-1})\]</div>
 <p><strong>Posterior</strong>:</p>
 <div class="math notranslate nohighlight">
-\[\mathbf{s}_t \sim q(\mathbf{s}_t | \mathbf{h}_t, \mathbf{x}_t)\]</div>
+\[\mathbf{s}_t \sim q(\mathbf{s}_t \mid \mathbf{h}_t, \mathbf{x}_t)\]</div>
 <p><strong>Prior</strong>:</p>
 <div class="math notranslate nohighlight">
-\[\mathbf{s}_t \sim p(\mathbf{s}_t | \mathbf{h}_t)\]</div>
+\[\mathbf{s}_t \sim p(\mathbf{s}_t \mid \mathbf{h}_t)\]</div>
 </section>
 <section id="encoder-decoder">
 <h3>2. Encoder/Decoder<a class="headerlink" href="#encoder-decoder" title="Link to this heading">#</a></h3>
@@ -490,10 +492,16 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <h3>Learning Objectives<a class="headerlink" href="#learning-objectives" title="Link to this heading">#</a></h3>
 <p><strong>World Model Loss</strong>:</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{L}_\mathrm{world} = \mathcal{L}_\mathrm{reconstruction} + \mathcal{L}_\mathrm{reward} + \beta \cdot \mathcal{L}_\mathrm{KL}\]</div>
+\[\begin{aligned}
+\mathcal{L}_\mathrm{world}
+&amp;= \mathcal{L}_\mathrm{reconstruction}
+ + \mathcal{L}_\mathrm{reward}
+ + \beta \cdot \mathcal{L}_\mathrm{KL}
+\end{aligned}\]</div>
 <p><strong>Actor Loss</strong> (REINFORCE):</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{L}_\mathrm{actor} = -\mathbb{E}[\log \pi(\mathbf{a} | \mathbf{s}) \cdot (G - V(\mathbf{s}))]\]</div>
+\[\mathcal{L}_\mathrm{actor}
+= -\mathbb{E}\left[\log \pi(\mathbf{a} \mid \mathbf{s}) \cdot (G - V(\mathbf{s}))\right]\]</div>
 <p><strong>Critic Loss</strong> (MSE):</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}_\mathrm{critic} = \mathbb{E}[(G - V(\mathbf{s}))^2]\]</div>

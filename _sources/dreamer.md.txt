@@ -67,13 +67,13 @@ The core world model combining:
 **Posterior**:
 
 ```{math}
-\mathbf{s}_t \sim q(\mathbf{s}_t | \mathbf{h}_t, \mathbf{x}_t)
+\mathbf{s}_t \sim q(\mathbf{s}_t \mid \mathbf{h}_t, \mathbf{x}_t)
 ```
 
 **Prior**:
 
 ```{math}
-\mathbf{s}_t \sim p(\mathbf{s}_t | \mathbf{h}_t)
+\mathbf{s}_t \sim p(\mathbf{s}_t \mid \mathbf{h}_t)
 ```
 
 ### 2. Encoder/Decoder
@@ -119,13 +119,19 @@ agent.train()
 **World Model Loss**:
 
 ```{math}
-\mathcal{L}_\mathrm{world} = \mathcal{L}_\mathrm{reconstruction} + \mathcal{L}_\mathrm{reward} + \beta \cdot \mathcal{L}_\mathrm{KL}
+\begin{aligned}
+\mathcal{L}_\mathrm{world}
+&= \mathcal{L}_\mathrm{reconstruction}
+ + \mathcal{L}_\mathrm{reward}
+ + \beta \cdot \mathcal{L}_\mathrm{KL}
+\end{aligned}
 ```
 
 **Actor Loss** (REINFORCE):
 
 ```{math}
-\mathcal{L}_\mathrm{actor} = -\mathbb{E}[\log \pi(\mathbf{a} | \mathbf{s}) \cdot (G - V(\mathbf{s}))]
+\mathcal{L}_\mathrm{actor}
+= -\mathbb{E}\left[\log \pi(\mathbf{a} \mid \mathbf{s}) \cdot (G - V(\mathbf{s}))\right]
 ```
 
 **Critic Loss** (MSE):

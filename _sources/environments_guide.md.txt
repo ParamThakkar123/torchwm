@@ -1,230 +1,68 @@
 # Environments Guide
 
-This guide covers how to set up and use different environments with TorchWM.
+TorchWM supports several environment backends for training, evaluation, and dataset collection. The detailed backend documentation now lives on separate pages so each environment family can document its own installation requirements, factory functions, observation/action contracts, and troubleshooting notes.
 
-## Supported Environments
+```{toctree}
+:maxdepth: 1
 
-TorchWM supports multiple environment backends for training and evaluation.
-
-## DeepMind Control Suite (DMC)
-
-The DeepMind Control Suite provides high-quality continuous control tasks.
-
-### Setup
-
-```bash
-pip install dm-control
+Environment backend overview <environments/index>
+DeepMind Control Suite <environments/dmc>
+Gym and Gymnasium <environments/gym>
+Atari <environments/atari>
+MuJoCo <environments/mujoco>
+Unity ML-Agents <environments/unity>
+Vectorized Environments <environments/vectorized>
+Wrappers <environments/wrappers>
 ```
 
-### Configuration
+## Quick start
+
+Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, and Unity environments:
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-cfg.env_backend = "dmc"
-cfg.env = "walker-walk"  # or "cartpole-balance", "finger-turn_hard", etc.
+cfg.env_backend = "dmc"  # "dmc", "gym", or "unity_mlagents"
+cfg.env = "walker-walk"
+cfg.image_size = 64
+cfg.action_repeat = 2
+cfg.time_limit = 1000
 ```
 
-### Available Tasks
-
-- **Locomotion**: `walker-walk`, `walker-run`, `cheetah-run`
-- **Manipulation**: `finger-turn_hard`, `finger-turn_easy`
-- **Balance**: `cartpole-balance`, `cartpole-swingup`
-- **Others**: `ball_in_cup-catch`, `point_mass-easy`
-
-## Gym/Gymnasium
-
-Standard reinforcement learning environments.
-
-### Setup
-
-```bash
-pip install gymnasium
-pip install gymnasium[classic-control,atari,box2d]  # optional extras
-```
-
-### Configuration
+For direct environment construction, import the relevant factory from `world_models.envs`:
 
 ```python :class: thebe
-cfg = DreamerConfig()
-cfg.env_backend = "gym"
-cfg.env = "Pendulum-v1"
-cfg.gym_render_mode = "rgb_array"  # for rendering
+from world_models.envs import DeepMindControlEnv, make_gym_env, make_atari_env
+
+dmc_env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
+gym_env = make_gym_env("Pendulum-v1", seed=0, size=(64, 64))
+atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 ```
 
-### Custom Environments
+## Backend summary
 
-```python :class: thebe
-import gymnasium as gym
-from world_models.envs import GymWrapper
+| Backend | Page | Use when |
+| --- | --- | --- |
+| DeepMind Control Suite | [DMC](environments/dmc.md) | You want Dreamer-style continuous-control tasks with rendered images and native DMC state observations. |
+| Gym/Gymnasium | [Gym](environments/gym.md) | You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations. |
+| Atari | [Atari](environments/atari.md) | You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing. |
+| MuJoCo | [MuJoCo](environments/mujoco.md) | You want configurable Humanoid or HalfCheetah Gymnasium factories. |
+| Unity ML-Agents | [Unity](environments/unity.md) | You want to train against external Unity executables with continuous-control behaviors. |
+| Vectorized environments | [Vectorized](environments/vectorized.md) | You need batched rollout collection across native ALE vector envs or multiprocessing Gym-like env factories. |
+| Wrappers | [Wrappers](environments/wrappers.md) | You need action repeat, time limits, action normalization, one-hot actions, reward observations, or image transforms. |
 
-# Use existing gym env
-env = gym.make("CartPole-v1")
+## Shared TorchWM environment conventions
 
-# Or wrap custom env
-class MyEnv(gym.Env):
-    # Implement gym.Env interface
-    pass
+- Image-based training code generally expects an observation dictionary with an `image` entry.
+- DMC, Gym/Gymnasium, and Unity adapters return channel-first images shaped `(3, H, W)` with dtype `uint8`.
+- Atari can expose raw ALE observations, native vectorized observations, or DIAMOND-style preprocessed frames; check the Atari page before feeding observations directly to a model.
+- Dreamer environment creation applies `ActionRepeat`, `NormalizeActions`, and `TimeLimit` after constructing the selected backend.
+- Use `torchwm envs list` to inspect the lightweight backend catalog available to the CLI.
 
-cfg.env_instance = MyEnv()
-```
+## Common issues
 
-## Unity ML-Agents
-
-For complex 3D environments and simulations.
-
-### Setup
-
-1. Install Unity ML-Agents: https://github.com/Unity-Technologies/ml-agents
-2. Build your environment executable
-
-### Configuration
-
-```python :class: thebe
-cfg = DreamerConfig()
-cfg.env_backend = "unity_mlagents"
-cfg.unity_file_name = r"C:\Path\To\Env.exe"
-cfg.unity_behavior_name = "YourBehavior"
-cfg.unity_no_graphics = True  # faster training
-cfg.unity_time_scale = 20.0  # speed up simulation
-```
-
-## Custom Environments
-
-Implement your own environments using the TorchWM interface.
-
-### Environment Interface
-
-```python :class: thebe
-from world_models.envs.base import BaseEnvironment
-
-class MyEnvironment(BaseEnvironment):
-    def __init__(self, config):
-        super().__init__(config)
-        # Initialize your environment
-
-    def reset(self):
-        # Reset environment
-        return initial_observation
-
-    def step(self, action):
-        # Execute action
-        # Return: observation, reward, done, info
-        return obs, reward, done, {}
-
-    def render(self):
-        # Optional rendering
-        pass
-
-    def close(self):
-        # Cleanup
-        pass
-```
-
-### Registration
-
-```python :class: thebe
-from world_models.envs import register_environment
-
-register_environment("my_env", MyEnvironment)
-
-# Then use in config
-cfg.env_backend = "custom"
-cfg.env = "my_env"
-```
-
-## Environment Wrappers
-
-Apply transformations to environments:
-
-```python :class: thebe
-from world_models.envs.wrappers import (
-    FrameStackWrapper,
-    ActionRepeatWrapper,
-    RewardScaleWrapper
-)
-
-# Stack frames
-env = FrameStackWrapper(env, num_stack=4)
-
-# Repeat actions
-env = ActionRepeatWrapper(env, repeat=4)
-
-# Scale rewards
-env = RewardScaleWrapper(env, scale=0.1)
-```
-
-## Multi-Environment Training
-
-Train on multiple environments simultaneously:
-
-```python :class: thebe
-cfg = DreamerConfig()
-cfg.envs = ["walker-walk", "cheetah-run", "finger-turn_hard"]
-cfg.env_sampling = "uniform"  # or "weighted"
-```
-
-## Evaluation Environments
-
-Use separate environments for evaluation:
-
-```python :class: thebe
-cfg = DreamerConfig()
-cfg.eval_env = "walker-run"  # different from training env
-cfg.eval_episodes = 10
-cfg.eval_freq = 10000
-```
-
-## Debugging Environments
-
-### Visualization
-
-```python :class: thebe
-from world_models.envs.utils import play_environment
-
-# Play environment interactively
-play_environment(cfg, num_episodes=5)
-```
-
-### Recording
-
-```python :class: thebe
-from world_models.envs.utils import record_environment
-
-# Record episodes
-record_environment(cfg, num_episodes=3, save_path="videos/")
-```
-
-## Performance Tips
-
-### Environment Speed
-
-1. **Use vectorized environments** for faster training
-2. **Disable rendering** during training
-3. **Use action repeat** to reduce environment calls
-4. **Batch observations** when possible
-
-### Memory Usage
-
-1. **Limit frame buffers** in memory
-2. **Use efficient observation types** (avoid large images if possible)
-3. **Clear environment caches** periodically
-
-## Common Issues
-
-### Import Errors
-- Ensure all dependencies are installed
-- Check environment paths for Unity ML-Agents
-
-### Performance Issues
-- Profile environment step times
-- Check for unnecessary computations in step()
-
-### Observation Issues
-- Verify observation shapes match model inputs
-- Check normalization ranges
-
-### Action Issues
-- Ensure action spaces match agent outputs
-- Validate action bounds and types
+- **Missing optional dependency**: install the backend-specific package listed on the backend page.
+- **Observation shape mismatch**: verify whether your selected factory returns CHW image dictionaries, HWC images, RAM, or vector observations.
+- **Action mismatch**: distinguish raw discrete action indices from one-hot vectors and normalized continuous actions.
+- **Slow environments**: disable rendering where possible, use action repeat, and consider vectorized rollout collection.

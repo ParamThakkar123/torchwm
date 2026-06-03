@@ -302,6 +302,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
+
 
 <span class="n">RewardFn</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">float</span><span class="p">]</span>
 <span class="n">TerminalFn</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]</span>
@@ -331,6 +333,15 @@
         <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_native_model_source</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">model_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">model_text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">model_text</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s2">&quot;.xml&quot;</span><span class="p">,</span> <span class="s2">&quot;.mjb&quot;</span><span class="p">))</span>
+        <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">model_text</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_infer_model_source</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]:</span>
     <span class="n">model_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">model_text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&lt;&quot;</span><span class="p">):</span>
@@ -340,25 +351,33 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;xml_path&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_model_source_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_xml_string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;xml_string&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">mujoco_xml_string</span><span class="p">}</span>
-    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_binary_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;binary_path&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">mujoco_binary_path</span><span class="p">}</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;xml_path&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_xml_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">}</span>
-
-
 <div class="viewcode-block" id="make_mujoco_env_from_config">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_mujoco_env_from_config">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_mujoco_env_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;MuJoCoImageEnv&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a MuJoCoImageEnv from a DreamerConfig-like object.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">MuJoCoImageEnv</span><span class="p">(</span>
-        <span class="o">**</span><span class="n">_model_source_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">),</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_mujoco_env_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a MuJoCo image environment from a DreamerConfig-like object.&quot;&quot;&quot;</span>
+    <span class="n">native_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+        <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">size</span><span class="p">,</span>
+        <span class="s2">&quot;camera&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_camera&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">&quot;frame_skip&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_frame_skip&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="s2">&quot;reset_noise_scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_reset_noise_scale&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_xml_string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">xml_string</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mujoco_xml_string</span><span class="p">,</span> <span class="o">**</span><span class="n">native_kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_binary_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">binary_path</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mujoco_binary_path</span><span class="p">,</span> <span class="o">**</span><span class="n">native_kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_xml_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">xml_path</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mujoco_xml_path</span><span class="p">,</span> <span class="o">**</span><span class="n">native_kwargs</span><span class="p">)</span>
+
+    <span class="n">gym_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">reset_noise_scale</span> <span class="o">=</span> <span class="n">native_kwargs</span><span class="p">[</span><span class="s2">&quot;reset_noise_scale&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">reset_noise_scale</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">gym_kwargs</span><span class="p">[</span><span class="s2">&quot;reset_noise_scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reset_noise_scale</span>
+    <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
         <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
         <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-        <span class="n">camera</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_camera&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">frame_skip</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_frame_skip&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
-        <span class="n">reset_noise_scale</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;mujoco_reset_noise_scale&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+        <span class="n">gym_kwargs</span><span class="o">=</span><span class="n">gym_kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -553,78 +572,67 @@
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_mujoco_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_mujoco_env</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MuJoCoImageEnv</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a native MuJoCo image environment from an XML/MJB path or XML string.</span>
-
-<span class="sd">    ``model`` is treated as an MJCF XML string when it starts with ``&lt;``;</span>
-<span class="sd">    otherwise it is interpreted as a filesystem path. Use explicit</span>
-<span class="sd">    ``xml_path``, ``xml_string``, or ``binary_path`` keyword arguments when the</span>
-<span class="sd">    source type should not be inferred.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_infer_model_source</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">})</span>
-    <span class="k">return</span> <span class="n">MuJoCoImageEnv</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="make_humanoid_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_humanoid_env">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_humanoid_env</span><span class="p">(</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;v4&quot;</span><span class="p">,</span>
-    <span class="n">xml_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;humanoid.xml&quot;</span><span class="p">,</span>
-    <span class="n">forward_reward_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.25</span><span class="p">,</span>
-    <span class="n">ctrl_cost_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">contact_cost_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5e-7</span><span class="p">,</span>
-    <span class="n">healthy_reward</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span>
-    <span class="n">terminate_when_unhealthy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">healthy_z_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
-    <span class="n">reset_noise_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="p">,</span>
-    <span class="n">exclude_current_positions_from_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">include_cinert_in_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">include_cvel_in_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">include_qfrc_actuator_in_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">include_cfrc_ext_in_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create Gymnasium&#39;s task-level Humanoid MuJoCo environment.&quot;&quot;&quot;</span>
-    <span class="n">env_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Humanoid-</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="k">return</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
-        <span class="n">env_id</span><span class="p">,</span>
-        <span class="n">xml_file</span><span class="o">=</span><span class="n">xml_file</span><span class="p">,</span>
-        <span class="n">forward_reward_weight</span><span class="o">=</span><span class="n">forward_reward_weight</span><span class="p">,</span>
-        <span class="n">ctrl_cost_weight</span><span class="o">=</span><span class="n">ctrl_cost_weight</span><span class="p">,</span>
-        <span class="n">contact_cost_weight</span><span class="o">=</span><span class="n">contact_cost_weight</span><span class="p">,</span>
-        <span class="n">healthy_reward</span><span class="o">=</span><span class="n">healthy_reward</span><span class="p">,</span>
-        <span class="n">terminate_when_unhealthy</span><span class="o">=</span><span class="n">terminate_when_unhealthy</span><span class="p">,</span>
-        <span class="n">healthy_z_range</span><span class="o">=</span><span class="n">healthy_z_range</span><span class="p">,</span>
-        <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
-        <span class="n">exclude_current_positions_from_observation</span><span class="o">=</span><span class="n">exclude_current_positions_from_observation</span><span class="p">,</span>
-        <span class="n">include_cinert_in_observation</span><span class="o">=</span><span class="n">include_cinert_in_observation</span><span class="p">,</span>
-        <span class="n">include_cvel_in_observation</span><span class="o">=</span><span class="n">include_cvel_in_observation</span><span class="p">,</span>
-        <span class="n">include_qfrc_actuator_in_observation</span><span class="o">=</span><span class="n">include_qfrc_actuator_in_observation</span><span class="p">,</span>
-        <span class="n">include_cfrc_ext_in_observation</span><span class="o">=</span><span class="n">include_cfrc_ext_in_observation</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="make_half_cheetah_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_half_cheetah_env">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_half_cheetah_env</span><span class="p">(</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;v4&quot;</span><span class="p">,</span>
-    <span class="n">forward_reward_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">reset_noise_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">exclude_current_positions_from_observation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
     <span class="n">render_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create Gymnasium&#39;s task-level HalfCheetah MuJoCo environment.&quot;&quot;&quot;</span>
-    <span class="n">env_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;HalfCheetah-</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="k">return</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
-        <span class="n">env_id</span><span class="p">,</span>
-        <span class="n">forward_reward_weight</span><span class="o">=</span><span class="n">forward_reward_weight</span><span class="p">,</span>
-        <span class="n">reset_noise_scale</span><span class="o">=</span><span class="n">reset_noise_scale</span><span class="p">,</span>
-        <span class="n">exclude_current_positions_from_observation</span><span class="o">=</span><span class="n">exclude_current_positions_from_observation</span><span class="p">,</span>
-        <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span>
-    <span class="p">)</span></div>
+    <span class="n">gym_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create one MuJoCo image environment factory for tasks and MJCF/MJB models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model: Either a Gymnasium MuJoCo task id such as ``&quot;Humanoid-v4&quot;``,</span>
+<span class="sd">            an MJCF XML path/string, or an MJB binary path.</span>
+<span class="sd">        backend: ``&quot;auto&quot;`` infers native vs Gymnasium task mode. Use</span>
+<span class="sd">            ``&quot;native&quot;`` for MJCF/MJB or ``&quot;gymnasium&quot;`` for task ids.</span>
+<span class="sd">        seed: Seed forwarded to the image wrapper.</span>
+<span class="sd">        size: Target ``(height, width)`` image size.</span>
+<span class="sd">        render_mode: Render mode used for Gymnasium MuJoCo task ids.</span>
+<span class="sd">        gym_kwargs: Optional keyword arguments forwarded to ``gymnasium.make``</span>
+<span class="sd">            in task-id mode. Extra ``**kwargs`` are also forwarded there.</span>
+<span class="sd">        **kwargs: Native ``MuJoCoImageEnv`` options for MJCF/MJB mode, or</span>
+<span class="sd">            environment-constructor options for Gymnasium task-id mode.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A TorchWM image environment returning ``{&quot;image&quot;: uint8[C, H, W]}``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">explicit_native_source</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xml_path&quot;</span><span class="p">,</span> <span class="s2">&quot;xml_string&quot;</span><span class="p">,</span> <span class="s2">&quot;binary_path&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">use_native</span> <span class="o">=</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;native&quot;</span><span class="p">,</span> <span class="s2">&quot;mjcf&quot;</span><span class="p">,</span> <span class="s2">&quot;mjb&quot;</span><span class="p">}</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span>
+        <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">explicit_native_source</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_is_native_model_source</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">use_native</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_infer_model_source</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">MuJoCoImageEnv</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;gym&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown MuJoCo backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">!r}</span><span class="s2">. Use &#39;auto&#39;, &#39;native&#39;, or &#39;gymnasium&#39;.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;A Gymnasium MuJoCo environment id, XML path/string, or MJB path is required.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">env_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">gym_kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">env_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">env_kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="o">**</span><span class="n">env_kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -413,42 +413,51 @@ pip<span class="w"> </span>install<span class="w"> </span>gymnasium<span class="
 </div>
 </section>
 </section>
-<section id="native-mujoco">
-<h2>Native MuJoCo<a class="headerlink" href="#native-mujoco" title="Link to this heading">#</a></h2>
-<p>TorchWM can train pixel-based world models directly from MJCF XML or MJB
-models using the native <code class="docutils literal notranslate"><span class="pre">mujoco</span></code> Python bindings. The adapter compiles models
-with <code class="docutils literal notranslate"><span class="pre">mujoco.MjModel</span></code>, advances physics with <code class="docutils literal notranslate"><span class="pre">mujoco.mj_step</span></code>, renders frames
-with <code class="docutils literal notranslate"><span class="pre">mujoco.Renderer</span></code>, and returns Dreamer-compatible observations in the
-form <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[C,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>.</p>
+<section id="mujoco">
+<h2>MuJoCo<a class="headerlink" href="#mujoco" title="Link to this heading">#</a></h2>
+<p>TorchWM uses one <code class="docutils literal notranslate"><span class="pre">make_mujoco_env</span></code> entry point for MuJoCo tasks and native
+models. Pass a Gymnasium MuJoCo task id such as <code class="docutils literal notranslate"><span class="pre">&quot;Humanoid-v4&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;Ant-v4&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;HalfCheetah-v4&quot;</span></code> to use the task definitions and rewards
+provided by Gymnasium, or pass an MJCF XML string/path or MJB binary path to
+use the native <code class="docutils literal notranslate"><span class="pre">mujoco</span></code> Python bindings directly. In both modes TorchWM returns
+Dreamer-compatible observations in the form <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[C,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>.</p>
 <section id="id3">
 <h3>Setup<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>mujoco<span class="o">]</span>
-<span class="c1"># or: pip install mujoco</span>
+<span class="c1"># or: pip install mujoco gymnasium[mujoco]</span>
 </pre></div>
 </div>
 </section>
 <section id="dreamer-configuration">
 <h3>Dreamer Configuration<a class="headerlink" href="#dreamer-configuration" title="Link to this heading">#</a></h3>
+<p>Use a Gymnasium MuJoCo task id when you want standard MuJoCo benchmark rewards
+and termination logic:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;mujoco&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;models/cartpole.xml&quot;</span>  <span class="c1"># MJCF XML path when mujoco_xml_path is unset</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Humanoid-v4&quot;</span>       <span class="c1"># also supports Ant-v4, Hopper-v4, etc.</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>          <span class="c1"># camera name/id, or None for default camera</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">4</span>         <span class="c1"># MuJoCo physics steps per TorchWM env step</span>
+</pre></div>
+</div>
+<p>Use an MJCF/MJB model when you want direct native MuJoCo simulation. Native
+models define physics, but not reinforcement-learning rewards, so
+<code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> defaults to zero reward unless you provide callbacks.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;mujoco&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;models/cartpole.xml&quot;</span>  <span class="c1"># inferred as an MJCF path</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_reset_noise_scale</span> <span class="o">=</span> <span class="mf">0.01</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code> uses <code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config</span></code> internally so the Dreamer
-code path stays small: all MuJoCo source selection and adapter-specific keyword
-translation lives in <code class="docutils literal notranslate"><span class="pre">world_models.envs.mujoco_env</span></code>.</p>
-<p>You can also pass <code class="docutils literal notranslate"><span class="pre">cfg.mujoco_xml_string</span></code> for inline MJCF or
-<code class="docutils literal notranslate"><span class="pre">cfg.mujoco_binary_path</span></code> for compiled MJB models. Native MuJoCo files define
-physics but not task rewards, so <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> defaults to zero reward and
-relies on wrappers such as <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code> for episode length. For task-specific
-training, instantiate the adapter directly with <code class="docutils literal notranslate"><span class="pre">reward_fn</span></code> and <code class="docutils literal notranslate"><span class="pre">terminal_fn</span></code>
-callbacks, then assign it to <code class="docutils literal notranslate"><span class="pre">cfg.env_instance</span></code>.</p>
+<p>You can also pass <code class="docutils literal notranslate"><span class="pre">cfg.mujoco_xml_path</span></code>, <code class="docutils literal notranslate"><span class="pre">cfg.mujoco_xml_string</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">cfg.mujoco_binary_path</span></code> to force native MJCF/MJB mode. <code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code> uses
+<code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config</span></code> internally so the Dreamer code path stays small:
+all MuJoCo source selection and adapter-specific keyword translation lives in
+<code class="docutils literal notranslate"><span class="pre">world_models.envs.mujoco_env</span></code>.</p>
+<p>For task-specific native rewards or termination logic, instantiate the adapter
+directly with <code class="docutils literal notranslate"><span class="pre">reward_fn</span></code> and <code class="docutils literal notranslate"><span class="pre">terminal_fn</span></code> callbacks, then assign it to
+<code class="docutils literal notranslate"><span class="pre">cfg.env_instance</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">MuJoCoImageEnv</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">reward_fn</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
@@ -468,10 +477,14 @@ callbacks, then assign it to <code class="docutils literal notranslate"><span cl
 </section>
 <section id="direct-factory-usage">
 <h3>Direct Factory Usage<a class="headerlink" href="#direct-factory-usage" title="Link to this heading">#</a></h3>
-<p>For scripts that do not use <code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>, create a MuJoCo image environment
-directly from a path, compiled binary, or inline MJCF string:</p>
+<p>For scripts that do not use <code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>, use the same <code class="docutils literal notranslate"><span class="pre">make_mujoco_env</span></code>
+function for both standard tasks and native models:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env</span>
 
+<span class="c1"># Standard Gymnasium MuJoCo task.</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="s2">&quot;Humanoid-v4&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">forward_reward_weight</span><span class="o">=</span><span class="mf">1.25</span><span class="p">)</span>
+
+<span class="c1"># Native inline MJCF model.</span>
 <span class="n">xml</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">&lt;mujoco&gt;</span>
 <span class="s2">  &lt;worldbody&gt;</span>
@@ -481,9 +494,8 @@ directly from a path, compiled binary, or inline MJCF string:</p>
 <span class="s2">  &lt;/worldbody&gt;</span>
 <span class="s2">&lt;/mujoco&gt;</span>
 <span class="s2">&quot;&quot;&quot;</span>
-
-<span class="n">env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frame_skip</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">native_env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">xml</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frame_skip</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">native_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -491,7 +503,7 @@ directly from a path, compiled binary, or inline MJCF string:</p>
 explicit backend:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s2">&quot;models/cartpole.xml&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;mujoco&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s2">&quot;Humanoid-v4&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;mujoco&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -735,7 +747,7 @@ explicit backend:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-environments">Custom Environments</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#native-mujoco">Native MuJoCo</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mujoco">MuJoCo</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Setup</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer-configuration">Dreamer Configuration</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#direct-factory-usage">Direct Factory Usage</a></li>

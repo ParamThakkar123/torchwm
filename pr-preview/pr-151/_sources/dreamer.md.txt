@@ -155,10 +155,10 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 
-cfg.env_backend = "mujoco"   # Native MuJoCo MJCF/MJB files
-cfg.env = "models/cartpole.xml"
-cfg.mujoco_camera = None
-cfg.mujoco_frame_skip = 4
+cfg.env_backend = "mujoco"   # MuJoCo task ids or native MJCF/MJB files
+cfg.env = "Humanoid-v4"      # or "models/cartpole.xml"
+cfg.mujoco_camera = None     # native MJCF/MJB only
+cfg.mujoco_frame_skip = 4    # native MJCF/MJB only
 
 cfg.env_backend = "unity_mlagents"  # Unity ML-Agents
 cfg.unity_file_name = "env.exe"
@@ -166,11 +166,10 @@ cfg.unity_file_name = "env.exe"
 
 For MuJoCo tasks, Dreamer delegates adapter construction to
 `make_mujoco_env_from_config`, which keeps `make_env` focused on backend
-selection while the MuJoCo module owns XML/MJB source selection, camera options,
-frame skip, and reset-noise handling. Native MJCF/MJB models do not include a
-reinforcement-learning reward by themselves; for custom rewards or termination
-logic, instantiate `MuJoCoImageEnv` with `reward_fn` and `terminal_fn` and pass
-it through `cfg.env_instance`.
+selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
+Gymnasium task ids such as `Humanoid-v4` for standard benchmark rewards, or use
+native MJCF/MJB sources plus `MuJoCoImageEnv` callbacks for custom rewards and
+termination logic.
 
 ## References
 

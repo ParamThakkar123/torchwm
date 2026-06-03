@@ -9528,18 +9528,26 @@ wrappers such as <code class="docutils literal notranslate"><span class="pre">Ti
 
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.envs.make_mujoco_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_mujoco_env" title="Link to this definition">#</a></dt>
-<dd><p>Create a native MuJoCo image environment from an XML/MJB path or XML string.</p>
-<p><code class="docutils literal notranslate"><span class="pre">model</span></code> is treated as an MJCF XML string when it starts with <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>;
-otherwise it is interpreted as a filesystem path. Use explicit
-<code class="docutils literal notranslate"><span class="pre">xml_path</span></code>, <code class="docutils literal notranslate"><span class="pre">xml_string</span></code>, or <code class="docutils literal notranslate"><span class="pre">binary_path</span></code> keyword arguments when the
-source type should not be inferred.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb_array'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gym_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_mujoco_env" title="Link to this definition">#</a></dt>
+<dd><p>Create one MuJoCo image environment factory for tasks and MJCF/MJB models.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – Either a Gymnasium MuJoCo task id such as <code class="docutils literal notranslate"><span class="pre">&quot;Humanoid-v4&quot;</span></code>,
+an MJCF XML path/string, or an MJB binary path.</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> infers native vs Gymnasium task mode. Use
+<code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> for MJCF/MJB or <code class="docutils literal notranslate"><span class="pre">&quot;gymnasium&quot;</span></code> for task ids.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Seed forwarded to the image wrapper.</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Target <code class="docutils literal notranslate"><span class="pre">(height,</span> <span class="pre">width)</span></code> image size.</p></li>
+<li><p><strong>render_mode</strong> (<em>str</em>) – Render mode used for Gymnasium MuJoCo task ids.</p></li>
+<li><p><strong>gym_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>) – Optional keyword arguments forwarded to <code class="docutils literal notranslate"><span class="pre">gymnasium.make</span></code>
+in task-id mode. Extra <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are also forwarded there.</p></li>
+<li><p><strong>**kwargs</strong> – Native <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> options for MJCF/MJB mode, or
+environment-constructor options for Gymnasium task-id mode.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.mujoco_env.MuJoCoImageEnv" title="world_models.envs.mujoco_env.MuJoCoImageEnv"><em>MuJoCoImageEnv</em></a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A TorchWM image environment returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[C,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -9547,62 +9555,10 @@ source type should not be inferred.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.envs.make_mujoco_env_from_config">
 <span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env_from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env_from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_mujoco_env_from_config" title="Link to this definition">#</a></dt>
-<dd><p>Build a MuJoCoImageEnv from a DreamerConfig-like object.</p>
+<dd><p>Build a MuJoCo image environment from a DreamerConfig-like object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.mujoco_env.MuJoCoImageEnv" title="world_models.envs.mujoco_env.MuJoCoImageEnv"><em>MuJoCoImageEnv</em></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="world_models.envs.make_humanoid_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_humanoid_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'humanoid.xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward_reward_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctrl_cost_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contact_cost_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">healthy_reward</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminate_when_unhealthy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">healthy_z_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">2.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_current_positions_from_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cinert_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cvel_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_qfrc_actuator_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cfrc_ext_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_humanoid_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_humanoid_env" title="Link to this definition">#</a></dt>
-<dd><p>Create Gymnasium’s task-level Humanoid MuJoCo environment.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>version</strong> (<em>str</em>)</p></li>
-<li><p><strong>xml_file</strong> (<em>str</em>)</p></li>
-<li><p><strong>forward_reward_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>ctrl_cost_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>contact_cost_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>healthy_reward</strong> (<em>float</em>)</p></li>
-<li><p><strong>terminate_when_unhealthy</strong> (<em>bool</em>)</p></li>
-<li><p><strong>healthy_z_range</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>)</p></li>
-<li><p><strong>reset_noise_scale</strong> (<em>float</em>)</p></li>
-<li><p><strong>exclude_current_positions_from_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cinert_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cvel_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_qfrc_actuator_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cfrc_ext_in_observation</strong> (<em>bool</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>gymnasium.Env</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="world_models.envs.make_half_cheetah_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_half_cheetah_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward_reward_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_current_positions_from_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb_array'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_half_cheetah_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_half_cheetah_env" title="Link to this definition">#</a></dt>
-<dd><p>Create Gymnasium’s task-level HalfCheetah MuJoCo environment.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>version</strong> (<em>str</em>)</p></li>
-<li><p><strong>forward_reward_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>reset_noise_scale</strong> (<em>float</em>)</p></li>
-<li><p><strong>exclude_current_positions_from_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>render_mode</strong> (<em>str</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>gymnasium.Env</p>
 </dd>
 </dl>
 </dd></dl>
@@ -10137,13 +10093,10 @@ package-specific factories when available, falling back to gym.make.</p>
 <dl class="py function" id="module-world_models.envs.mujoco_env">
 <dt class="sig sig-object py" id="world_models.envs.mujoco_env.make_mujoco_env_from_config">
 <span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env_from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env_from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config" title="Link to this definition">#</a></dt>
-<dd><p>Build a MuJoCoImageEnv from a DreamerConfig-like object.</p>
+<dd><p>Build a MuJoCo image environment from a DreamerConfig-like object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.mujoco_env.MuJoCoImageEnv" title="world_models.envs.mujoco_env.MuJoCoImageEnv"><em>MuJoCoImageEnv</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -10219,67 +10172,26 @@ wrappers such as <code class="docutils literal notranslate"><span class="pre">Ti
 
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.envs.mujoco_env.make_mujoco_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_mujoco_env" title="Link to this definition">#</a></dt>
-<dd><p>Create a native MuJoCo image environment from an XML/MJB path or XML string.</p>
-<p><code class="docutils literal notranslate"><span class="pre">model</span></code> is treated as an MJCF XML string when it starts with <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>;
-otherwise it is interpreted as a filesystem path. Use explicit
-<code class="docutils literal notranslate"><span class="pre">xml_path</span></code>, <code class="docutils literal notranslate"><span class="pre">xml_string</span></code>, or <code class="docutils literal notranslate"><span class="pre">binary_path</span></code> keyword arguments when the
-source type should not be inferred.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.mujoco_env.MuJoCoImageEnv" title="world_models.envs.mujoco_env.MuJoCoImageEnv"><em>MuJoCoImageEnv</em></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="world_models.envs.mujoco_env.make_humanoid_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_humanoid_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xml_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'humanoid.xml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward_reward_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctrl_cost_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contact_cost_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">healthy_reward</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminate_when_unhealthy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">healthy_z_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">2.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_current_positions_from_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cinert_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cvel_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_qfrc_actuator_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_cfrc_ext_in_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_humanoid_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_humanoid_env" title="Link to this definition">#</a></dt>
-<dd><p>Create Gymnasium’s task-level Humanoid MuJoCo environment.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb_array'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gym_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_mujoco_env" title="Link to this definition">#</a></dt>
+<dd><p>Create one MuJoCo image environment factory for tasks and MJCF/MJB models.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>version</strong> (<em>str</em>)</p></li>
-<li><p><strong>xml_file</strong> (<em>str</em>)</p></li>
-<li><p><strong>forward_reward_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>ctrl_cost_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>contact_cost_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>healthy_reward</strong> (<em>float</em>)</p></li>
-<li><p><strong>terminate_when_unhealthy</strong> (<em>bool</em>)</p></li>
-<li><p><strong>healthy_z_range</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>)</p></li>
-<li><p><strong>reset_noise_scale</strong> (<em>float</em>)</p></li>
-<li><p><strong>exclude_current_positions_from_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cinert_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cvel_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_qfrc_actuator_in_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>include_cfrc_ext_in_observation</strong> (<em>bool</em>)</p></li>
+<li><p><strong>model</strong> (<em>str</em><em> | </em><em>Path</em><em> | </em><em>None</em>) – Either a Gymnasium MuJoCo task id such as <code class="docutils literal notranslate"><span class="pre">&quot;Humanoid-v4&quot;</span></code>,
+an MJCF XML path/string, or an MJB binary path.</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> infers native vs Gymnasium task mode. Use
+<code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> for MJCF/MJB or <code class="docutils literal notranslate"><span class="pre">&quot;gymnasium&quot;</span></code> for task ids.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Seed forwarded to the image wrapper.</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Target <code class="docutils literal notranslate"><span class="pre">(height,</span> <span class="pre">width)</span></code> image size.</p></li>
+<li><p><strong>render_mode</strong> (<em>str</em>) – Render mode used for Gymnasium MuJoCo task ids.</p></li>
+<li><p><strong>gym_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>) – Optional keyword arguments forwarded to <code class="docutils literal notranslate"><span class="pre">gymnasium.make</span></code>
+in task-id mode. Extra <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are also forwarded there.</p></li>
+<li><p><strong>**kwargs</strong> – Native <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> options for MJCF/MJB mode, or
+environment-constructor options for Gymnasium task-id mode.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>gymnasium.Env</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="world_models.envs.mujoco_env.make_half_cheetah_env">
-<span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_half_cheetah_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v4'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forward_reward_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_noise_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_current_positions_from_observation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb_array'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_half_cheetah_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_half_cheetah_env" title="Link to this definition">#</a></dt>
-<dd><p>Create Gymnasium’s task-level HalfCheetah MuJoCo environment.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>version</strong> (<em>str</em>)</p></li>
-<li><p><strong>forward_reward_weight</strong> (<em>float</em>)</p></li>
-<li><p><strong>reset_noise_scale</strong> (<em>float</em>)</p></li>
-<li><p><strong>exclude_current_positions_from_observation</strong> (<em>bool</em>)</p></li>
-<li><p><strong>render_mode</strong> (<em>str</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>gymnasium.Env</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A TorchWM image environment returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[C,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -14074,8 +13986,6 @@ along the batch dimension.</p>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_humanoid_env"><code class="docutils literal notranslate"><span class="pre">make_humanoid_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_half_cheetah_env"><code class="docutils literal notranslate"><span class="pre">make_half_cheetah_env()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv"><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
@@ -14175,8 +14085,6 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_humanoid_env"><code class="docutils literal notranslate"><span class="pre">make_humanoid_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_half_cheetah_env"><code class="docutils literal notranslate"><span class="pre">make_half_cheetah_env()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>

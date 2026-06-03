@@ -1,0 +1,732 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="World Models Study Guide" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-154/world_models_guide.html" />
+<meta property="og:site_name" content="TorchWM Documentation" />
+<meta property="og:description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
+<meta name="description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
+
+    <title>World Models Study Guide &#8212; TorchWM 0.4.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'world_models_guide';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="_static/mathjax_config.js?v=90e9db6d"></script>
+    <script src="_static/mathjax_local.js?v=3f4cc662"></script>
+    <script src="_static/fix_navbar.js?v=92322e29"></script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-154/world_models_guide.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dreamer: Model-Based RL with Latent Dynamics" href="dreamer.html" />
+    <link rel="prev" title="Package Overview" href="package_overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">World Models Study Guide</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarks.html">Benchmarking World Models</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">World Models Study Guide</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="world-models-study-guide">
+<h1>World Models Study Guide<a class="headerlink" href="#world-models-study-guide" title="Link to this heading">#</a></h1>
+<p>This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use the API reference for exact constructor and method details.</p>
+<section id="what-is-a-world-model">
+<h2>What is a world model?<a class="headerlink" href="#what-is-a-world-model" title="Link to this heading">#</a></h2>
+<p>A <strong>world model</strong> is a learned simulator. It compresses observations into a latent state, predicts how that state changes after actions, and optionally predicts rewards, terminal flags, or future pixels/tokens. In reinforcement learning, this lets an agent train or plan in imagination instead of relying only on expensive environment interaction.</p>
+<p>A common objective decomposes into reconstruction, dynamics, and task losses:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}
+= \mathcal{L}_{\text{recon}}(x_t, \hat{x}_t)
++ \beta\,D_{\mathrm{KL}}\big(q(z_t \mid x_{\le t}, a_{&lt;t})\;\|\;p(z_t \mid z_{&lt;t}, a_{&lt;t})\big)
++ \mathcal{L}_{\text{reward}}
++ \mathcal{L}_{\text{policy}}.\]</div>
+<p>The exact terms change by family: Dreamer and PlaNet emphasize latent state-space dynamics, IRIS and Genie emphasize discrete token dynamics, JEPA emphasizes representation prediction without pixel reconstruction, and DiT/DIAMOND emphasize diffusion-based generation.</p>
+</section>
+<section id="quick-model-chooser">
+<h2>Quick model chooser<a class="headerlink" href="#quick-model-chooser" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>If you want to study or build…</p></th>
+<th class="head"><p>Start with</p></th>
+<th class="head"><p>Core files</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Latent-dynamics model-based RL from pixels</p></td>
+<td><p>Dreamer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.dreamer_rssm</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Classical latent planning with CEM-style imagination</p></td>
+<td><p>PlaNet / RSSM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.planet</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.rssm</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Swappable encoders, decoders, and recurrent backbones</p></td>
+<td><p>Modular RSSM</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.modular_rssm</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Self-supervised visual representations</p></td>
+<td><p>JEPA + ViT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.jepa_agent</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.vit</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sample-efficient Atari with discrete token imagination</p></td>
+<td><p>IRIS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.iris_agent</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.iris_transformer</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Unsupervised controllable video-world modeling</p></td>
+<td><p>Genie</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.genie</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.latent_action_model</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models.dynamics_model</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Diffusion world models and image/video generation</p></td>
+<td><p>DDPM, DiT, DIAMOND</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.diffusion.*</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="shared-concepts">
+<h2>Shared concepts<a class="headerlink" href="#shared-concepts" title="Link to this heading">#</a></h2>
+<section id="latent-state">
+<h3>Latent state<a class="headerlink" href="#latent-state" title="Link to this heading">#</a></h3>
+<p>The latent state is the compact variable the model predicts through time. It may be continuous, discrete, or hybrid:</p>
+<ul class="simple">
+<li><p><strong>Continuous latents</strong> are convenient for Gaussian losses and differentiable dynamics.</p></li>
+<li><p><strong>Discrete latents</strong> are useful for token transformers, autoregressive modeling, and categorical planning.</p></li>
+<li><p><strong>Deterministic recurrent state</strong> stores history that is not represented by the current stochastic latent alone.</p></li>
+</ul>
+</section>
+<section id="dynamics-model">
+<h3>Dynamics model<a class="headerlink" href="#dynamics-model" title="Link to this heading">#</a></h3>
+<p>A dynamics model predicts future state conditioned on action:</p>
+<div class="math notranslate nohighlight">
+\[p(z_{t+1} \mid z_t, h_t, a_t), \qquad h_{t+1}=f_\theta(h_t, z_t, a_t).\]</div>
+<p>A good dynamics model must be accurate enough over multi-step rollouts, not just one-step predictions. This is why many algorithms mix teacher-forced training with imagined rollout losses or policy objectives.</p>
+</section>
+<section id="imagination-and-planning">
+<h3>Imagination and planning<a class="headerlink" href="#imagination-and-planning" title="Link to this heading">#</a></h3>
+<p>Once a model predicts futures, it can be used in two ways:</p>
+<ol class="arabic simple">
+<li><p><strong>Planning:</strong> search over candidate action sequences and execute the first action.</p></li>
+<li><p><strong>Policy learning:</strong> train an actor and critic on imagined trajectories.</p></li>
+</ol>
+<p>Dreamer is the canonical policy-learning example; PlaNet is the canonical planning example.</p>
+</section>
+</section>
+<section id="dreamer">
+<h2>Dreamer<a class="headerlink" href="#dreamer" title="Link to this heading">#</a></h2>
+<p>Dreamer learns a Recurrent State-Space Model (RSSM), then trains an actor-critic in latent imagination. The library exposes high-level training through <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code> and the core neural components through <code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">RSSM</span></code>, Dreamer encoders/decoders, replay memory, and utilities.</p>
+<section id="mental-model">
+<h3>Mental model<a class="headerlink" href="#mental-model" title="Link to this heading">#</a></h3>
+</section>
+<section id="what-to-study">
+<h3>What to study<a class="headerlink" href="#what-to-study" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Representation learning:</strong> The encoder maps image observations into embeddings for the RSSM.</p></li>
+<li><p><strong>Posterior vs. prior:</strong> The posterior sees the current observation during training; the prior predicts without seeing it and is used for imagination.</p></li>
+<li><p><strong>KL balancing:</strong> The KL term aligns posterior and prior while avoiding posterior collapse or an over-regularized latent.</p></li>
+<li><p><strong>Actor-critic in imagination:</strong> The policy is optimized using imagined rewards and values rather than direct environment gradients.</p></li>
+</ul>
+<p>The return target commonly used in Dreamer-style agents is the lambda return:</p>
+<div class="math notranslate nohighlight">
+\[G_t^\lambda = r_t + \gamma_t\left((1-\lambda)V(s_{t+1}) + \lambda G_{t+1}^\lambda\right).\]</div>
+</section>
+<section id="when-to-use-it">
+<h3>When to use it<a class="headerlink" href="#when-to-use-it" title="Link to this heading">#</a></h3>
+<p>Use Dreamer when your environment has image observations, actions are known, and you want sample-efficient reinforcement learning that can learn from a replay buffer while improving the policy in latent rollouts.</p>
+</section>
+</section>
+<section id="planet-and-rssm">
+<h2>PlaNet and RSSM<a class="headerlink" href="#planet-and-rssm" title="Link to this heading">#</a></h2>
+<p>PlaNet also learns latent dynamics from pixels, but it is usually associated with online planning rather than fully training an actor in imagination. In TorchWM, <code class="docutils literal notranslate"><span class="pre">Planet</span></code> is the high-level entry point and <code class="docutils literal notranslate"><span class="pre">RecurrentStateSpaceModel</span></code> is the PlaNet-style state-space component.</p>
+<section id="study-focus">
+<h3>Study focus<a class="headerlink" href="#study-focus" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Belief state:</strong> The deterministic recurrent state summarizes history.</p></li>
+<li><p><strong>Stochastic state:</strong> A sampled latent captures uncertainty and multimodality.</p></li>
+<li><p><strong>Planner loop:</strong> Candidate action sequences are scored by imagined returns, then the first action is executed.</p></li>
+</ul>
+<p>PlaNet is a good conceptual bridge: it is simpler than Dreamer’s actor-critic stack but introduces the same latent-dynamics ideas.</p>
+</section>
+</section>
+<section id="modular-rssm">
+<h2>Modular RSSM<a class="headerlink" href="#modular-rssm" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ModularRSSM</span></code> is designed for experimentation. Instead of hard-coding one encoder, backbone, and decoder, it provides interchangeable components:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ConvEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">MLPEncoder</span></code>, and <code class="docutils literal notranslate"><span class="pre">ViTEncoder</span></code> for observations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GRUBackbone</span></code>, <code class="docutils literal notranslate"><span class="pre">LSTMBackbone</span></code>, and <code class="docutils literal notranslate"><span class="pre">TransformerBackbone</span></code> for temporal memory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ConvDecoder</span></code> and <code class="docutils literal notranslate"><span class="pre">MLPDecoder</span></code> for reconstruction.</p></li>
+</ul>
+<p>Use it when studying ablations: for example, replacing a GRU with a transformer backbone while keeping the same loss and data pipeline.</p>
+</section>
+<section id="jepa-and-vision-transformers">
+<h2>JEPA and Vision Transformers<a class="headerlink" href="#jepa-and-vision-transformers" title="Link to this heading">#</a></h2>
+<p>JEPA (Joint Embedding Predictive Architecture) learns by predicting representations rather than pixels. The central idea is to avoid spending capacity on reconstructing every pixel detail and instead learn abstract features that are useful for downstream prediction or control.</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_{\text{JEPA}} = \left\|g_\theta(f_\theta(x_{\text{context}}), m) - \operatorname{sg}\left(f_{\bar{\theta}}(x_{\text{target}})\right)\right\|_2^2.\]</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">sg</span></code> denotes stop-gradient, <code class="docutils literal notranslate"><span class="pre">f</span></code> is an encoder, <code class="docutils literal notranslate"><span class="pre">g</span></code> is a predictor, and <code class="docutils literal notranslate"><span class="pre">m</span></code> represents masks or target metadata.</p>
+<section id="torchwm-pieces">
+<h3>TorchWM pieces<a class="headerlink" href="#torchwm-pieces" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code> coordinates representation learning.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VisionTransformer</span></code> and ViT helper constructors provide patch-based encoders.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">world_models.masks.*</span></code> contains masking/collation strategies for context-target prediction.</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3>When to use it<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>Use JEPA when you primarily want strong latent representations for perception, planning, or future world-model components, especially when pixel-perfect generation is not the goal.</p>
+</section>
+</section>
+<section id="iris">
+<h2>IRIS<a class="headerlink" href="#iris" title="Link to this heading">#</a></h2>
+<p>IRIS represents frames as discrete tokens and trains an autoregressive transformer world model. An actor-critic then learns from imagined token rollouts. This model family is useful for studying the connection between language-model-style sequence prediction and model-based RL.</p>
+<section id="important-ideas">
+<h3>Important ideas<a class="headerlink" href="#important-ideas" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Vector quantization:</strong> Continuous encoder outputs are mapped to codebook entries.</p></li>
+<li><p><strong>Token dynamics:</strong> The transformer predicts the next discrete visual tokens conditioned on previous tokens and actions.</p></li>
+<li><p><strong>Imagination:</strong> Policy learning uses sampled token futures, decoded states, rewards, and termination predictions.</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>TorchWM pieces<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">IRISAgent</span></code> combines model and policy behavior.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IRISTransformer</span></code> and <code class="docutils literal notranslate"><span class="pre">IRISWorldModel</span></code> implement token dynamics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiscreteAutoencoder</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISDecoder</span></code>, and VQ layers implement visual tokenization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer</span></code> and <code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer</span></code> store experience for world-model and policy updates.</p></li>
+</ul>
+</section>
+</section>
+<section id="genie">
+<h2>Genie<a class="headerlink" href="#genie" title="Link to this heading">#</a></h2>
+<p>Genie studies controllable world modeling from videos, including settings where action labels may not be available. It learns a latent action model (LAM) that infers action-like discrete variables from frame transitions, then trains a dynamics model to predict future video tokens conditioned on those latent actions.</p>
+<section id="core-pipeline">
+<h3>Core pipeline<a class="headerlink" href="#core-pipeline" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Video tokenizer:</strong> compresses frames into discrete visual tokens.</p></li>
+<li><p><strong>Latent Action Model:</strong> infers discrete latent actions from pairs or windows of frames.</p></li>
+<li><p><strong>Dynamics model:</strong> predicts future tokens using visual tokens and latent actions.</p></li>
+<li><p><strong>Sampler:</strong> iteratively fills or samples future tokens for interactive generation.</p></li>
+</ol>
+<p>This is useful for studying how controllability can emerge from observation-only video data.</p>
+</section>
+</section>
+<section id="ddpm-dit-and-diamond-style-diffusion-models">
+<h2>DDPM, DiT, and DIAMOND-style diffusion models<a class="headerlink" href="#ddpm-dit-and-diamond-style-diffusion-models" title="Link to this heading">#</a></h2>
+<p>Diffusion models learn to denoise corrupted data. Instead of predicting a single deterministic next frame, they learn a reverse process from noise to clean samples.</p>
+<div class="math notranslate nohighlight">
+\[q(x_t \mid x_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I\right),
+\qquad
+\mathcal{L}_{\text{DDPM}} = \left\|\epsilon - \epsilon_\theta(x_t, t, c)\right\|_2^2.\]</div>
+<section id="id3">
+<h3>TorchWM pieces<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DDPM</span></code> implements a denoising diffusion probabilistic model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiT</span></code> implements a diffusion transformer with patch embedding, time conditioning, and transformer blocks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiffusionUNet</span></code>, <code class="docutils literal notranslate"><span class="pre">EDMPreconditioner</span></code>, and <code class="docutils literal notranslate"><span class="pre">EulerSampler</span></code> support DIAMOND-style visual dynamics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RewardTerminationModel</span></code> and <code class="docutils literal notranslate"><span class="pre">ActorCriticNetwork</span></code> support RL training around diffusion-generated trajectories.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>When to use it<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<p>Use diffusion when high-quality generative rollouts matter and you can afford more expensive sampling. Use transformer diffusion (<code class="docutils literal notranslate"><span class="pre">DiT</span></code>) when patch-token modeling and scalable attention are central to the experiment.</p>
+</section>
+</section>
+<section id="practical-study-path">
+<h2>Practical study path<a class="headerlink" href="#practical-study-path" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start with RSSMs:</strong> understand deterministic and stochastic latent state.</p></li>
+<li><p><strong>Study Dreamer:</strong> connect latent dynamics to actor-critic learning.</p></li>
+<li><p><strong>Study PlaNet:</strong> compare planning against learned policies.</p></li>
+<li><p><strong>Study token world models:</strong> IRIS and Genie show how discrete visual tokens enable transformer dynamics.</p></li>
+<li><p><strong>Study representation-only prediction:</strong> JEPA clarifies why not every useful world model must reconstruct pixels.</p></li>
+<li><p><strong>Study diffusion:</strong> compare likelihood-style denoising rollouts against autoregressive and RSSM rollouts.</p></li>
+<li><p><strong>Read the API reference:</strong> map each concept to the exact TorchWM class or function.</p></li>
+</ol>
+</section>
+<section id="common-failure-modes">
+<h2>Common failure modes<a class="headerlink" href="#common-failure-modes" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Blurry reconstructions:</strong> decoder or latent bottleneck is too weak, or reconstruction dominates the objective.</p></li>
+<li><p><strong>Good one-step predictions but bad rollouts:</strong> dynamics errors compound; evaluate multi-step imagination.</p></li>
+<li><p><strong>Posterior collapse:</strong> the recurrent state ignores stochastic latents; tune KL weights and capacity.</p></li>
+<li><p><strong>Unstable policy learning:</strong> imagined rewards or values are poorly calibrated; shorten horizon and improve world-model validation first.</p></li>
+<li><p><strong>Token dead codes:</strong> vector quantizer codebook usage collapses; tune commitment loss and EMA updates.</p></li>
+<li><p><strong>Diffusion slow sampling:</strong> reduce denoising steps or use a better sampler/preconditioner.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="package_overview.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Package Overview</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dreamer.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Dreamer: Model-Based RL with Latent Dynamics</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-is-a-world-model">What is a world model?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-model-chooser">Quick model chooser</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-concepts">Shared concepts</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#latent-state">Latent state</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dynamics-model">Dynamics model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#imagination-and-planning">Imagination and planning</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer">Dreamer</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#mental-model">Mental model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-to-study">What to study</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#when-to-use-it">When to use it</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#planet-and-rssm">PlaNet and RSSM</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#study-focus">Study focus</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modular-rssm">Modular RSSM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jepa-and-vision-transformers">JEPA and Vision Transformers</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm-pieces">TorchWM pieces</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">When to use it</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#iris">IRIS</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#important-ideas">Important ideas</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">TorchWM pieces</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#genie">Genie</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-pipeline">Core pipeline</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ddpm-dit-and-diamond-style-diffusion-models">DDPM, DiT, and DIAMOND-style diffusion models</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">TorchWM pieces</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">When to use it</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-study-path">Practical study path</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-failure-modes">Common failure modes</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/world_models_guide.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

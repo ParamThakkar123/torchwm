@@ -9,9 +9,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from world_models.envs import list_available_atari_envs
-
-
 DREAMER_ENVS = [
     "cartpole-balance",
     "cartpole-swingup",
@@ -67,11 +64,18 @@ GYM_ENVS = [
 
 UNITY_ENVS: list[str] = []
 
-ATARI_ENVS: list[str] = []
-try:
-    ATARI_ENVS = list_available_atari_envs()
-except Exception:
-    ATARI_ENVS = []
+
+def _list_available_atari_envs() -> list[str]:
+    """Return registered Atari ids without making catalog imports heavy."""
+    try:
+        from world_models.envs import list_available_atari_envs
+
+        return list_available_atari_envs()
+    except Exception:
+        return []
+
+
+ATARI_ENVS: list[str] = _list_available_atari_envs()
 
 
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
@@ -104,11 +108,7 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
 
 
 def _build_env_catalog() -> dict[str, list[str]]:
-    atari_envs: list[str] = []
-    try:
-        atari_envs = list_available_atari_envs()
-    except Exception:
-        atari_envs = []
+    atari_envs = _list_available_atari_envs()
     return {
         "dreamerv1": DREAMER_ENVS + GYM_ENVS,
         "dreamerv2": DREAMER_ENVS + GYM_ENVS,

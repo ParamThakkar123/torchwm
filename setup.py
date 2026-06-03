@@ -19,6 +19,7 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
+    entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
     python_requires=">=3.10",
     install_requires=[
         "torch>=1.13.0",
@@ -27,7 +28,7 @@ setup(
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
         "tqdm>=4.67.1",
-        "typer>=0.12.0",
+        "click>=8.0.0",
     ],
     extras_require={
         "gym": [

@@ -5,9 +5,10 @@ The project exposes a small command-line interface for common developer tasks:
 
 - Run the CLI with: `python -m tools.cli <command>`; after installing the
   package an installed entrypoint is available as `torchwm <command>`. Tests
-  may invoke the top-level Typer app (`tools.cli.app`).
-- The CLI uses lazy imports to keep startup fast; some commands require optional
-  dependencies (listed below).
+  and plugin integrations may invoke the top-level Click app (`tools.cli.app`)
+  or the console-script callable (`tools.cli.run`).
+- The CLI uses Click directly and lazy imports to keep startup fast; some
+  commands require optional dependencies (listed below).
 
 Commands
 --------

@@ -1,36 +1,34 @@
-"""Tools package for torchwm.
+"""Tooling helpers for TorchWM.
 
-This package re-exports the commonly used CLI and tooling helpers so callers
-can import them directly from ``tools`` (for example:
-
-    from tools import run
-    from tools import check_docs_main
-
-The original implementations live in the submodules to keep code organized.
+All heavyweight or optional helpers are exposed lazily so ``python -m tools.cli``
+and the installed ``torchwm`` command do not import documentation/browser tooling
+or pre-import the CLI module during package initialization.
 """
 
-from .cli import (
-    app as cli_app,
-    main as cli_main,
-    version,
-    envs_list,
-    datasets_list,
-    datasets_convert,
-    collect,
-    benchmark,
-    train,
-)
+from __future__ import annotations
 
-from .check_docs_render import (
-    main as check_docs_main,
-    check_page,
-    file_url,
-    OUT_DIR,
-)
+import importlib
+from typing import Any
+
+_CLI_EXPORTS = {
+    "cli_app": "app",
+    "cli_main": "main",
+    "run": "run",
+    "version": "version",
+    "envs_list": "envs_list",
+    "datasets_list": "datasets_list",
+    "datasets_convert": "datasets_convert",
+    "collect": "collect",
+    "benchmark": "benchmark",
+    "train": "train",
+}
+_DOCS_EXPORTS = {"check_docs_main", "check_page", "file_url", "OUT_DIR"}
 
 __all__ = [
+    "cli",
     "cli_app",
     "cli_main",
+    "run",
     "version",
     "envs_list",
     "datasets_list",
@@ -43,3 +41,20 @@ __all__ = [
     "file_url",
     "OUT_DIR",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Load optional tool modules only when their exports are requested."""
+    if name == "cli":
+        value = importlib.import_module("tools.cli")
+    elif name in _CLI_EXPORTS:
+        module = importlib.import_module("tools.cli")
+        value = getattr(module, _CLI_EXPORTS[name])
+    elif name in _DOCS_EXPORTS:
+        module = importlib.import_module("tools.check_docs_render")
+        value = module.main if name == "check_docs_main" else getattr(module, name)
+    else:
+        raise AttributeError(f"module 'tools' has no attribute {name!r}")
+
+    globals()[name] = value
+    return value

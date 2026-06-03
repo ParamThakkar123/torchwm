@@ -71,6 +71,7 @@ autodoc_mock_imports = [
     "ale_py",
     "dm_control",
     "mlagents_envs",
+    "mujoco",
     "moviepy",
     "cv2",
     "pygame",

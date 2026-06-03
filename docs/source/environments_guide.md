@@ -70,6 +70,95 @@ class MyEnv(gym.Env):
 cfg.env_instance = MyEnv()
 ```
 
+## Native MuJoCo
+
+TorchWM can train pixel-based world models directly from MJCF XML or MJB
+models using the native `mujoco` Python bindings. The adapter compiles models
+with `mujoco.MjModel`, advances physics with `mujoco.mj_step`, renders frames
+with `mujoco.Renderer`, and returns Dreamer-compatible observations in the
+form `{"image": uint8[C, H, W]}`.
+
+### Setup
+
+```bash
+pip install torchwm[mujoco]
+# or: pip install mujoco
+```
+
+### Dreamer Configuration
+
+```python :class: thebe
+from world_models.configs import DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env_backend = "mujoco"
+cfg.env = "models/cartpole.xml"  # MJCF XML path when mujoco_xml_path is unset
+cfg.image_size = (64, 64)
+cfg.mujoco_camera = None          # camera name/id, or None for default camera
+cfg.mujoco_frame_skip = 4         # MuJoCo physics steps per TorchWM env step
+cfg.mujoco_reset_noise_scale = 0.01
+```
+
+`DreamerConfig` uses `make_mujoco_env_from_config` internally so the Dreamer
+code path stays small: all MuJoCo source selection and adapter-specific keyword
+translation lives in `world_models.envs.mujoco_env`.
+
+You can also pass `cfg.mujoco_xml_string` for inline MJCF or
+`cfg.mujoco_binary_path` for compiled MJB models. Native MuJoCo files define
+physics but not task rewards, so `MuJoCoImageEnv` defaults to zero reward and
+relies on wrappers such as `TimeLimit` for episode length. For task-specific
+training, instantiate the adapter directly with `reward_fn` and `terminal_fn`
+callbacks, then assign it to `cfg.env_instance`.
+
+```python :class: thebe
+from world_models.envs import MuJoCoImageEnv
+
+def reward_fn(model, data, action, info):
+    return float(data.qpos[0])
+
+def terminal_fn(model, data, info):
+    return bool(data.time >= 10.0)
+
+cfg.env_instance = MuJoCoImageEnv(
+    xml_path="models/agent.xml",
+    reward_fn=reward_fn,
+    terminal_fn=terminal_fn,
+    size=cfg.image_size,
+)
+```
+
+### Direct Factory Usage
+
+For scripts that do not use `DreamerConfig`, create a MuJoCo image environment
+directly from a path, compiled binary, or inline MJCF string:
+
+```python :class: thebe
+from world_models.envs import make_mujoco_env
+
+xml = """
+<mujoco>
+  <worldbody>
+    <body name="box">
+      <geom type="box" size="0.1 0.1 0.1"/>
+    </body>
+  </worldbody>
+</mujoco>
+"""
+
+env = make_mujoco_env(xml, size=(64, 64), camera=None, frame_skip=2)
+obs = env.reset()
+assert obs["image"].shape == (3, 64, 64)
+```
+
+You can also route through the package-level compatibility helper with an
+explicit backend:
+
+```python :class: thebe
+from world_models.envs import make_env
+
+env = make_env("models/cartpole.xml", backend="mujoco", size=(64, 64))
+```
+
 ## Unity ML-Agents
 
 For complex 3D environments and simulations.

@@ -155,9 +155,22 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 
+cfg.env_backend = "mujoco"   # Native MuJoCo MJCF/MJB files
+cfg.env = "models/cartpole.xml"
+cfg.mujoco_camera = None
+cfg.mujoco_frame_skip = 4
+
 cfg.env_backend = "unity_mlagents"  # Unity ML-Agents
 cfg.unity_file_name = "env.exe"
 ```
+
+For MuJoCo tasks, Dreamer delegates adapter construction to
+`make_mujoco_env_from_config`, which keeps `make_env` focused on backend
+selection while the MuJoCo module owns XML/MJB source selection, camera options,
+frame skip, and reset-noise handling. Native MJCF/MJB models do not include a
+reinforcement-learning reward by themselves; for custom rewards or termination
+logic, instantiate `MuJoCoImageEnv` with `reward_fn` and `terminal_fn` and pass
+it through `cfg.env_instance`.
 
 ## References
 

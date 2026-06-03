@@ -333,6 +333,11 @@ Datasets, environments, and transforms
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.envs.mujoco_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.envs.wrappers
    :members:
    :undoc-members:

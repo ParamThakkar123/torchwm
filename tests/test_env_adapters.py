@@ -176,3 +176,137 @@ def test_torch_image_wrapper_accepts_env_instances_and_dict_obs():
     assert reward == 0.5  # action_repeats defaults to 2
     assert done is False
     assert isinstance(info, dict)
+
+
+class _FakeMjModel:
+    nu = 2
+    nq = 1
+    nv = 1
+
+    def __init__(self):
+        self.actuator_ctrlrange = np.array([[-2.0, 2.0], [-0.5, 0.5]], dtype=np.float32)
+        self.actuator_ctrllimited = np.array([True, True])
+
+    @staticmethod
+    def from_xml_string(xml, assets=None):
+        assert "<mujoco" in xml
+        return _FakeMjModel()
+
+    @staticmethod
+    def from_xml_path(path):
+        return _FakeMjModel()
+
+    @staticmethod
+    def from_binary_path(path):
+        return _FakeMjModel()
+
+
+class _FakeMjData:
+    def __init__(self, model):
+        self.ctrl = np.zeros((model.nu,), dtype=np.float32)
+        self.qpos = np.zeros((model.nq,), dtype=np.float64)
+        self.qvel = np.zeros((model.nv,), dtype=np.float64)
+        self.time = 0.0
+
+
+class _FakeRenderer:
+    def __init__(self, model, height, width):
+        self.height = height
+        self.width = width
+        self.closed = False
+
+    def update_scene(self, data, camera=None):
+        self.camera = camera
+
+    def render(self):
+        return np.zeros((self.height, self.width, 3), dtype=np.uint8) + 7
+
+    def close(self):
+        self.closed = True
+
+
+def test_native_mujoco_image_env_with_mocked_bindings(monkeypatch):
+    fake_mujoco = type("FakeMujoco", (), {})()
+    fake_mujoco.MjModel = _FakeMjModel
+    fake_mujoco.MjData = _FakeMjData
+    fake_mujoco.Renderer = _FakeRenderer
+    fake_mujoco.mj_resetData = lambda model, data: None
+    fake_mujoco.mj_forward = lambda model, data: None
+
+    def fake_step(model, data, nstep=1):
+        data.time += 0.01 * nstep
+
+    fake_mujoco.mj_step = fake_step
+    monkeypatch.setitem(__import__("sys").modules, "mujoco", fake_mujoco)
+
+    from world_models.envs.mujoco_env import MuJoCoImageEnv
+
+    env = MuJoCoImageEnv(
+        xml_string="<mujoco/>",
+        size=(32, 40),
+        camera="track",
+        frame_skip=3,
+        reward_fn=lambda model, data, action, info: float(action.sum()),
+        terminal_fn=lambda model, data, info: data.time > 0.02,
+    )
+    obs = env.reset(seed=123)
+    assert obs["image"].shape == (3, 32, 40)
+    assert env.action_space.shape == (2,)
+    obs, reward, done, info = env.step(np.array([3.0, 0.25], dtype=np.float32))
+    assert obs["image"].shape == (3, 32, 40)
+    assert reward == 2.25
+    assert done is True
+    assert np.array_equal(info["action"], np.array([2.0, 0.25], dtype=np.float32))
+
+
+def test_make_mujoco_env_from_config_builds_xml_string_env(monkeypatch):
+    fake_mujoco = type("FakeMujoco", (), {})()
+    fake_mujoco.MjModel = _FakeMjModel
+    fake_mujoco.MjData = _FakeMjData
+    fake_mujoco.Renderer = _FakeRenderer
+    fake_mujoco.mj_resetData = lambda model, data: None
+    fake_mujoco.mj_forward = lambda model, data: None
+    fake_mujoco.mj_step = lambda model, data, nstep=1: None
+    monkeypatch.setitem(__import__("sys").modules, "mujoco", fake_mujoco)
+
+    from world_models.envs.mujoco_env import make_mujoco_env_from_config
+
+    cfg = DreamerConfig()
+    cfg.mujoco_xml_string = "<mujoco/>"
+    cfg.mujoco_camera = "track"
+    cfg.mujoco_frame_skip = 2
+    env = make_mujoco_env_from_config(cfg, size=(16, 24))
+
+    assert env.observation_space["image"].shape == (3, 16, 24)
+    assert env._camera == "track"
+    assert env._frame_skip == 2
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.make_mujoco_env_from_config")
+def test_make_env_native_mujoco_backend(
+    mock_make_mujoco_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "mujoco"
+    cfg.env = "model.xml"
+    cfg.image_size = (64, 64)
+    cfg.mujoco_camera = "fixed"
+    cfg.mujoco_frame_skip = 4
+    cfg.mujoco_reset_noise_scale = 0.01
+
+    env = Mock()
+    mock_make_mujoco_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_make_mujoco_env.assert_called_once_with(cfg, cfg.image_size)

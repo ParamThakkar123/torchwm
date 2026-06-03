@@ -332,9 +332,10 @@ Environment adapters
 ~~~~~~~~~~~~~~~~~~~~
 
 The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, vectorization utilities,
-and shared wrapper/preprocessing helpers. DIAMOND-style Atari support is listed
-here as Atari preprocessing rather than a separate environment family.
+Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DIAMOND-style Atari support is intentionally not listed as an environment
+adapter because it is Atari preprocessing rather than a separate environment
+family.
 
 .. automodule:: world_models.envs
    :members:
@@ -361,11 +362,6 @@ here as Atari preprocessing rather than a separate environment family.
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: world_models.envs.diamond_atari
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. automodule:: world_models.envs.mujoco_env
    :members:
    :undoc-members:
@@ -382,6 +378,17 @@ here as Atari preprocessing rather than a separate environment family.
    :show-inheritance:
 
 .. automodule:: world_models.envs.wrappers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Atari preprocessing helpers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These helpers wrap Atari environments for specific training recipes. They are
+not separate environment families.
+
+.. automodule:: world_models.envs.diamond_atari
    :members:
    :undoc-members:
    :show-inheritance:

@@ -35,9 +35,9 @@ print(list_available_atari_envs()[:10])
 
 Additional keyword arguments are forwarded to `gymnasium.make()`.
 
-## DIAMOND-style Atari preprocessing
+## Atari preprocessing for DIAMOND-style training
 
-DIAMOND-style support is not a separate environment in TorchWM. It is an Atari preprocessing path implemented by `DiamondAtariWrapper` and `make_diamond_atari_env()` for users who want DIAMOND-compatible Atari rollouts.
+This is not a separate environment in TorchWM. It is an Atari preprocessing path implemented by `DiamondAtariWrapper` and `make_diamond_atari_env()` for users who want DIAMOND-compatible Atari rollouts.
 
 ```python
 from world_models.envs.diamond_atari import make_diamond_atari_env
@@ -98,4 +98,4 @@ The raw ALE factory returns Gymnasium's Atari environment directly. Observation 
 - **No environments listed**: ensure `ale-py` is installed and importable.
 - **ROM errors**: verify ROM installation for the target games.
 - **Different game naming conventions**: Gymnasium IDs usually include `ALE/` and `-v5`; native vectorization takes a game name such as `pong`.
-- **Preprocessing mismatch**: use the DIAMOND-style Atari preprocessing section on this page for frame skip, no-op reset, reward clipping, life-loss termination, and resizing.
+- **Preprocessing mismatch**: use the Atari preprocessing section on this page for frame skip, no-op reset, reward clipping, life-loss termination, and resizing when your training recipe expects DIAMOND-style rollouts.

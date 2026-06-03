@@ -48,7 +48,10 @@ Converts input image into a sequence of tokens:
 - Add positional embeddings
 
 ```{math}
-\mathbf{x} \in \mathbb{R}^{C \times H \times W} \rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
+\begin{aligned}
+\mathbf{x} &\in \mathbb{R}^{C \times H \times W} \\
+&\rightarrow \mathbf{tokens} \in \mathbb{R}^{(H/P \times W/P) \times D}
+\end{aligned}
 ```
 
 ### 2. Timestep & Condition Embeddings
@@ -94,11 +97,14 @@ cfg = get_dit_config(
 ```
 
 ```{math}
-q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
+q(\mathbf{x}_t \mid \mathbf{x}_0)
+= \mathcal{N}\left(\sqrt{\bar{\alpha}_t}\,\mathbf{x}_0,
+(1 - \bar{\alpha}_t)\mathbf{I}\right)
 ```
 
 ```{math}
-p(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2 \mathbf{I})
+p(\mathbf{x}_{t-1} \mid \mathbf{x}_t)
+= \mathcal{N}\left(\mu_\theta(\mathbf{x}_t, t), \sigma_t^2\mathbf{I}\right)
 ```
 
 ### Key Hyperparameters
@@ -142,7 +148,11 @@ for t in reversed(range(T)):
 
 For conditional generation, use classifier-free guidance:
 ```{math}
-\epsilon_\mathrm{cond} = (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
+\begin{aligned}
+\epsilon_\mathrm{cond}
+&= (1 + w) \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, c) \\
+&\quad - w \cdot \epsilon_\mathrm{model}(\mathbf{x}_t, \emptyset)
+\end{aligned}
 ```
 where `w` is guidance weight (typically 1-10).
 

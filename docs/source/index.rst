@@ -19,6 +19,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    training_guide
    inference_guide
    environments_guide
+   environments/index
    package_overview
    world_models_guide
 

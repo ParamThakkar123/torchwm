@@ -1,69 +1,27 @@
-"""Command-line interface entrypoint for torchwm.
+"""TorchWM command-line interface.
 
-Minimal implementation with Typer providing `torchwm` console group and
-subcommands: `envs list`, `datasets list`, and `serve` to run the existing
-FastAPI UI. This initial patch avoids adding heavy new logic: it reuses the
-server in `world_models.ui.server` and dataset listing helpers.
-
-Run: python -m tools.cli <command>
+The installed ``torchwm`` console script, ``python -m tools.cli``, and tests all
+enter through this module.  The CLI intentionally keeps imports lightweight at
+startup and only imports optional training, benchmark, dataset, or environment
+packages inside the commands that need them.
 """
 
 from __future__ import annotations
 
-import os
-import sys
-import subprocess
+import importlib
 import logging
+import os
+import subprocess
+import sys
 from pathlib import Path
-from typing import List
-from typer.main import get_command as _typer_get_command
-import typer
+from typing import Any
 
-# Defer heavy optional imports to reduce CLI startup time (gym can be slow).
-# These are lazily imported by the helper functions below when a command actually
-# needs them.
-gym = None
-_np = None
+import click
 
-# Defer importing the environment catalog until it's needed to avoid pulling in
-# package modules at CLI startup. Use `_load_catalog()` below to access it.
-_typer_app = typer.Typer(name="torchwm", help="TorchWM command-line tool")
-
-
-# Some tests (and Click's test runner) expect the top-level CLI object to
-# expose attributes like `name` and `main`. Typer.Typer doesn't allow setting
-# arbitrary attributes on the object, so create a lightweight proxy that
-# forwards attribute access to the underlying Typer instance while exposing
-# `name` and a deferred `main` callable compatible with click.testing.CliRunner.
-
-
-class _TyperProxy:
-    def __init__(self, typer_obj, name: str):
-        self._typer = typer_obj
-        self.name = name
-
-    def __getattr__(self, item):
-        # Forward any unknown attribute access to the underlying Typer
-        return getattr(self._typer, item)
-
-    def main(self, *args, **kwargs):
-        # Resolve the underlying click Command at call time so all subcommands
-        # and registrations have been applied.
-        return _typer_get_command(self._typer).main(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        # Allow the proxy to be invoked like a Typer object (entrypoint
-        # compatibility). Forward to the underlying Typer's __call__.
-        return self._typer(*args, **kwargs)
-
-
-app = _TyperProxy(_typer_app, name="torchwm")
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("torchwm.cli")
 
-
-# Lightweight mapping of training entrypoints. Pulled out so other commands can
-# reference the list of supported models without importing heavy modules.
+# Keep this mapping cheap to import so ``torchwm models list`` and validation do
+# not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
     "iris": "world_models.training.train_iris",
     "planet": "world_models.training.train_planet",
@@ -72,35 +30,35 @@ TRAINING_MODULES = {
     "genie": "world_models.training.train_genie",
 }
 
-
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
 
 
-def _parse_benchmark_seeds(value: str) -> List[int]:
-    """Parse benchmark seed syntax shared with the benchmark module CLI."""
+def _echo_error(message: str) -> None:
+    """Print user-facing errors to stdout for stable CLI/test output."""
+    click.echo(message)
+
+
+def _parse_benchmark_seeds(value: str) -> list[int]:
+    """Parse ``--seeds`` values as either N, a comma list, or one integer."""
+    value = value.strip()
+    if not value:
+        raise ValueError("--seeds cannot be empty")
     if "," in value:
-        return [int(item.strip()) for item in value.split(",") if item.strip()]
+        seeds = [item.strip() for item in value.split(",") if item.strip()]
+        if not seeds:
+            raise ValueError("--seeds must contain at least one integer")
+        return [int(item) for item in seeds]
     if value.isdigit():
         return list(range(int(value)))
     return [int(value)]
 
 
-def _load_benchmark_runtime():
-    """Lazy-load benchmark runtime classes after lightweight validation passes."""
-    from world_models.benchmarks.cli import AGENTS
-    from world_models.benchmarks.runner import (
-        BenchmarkRunner,
-        MultiAgentBenchmarkRunner,
-    )
-    import torch
-
-    return AGENTS, BenchmarkRunner, MultiAgentBenchmarkRunner, torch
-
-
-def _parse_checkpoint_map(values: List[str] | None) -> dict[str, str]:
-    """Parse repeated ``--checkpoint-map agent=path`` values."""
+def _parse_checkpoint_map(
+    values: tuple[str, ...] | list[str] | None,
+) -> dict[str, str]:
+    """Parse repeated ``--checkpoint-map AGENT=PATH`` options."""
     checkpoints: dict[str, str] = {}
-    for value in values or []:
+    for value in values or ():
         if "=" not in value:
             raise ValueError(
                 f"Invalid checkpoint map '{value}'. Expected AGENT=PATH, for example iris=checkpoints/iris.pt."
@@ -116,352 +74,340 @@ def _parse_checkpoint_map(values: List[str] | None) -> dict[str, str]:
     return checkpoints
 
 
-def _ensure_gym():
-    """Lazy-import `gym` (fall back to `gymnasium`) and cache result.
-
-    Returns the imported module or None if import failed.
-    """
+def _ensure_gym() -> Any:
+    """Lazy-import gym, falling back to gymnasium."""
     try:
-        import gym as _gym
+        return importlib.import_module("gym")
     except Exception:
-        import gymnasium as _gym
-    return _gym
+        return importlib.import_module("gymnasium")
 
 
-def _ensure_numpy():
-    """Lazy-import numpy and cache result. Returns module or None."""
+def _ensure_numpy() -> Any | None:
+    """Lazy-import numpy and return ``None`` when it is unavailable."""
     try:
-        import numpy as _np
+        return importlib.import_module("numpy")
     except Exception:
-        pass
-    return _np
+        return None
 
 
-def _load_catalog() -> dict:
-    """Lazy-load the environment catalog (ENV_BACKENDS).
-
-    Returns a dict mapping backends -> info, or an empty dict on failure.
-    """
+def _load_catalog() -> dict[str, Any]:
+    """Lazy-load the environment catalog used by ``torchwm envs list``."""
     try:
-        from world_models.catalog import ENV_BACKENDS as _envs
-
-        return _envs
+        from world_models.catalog import ENV_BACKENDS
     except Exception:
         logger.debug("Could not import world_models.catalog", exc_info=True)
         return {}
+    return ENV_BACKENDS
+
+
+def _load_benchmark_runtime() -> tuple[Any, Any, Any, Any]:
+    """Lazy-load benchmark classes after lightweight CLI validation passes."""
+    from world_models.benchmarks.cli import AGENTS
+    from world_models.benchmarks.runner import (
+        BenchmarkRunner,
+        MultiAgentBenchmarkRunner,
+    )
+    import torch
+
+    return AGENTS, BenchmarkRunner, MultiAgentBenchmarkRunner, torch
+
+
+@click.group(
+    name="torchwm",
+    invoke_without_command=True,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+@click.pass_context
+def app(ctx: click.Context) -> None:
+    """TorchWM command-line tool."""
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
 
 @app.command("version")
 def version() -> None:
-    """Show package version."""
+    """Show the installed TorchWM package version."""
     try:
         import torchwm as pkg
-
-        print(pkg.__version__)
     except Exception:
-        print("torchwm (unknown version)")
+        click.echo("torchwm (unknown version)")
+        return
+    click.echo(getattr(pkg, "__version__", "torchwm (unknown version)"))
 
 
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-
-
-envs_app = typer.Typer()
-datasets_app = typer.Typer()
-models_app = typer.Typer()
-app.add_typer(envs_app, name="envs")
-app.add_typer(datasets_app, name="datasets")
-app.add_typer(models_app, name="models")
-
-
-@models_app.command("list")
-def models_list() -> None:
-    """List supported models and training entrypoints."""
-    try:
-        print("Training entrypoints:")
-        for k, m in sorted(TRAINING_MODULES.items()):
-            print(f"- {k}: {m}")
-
-        # Also show model classes/factory names exported by world_models.models
-        try:
-            import world_models.models as wm_models
-
-            exported = getattr(wm_models, "__all__", None)
-            if exported:
-                print("\nExported model names:")
-                for name in sorted(exported):
-                    print(f"- {name}")
-        except Exception:
-            # Avoid failing the whole command if importing the models package
-            # triggers heavier imports; the training entrypoints above are
-            # usually sufficient for users wanting to know supported models.
-            pass
-    except Exception as e:
-        logger.exception("Failed to list models: %s", e)
-        raise typer.Exit(code=1)
+@app.group("envs")
+def envs_app() -> None:
+    """Environment discovery commands."""
 
 
 @envs_app.command("list")
 def envs_list() -> None:
-    """List built-in environments supported by the UI registry."""
-    try:
-        catalog = _load_catalog()
-        if not catalog:
-            print(
-                "No environment catalog available (world_models.catalog failed to import)."
-            )
-            raise typer.Exit(code=0)
+    """List built-in environment backends and example environment ids."""
+    catalog = _load_catalog()
+    if not catalog:
+        click.echo(
+            "No environment catalog available (world_models.catalog failed to import)."
+        )
+        return
 
-        for backend, info in catalog.items():
-            print(f"{backend}: {info.get('label', '')}")
-            items = info.get("environments", [])
-            if items:
-                for env in items[:20]:
-                    print(f"  - {env}")
-                if len(items) > 20:
-                    print(f"  ... and {len(items) - 20} more")
-    except Exception as e:
-        logger.exception("Failed to list environments: %s", e)
-        raise typer.Exit(code=1)
+    for backend, info in catalog.items():
+        click.echo(f"{backend}: {info.get('label', '')}")
+        items = info.get("environments", [])
+        for env in items[:20]:
+            click.echo(f"  - {env}")
+        if len(items) > 20:
+            click.echo(f"  ... and {len(items) - 20} more")
+
+
+@app.group("datasets")
+def datasets_app() -> None:
+    """Dataset inspection and conversion commands."""
 
 
 @datasets_app.command("list")
-def datasets_list(
-    path: Path | None = typer.Argument(None, help="Path to dataset cache"),
-) -> None:
-    """List datasets in a folder (defaults to TORCHWM_HOME or ~/.torchwm)."""
+@click.argument("path", required=False, type=click.Path(path_type=Path))
+def datasets_list(path: Path | None = None) -> None:
+    """List dataset entries under PATH, TORCHWM_HOME, or ~/.torchwm."""
     home = Path(os.environ.get("TORCHWM_HOME", Path.home() / ".torchwm"))
-    root = Path(path) if path is not None else home
-    # If the path doesn't exist or contains no entries, report no datasets.
+    root = path or home
     try:
         has_entries = any(root.iterdir()) if root.exists() else False
     except PermissionError:
         has_entries = False
 
     if not root.exists() or not has_entries:
-        print(f"No datasets found at {root}")
-        raise typer.Exit(code=0)
+        click.echo(f"No datasets found at {root}")
+        return
 
-    print(f"Datasets under: {root}")
-    for p in sorted(root.iterdir()):
-        print(f"- {p.name}")
+    click.echo(f"Datasets under: {root}")
+    for entry in sorted(root.iterdir()):
+        click.echo(f"- {entry.name}")
 
 
 @datasets_app.command("convert")
-def datasets_convert(
-    src: Path = typer.Argument(..., help="Source dataset file (h5/npz/npy or folder)"),
-    dest_format: str = typer.Option("video", help="Destination format: video"),
-    out_dir: Path = typer.Option(None, help="Output directory for converted data"),
-) -> None:
-    """Convert simple dataset files into another format.
-
-    Current supported conversion: hdf5(.h5) -> mp4 files (one per episode) when
-    `--dest-format video` is used.
-    """
-    out = Path(out_dir) if out_dir is not None else Path.cwd() / "converted_datasets"
-    out.mkdir(parents=True, exist_ok=True)
-
+@click.argument("src", type=click.Path(path_type=Path))
+@click.option(
+    "--dest-format",
+    default="video",
+    show_default=True,
+    help="Destination format. Only 'video' is currently supported.",
+)
+@click.option(
+    "--out-dir",
+    type=click.Path(path_type=Path),
+    help="Output directory for converted data.",
+)
+def datasets_convert(src: Path, dest_format: str, out_dir: Path | None) -> None:
+    """Convert a simple HDF5/NumPy dataset into MP4 videos."""
     if dest_format != "video":
-        print("Only 'video' dest_format supported in this initial implementation.")
-        raise typer.Exit(code=1)
+        _echo_error("Only 'video' dest_format is supported.")
+        raise click.exceptions.Exit(1)
 
-    # Import conversion dependencies only when this command is invoked so the
-    # rest of the CLI can start in lightweight environments.
+    srcp = src
+    if not srcp.exists():
+        _echo_error(f"Source not found: {srcp}")
+        raise click.exceptions.Exit(1)
+
+    numpy = _ensure_numpy()
+    if numpy is None:
+        _echo_error(
+            "Install numpy and the dataset/video optional dependencies to use conversion."
+        )
+        raise click.exceptions.Exit(1)
+
     from world_models.datasets.video_datasets import HDF5Dataset, NumPyDataset
     from world_models.utils.utils import save_video
 
-    if _ensure_numpy() is None:
-        logger.exception("Missing numpy")
-        print("Install the optional dependencies (numpy, h5py, etc.) and retry.")
-        raise typer.Exit(code=1)
-
-    srcp = Path(src)
-    if not srcp.exists():
-        print(f"Source not found: {src}")
-        raise typer.Exit(code=1)
+    out = out_dir or (Path.cwd() / "converted_datasets")
+    out.mkdir(parents=True, exist_ok=True)
 
     if srcp.suffix in {".h5", ".hdf5"}:
-        ds = HDF5Dataset(str(srcp), num_frames=16, image_size=64)
+        dataset = HDF5Dataset(str(srcp), num_frames=16, image_size=64)
     elif srcp.suffix in {".npz", ".npy"}:
-        ds = NumPyDataset(str(srcp), num_frames=16, image_size=64)
+        dataset = NumPyDataset(str(srcp), num_frames=16, image_size=64)
     else:
-        print("Unsupported source format for conversion. Provide .h5 or .npz/.npy")
-        raise typer.Exit(code=1)
+        _echo_error(
+            "Unsupported source format for conversion. Provide .h5, .hdf5, .npz, or .npy."
+        )
+        raise click.exceptions.Exit(1)
 
-    total = len(ds)
-    print(f"Converting {total} items from {src} -> {out} ...")
-    for i in range(total):
-        try:
-            v = ds[i]
-            # v may be torch.Tensor or numpy array
-            if hasattr(v, "numpy"):
-                arr = v.numpy()
-            else:
-                arr = v
-            # arr expected shape: (T,H,W,C) or (T,C,H,W)
-            if getattr(arr, "ndim", None) == 4 and getattr(
-                arr, "shape", [None, None, None, None]
-            )[1] in (1, 3, 4):
-                # convert CHW -> HWC: (T,C,H,W) -> (T,H,W,C')
-                try:
-                    arr = arr.transpose(0, 2, 3, 1)
-                except Exception:
-                    # Fallback: try numpy moveaxis if available
-                    try:
-                        import numpy as _tmpn
+    click.echo(f"Converting {len(dataset)} items from {srcp} -> {out} ...")
+    for index in range(len(dataset)):
+        item = dataset[index]
+        arr = item.numpy() if hasattr(item, "numpy") else item
+        if getattr(arr, "ndim", None) == 4 and arr.shape[1] in (1, 3, 4):
+            arr = numpy.moveaxis(arr, 1, -1)
+        if getattr(arr, "dtype", None) is not None and str(arr.dtype).endswith("uint8"):
+            arr = arr.astype("float32") / 255.0
+        elif hasattr(arr, "max") and float(arr.max()) > 1.0:
+            arr = arr.astype("float32") / 255.0
+        elif hasattr(arr, "astype"):
+            arr = arr.astype("float32")
 
-                        arr = _tmpn.moveaxis(arr, 1, -1)
-                    except Exception:
-                        pass
-            # convert uint8 [0,255] to float [0,1]
-            try:
-                dtype_name = getattr(arr, "dtype", None)
-                if (
-                    dtype_name is not None
-                    and str(dtype_name).endswith("uint8")
-                    or (hasattr(arr, "max") and float(arr.max()) > 1.0)
-                ):
-                    # prefer numpy operations if possible
-                    try:
-                        arrf = (arr.astype("float32") / 255.0).clip(0.0, 1.0)
-                    except Exception:
-                        arrf = (arr * (1.0 / 255.0)).clip(0.0, 1.0)
-                else:
-                    try:
-                        arrf = arr.astype("float32")
-                    except Exception:
-                        arrf = arr.astype("float") if hasattr(arr, "astype") else arr
-            except Exception:
-                arrf = arr
+        out_name = out / f"ep_{index:06d}"
+        save_video(arr, str(out_name.parent), out_name.name)
+        click.echo(f"Wrote: {out_name}.mp4")
 
-            out_name = out / f"ep_{i:06d}"
-            save_video(arrf, str(out_name.parent), out_name.name)
-            print(f"Wrote: {out_name}.mp4")
-        except Exception as e:
-            logger.exception("Failed to convert item %d: %s", i, e)
-            print(f"Failed to convert item {i}: {e}")
+
+@app.group("models")
+def models_app() -> None:
+    """Model discovery commands."""
+
+
+@models_app.command("list")
+def models_list() -> None:
+    """List supported training entrypoints and exported model names."""
+    click.echo("Training entrypoints:")
+    for name, module in sorted(TRAINING_MODULES.items()):
+        click.echo(f"- {name}: {module}")
+
+    try:
+        import world_models.models as wm_models
+    except Exception:
+        return
+
+    exported = getattr(wm_models, "__all__", None)
+    if exported:
+        click.echo("\nExported model names:")
+        for name in sorted(exported):
+            click.echo(f"- {name}")
 
 
 @app.command("benchmark")
+@click.option(
+    "--agent",
+    "agent",
+    "-a",
+    help="Agent adapter to evaluate (for example: iris, diamond, dreamerv1, dreamerv2).",
+)
+@click.option(
+    "--all-agents",
+    is_flag=True,
+    help="Run all registered benchmark adapters on the same environment.",
+)
+@click.option(
+    "--game",
+    "game",
+    "-g",
+    required=True,
+    help="Gym/ALE environment id to benchmark, such as ALE/Pong-v5.",
+)
+@click.option(
+    "--seeds",
+    default="1",
+    show_default=True,
+    help="Either N (creates seeds 0..N-1) or a comma-separated seed list.",
+)
+@click.option(
+    "--episodes",
+    "episodes",
+    "-n",
+    default=5,
+    show_default=True,
+    type=int,
+    help="Evaluation episodes to run per seed.",
+)
+@click.option(
+    "--checkpoint",
+    "checkpoint",
+    "-c",
+    type=click.Path(path_type=Path),
+    help="Checkpoint path for a single-agent benchmark.",
+)
+@click.option(
+    "--checkpoint-map",
+    "checkpoint_map",
+    multiple=True,
+    help="For --all-agents, repeat as AGENT=PATH (for example --checkpoint-map iris=ckpt.pt).",
+)
+@click.option(
+    "--out-dir",
+    "out_dir",
+    default=Path("results/bench"),
+    type=click.Path(path_type=Path),
+    show_default=True,
+    help="Directory where benchmark reports are written.",
+)
+@click.option(
+    "--out_dir",
+    "out_dir_alias",
+    type=click.Path(path_type=Path),
+    help="Alias for --out-dir.",
+)
+@click.option(
+    "--device",
+    help="Device passed to adapters. Defaults to CUDA when available, otherwise CPU.",
+)
+@click.option(
+    "--preset",
+    help="Optional adapter/model preset to forward to benchmark adapters.",
+)
+@click.option(
+    "--train-epochs",
+    type=int,
+    help="For --all-agents only: train agents first for this many epochs if no checkpoints are supplied.",
+)
 def benchmark(
-    agent: str | None = typer.Option(
-        None,
-        "--agent",
-        "-a",
-        help="Agent adapter to evaluate (for example: iris, diamond, dreamerv1, dreamerv2).",
-    ),
-    all_agents: bool = typer.Option(
-        False,
-        "--all-agents",
-        help="Run all registered benchmark adapters on the same environment.",
-    ),
-    game: str = typer.Option(
-        ...,
-        "--game",
-        "-g",
-        help="Gym/ALE environment id to benchmark, such as ALE/Pong-v5.",
-    ),
-    seeds: str = typer.Option(
-        "1",
-        "--seeds",
-        help="Either N (creates seeds 0..N-1) or a comma-separated seed list.",
-    ),
-    episodes: int = typer.Option(
-        5, "--episodes", "-n", help="Evaluation episodes to run per seed."
-    ),
-    checkpoint: Path | None = typer.Option(
-        None,
-        "--checkpoint",
-        "-c",
-        help="Checkpoint path for a single-agent benchmark.",
-    ),
-    checkpoint_map: List[str] | None = typer.Option(
-        None,
-        "--checkpoint-map",
-        help="For --all-agents, repeat as AGENT=PATH (for example --checkpoint-map iris=ckpt.pt).",
-    ),
-    out_dir: Path = typer.Option(
-        Path("results/bench"),
-        "--out-dir",
-        "--out_dir",
-        help="Directory where JSON/CSV/Markdown/LaTeX benchmark reports are written.",
-    ),
-    device: str | None = typer.Option(
-        None,
-        "--device",
-        help="Device passed to adapters. Defaults to CUDA when available, otherwise CPU.",
-    ),
-    preset: str | None = typer.Option(
-        None,
-        "--preset",
-        help="Optional adapter/model preset to forward to benchmark adapters.",
-    ),
-    train_epochs: int | None = typer.Option(
-        None,
-        "--train-epochs",
-        help="For --all-agents only: train agents first for this many epochs if no checkpoints are supplied.",
-    ),
+    agent: str | None,
+    all_agents: bool,
+    game: str,
+    seeds: str,
+    episodes: int,
+    checkpoint: Path | None,
+    checkpoint_map: tuple[str, ...],
+    out_dir: Path,
+    out_dir_alias: Path | None,
+    device: str | None,
+    preset: str | None,
+    train_epochs: int | None,
 ) -> None:
-    """Run TorchWM benchmark evaluations and write report artifacts.
-
-    This is the packaged `torchwm` entrypoint for the benchmark harness that can
-    also be invoked with `python -m world_models.benchmarks.cli`. Benchmarking
-    trained agents requires checkpoints; `--train-epochs` is available for
-    multi-agent smoke runs that intentionally train before evaluating.
-    """
+    """Run TorchWM benchmark evaluations and write report artifacts."""
     try:
         if not all_agents and not agent:
-            print("Either --agent or --all-agents must be specified")
-            raise typer.Exit(code=1)
-
+            _echo_error("Either --agent or --all-agents must be specified")
+            raise click.exceptions.Exit(1)
         if all_agents and agent:
-            print("--agent and --all-agents cannot be used together")
-            raise typer.Exit(code=1)
+            _echo_error("--agent and --all-agents cannot be used together")
+            raise click.exceptions.Exit(1)
 
         if agent:
             agent = agent.strip().lower()
             if agent not in BENCHMARK_AGENT_NAMES:
-                print(
+                _echo_error(
                     f"Unknown benchmark agent '{agent}'. Known: {', '.join(sorted(BENCHMARK_AGENT_NAMES))}"
                 )
-                raise typer.Exit(code=1)
+                raise click.exceptions.Exit(1)
             if checkpoint is None:
-                print(
+                _echo_error(
                     "--checkpoint is required when using --agent. Only trained models should be benchmarked."
                 )
-                raise typer.Exit(code=1)
+                raise click.exceptions.Exit(1)
 
         seed_values = _parse_benchmark_seeds(seeds)
+        out_dir = out_dir_alias or out_dir
+        checkpoints: dict[str, str] = {}
+        if all_agents:
+            checkpoints = _parse_checkpoint_map(checkpoint_map)
+            unknown = sorted(set(checkpoints).difference(BENCHMARK_AGENT_NAMES))
+            if unknown:
+                _echo_error(
+                    f"Unknown benchmark checkpoint agent(s): {', '.join(unknown)}. Known: {', '.join(sorted(BENCHMARK_AGENT_NAMES))}"
+                )
+                raise click.exceptions.Exit(1)
+            if not checkpoints and train_epochs is None:
+                _echo_error(
+                    "Provide --checkpoint-map AGENT=PATH at least once, or provide --train-epochs for --all-agents."
+                )
+                raise click.exceptions.Exit(1)
+
+        agents, runner_cls, multi_runner_cls, torch = _load_benchmark_runtime()
+        device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        extra_kwargs = {"device": device, "preset": preset}
         env_spec = {"game": game}
 
         if all_agents:
-            checkpoints = _parse_checkpoint_map(checkpoint_map)
-            unknown_checkpoints = sorted(
-                set(checkpoints).difference(BENCHMARK_AGENT_NAMES)
-            )
-            if unknown_checkpoints:
-                print(
-                    f"Unknown benchmark checkpoint agent(s): {', '.join(unknown_checkpoints)}. Known: {', '.join(sorted(BENCHMARK_AGENT_NAMES))}"
-                )
-                raise typer.Exit(code=1)
-            if not checkpoints and train_epochs is None:
-                print(
-                    "Provide --checkpoint-map AGENT=PATH at least once, or provide --train-epochs for --all-agents."
-                )
-                raise typer.Exit(code=1)
-
-        AGENTS, BenchmarkRunner, MultiAgentBenchmarkRunner, torch = (
-            _load_benchmark_runtime()
-        )
-        if device is None:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-        extra_kwargs = {"device": device, "preset": preset}
-
-        if all_agents:
-            runner = MultiAgentBenchmarkRunner(
-                adapters=list(AGENTS.values()), out_dir=str(out_dir)
+            runner = multi_runner_cls(
+                adapters=list(agents.values()), out_dir=str(out_dir)
             )
             runner.run_all(
                 env_spec=env_spec,
@@ -471,12 +417,12 @@ def benchmark(
                 extra_kwargs=extra_kwargs,
                 train_epochs=train_epochs,
             )
-            print(f"Multi-agent benchmark finished. Results written to: {out_dir}")
-            raise typer.Exit(code=0)
+            click.echo(f"Multi-agent benchmark finished. Results written to: {out_dir}")
+            return
 
         assert agent is not None
         assert checkpoint is not None
-        runner = BenchmarkRunner(adapter_cls=AGENTS[agent], out_dir=str(out_dir))
+        runner = runner_cls(adapter_cls=agents[agent], out_dir=str(out_dir))
         runner.run(
             env_spec=env_spec,
             seeds=seed_values,
@@ -484,161 +430,167 @@ def benchmark(
             checkpoint=str(checkpoint),
             extra_kwargs=extra_kwargs,
         )
-        print(f"Benchmark finished. Results written to: {out_dir}")
-    except ValueError as e:
-        print(str(e))
-        raise typer.Exit(code=1)
+        click.echo(f"Benchmark finished. Results written to: {out_dir}")
+    except ValueError as exc:
+        _echo_error(str(exc))
+        raise click.exceptions.Exit(1) from exc
     except KeyboardInterrupt:
-        print("Benchmark interrupted by user")
-        raise typer.Exit(code=1)
+        _echo_error("Benchmark interrupted by user")
+        raise click.exceptions.Exit(1)
 
 
 @app.command("collect")
-def collect(
-    env: str = typer.Option(..., help="Environment id (Gym/Atari)"),
-    steps: int = typer.Option(1000, help="Number of environment steps to collect"),
-    out: Path = typer.Option(Path("./collected.npz"), help="Output file path (.npz)"),
-    random_policy: bool = typer.Option(True, help="Use random actions"),
-) -> None:
-    """Collect interactions from an environment and save as a simple .npz file.
-
-    The saved file contains keys: observations, actions, rewards, dones.
-    """
-    # Lazy-import optional dependencies (gym/gymnasium and numpy)
-    _gym = _ensure_gym()
-    _n = _ensure_numpy()
-    if _gym is None or _n is None:
-        logger.exception("Missing gym or numpy")
-        print("Please install gym (or gymnasium) and numpy to use collect")
-        raise typer.Exit(code=1)
-
-    print(f"Creating environment: {env}")
+@click.option("--env", "env", required=True, help="Environment id (Gym/Atari).")
+@click.option(
+    "--steps",
+    default=1000,
+    show_default=True,
+    type=int,
+    help="Number of environment steps to collect.",
+)
+@click.option(
+    "--out",
+    default=Path("./collected.npz"),
+    type=click.Path(path_type=Path),
+    show_default=True,
+    help="Output file path (.npz).",
+)
+@click.option(
+    "--random-policy/--no-random-policy",
+    default=True,
+    show_default=True,
+    help="Use random actions.",
+)
+def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
+    """Collect environment interactions and save observations/actions/rewards/dones."""
+    numpy = _ensure_numpy()
+    if numpy is None:
+        _echo_error("Please install numpy to use collect")
+        raise click.exceptions.Exit(1)
     try:
-        # Try world_models envs first
+        gym = _ensure_gym()
+    except Exception:
+        _echo_error("Please install gym or gymnasium to use collect")
+        raise click.exceptions.Exit(1)
+
+    click.echo(f"Creating environment: {env}")
+    try:
         try:
             from world_models.envs import make_env
 
             env_obj = make_env(env)
         except Exception:
-            env_obj = _gym.make(env)
-    except Exception as e:
-        logger.exception("Failed to create env %s: %s", env, e)
-        print(f"Failed to create environment: {e}")
-        raise typer.Exit(code=1)
+            env_obj = gym.make(env)
+    except Exception as exc:
+        logger.debug("Failed to create env %s: %s", env, exc, exc_info=True)
+        _echo_error(f"Failed to create environment: {exc}")
+        raise click.exceptions.Exit(1) from exc
 
-    obs_list = []
-    act_list = []
-    rew_list = []
-    done_list = []
+    observations: list[Any] = []
+    actions: list[Any] = []
+    rewards: list[float] = []
+    dones: list[bool] = []
 
     obs = env_obj.reset()
-    # gym vs gymnasium differences: unpack tuple if needed
-    if isinstance(obs, tuple) and len(obs) >= 1:
+    if isinstance(obs, tuple):
         obs = obs[0]
 
-    for step in range(steps):
-        if random_policy:
-            action = env_obj.action_space.sample()
+    for _ in range(steps):
+        action = (
+            env_obj.action_space.sample()
+            if random_policy
+            else env_obj.action_space.sample()
+        )
+        result = env_obj.step(action)
+        if isinstance(result, tuple) and len(result) == 5:
+            next_obs, reward, terminated, truncated, _info = result
+            done = bool(terminated or truncated)
         else:
-            # default to random if no policy provided
-            action = env_obj.action_space.sample()
-        res = env_obj.step(action)
-        if isinstance(res, tuple) and len(res) == 5:
-            next_obs, reward, terminated, truncated, info = res
-            done = terminated or truncated
-        else:
-            next_obs, reward, done, info = res
-        obs_list.append(_n.asarray(obs))
-        act_list.append(_n.asarray(action))
-        rew_list.append(float(reward))
-        done_list.append(bool(done))
+            next_obs, reward, done, _info = result
+            done = bool(done)
+        observations.append(numpy.asarray(obs))
+        actions.append(numpy.asarray(action))
+        rewards.append(float(reward))
+        dones.append(done)
         if done:
             obs = env_obj.reset()
-            if isinstance(obs, tuple) and len(obs) >= 1:
+            if isinstance(obs, tuple):
                 obs = obs[0]
         else:
             obs = next_obs
 
-    print(f"Collected {len(obs_list)} steps; saving to {out}")
-    _n.savez_compressed(
+    click.echo(f"Collected {len(observations)} steps; saving to {out}")
+    numpy.savez_compressed(
         str(out),
-        observations=_n.stack(obs_list),
-        actions=_n.stack(act_list),
-        rewards=_n.array(rew_list),
-        dones=_n.array(done_list),
+        observations=numpy.stack(observations),
+        actions=numpy.stack(actions),
+        rewards=numpy.array(rewards),
+        dones=numpy.array(dones),
     )
-    print("Saved.")
+    click.echo("Saved.")
 
 
-@app.command("train")
-def train(
-    model: str = typer.Argument(
-        ..., help="Model/training script to run (iris/planet/jepa/rssm/genie)"
-    ),
-    extra_args: List[str] = typer.Argument(
-        None, help="Extra args passed to training script"
-    ),
-    inproc: bool = typer.Option(
-        False, help="Run training in-process instead of spawning subprocess"
-    ),
-) -> None:
-    """Launch an existing training entrypoint as a subprocess.
-
-    This command spawns `python -m world_models.training.<script>` for the
-    requested model. Extra args are forwarded unchanged.
-    """
-    # Use the shared training module mapping defined near the top of this file.
-    mapping = TRAINING_MODULES
-
+@app.command(
+    "train",
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+)
+@click.argument("model")
+@click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
+@click.option(
+    "--inproc",
+    is_flag=True,
+    help="Run training in-process instead of spawning subprocess.",
+)
+def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
+    """Launch an existing ``world_models.training`` entrypoint."""
     key = model.strip().lower()
-    if key not in mapping:
-        print(f"Unknown model '{model}'. Known: {', '.join(mapping.keys())}")
-        raise typer.Exit(code=1)
+    if key not in TRAINING_MODULES:
+        _echo_error(
+            f"Unknown model '{model}'. Known: {', '.join(TRAINING_MODULES.keys())}"
+        )
+        raise click.exceptions.Exit(1)
 
-    module = mapping[key]
+    module = TRAINING_MODULES[key]
     if inproc:
-        # Try to import the module and call a `main` entrypoint directly.
         try:
-            import importlib
-
             mod = importlib.import_module(module)
             main_fn = getattr(mod, "main", None)
             if callable(main_fn):
-                print(f"Running in-process: {module}.main()")
-                # If main expects args, we try to pass nothing and let it parse sys.argv
+                click.echo(f"Running in-process: {module}.main()")
                 try:
-                    main_fn()
+                    main_fn(list(extra_args))
                 except TypeError:
-                    # Some mains accept args; attempt to pass extra_args if provided
-                    if extra_args:
-                        main_fn(extra_args)
-                    else:
-                        main_fn()
-                raise typer.Exit(code=0)
-            else:
-                print(
-                    f"Module {module} has no callable main(); falling back to subprocess"
-                )
+                    main_fn()
+                return
+            click.echo(
+                f"Module {module} has no callable main(); falling back to subprocess"
+            )
         except KeyboardInterrupt:
-            print("Training interrupted by user")
-            raise typer.Exit(code=1)
-        except Exception as e:
-            logger.exception("In-process training failed: %s", e)
-            print("Falling back to subprocess execution")
+            _echo_error("Training interrupted by user")
+            raise click.exceptions.Exit(1)
+        except Exception as exc:
+            logger.debug("In-process training failed: %s", exc, exc_info=True)
+            click.echo("Falling back to subprocess execution")
 
-    # Spawn subprocess as fallback / default
-    cmd = [sys.executable, "-m", module]
-    if extra_args:
-        cmd.extend(extra_args)
-
-    print(f"Running: {' '.join(cmd)}")
+    cmd = [sys.executable, "-m", module, *extra_args]
+    click.echo(f"Running: {' '.join(cmd)}")
     try:
         proc = subprocess.run(cmd, check=False)
-        raise typer.Exit(code=proc.returncode)
     except KeyboardInterrupt:
-        print("Training interrupted by user")
-        raise typer.Exit(code=1)
+        _echo_error("Training interrupted by user")
+        raise click.exceptions.Exit(1)
+    raise click.exceptions.Exit(proc.returncode)
+
+
+def main(*args: Any, **kwargs: Any) -> Any:
+    """Backward-compatible callable for imports that used ``tools.cli:main``."""
+    return app.main(*args, **kwargs)
+
+
+def run() -> None:
+    """Console-script entrypoint used by the installed ``torchwm`` command."""
+    app(prog_name="torchwm")
 
 
 if __name__ == "__main__":
-    app()
+    run()

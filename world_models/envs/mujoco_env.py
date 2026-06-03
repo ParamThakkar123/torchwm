@@ -198,7 +198,7 @@ class MuJoCoImageEnv:
         if image.shape[:2] != self._size:
             image = np.asarray(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         if image.ndim == 2:

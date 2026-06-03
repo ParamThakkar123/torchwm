@@ -328,7 +328,55 @@ Memory, controllers, and inference operators
 Datasets, environments, and transforms
 --------------------------------------
 
+Environment adapters
+~~~~~~~~~~~~~~~~~~~~
+
+The environment APIs below mirror the dedicated environment guide pages: DMC,
+Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, vectorization utilities,
+and shared wrapper/preprocessing helpers. DIAMOND-style Atari support is listed
+here as Atari preprocessing rather than a separate environment family.
+
 .. automodule:: world_models.envs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.dmc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.gym_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.ale_atari_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.ale_atari_vector_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.diamond_atari
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.mujoco_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.unity_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.vector_env
    :members:
    :undoc-members:
    :show-inheritance:
@@ -338,10 +386,8 @@ Datasets, environments, and transforms
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: world_models.envs.vector_env
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Datasets and transforms
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: world_models.datasets.video_datasets
    :members:

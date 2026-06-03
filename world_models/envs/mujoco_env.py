@@ -11,6 +11,8 @@ import gymnasium as gym
 import numpy as np
 from PIL import Image
 
+from world_models.envs.gym_env import GymImageEnv
+
 
 RewardFn = Callable[[Any, Any, np.ndarray, dict[str, Any]], float]
 TerminalFn = Callable[[Any, Any, dict[str, Any]], bool]
@@ -40,6 +42,15 @@ def _validate_model_source(
         )
 
 
+def _is_native_model_source(model: str | Path) -> bool:
+    model_text = str(model)
+    return (
+        model_text.lstrip().startswith("<")
+        or model_text.endswith((".xml", ".mjb"))
+        or Path(model_text).exists()
+    )
+
+
 def _infer_model_source(model: str | Path) -> dict[str, str | Path]:
     model_text = str(model)
     if model_text.lstrip().startswith("<"):
@@ -49,23 +60,31 @@ def _infer_model_source(model: str | Path) -> dict[str, str | Path]:
     return {"xml_path": model}
 
 
-def _model_source_from_config(args) -> dict[str, str | Path]:
+def make_mujoco_env_from_config(args, size: tuple[int, int]):
+    """Build a MuJoCo image environment from a DreamerConfig-like object."""
+    native_kwargs = {
+        "seed": args.seed,
+        "size": size,
+        "camera": getattr(args, "mujoco_camera", None),
+        "frame_skip": int(getattr(args, "mujoco_frame_skip", 1)),
+        "reset_noise_scale": float(getattr(args, "mujoco_reset_noise_scale", 0.0)),
+    }
     if getattr(args, "mujoco_xml_string", None) is not None:
-        return {"xml_string": args.mujoco_xml_string}
+        return make_mujoco_env(xml_string=args.mujoco_xml_string, **native_kwargs)
     if getattr(args, "mujoco_binary_path", None) is not None:
-        return {"binary_path": args.mujoco_binary_path}
-    return {"xml_path": getattr(args, "mujoco_xml_path", None) or args.env}
+        return make_mujoco_env(binary_path=args.mujoco_binary_path, **native_kwargs)
+    if getattr(args, "mujoco_xml_path", None) is not None:
+        return make_mujoco_env(xml_path=args.mujoco_xml_path, **native_kwargs)
 
-
-def make_mujoco_env_from_config(args, size: tuple[int, int]) -> "MuJoCoImageEnv":
-    """Build a MuJoCoImageEnv from a DreamerConfig-like object."""
-    return MuJoCoImageEnv(
-        **_model_source_from_config(args),
+    gym_kwargs = {}
+    reset_noise_scale = native_kwargs["reset_noise_scale"]
+    if reset_noise_scale != 0.0:
+        gym_kwargs["reset_noise_scale"] = reset_noise_scale
+    return make_mujoco_env(
+        args.env,
         seed=args.seed,
         size=size,
-        camera=getattr(args, "mujoco_camera", None),
-        frame_skip=int(getattr(args, "mujoco_frame_skip", 1)),
-        reset_noise_scale=float(getattr(args, "mujoco_reset_noise_scale", 0.0)),
+        gym_kwargs=gym_kwargs,
     )
 
 
@@ -242,69 +261,64 @@ class MuJoCoImageEnv:
 
 def make_mujoco_env(
     model: str | Path | None = None,
-    **kwargs,
-) -> MuJoCoImageEnv:
-    """Create a native MuJoCo image environment from an XML/MJB path or XML string.
-
-    ``model`` is treated as an MJCF XML string when it starts with ``<``;
-    otherwise it is interpreted as a filesystem path. Use explicit
-    ``xml_path``, ``xml_string``, or ``binary_path`` keyword arguments when the
-    source type should not be inferred.
-    """
-    if model is not None:
-        kwargs.update({k: v for k, v in _infer_model_source(model).items() if k not in kwargs})
-    return MuJoCoImageEnv(**kwargs)
-
-
-def make_humanoid_env(
-    version: str = "v4",
-    xml_file: str = "humanoid.xml",
-    forward_reward_weight: float = 1.25,
-    ctrl_cost_weight: float = 0.1,
-    contact_cost_weight: float = 5e-7,
-    healthy_reward: float = 5.0,
-    terminate_when_unhealthy: bool = True,
-    healthy_z_range: tuple[float, float] = (1.0, 2.0),
-    reset_noise_scale: float = 1e-2,
-    exclude_current_positions_from_observation: bool = True,
-    include_cinert_in_observation: bool = True,
-    include_cvel_in_observation: bool = True,
-    include_qfrc_actuator_in_observation: bool = True,
-    include_cfrc_ext_in_observation: bool = True,
-) -> gym.Env:
-    """Create Gymnasium's task-level Humanoid MuJoCo environment."""
-    env_id = f"Humanoid-{version}"
-    return gym.make(
-        env_id,
-        xml_file=xml_file,
-        forward_reward_weight=forward_reward_weight,
-        ctrl_cost_weight=ctrl_cost_weight,
-        contact_cost_weight=contact_cost_weight,
-        healthy_reward=healthy_reward,
-        terminate_when_unhealthy=terminate_when_unhealthy,
-        healthy_z_range=healthy_z_range,
-        reset_noise_scale=reset_noise_scale,
-        exclude_current_positions_from_observation=exclude_current_positions_from_observation,
-        include_cinert_in_observation=include_cinert_in_observation,
-        include_cvel_in_observation=include_cvel_in_observation,
-        include_qfrc_actuator_in_observation=include_qfrc_actuator_in_observation,
-        include_cfrc_ext_in_observation=include_cfrc_ext_in_observation,
-    )
-
-
-def make_half_cheetah_env(
-    version: str = "v4",
-    forward_reward_weight: float = 0.1,
-    reset_noise_scale: float = 0.1,
-    exclude_current_positions_from_observation: bool = True,
+    *,
+    backend: str = "auto",
+    seed: int = 0,
+    size: tuple[int, int] = (64, 64),
     render_mode: str = "rgb_array",
-) -> gym.Env:
-    """Create Gymnasium's task-level HalfCheetah MuJoCo environment."""
-    env_id = f"HalfCheetah-{version}"
-    return gym.make(
-        env_id,
-        forward_reward_weight=forward_reward_weight,
-        reset_noise_scale=reset_noise_scale,
-        exclude_current_positions_from_observation=exclude_current_positions_from_observation,
-        render_mode=render_mode,
+    gym_kwargs: dict[str, Any] | None = None,
+    **kwargs,
+):
+    """Create one MuJoCo image environment factory for tasks and MJCF/MJB models.
+
+    Args:
+        model: Either a Gymnasium MuJoCo task id such as ``"Humanoid-v4"``,
+            an MJCF XML path/string, or an MJB binary path.
+        backend: ``"auto"`` infers native vs Gymnasium task mode. Use
+            ``"native"`` for MJCF/MJB or ``"gymnasium"`` for task ids.
+        seed: Seed forwarded to the image wrapper.
+        size: Target ``(height, width)`` image size.
+        render_mode: Render mode used for Gymnasium MuJoCo task ids.
+        gym_kwargs: Optional keyword arguments forwarded to ``gymnasium.make``
+            in task-id mode. Extra ``**kwargs`` are also forwarded there.
+        **kwargs: Native ``MuJoCoImageEnv`` options for MJCF/MJB mode, or
+            environment-constructor options for Gymnasium task-id mode.
+
+    Returns:
+        A TorchWM image environment returning ``{"image": uint8[C, H, W]}``.
+    """
+    backend = backend.lower()
+    explicit_native_source = any(
+        key in kwargs for key in ("xml_path", "xml_string", "binary_path")
     )
+    use_native = backend in {"native", "mjcf", "mjb"} or (
+        backend == "auto"
+        and (
+            explicit_native_source
+            or (model is not None and _is_native_model_source(model))
+        )
+    )
+
+    if use_native:
+        if model is not None:
+            kwargs.update(
+                {k: v for k, v in _infer_model_source(model).items() if k not in kwargs}
+            )
+        return MuJoCoImageEnv(seed=seed, size=size, **kwargs)
+
+    if backend not in {"auto", "gym", "gymnasium", "task"}:
+        raise ValueError(
+            f"Unknown MuJoCo backend={backend!r}. Use 'auto', 'native', or 'gymnasium'."
+        )
+    if model is None:
+        raise ValueError(
+            "A Gymnasium MuJoCo environment id, XML path/string, or MJB path is required."
+        )
+
+    env_kwargs = dict(gym_kwargs or {})
+    env_kwargs.update(kwargs)
+    try:
+        env = gym.make(str(model), render_mode=render_mode, **env_kwargs)
+    except TypeError:
+        env = gym.make(str(model), **env_kwargs)
+    return GymImageEnv(env, seed=seed, size=size, render_mode=render_mode)

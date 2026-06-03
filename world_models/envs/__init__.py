@@ -4,8 +4,6 @@ from .mujoco_env import (
     MuJoCoImageEnv,
     make_mujoco_env,
     make_mujoco_env_from_config,
-    make_humanoid_env,
-    make_half_cheetah_env,
 )
 from .gym_env import GymImageEnv, make_gym_env
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
@@ -61,8 +59,6 @@ __all__ = [
     "MuJoCoImageEnv",
     "make_mujoco_env",
     "make_mujoco_env_from_config",
-    "make_humanoid_env",
-    "make_half_cheetah_env",
     "GymImageEnv",
     "make_gym_env",
     "UnityMLAgentsEnv",

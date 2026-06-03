@@ -10,7 +10,7 @@ class DreamerConfig:
         # Environment selection.
         # dmc: DeepMind Control Suite
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
-        # mujoco: native MuJoCo XML/MJB via the mujoco Python bindings
+        # mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB
         # unity_mlagents: Unity ML-Agents executable
         self.env_backend = "dmc"
         self.env = "walker-walk"
@@ -18,8 +18,8 @@ class DreamerConfig:
         self.image_size = (64, 64)
         self.gym_render_mode = "rgb_array"
 
-        # Native MuJoCo options. Leave mujoco_xml_path unset to use `env` as
-        # the MJCF XML path when env_backend="mujoco".
+        # MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether
+        # `env` is a Gymnasium task ID or a native MJCF/MJB source.
         self.mujoco_xml_path = None
         self.mujoco_xml_string = None
         self.mujoco_binary_path = None

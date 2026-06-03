@@ -259,6 +259,41 @@ def test_native_mujoco_image_env_with_mocked_bindings(monkeypatch):
     assert np.array_equal(info["action"], np.array([2.0, 0.25], dtype=np.float32))
 
 
+@patch("world_models.envs.mujoco_env.GymImageEnv")
+@patch("world_models.envs.mujoco_env.gym.make")
+def test_make_mujoco_env_supports_generic_gymnasium_mujoco_task(
+    mock_gym_make,
+    mock_gym_image_env,
+):
+    from world_models.envs.mujoco_env import make_mujoco_env
+
+    base_env = Mock()
+    wrapped_env = Mock()
+    mock_gym_make.return_value = base_env
+    mock_gym_image_env.return_value = wrapped_env
+
+    out_env = make_mujoco_env(
+        "Humanoid-v4",
+        seed=7,
+        size=(32, 32),
+        render_mode="rgb_array",
+        forward_reward_weight=1.5,
+    )
+
+    assert out_env is wrapped_env
+    mock_gym_make.assert_called_once_with(
+        "Humanoid-v4",
+        render_mode="rgb_array",
+        forward_reward_weight=1.5,
+    )
+    mock_gym_image_env.assert_called_once_with(
+        base_env,
+        seed=7,
+        size=(32, 32),
+        render_mode="rgb_array",
+    )
+
+
 def test_make_mujoco_env_from_config_builds_xml_string_env(monkeypatch):
     fake_mujoco = type("FakeMujoco", (), {})()
     fake_mujoco.MjModel = _FakeMjModel

@@ -16,7 +16,7 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
-    # Native MuJoCo
+    # MuJoCo
     mujoco_xml_path: Optional[str] = None
     mujoco_xml_string: Optional[str] = None
     mujoco_binary_path: Optional[str] = None
@@ -371,11 +371,11 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
 
-# Native MuJoCo
+# MuJoCo
 cfg.env_backend = "mujoco"
-cfg.env = "models/cartpole.xml"
-cfg.mujoco_camera = None
-cfg.mujoco_frame_skip = 4
+cfg.env = "Humanoid-v4"  # or "models/cartpole.xml"
+cfg.mujoco_camera = None  # native MJCF/MJB only
+cfg.mujoco_frame_skip = 4  # native MJCF/MJB only
 
 # Unity
 cfg.env_backend = "unity_mlagents"

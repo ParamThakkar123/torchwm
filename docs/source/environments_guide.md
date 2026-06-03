@@ -70,45 +70,57 @@ class MyEnv(gym.Env):
 cfg.env_instance = MyEnv()
 ```
 
-## Native MuJoCo
+## MuJoCo
 
-TorchWM can train pixel-based world models directly from MJCF XML or MJB
-models using the native `mujoco` Python bindings. The adapter compiles models
-with `mujoco.MjModel`, advances physics with `mujoco.mj_step`, renders frames
-with `mujoco.Renderer`, and returns Dreamer-compatible observations in the
-form `{"image": uint8[C, H, W]}`.
+TorchWM uses one `make_mujoco_env` entry point for MuJoCo tasks and native
+models. Pass a Gymnasium MuJoCo task id such as `"Humanoid-v4"`,
+`"Ant-v4"`, or `"HalfCheetah-v4"` to use the task definitions and rewards
+provided by Gymnasium, or pass an MJCF XML string/path or MJB binary path to
+use the native `mujoco` Python bindings directly. In both modes TorchWM returns
+Dreamer-compatible observations in the form `{"image": uint8[C, H, W]}`.
 
 ### Setup
 
 ```bash
 pip install torchwm[mujoco]
-# or: pip install mujoco
+# or: pip install mujoco gymnasium[mujoco]
 ```
 
 ### Dreamer Configuration
+
+Use a Gymnasium MuJoCo task id when you want standard MuJoCo benchmark rewards
+and termination logic:
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "mujoco"
-cfg.env = "models/cartpole.xml"  # MJCF XML path when mujoco_xml_path is unset
+cfg.env = "Humanoid-v4"       # also supports Ant-v4, Hopper-v4, etc.
 cfg.image_size = (64, 64)
-cfg.mujoco_camera = None          # camera name/id, or None for default camera
-cfg.mujoco_frame_skip = 4         # MuJoCo physics steps per TorchWM env step
+```
+
+Use an MJCF/MJB model when you want direct native MuJoCo simulation. Native
+models define physics, but not reinforcement-learning rewards, so
+`MuJoCoImageEnv` defaults to zero reward unless you provide callbacks.
+
+```python :class: thebe
+cfg.env_backend = "mujoco"
+cfg.env = "models/cartpole.xml"  # inferred as an MJCF path
+cfg.mujoco_camera = None
+cfg.mujoco_frame_skip = 4
 cfg.mujoco_reset_noise_scale = 0.01
 ```
 
-`DreamerConfig` uses `make_mujoco_env_from_config` internally so the Dreamer
-code path stays small: all MuJoCo source selection and adapter-specific keyword
-translation lives in `world_models.envs.mujoco_env`.
+You can also pass `cfg.mujoco_xml_path`, `cfg.mujoco_xml_string`, or
+`cfg.mujoco_binary_path` to force native MJCF/MJB mode. `DreamerConfig` uses
+`make_mujoco_env_from_config` internally so the Dreamer code path stays small:
+all MuJoCo source selection and adapter-specific keyword translation lives in
+`world_models.envs.mujoco_env`.
 
-You can also pass `cfg.mujoco_xml_string` for inline MJCF or
-`cfg.mujoco_binary_path` for compiled MJB models. Native MuJoCo files define
-physics but not task rewards, so `MuJoCoImageEnv` defaults to zero reward and
-relies on wrappers such as `TimeLimit` for episode length. For task-specific
-training, instantiate the adapter directly with `reward_fn` and `terminal_fn`
-callbacks, then assign it to `cfg.env_instance`.
+For task-specific native rewards or termination logic, instantiate the adapter
+directly with `reward_fn` and `terminal_fn` callbacks, then assign it to
+`cfg.env_instance`.
 
 ```python :class: thebe
 from world_models.envs import MuJoCoImageEnv
@@ -129,12 +141,16 @@ cfg.env_instance = MuJoCoImageEnv(
 
 ### Direct Factory Usage
 
-For scripts that do not use `DreamerConfig`, create a MuJoCo image environment
-directly from a path, compiled binary, or inline MJCF string:
+For scripts that do not use `DreamerConfig`, use the same `make_mujoco_env`
+function for both standard tasks and native models:
 
 ```python :class: thebe
 from world_models.envs import make_mujoco_env
 
+# Standard Gymnasium MuJoCo task.
+env = make_mujoco_env("Humanoid-v4", size=(64, 64), forward_reward_weight=1.25)
+
+# Native inline MJCF model.
 xml = """
 <mujoco>
   <worldbody>
@@ -144,9 +160,8 @@ xml = """
   </worldbody>
 </mujoco>
 """
-
-env = make_mujoco_env(xml, size=(64, 64), camera=None, frame_skip=2)
-obs = env.reset()
+native_env = make_mujoco_env(xml, size=(64, 64), camera=None, frame_skip=2)
+obs = native_env.reset()
 assert obs["image"].shape == (3, 64, 64)
 ```
 
@@ -156,7 +171,7 @@ explicit backend:
 ```python :class: thebe
 from world_models.envs import make_env
 
-env = make_env("models/cartpole.xml", backend="mujoco", size=(64, 64))
+env = make_env("Humanoid-v4", backend="mujoco", size=(64, 64))
 ```
 
 ## Unity ML-Agents

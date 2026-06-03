@@ -70,6 +70,36 @@ class MyEnv(gym.Env):
 cfg.env_instance = MyEnv()
 ```
 
+
+## Brax
+
+Brax provides JAX-based continuous-control environments that can be stepped with
+compiled reset/step functions. TorchWM adapts Brax state observations into image
+observations so pixel-based world models can train with the same Dreamer pipeline
+used by DMC and Gym environments.
+
+### Setup
+
+```bash
+pip install torchwm[brax]
+```
+
+### Configuration
+
+```python :class: thebe
+from world_models.configs import DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env_backend = "brax"
+cfg.env = "ant"  # for example: ant, humanoid, hopper, halfcheetah, walker2d
+cfg.brax_backend = "generalized"  # or "mjx" when supported by your Brax install
+cfg.brax_jit = True
+```
+
+Brax actions are exposed as continuous `[-1, 1]` vectors. When the Brax task
+returns vector observations, TorchWM renders those features as deterministic RGB
+bands and also stores the raw vector in `info["vector_observation"]`.
+
 ## Unity ML-Agents
 
 For complex 3D environments and simulations.

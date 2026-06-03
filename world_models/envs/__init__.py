@@ -2,6 +2,7 @@ from .ale_atari_env import make_atari_env, list_available_atari_envs
 from .ale_atari_vector_env import make_atari_vector_env
 from .mujoco_env import make_humanoid_env, make_half_cheetah_env
 from .gym_env import GymImageEnv, make_gym_env
+from .brax_env import BraxImageEnv, make_brax_env
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
     TimeLimit,
@@ -61,6 +62,8 @@ __all__ = [
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "DeepMindControlEnv",
+    "BraxImageEnv",
+    "make_brax_env",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

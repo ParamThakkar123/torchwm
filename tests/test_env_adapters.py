@@ -259,8 +259,70 @@ def test_native_mujoco_image_env_with_mocked_bindings(monkeypatch):
     assert np.array_equal(info["action"], np.array([2.0, 0.25], dtype=np.float32))
 
 
+def test_list_gymnasium_robotics_envs_uses_registered_package_envs(monkeypatch):
+    import sys
+    from importlib.machinery import ModuleSpec
+    from types import ModuleType, SimpleNamespace
+
+    import world_models.envs.robotics_env as robotics_env
+
+    fake_robotics = ModuleType("gymnasium_robotics")
+    fake_robotics.__spec__ = ModuleSpec("gymnasium_robotics", loader=None)
+    monkeypatch.setitem(sys.modules, "gymnasium_robotics", fake_robotics)
+    monkeypatch.setattr(
+        robotics_env.gym, "register_envs", lambda module: None, raising=False
+    )
+    monkeypatch.setattr(
+        robotics_env.gym.envs,
+        "registry",
+        {
+            "FetchReachDense-v4": SimpleNamespace(
+                entry_point="gymnasium_robotics.envs.fetch.reach:MujocoFetchReachEnv"
+            ),
+            "AntMaze_UMazeDense-v5": SimpleNamespace(
+                entry_point="gymnasium_robotics.envs.maze.ant_maze_v5:AntMazeEnv"
+            ),
+            "CartPole-v1": SimpleNamespace(
+                entry_point="gymnasium.envs.classic_control.cartpole:CartPoleEnv"
+            ),
+        },
+    )
+
+    assert robotics_env.list_gymnasium_robotics_envs() == [
+        "AntMaze_UMazeDense-v5",
+        "FetchReachDense-v4",
+    ]
+
+
+def test_environment_catalog_exposes_robotics_to_online_world_models(monkeypatch):
+    import world_models.catalog as catalog
+
+    monkeypatch.setattr(
+        catalog, "_list_available_robotics_envs", lambda: ["FetchReachDense-v4"]
+    )
+    monkeypatch.setattr(catalog, "_list_available_atari_envs", lambda: ["ALE/Pong-v5"])
+
+    envs_by_model = catalog._build_env_catalog()
+
+    for model_name in (
+        "dreamer",
+        "dreamerv1",
+        "dreamerv2",
+        "planet",
+        "rssm",
+        "iris",
+        "diamond",
+        "genie",
+        "dit",
+    ):
+        assert "FetchReachDense-v4" in envs_by_model[model_name]
+
+    assert "jepa" not in envs_by_model
+    assert "ijepa" not in envs_by_model
+
+
 @patch("world_models.envs.mujoco_env.GymImageEnv")
-@patch("world_models.envs.mujoco_env.gym.make")
+@patch("world_models.envs.robotics_env.gym.make")
 def test_make_mujoco_env_supports_generic_gymnasium_mujoco_task(
     mock_gym_make,
     mock_gym_image_env,
@@ -498,3 +560,126 @@ def test_require_module_filters_warp_messages(monkeypatch, capsys):
     assert "Some other message" in captured.out
     assert "Failed to import warp:" not in captured.out
     assert "Failed to import mujoco_warp:" not in captured.out
+
+
+@patch("world_models.envs.robotics_env.GymImageEnv")
+@patch("world_models.envs.robotics_env.gym.make")
+def test_make_robotics_env_registers_gymnasium_robotics(
+    mock_gym_make,
+    mock_gym_image_env,
+    monkeypatch,
+):
+    import sys
+    from importlib.machinery import ModuleSpec
+    from types import ModuleType
+
+    import world_models.envs.robotics_env as robotics_env
+    from world_models.envs.robotics_env import make_robotics_env
+
+    fake_robotics = ModuleType("gymnasium_robotics")
+    fake_robotics.__spec__ = ModuleSpec("gymnasium_robotics", loader=None)
+    monkeypatch.setitem(sys.modules, "gymnasium_robotics", fake_robotics)
+    monkeypatch.setattr(
+        robotics_env.gym, "register_envs", lambda module: None, raising=False
+    )
+    base_env = Mock()
+    wrapped_env = Mock()
+    mock_gym_make.return_value = base_env
+    mock_gym_image_env.return_value = wrapped_env
+
+    out_env = make_robotics_env(
+        "HalfCheetah-v2",
+        seed=3,
+        size=(32, 32),
+        render_mode="rgb_array",
+        reset_noise_scale=0.2,
+    )
+
+    assert out_env is wrapped_env
+    mock_gym_make.assert_called_once_with(
+        "HalfCheetah-v2",
+        render_mode="rgb_array",
+        reset_noise_scale=0.2,
+    )
+    mock_gym_image_env.assert_called_once_with(
+        base_env,
+        seed=3,
+        size=(32, 32),
+        render_mode="rgb_array",
+    )
+
+
+@patch("world_models.envs.mujoco_env.GymImageEnv")
+@patch("world_models.envs.robotics_env.gym.make")
+def test_make_mujoco_env_falls_back_to_gymnasium_robotics_for_legacy_ids(
+    mock_gym_make,
+    mock_gym_image_env,
+    monkeypatch,
+):
+    import sys
+    from importlib.machinery import ModuleSpec
+    from types import ModuleType
+
+    import world_models.envs.robotics_env as robotics_env
+    from world_models.envs.mujoco_env import make_mujoco_env
+
+    fake_robotics = ModuleType("gymnasium_robotics")
+    fake_robotics.__spec__ = ModuleSpec("gymnasium_robotics", loader=None)
+    monkeypatch.setitem(sys.modules, "gymnasium_robotics", fake_robotics)
+    monkeypatch.setattr(
+        robotics_env.gym, "register_envs", lambda module: None, raising=False
+    )
+    base_env = Mock()
+    wrapped_env = Mock()
+    mock_gym_make.side_effect = [
+        ImportError(
+            "The mujoco v2 and v3 based environments have been moved to the gymnasium-robotics project."
+        ),
+        base_env,
+    ]
+    mock_gym_image_env.return_value = wrapped_env
+
+    out_env = make_mujoco_env("HalfCheetah-v2", seed=5, size=(16, 16))
+
+    assert out_env is wrapped_env
+    assert mock_gym_make.call_count == 2
+    mock_gym_make.assert_called_with("HalfCheetah-v2", render_mode="rgb_array")
+    mock_gym_image_env.assert_called_once_with(
+        base_env,
+        seed=5,
+        size=(16, 16),
+        render_mode="rgb_array",
+    )
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.make_robotics_env")
+def test_make_env_robotics_backend(
+    mock_robotics_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "robotics"
+    cfg.env = "HalfCheetah-v2"
+    cfg.image_size = (64, 64)
+    cfg.gym_render_mode = "rgb_array"
+
+    env = Mock()
+    mock_robotics_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_robotics_env.assert_called_once_with(
+        "HalfCheetah-v2",
+        seed=cfg.seed,
+        size=cfg.image_size,
+        render_mode="rgb_array",
+    )

@@ -97,6 +97,19 @@ class GymImageEnv:
 
             try:
                 return gymnasium.make(env_id, render_mode=render_mode)
+            except ImportError as exc:
+                from world_models.envs.robotics_env import (
+                    is_moved_mujoco_error,
+                    register_gymnasium_robotics_envs,
+                )
+
+                if not is_moved_mujoco_error(exc):
+                    raise
+                register_gymnasium_robotics_envs()
+                try:
+                    return gymnasium.make(env_id, render_mode=render_mode)
+                except TypeError:
+                    return gymnasium.make(env_id)
             except TypeError:
                 return gymnasium.make(env_id)
         except Exception:

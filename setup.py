@@ -42,6 +42,9 @@ setup(
         "mujoco": [
             "mujoco>=3.2.0",
         ],
+        "robotics": [
+            "gymnasium-robotics>=1.3.0",
+        ],
         "brax": [
             "brax>=0.13.0",
         ],
@@ -79,7 +82,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,brax,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,dev,docs]",
         ],
     },
     classifiers=[

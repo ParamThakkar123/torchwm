@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict, is_dataclass, replace
 from importlib import import_module
 from inspect import signature
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, NamedTuple, cast
 
 
 class ModelSpec(NamedTuple):
@@ -177,7 +177,7 @@ def _config_to_dict(config: Any) -> dict[str, Any]:
     if isinstance(config, dict):
         return dict(config)
     if is_dataclass(config):
-        return asdict(config)
+        return asdict(cast(Any, config))
     return {
         key: value
         for key, value in vars(config).items()
@@ -218,7 +218,7 @@ def _apply_overrides(config: Any, overrides: dict[str, Any]) -> Any:
         invalid = sorted(set(overrides) - valid)
         if invalid:
             raise ValueError(f"Invalid config override(s): {', '.join(invalid)}")
-        return replace(config, **overrides)
+        return replace(cast(Any, config), **overrides)
     for key, value in overrides.items():
         if not hasattr(config, key):
             raise ValueError(f"Invalid config override: {key}")

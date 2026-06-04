@@ -48,6 +48,7 @@ class BraxImageEnv:
         episode_length: int | None = None,
         auto_reset: bool = False,
         jit: bool = True,
+        suppress_warp_warnings: bool = True,
         **env_kwargs,
     ):
         self._size = (int(size[0]), int(size[1]))
@@ -57,11 +58,12 @@ class BraxImageEnv:
 
         install_hint = "Install Brax support with `pip install torchwm[brax]`."
         self._jax = _require_module("jax", install_hint)
-        self._jnp = _require_module(
-            "jax.numpy", install_hint
-        )
+        self._jnp = _require_module("jax.numpy", install_hint)
+        self._suppress_warp_warnings = bool(suppress_warp_warnings)
         self._brax_envs = _require_module(
-            "brax.envs", install_hint
+            "brax.envs",
+            install_hint,
+            suppress_warp_warnings=self._suppress_warp_warnings,
         )
 
         self._env = self._make_env(
@@ -72,7 +74,9 @@ class BraxImageEnv:
             env_kwargs=env_kwargs,
         )
         self._rng = self._jax.random.PRNGKey(self._seed)
-        self._reset_fn = self._jax.jit(self._env.reset) if self._jit else self._env.reset
+        self._reset_fn = (
+            self._jax.jit(self._env.reset) if self._jit else self._env.reset
+        )
         self._step_fn = self._jax.jit(self._env.step) if self._jit else self._env.step
 
         action_size = getattr(self._env, "action_size", None)
@@ -167,9 +171,7 @@ class BraxImageEnv:
         for i in range(bands):
             start = i * band_w
             end = (
-                self._size[1]
-                if i == bands - 1
-                else min(self._size[1], start + band_w)
+                self._size[1] if i == bands - 1 else min(self._size[1], start + band_w)
             )
             image[:, start:end, :] = int(255.0 * float(vec[i]))
         return image
@@ -257,10 +259,45 @@ class BraxImageEnv:
         self._state = None
 
 
-def _require_module(module_name: str, install_hint: str):
+def _require_module(
+    module_name: str, install_hint: str, *, suppress_warp_warnings: bool = False
+):
     parent_name = module_name.split(".", 1)[0]
     if importlib.util.find_spec(parent_name) is None:
-        raise ImportError(f"Missing optional dependency `{parent_name}`. {install_hint}")
+        raise ImportError(
+            f"Missing optional dependency `{parent_name}`. {install_hint}"
+        )
     if importlib.util.find_spec(module_name) is None:
-        raise ImportError(f"Missing optional dependency `{module_name}`. {install_hint}")
+        raise ImportError(
+            f"Missing optional dependency `{module_name}`. {install_hint}"
+        )
+    # Some optional backends (notably MuJoCo/MJX's Warp shim) print noisy
+    # import-time messages like:
+    #   Failed to import warp: No module named 'warp'
+    #   Failed to import mujoco_warp: No module named 'mujoco_warp'
+    # These messages are harmless when the optional backend is not present
+    # but pollute console output during tests and normal runs. When
+    # `suppress_warp_warnings=True` filter those two lines while replaying
+    # any other import output.
+    if suppress_warp_warnings and module_name.startswith("brax"):
+        import io
+        import sys
+        from contextlib import redirect_stdout, redirect_stderr
+
+        buf = io.StringIO()
+        # Capture stdout/stderr produced during import.
+        with redirect_stdout(buf), redirect_stderr(buf):
+            module = importlib.import_module(module_name)
+
+        # Replay any captured lines except the known Warp messages.
+        captured = buf.getvalue().splitlines()
+        original_stdout = sys.stdout
+        for line in captured:
+            if line.startswith("Failed to import warp:"):
+                continue
+            if line.startswith("Failed to import mujoco_warp:"):
+                continue
+            print(line, file=original_stdout)
+        return module
+
     return importlib.import_module(module_name)

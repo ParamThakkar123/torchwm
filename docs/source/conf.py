@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime
-
+import world_models
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
@@ -13,7 +13,6 @@ copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
 
 # Auto-read version from world_models package
-import world_models
 
 release = world_models.__version__
 

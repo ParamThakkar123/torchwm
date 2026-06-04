@@ -116,6 +116,9 @@ def make_env(args):
             episode_length=int(getattr(args, "time_limit", 1000)),
             auto_reset=bool(getattr(args, "brax_auto_reset", False)),
             jit=bool(getattr(args, "brax_jit", True)),
+            suppress_warp_warnings=bool(
+                getattr(args, "brax_suppress_warp_warnings", True)
+            ),
         )
     elif backend in {"unity", "unity_mlagents", "mlagents"}:
         unity_file_name = getattr(args, "unity_file_name", None)

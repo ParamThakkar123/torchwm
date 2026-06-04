@@ -22,6 +22,10 @@ class DreamerConfig:
         self.brax_backend = "generalized"
         self.brax_jit = True
         self.brax_auto_reset = False
+        # Suppress noisy optional MuJoCo/MJX Warp import messages emitted during
+        # Brax imports. These messages are harmless when Warp is not installed
+        # but can clutter logs; enable suppression by default.
+        self.brax_suppress_warp_warnings = True
 
         # Unity ML-Agents options.
         self.unity_file_name = None

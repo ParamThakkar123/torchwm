@@ -56,6 +56,11 @@ cfg.action_repeat = 1
 cfg.brax_backend = "generalized"  # Use "mjx" when supported by your install.
 cfg.brax_jit = True
 cfg.brax_auto_reset = False
+# Optionally suppress noisy optional MuJoCo/MJX Warp import messages that may
+# appear during Brax imports when Warp isn't installed. These messages are
+# harmless but can clutter logs during tests or normal runs. Enabled by
+# default.
+cfg.brax_suppress_warp_warnings = True
 
 agent = Dreamer(cfg)
 agent.train()

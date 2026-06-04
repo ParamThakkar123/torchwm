@@ -37,6 +37,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
@@ -48,10 +49,10 @@
     <script src="_static/documentation_options.js?v=6c02275b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=3a14cefc"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api_reference';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
-    <script src="_static/mathjax_config.js?v=90e9db6d"></script>
-    <script src="_static/mathjax_local.js?v=3f4cc662"></script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-151/api_reference.html" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -263,6 +264,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -9389,9 +9391,16 @@ and returns and episode instance.</p>
 </dd></dl>
 
 </section>
-<section id="module-world_models.envs">
-<span id="datasets-environments-and-transforms"></span><h2>Datasets, environments, and transforms<a class="headerlink" href="#module-world_models.envs" title="Link to this heading">#</a></h2>
-<dl class="py function">
+<section id="datasets-environments-and-transforms">
+<h2>Datasets, environments, and transforms<a class="headerlink" href="#datasets-environments-and-transforms" title="Link to this heading">#</a></h2>
+<section id="environment-adapters">
+<h3>Environment adapters<a class="headerlink" href="#environment-adapters" title="Link to this heading">#</a></h3>
+<p>The environment APIs below mirror the dedicated environment guide pages: DMC,
+Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DIAMOND-style Atari support is intentionally not listed as an environment
+adapter because it is Atari preprocessing rather than a separate environment
+family.</p>
+<dl class="py function" id="module-world_models.envs">
 <dt class="sig sig-object py" id="world_models.envs.make_atari_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_atari_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frameskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat_action_probability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_action_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/ale_atari_env.html#make_atari_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_atari_env" title="Link to this definition">#</a></dt>
 <dd><p>Create any Atari environment from Arcadic Learning Environment (ALE).</p>
@@ -10090,6 +10099,266 @@ package-specific factories when available, falling back to gym.make.</p>
 </dl>
 </dd></dl>
 
+<dl class="py class" id="module-world_models.envs.dmc">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.dmc.</span></span><span class="sig-name descname"><span class="pre">DeepMindControlEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-style adapter for DeepMind Control Suite tasks.</p>
+<p>The wrapper exposes DMC observations and actions through Gym spaces and
+adds a rendered RGB image to each observation dict so image-based world
+model pipelines can train consistently across backends.</p>
+<dl class="simple">
+<dt>Features:</dt><dd><ul class="simple">
+<li><p>Parses domain-task names (e.g., “cheetah-run” -&gt; domain=”cheetah”, task=”run”)</p></li>
+<li><p>Automatically handles special cases like “cup” -&gt; “ball_in_cup”</p></li>
+<li><p>Renders RGB images at configurable resolution</p></li>
+<li><p>Returns observations as dict with both state vectors and images</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Environment name in format “domain-task” (e.g., “cheetah-run”).</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random seed for environment initialization.</p></li>
+<li><p><strong>size</strong> (<em>tuple</em>) – Target image size as (height, width) (default: (64, 64)).</p></li>
+<li><p><strong>camera</strong> (<em>int</em><em>, </em><em>optional</em>) – Camera ID for rendering. Defaults to 0 for most
+domains, 2 for quadruped.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.observation_space">
+<span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd><p>Dict space with state keys and “image”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gym.spaces.Dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.action_space">
+<span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.action_space" title="Link to this definition">#</a></dt>
+<dd><p>Continuous action space from DMC spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gym.spaces.Box</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">env</span> <span class="o">=</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="s2">&quot;cheetah-run&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>  <span class="c1"># dict_keys([&#39;position&#39;, &#39;velocity&#39;, &#39;image&#39;])</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="id13">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#id13" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id14">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#id14" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-world_models.envs.gym_env">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.make_gym_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.gym_env.</span></span><span class="sig-name descname"><span class="pre">make_gym_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#make_gym_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.make_gym_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a GymImageEnv wrapper for generic Gym/Gymnasium environments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> – Either a string environment ID (e.g., “Pendulum-v1”) or a pre-built
+gym environment instance.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to GymImageEnv, including:
+- seed (int): Random seed for environment (default: 0)
+- size (tuple): Target image size as (height, width) (default: (64, 64))
+- render_mode (str): Render mode for environment (default: “rgb_array”)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A wrapper that always returns image observations in the</dt><dd><p>format {“image”: (C, H, W)} suitable for pixel-based world models.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.gym_env.GymImageEnv" title="world_models.envs.gym_env.GymImageEnv">GymImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.gym_env.</span></span><span class="sig-name descname"><span class="pre">GymImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb_array'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#GymImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-like environment wrapper that always returns image observations.</p>
+<p>This wrapper normalizes diverse environment interfaces to return consistent
+image-based observations suitable for pixel-based world models like Dreamer.</p>
+<dl class="simple">
+<dt>Features:</dt><dd><ul class="simple">
+<li><p>Supports environment IDs (string) and pre-built environment objects.</p></li>
+<li><p>Synthesizes RGB images from vector observations for pixel-based training.</p></li>
+<li><p>Exposes continuous action spaces mapped to [-1, 1] range.</p></li>
+<li><p>Converts discrete actions to one-hot vectors.</p></li>
+<li><p>Returns observations as dict {“image”: (C, H, W)} with uint8 values.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> – Either a string environment ID (e.g., “Pendulum-v1”) or a pre-built
+gym environment instance.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random seed for environment reset (default: 0).</p></li>
+<li><p><strong>size</strong> (<em>tuple</em>) – Target image size as (height, width) (default: (64, 64)).</p></li>
+<li><p><strong>render_mode</strong> (<em>str</em>) – Render mode for environment (default: “rgb_array”).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.observation_space">
+<span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd><p>Dict space with “image” key containing (C, H, W) Box.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.action_space">
+<span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd><p>Box space with actions in [-1, 1] range.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.max_episode_steps">
+<span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd><p>Maximum steps per episode (default: 1000).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id15">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#id15" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id16">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#id16" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id17">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#id17" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#GymImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#GymImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#GymImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.gym_env.GymImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#GymImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.GymImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-world_models.envs.ale_atari_env">
+<dt class="sig sig-object py" id="world_models.envs.ale_atari_env.make_atari_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.ale_atari_env.</span></span><span class="sig-name descname"><span class="pre">make_atari_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frameskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat_action_probability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_action_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/ale_atari_env.html#make_atari_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ale_atari_env.make_atari_env" title="Link to this definition">#</a></dt>
+<dd><p>Create any Atari environment from Arcadic Learning Environment (ALE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env_id</strong> (<em>str</em>) – The id of the Atari environment to create.</p></li>
+<li><p><strong>obs_type</strong> (<em>str</em>) – The type of observation to return (“rgb” or “ram”).</p></li>
+<li><p><strong>frameskip</strong> (<em>int</em>) – The number of frames to skip between actions.</p></li>
+<li><p><strong>repeat_action_probability</strong> (<em>float</em>) – The probability of repeating the last action.</p></li>
+<li><p><strong>full_action_space</strong> (<em>bool</em>) – Whether to use the full action space.</p></li>
+<li><p><strong>max_episode_steps</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Maximum number of steps per episode.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments for environment configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created Atari environment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gym.Env</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.ale_atari_env.list_available_atari_envs">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.ale_atari_env.</span></span><span class="sig-name descname"><span class="pre">list_available_atari_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/ale_atari_env.html#list_available_atari_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ale_atari_env.list_available_atari_envs" title="Link to this definition">#</a></dt>
+<dd><p>Get a list of all available Atari environments in Arcadic Learning Environment (ALE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of available Atari environment IDs.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-world_models.envs.ale_atari_vector_env">
+<dt class="sig sig-object py" id="world_models.envs.ale_atari_vector_env.make_atari_vector_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.ale_atari_vector_env.</span></span><span class="sig-name descname"><span class="pre">make_atari_vector_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_envs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frameskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat_action_probability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_action_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/ale_atari_vector_env.html#make_atari_vector_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ale_atari_vector_env.make_atari_vector_env" title="Link to this definition">#</a></dt>
+<dd><p>Create vectorized Atari environments using ALE’s native AtariVectorEnv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<em>str</em>) – The name of the Atari game (e.g., “pong”, “breakout”).</p></li>
+<li><p><strong>num_envs</strong> (<em>int</em>) – Number of parallel environments.</p></li>
+<li><p><strong>obs_type</strong> (<em>str</em>) – The type of observation to return (“rgb” or “ram”).</p></li>
+<li><p><strong>frameskip</strong> (<em>int</em>) – The number of frames to skip between actions.</p></li>
+<li><p><strong>repeat_action_probability</strong> (<em>float</em>) – The probability of repeating the last action.</p></li>
+<li><p><strong>full_action_space</strong> (<em>bool</em>) – Whether to use the full action space.</p></li>
+<li><p><strong>max_episode_steps</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Maximum number of steps per episode.</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Random seed for reproducibility.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments for environment configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The vectorized Atari environment.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>AtariVectorEnv</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function" id="module-world_models.envs.mujoco_env">
 <dt class="sig sig-object py" id="world_models.envs.mujoco_env.make_mujoco_env_from_config">
 <span class="sig-prename descclassname"><span class="pre">world_models.envs.mujoco_env.</span></span><span class="sig-name descname"><span class="pre">make_mujoco_env_from_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/mujoco_env.html#make_mujoco_env_from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config" title="Link to this definition">#</a></dt>
@@ -10194,6 +10463,257 @@ environment-constructor options for Gymnasium task-id mode.</p></li>
 <dd class="field-even"><p>A TorchWM image environment returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[C,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function" id="module-world_models.envs.unity_env">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.make_unity_mlagents_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.unity_env.</span></span><span class="sig-name descname"><span class="pre">make_unity_mlagents_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#make_unity_mlagents_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.make_unity_mlagents_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a Unity ML-Agents environment wrapper.</p>
+<p>Factory function that instantiates a UnityMLAgentsEnv with the provided
+keyword arguments. Suitable for integrating Unity-based environments
+with Dreamer-style world model pipelines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to UnityMLAgentsEnv, including:
+- file_name (str): Path to the Unity environment binary.
+- behavior_name (str, optional): Name of the behavior to use.
+- seed (int): Random seed (default: 0).
+- size (tuple): Image size as (height, width) (default: (64, 64)).
+- worker_id (int): Worker ID for multi-environment setup (default: 0).
+- base_port (int): Base port for communication (default: 5005).
+- no_graphics (bool): Disable graphics rendering (default: True).
+- time_scale (float): Simulation time scale (default: 20.0).
+- quality_level (int): Graphics quality level (default: 1).
+- max_episode_steps (int): Max steps per episode (default: 1000).</p></li>
+<li><p><strong>env_id</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-compatible wrapper for Unity environments.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.unity_env.UnityMLAgentsEnv" title="world_models.envs.unity_env.UnityMLAgentsEnv">UnityMLAgentsEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.unity_env.</span></span><span class="sig-name descname"><span class="pre">UnityMLAgentsEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">behavior_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_graphics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-like wrapper for Unity ML-Agents environments.</p>
+<p>Provides a unified interface for Unity-based environments, converting
+observations to image format compatible with pixel-based world models.</p>
+<dl class="simple">
+<dt>Features:</dt><dd><ul class="simple">
+<li><p>Supports single-agent control with continuous action spaces.</p></li>
+<li><p>Returns observations as {“image”: (C, H, W)} with uint8 values.</p></li>
+<li><p>Normalizes actions to [-1, 1] range.</p></li>
+<li><p>Includes rendered frames in observations for visual policies.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_name</strong> (<em>str</em>) – Path to the Unity environment binary.</p></li>
+<li><p><strong>behavior_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the behavior to use. If None,
+uses the first available behavior.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random seed for environment (default: 0).</p></li>
+<li><p><strong>size</strong> (<em>tuple</em>) – Target image size as (height, width) (default: (64, 64)).</p></li>
+<li><p><strong>worker_id</strong> (<em>int</em>) – Worker ID for multi-environment setup (default: 0).</p></li>
+<li><p><strong>base_port</strong> (<em>int</em>) – Base port for Unity environment communication (default: 5005).</p></li>
+<li><p><strong>no_graphics</strong> (<em>bool</em>) – Disable graphics rendering for faster simulation (default: True).</p></li>
+<li><p><strong>time_scale</strong> (<em>float</em>) – Simulation time scale multiplier (default: 20.0).</p></li>
+<li><p><strong>quality_level</strong> (<em>int</em>) – Graphics quality level 0-5 (default: 1).</p></li>
+<li><p><strong>max_episode_steps</strong> (<em>int</em>) – Maximum steps per episode (default: 1000).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.observation_space">
+<span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd><p>Dict space with “image” key containing (3, H, W) Box.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.action_space">
+<span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.action_space" title="Link to this definition">#</a></dt>
+<dd><p>Box space with actions in [-1, 1] range.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.max_episode_steps">
+<span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd><p>Maximum steps per episode.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If no behaviors found or action space is not continuous.</p></li>
+<li><p><strong>RuntimeError</strong> – If no agents available after reset.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="id18">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#id18" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id19">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#id19" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id20">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#id20" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.unity_env.UnityMLAgentsEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.unity_env.UnityMLAgentsEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-world_models.envs.vector_env">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.SimWorker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">SimWorker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_envs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#SimWorker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.SimWorker" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
+<p>Worker process that manages a batch of environment instances.
+Handles batched stepping for parallel rollouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>worker_id</strong> (<em>int</em>)</p></li>
+<li><p><strong>env_factory</strong> (<em>Callable</em>)</p></li>
+<li><p><strong>num_envs</strong> (<em>int</em>)</p></li>
+<li><p><strong>command_queue</strong> (<em>Queue</em>)</p></li>
+<li><p><strong>result_queue</strong> (<em>Queue</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.SimWorker.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#SimWorker.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.SimWorker.run" title="Link to this definition">#</a></dt>
+<dd><p>Main worker loop.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">VectorizedEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">envs_per_worker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>Abstract base class for vectorized environments.
+Manages multiple worker processes for parallel simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env_factory</strong> (<em>Callable</em>)</p></li>
+<li><p><strong>num_workers</strong> (<em>int</em>)</p></li>
+<li><p><strong>envs_per_worker</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.step_batch">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">step_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.step_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.step_batch" title="Link to this definition">#</a></dt>
+<dd><p>Step all environments with batched actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>actions</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Dict</em>[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.reset_batch">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reset_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.reset_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.reset_batch" title="Link to this definition">#</a></dt>
+<dd><p>Reset all environments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.render_batch">
+<span class="sig-name descname"><span class="pre">render_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.render_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.render_batch" title="Link to this definition">#</a></dt>
+<dd><p>Render all environments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>List</em>[<em>ndarray</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.close" title="Link to this definition">#</a></dt>
+<dd><p>Shutdown all workers.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">TorchVectorizedEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#world_models.envs.vector_env.VectorizedEnv" title="world_models.envs.vector_env.VectorizedEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorizedEnv</span></code></a></p>
+<p>TorchWM-compatible vectorized environment.
+Returns batched tensors suitable for PyTorch training.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv.step_batch">
+<span class="sig-name descname"><span class="pre">step_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv.step_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv.step_batch" title="Link to this definition">#</a></dt>
+<dd><p>Step all environments with batched actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>actions</strong> (<em>Tensor</em>) – Tensor of shape (total_envs, action_dim)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict with ‘obs’, ‘reward’, ‘done’, ‘info’ tensors</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv.reset_batch">
+<span class="sig-name descname"><span class="pre">reset_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv.reset_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv.reset_batch" title="Link to this definition">#</a></dt>
+<dd><p>Reset all environments and return initial observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class" id="module-world_models.envs.wrappers">
@@ -10401,129 +10921,91 @@ environment expects a single tensor/array action payload.</p>
 
 </dd></dl>
 
-<dl class="py class" id="module-world_models.envs.vector_env">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.SimWorker">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">SimWorker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_envs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result_queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#SimWorker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.SimWorker" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Process</span></code></p>
-<p>Worker process that manages a batch of environment instances.
-Handles batched stepping for parallel rollouts.</p>
+</section>
+<section id="atari-preprocessing-helpers">
+<h3>Atari preprocessing helpers<a class="headerlink" href="#atari-preprocessing-helpers" title="Link to this heading">#</a></h3>
+<p>These helpers wrap Atari environments for specific training recipes. They are
+not separate environment families.</p>
+<dl class="py class" id="module-world_models.envs.diamond_atari">
+<dt class="sig sig-object py" id="world_models.envs.diamond_atari.DiamondAtariWrapper">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.diamond_atari.</span></span><span class="sig-name descname"><span class="pre">DiamondAtariWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/diamond_atari.html#DiamondAtariWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.diamond_atari.DiamondAtariWrapper" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Wrapper</span></code></p>
+<p>Atari wrapper for DIAMOND following the paper specifications:
+- frameskip: number of frames to skip (default 4)
+- max_noop: maximum number of noop actions at reset (default 30)
+- terminate_on_life_loss: terminate episode when life is lost (default True)
+- reward_clip: clip rewards to [-1, 0, 1] (default True)
+- resize: resize observations to specified size (default 64x64)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>worker_id</strong> (<em>int</em>)</p></li>
-<li><p><strong>env_factory</strong> (<em>Callable</em>)</p></li>
-<li><p><strong>num_envs</strong> (<em>int</em>)</p></li>
-<li><p><strong>command_queue</strong> (<em>Queue</em>)</p></li>
-<li><p><strong>result_queue</strong> (<em>Queue</em>)</p></li>
-<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>env</strong> (<em>gymnasium.Env</em>)</p></li>
+<li><p><strong>frameskip</strong> (<em>int</em>)</p></li>
+<li><p><strong>max_noop</strong> (<em>int</em>)</p></li>
+<li><p><strong>terminate_on_life_loss</strong> (<em>bool</em>)</p></li>
+<li><p><strong>reward_clip</strong> (<em>bool</em>)</p></li>
+<li><p><strong>resize</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>] </em><em>| </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.SimWorker.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#SimWorker.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.SimWorker.run" title="Link to this definition">#</a></dt>
-<dd><p>Main worker loop.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">VectorizedEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_factory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">envs_per_worker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
-<p>Abstract base class for vectorized environments.
-Manages multiple worker processes for parallel simulation.</p>
+<dt class="sig sig-object py" id="world_models.envs.diamond_atari.DiamondAtariWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/diamond_atari.html#DiamondAtariWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.diamond_atari.DiamondAtariWrapper.step" title="Link to this definition">#</a></dt>
+<dd><p>Step the environment.</p>
+<p>For backwards compatibility with older gym APIs this wrapper returns a
+4-tuple: (obs, reward, done, info). Internally it supports gymnasium’s
+5-tuple and collapses (terminated, truncated) into a single <cite>done</cite> bool.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>env_factory</strong> (<em>Callable</em>)</p></li>
-<li><p><strong>num_workers</strong> (<em>int</em>)</p></li>
-<li><p><strong>envs_per_worker</strong> (<em>int</em>)</p></li>
-<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.step_batch">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">step_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.step_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.step_batch" title="Link to this definition">#</a></dt>
-<dd><p>Step all environments with batched actions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>actions</strong> (<em>Tensor</em>)</p>
+<dd class="field-odd"><p><strong>action</strong> (<em>int</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>Dict</em>[str, <em>Any</em>]</p>
+<dd class="field-even"><p><em>Any</em></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.reset_batch">
-<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reset_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.reset_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.reset_batch" title="Link to this definition">#</a></dt>
-<dd><p>Reset all environments.</p>
-<dl class="field-list simple">
+<dt class="sig sig-object py" id="world_models.envs.diamond_atari.DiamondAtariWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/diamond_atari.html#DiamondAtariWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.diamond_atari.DiamondAtariWrapper.reset" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+<dd class="field-odd"><p><em>Tuple</em>[<em>Any</em>, <em>Dict</em>[str, <em>Any</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.render_batch">
-<span class="sig-name descname"><span class="pre">render_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.render_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.render_batch" title="Link to this definition">#</a></dt>
-<dd><p>Render all environments.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>List</em>[<em>ndarray</em>]</p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.VectorizedEnv.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#VectorizedEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.VectorizedEnv.close" title="Link to this definition">#</a></dt>
-<dd><p>Shutdown all workers.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.vector_env.</span></span><span class="sig-name descname"><span class="pre">TorchVectorizedEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#world_models.envs.vector_env.VectorizedEnv" title="world_models.envs.vector_env.VectorizedEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorizedEnv</span></code></a></p>
-<p>TorchWM-compatible vectorized environment.
-Returns batched tensors suitable for PyTorch training.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv.step_batch">
-<span class="sig-name descname"><span class="pre">step_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv.step_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv.step_batch" title="Link to this definition">#</a></dt>
-<dd><p>Step all environments with batched actions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.diamond_atari.make_diamond_atari_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.diamond_atari.</span></span><span class="sig-name descname"><span class="pre">make_diamond_atari_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frameskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_noop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminate_on_life_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/diamond_atari.html#make_diamond_atari_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.diamond_atari.make_diamond_atari_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a DIAMOND-compatible Atari environment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>actions</strong> (<em>Tensor</em>) – Tensor of shape (total_envs, action_dim)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<em>str</em>) – Atari game name (e.g., “Breakout-v5”)</p></li>
+<li><p><strong>frameskip</strong> (<em>int</em>) – Number of frames to skip between actions</p></li>
+<li><p><strong>max_noop</strong> (<em>int</em>) – Maximum number of noop actions at reset</p></li>
+<li><p><strong>terminate_on_life_loss</strong> (<em>bool</em>) – Whether to terminate on life loss</p></li>
+<li><p><strong>reward_clip</strong> (<em>bool</em>) – Whether to clip rewards to [-1, 0, 1]</p></li>
+<li><p><strong>resize</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Target size for observations</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – Random seed</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict with ‘obs’, ‘reward’, ‘done’, ‘info’ tensors</p>
+<dd class="field-even"><p>Configured Atari environment</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.diamond_atari.DiamondAtariWrapper" title="world_models.envs.diamond_atari.DiamondAtariWrapper">DiamondAtariWrapper</a></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="world_models.envs.vector_env.TorchVectorizedEnv.reset_batch">
-<span class="sig-name descname"><span class="pre">reset_batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/vector_env.html#TorchVectorizedEnv.reset_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.vector_env.TorchVectorizedEnv.reset_batch" title="Link to this definition">#</a></dt>
-<dd><p>Reset all environments and return initial observations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>Dict</em>[str, <em>Any</em>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class" id="module-world_models.datasets.video_datasets">
+</section>
+<section id="module-world_models.datasets.video_datasets">
+<span id="datasets-and-transforms"></span><h3>Datasets and transforms<a class="headerlink" href="#module-world_models.datasets.video_datasets" title="Link to this heading">#</a></h3>
+<dl class="py class">
 <dt class="sig sig-object py" id="world_models.datasets.video_datasets.DatasetConfig">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.datasets.video_datasets.</span></span><span class="sig-name descname"><span class="pre">DatasetConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pin_memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/datasets/video_datasets.html#DatasetConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.datasets.video_datasets.DatasetConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -11429,6 +11911,7 @@ it a drop-in replacement for ImageNet loaders in training scripts.</p>
 <p>Applies blur with random radius in a configurable range when sampled.</p>
 </dd></dl>
 
+</section>
 </section>
 <section id="module-world_models.masks">
 <span id="masking-and-jepa-helpers"></span><h2>Masking and JEPA helpers<a class="headerlink" href="#module-world_models.masks" title="Link to this heading">#</a></h2>
@@ -13971,265 +14454,321 @@ along the batch dimension.</p>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.envs">Datasets, environments, and transforms</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_available_atari_envs"><code class="docutils literal notranslate"><span class="pre">list_available_atari_envs()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_atari_vector_env"><code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.step"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.render"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.render()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.close"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.close()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#datasets-environments-and-transforms">Datasets, environments, and transforms</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#environment-adapters">Environment adapters</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_available_atari_envs"><code class="docutils literal notranslate"><span class="pre">list_available_atari_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_atari_vector_env"><code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.step"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.render"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.MuJoCoImageEnv.close"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv"><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id5"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id6"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id7"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.step"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.render"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.render()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.close"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv"><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id5"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id6"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id7"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.step"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.render"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.GymImageEnv.close"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.action_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id8"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id9"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id10"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.reset"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.step"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.render"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.render()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.close"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.action_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id8"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id9"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id10"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.reset"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.step"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.render"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.close"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_unity_mlagents_env"><code class="docutils literal notranslate"><span class="pre">make_unity_mlagents_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id11"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id12"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.step"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.reset"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_unity_mlagents_env"><code class="docutils literal notranslate"><span class="pre">make_unity_mlagents_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id11"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id12"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.step"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.reset"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ActionRepeat"><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ActionRepeat.step"><code class="docutils literal notranslate"><span class="pre">ActionRepeat.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ActionRepeat"><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ActionRepeat.step"><code class="docutils literal notranslate"><span class="pre">ActionRepeat.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions"><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions.action_space"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions.step"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions"><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions.action_space"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.NormalizeActions.step"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict"><code class="docutils literal notranslate"><span class="pre">ObsDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.observation_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.action_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.step"><code class="docutils literal notranslate"><span class="pre">ObsDict.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.reset"><code class="docutils literal notranslate"><span class="pre">ObsDict.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict"><code class="docutils literal notranslate"><span class="pre">ObsDict</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.observation_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.action_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.step"><code class="docutils literal notranslate"><span class="pre">ObsDict.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ObsDict.reset"><code class="docutils literal notranslate"><span class="pre">ObsDict.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction"><code class="docutils literal notranslate"><span class="pre">OneHotAction</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.action_space"><code class="docutils literal notranslate"><span class="pre">OneHotAction.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.step"><code class="docutils literal notranslate"><span class="pre">OneHotAction.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.reset"><code class="docutils literal notranslate"><span class="pre">OneHotAction.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction"><code class="docutils literal notranslate"><span class="pre">OneHotAction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.action_space"><code class="docutils literal notranslate"><span class="pre">OneHotAction.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.step"><code class="docutils literal notranslate"><span class="pre">OneHotAction.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.OneHotAction.reset"><code class="docutils literal notranslate"><span class="pre">OneHotAction.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs"><code class="docutils literal notranslate"><span class="pre">RewardObs</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.observation_space"><code class="docutils literal notranslate"><span class="pre">RewardObs.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.step"><code class="docutils literal notranslate"><span class="pre">RewardObs.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.reset"><code class="docutils literal notranslate"><span class="pre">RewardObs.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs"><code class="docutils literal notranslate"><span class="pre">RewardObs</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.observation_space"><code class="docutils literal notranslate"><span class="pre">RewardObs.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.step"><code class="docutils literal notranslate"><span class="pre">RewardObs.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RewardObs.reset"><code class="docutils literal notranslate"><span class="pre">RewardObs.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage"><code class="docutils literal notranslate"><span class="pre">ResizeImage</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.obs_space"><code class="docutils literal notranslate"><span class="pre">ResizeImage.obs_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.step"><code class="docutils literal notranslate"><span class="pre">ResizeImage.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.reset"><code class="docutils literal notranslate"><span class="pre">ResizeImage.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage"><code class="docutils literal notranslate"><span class="pre">ResizeImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.obs_space"><code class="docutils literal notranslate"><span class="pre">ResizeImage.obs_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.step"><code class="docutils literal notranslate"><span class="pre">ResizeImage.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ResizeImage.reset"><code class="docutils literal notranslate"><span class="pre">ResizeImage.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage"><code class="docutils literal notranslate"><span class="pre">RenderImage</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.obs_space"><code class="docutils literal notranslate"><span class="pre">RenderImage.obs_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.step"><code class="docutils literal notranslate"><span class="pre">RenderImage.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.reset"><code class="docutils literal notranslate"><span class="pre">RenderImage.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage"><code class="docutils literal notranslate"><span class="pre">RenderImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.obs_space"><code class="docutils literal notranslate"><span class="pre">RenderImage.obs_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.step"><code class="docutils literal notranslate"><span class="pre">RenderImage.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.RenderImage.reset"><code class="docutils literal notranslate"><span class="pre">RenderImage.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.SelectAction"><code class="docutils literal notranslate"><span class="pre">SelectAction</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.SelectAction.step"><code class="docutils literal notranslate"><span class="pre">SelectAction.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.SelectAction"><code class="docutils literal notranslate"><span class="pre">SelectAction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.SelectAction.step"><code class="docutils literal notranslate"><span class="pre">SelectAction.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_env"><code class="docutils literal notranslate"><span class="pre">make_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.reset()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.step"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.render"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.render()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.close"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_env"><code class="docutils literal notranslate"><span class="pre">make_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id13"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id14"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.step"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.reset"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv"><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id15"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id16"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id17"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.step"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.render"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.close"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ActionRepeat"><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ActionRepeat.step"><code class="docutils literal notranslate"><span class="pre">ActionRepeat.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.list_available_atari_envs"><code class="docutils literal notranslate"><span class="pre">list_available_atari_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_vector_env.make_atari_vector_env"><code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.step"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.render"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.close"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions"><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions.action_space"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions.step"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.make_unity_mlagents_env"><code class="docutils literal notranslate"><span class="pre">make_unity_mlagents_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.action_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id18"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id19"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id20"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.reset"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.step"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.render"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.unity_env.UnityMLAgentsEnv.close"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict"><code class="docutils literal notranslate"><span class="pre">ObsDict</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.observation_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.action_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.step"><code class="docutils literal notranslate"><span class="pre">ObsDict.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.reset"><code class="docutils literal notranslate"><span class="pre">ObsDict.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.SimWorker"><code class="docutils literal notranslate"><span class="pre">SimWorker</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.SimWorker.run"><code class="docutils literal notranslate"><span class="pre">SimWorker.run()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction"><code class="docutils literal notranslate"><span class="pre">OneHotAction</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.action_space"><code class="docutils literal notranslate"><span class="pre">OneHotAction.action_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.step"><code class="docutils literal notranslate"><span class="pre">OneHotAction.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.reset"><code class="docutils literal notranslate"><span class="pre">OneHotAction.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.step_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.step_batch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.reset_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.reset_batch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.render_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.render_batch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.close"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.close()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs"><code class="docutils literal notranslate"><span class="pre">RewardObs</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.observation_space"><code class="docutils literal notranslate"><span class="pre">RewardObs.observation_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.step"><code class="docutils literal notranslate"><span class="pre">RewardObs.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.reset"><code class="docutils literal notranslate"><span class="pre">RewardObs.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv.step_batch"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv.step_batch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv.reset_batch"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv.reset_batch()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage"><code class="docutils literal notranslate"><span class="pre">ResizeImage</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.obs_space"><code class="docutils literal notranslate"><span class="pre">ResizeImage.obs_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.step"><code class="docutils literal notranslate"><span class="pre">ResizeImage.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.reset"><code class="docutils literal notranslate"><span class="pre">ResizeImage.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage"><code class="docutils literal notranslate"><span class="pre">RenderImage</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.obs_space"><code class="docutils literal notranslate"><span class="pre">RenderImage.obs_space</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.step"><code class="docutils literal notranslate"><span class="pre">RenderImage.step()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.reset"><code class="docutils literal notranslate"><span class="pre">RenderImage.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ActionRepeat"><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ActionRepeat.step"><code class="docutils literal notranslate"><span class="pre">ActionRepeat.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.UUID"><code class="docutils literal notranslate"><span class="pre">UUID</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.UUID.reset"><code class="docutils literal notranslate"><span class="pre">UUID.reset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions"><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions.action_space"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.NormalizeActions.step"><code class="docutils literal notranslate"><span class="pre">NormalizeActions.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.SelectAction"><code class="docutils literal notranslate"><span class="pre">SelectAction</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.SelectAction.step"><code class="docutils literal notranslate"><span class="pre">SelectAction.step()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict"><code class="docutils literal notranslate"><span class="pre">ObsDict</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.observation_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.action_space"><code class="docutils literal notranslate"><span class="pre">ObsDict.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.step"><code class="docutils literal notranslate"><span class="pre">ObsDict.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ObsDict.reset"><code class="docutils literal notranslate"><span class="pre">ObsDict.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.SimWorker"><code class="docutils literal notranslate"><span class="pre">SimWorker</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.SimWorker.run"><code class="docutils literal notranslate"><span class="pre">SimWorker.run()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction"><code class="docutils literal notranslate"><span class="pre">OneHotAction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.action_space"><code class="docutils literal notranslate"><span class="pre">OneHotAction.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.step"><code class="docutils literal notranslate"><span class="pre">OneHotAction.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.OneHotAction.reset"><code class="docutils literal notranslate"><span class="pre">OneHotAction.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.step_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.step_batch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.reset_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.reset_batch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.render_batch"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.render_batch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.VectorizedEnv.close"><code class="docutils literal notranslate"><span class="pre">VectorizedEnv.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs"><code class="docutils literal notranslate"><span class="pre">RewardObs</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.observation_space"><code class="docutils literal notranslate"><span class="pre">RewardObs.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.step"><code class="docutils literal notranslate"><span class="pre">RewardObs.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RewardObs.reset"><code class="docutils literal notranslate"><span class="pre">RewardObs.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv.step_batch"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv.step_batch()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.vector_env.TorchVectorizedEnv.reset_batch"><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv.reset_batch()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage"><code class="docutils literal notranslate"><span class="pre">ResizeImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.obs_space"><code class="docutils literal notranslate"><span class="pre">ResizeImage.obs_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.step"><code class="docutils literal notranslate"><span class="pre">ResizeImage.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.ResizeImage.reset"><code class="docutils literal notranslate"><span class="pre">ResizeImage.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig"><code class="docutils literal notranslate"><span class="pre">DatasetConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.num_frames</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.image_size"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.image_size</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.batch_size</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.num_workers</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.pin_memory"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.pin_memory</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.shuffle"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.shuffle</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage"><code class="docutils literal notranslate"><span class="pre">RenderImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.obs_space"><code class="docutils literal notranslate"><span class="pre">RenderImage.obs_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.step"><code class="docutils literal notranslate"><span class="pre">RenderImage.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.RenderImage.reset"><code class="docutils literal notranslate"><span class="pre">RenderImage.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase.data_source"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase.data_source</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase.video_paths"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase.video_paths</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.UUID"><code class="docutils literal notranslate"><span class="pre">UUID</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.UUID.reset"><code class="docutils literal notranslate"><span class="pre">UUID.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoFolderDataset"><code class="docutils literal notranslate"><span class="pre">VideoFolderDataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.ImageFolderDataset"><code class="docutils literal notranslate"><span class="pre">ImageFolderDataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.NumPyDataset"><code class="docutils literal notranslate"><span class="pre">NumPyDataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.RLEnvironmentDataset"><code class="docutils literal notranslate"><span class="pre">RLEnvironmentDataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.HDF5Dataset"><code class="docutils literal notranslate"><span class="pre">HDF5Dataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.create_video_dataloader"><code class="docutils literal notranslate"><span class="pre">create_video_dataloader()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.dataset_type"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.dataset_type</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.data_source"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.data_source</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.extensions"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.extensions</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.recursive"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.recursive</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.obs_key"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.obs_key</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.SelectAction"><code class="docutils literal notranslate"><span class="pre">SelectAction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.wrappers.SelectAction.step"><code class="docutils literal notranslate"><span class="pre">SelectAction.step()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.create_video_dataset_from_config"><code class="docutils literal notranslate"><span class="pre">create_video_dataset_from_config()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.dataset_name"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.dataset_name</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.num_frames</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.image_size"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.image_size</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.batch_size</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.num_workers</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.cache_dir"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.cache_dir</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.split"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.split</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset.DATASET_CONFIGS"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset.DATASET_CONFIGS</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset.get_info"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset.get_info()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#atari-preprocessing-helpers">Atari preprocessing helpers</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.diamond_atari.DiamondAtariWrapper"><code class="docutils literal notranslate"><span class="pre">DiamondAtariWrapper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.diamond_atari.DiamondAtariWrapper.step"><code class="docutils literal notranslate"><span class="pre">DiamondAtariWrapper.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.diamond_atari.DiamondAtariWrapper.reset"><code class="docutils literal notranslate"><span class="pre">DiamondAtariWrapper.reset()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.DATASET_NAMES"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.DATASET_NAMES</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.create_dataloader"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.create_dataloader()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.list_available_datasets"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.list_available_datasets()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.get_dataset_info"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.get_dataset_info()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.diamond_atari.make_diamond_atari_env"><code class="docutils literal notranslate"><span class="pre">make_diamond_atari_env()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.create_tinyworlds_dataloader"><code class="docutils literal notranslate"><span class="pre">create_tinyworlds_dataloader()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.download_all_datasets"><code class="docutils literal notranslate"><span class="pre">download_all_datasets()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.add"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.add()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.sample"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.sample_sequence"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample_sequence()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.is_ready"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.is_ready()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.state_dict"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.state_dict()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.load_state_dict"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.load_state_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.datasets.video_datasets">Datasets and transforms</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig"><code class="docutils literal notranslate"><span class="pre">DatasetConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.num_frames</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.image_size"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.image_size</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.batch_size</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.num_workers</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.pin_memory"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.pin_memory</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.DatasetConfig.shuffle"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.shuffle</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.SequenceDataset"><code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.collate_fn"><code class="docutils literal notranslate"><span class="pre">collate_fn()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.cifar10.make_cifar10"><code class="docutils literal notranslate"><span class="pre">make_cifar10()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.make_imagenet1k"><code class="docutils literal notranslate"><span class="pre">make_imagenet1k()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNet"><code class="docutils literal notranslate"><span class="pre">ImageNet</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset.filter_dataset_"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.filter_dataset_()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset.classes"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.classes</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase.data_source"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase.data_source</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetBase.video_paths"><code class="docutils literal notranslate"><span class="pre">VideoDatasetBase.video_paths</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.copy_imgnt_locally"><code class="docutils literal notranslate"><span class="pre">copy_imgnt_locally()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.make_imagefolder"><code class="docutils literal notranslate"><span class="pre">make_imagefolder()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.transforms.transforms.make_transforms"><code class="docutils literal notranslate"><span class="pre">make_transforms()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.transforms.transforms.GaussianBlur"><code class="docutils literal notranslate"><span class="pre">GaussianBlur</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoFolderDataset"><code class="docutils literal notranslate"><span class="pre">VideoFolderDataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.ImageFolderDataset"><code class="docutils literal notranslate"><span class="pre">ImageFolderDataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.NumPyDataset"><code class="docutils literal notranslate"><span class="pre">NumPyDataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.RLEnvironmentDataset"><code class="docutils literal notranslate"><span class="pre">RLEnvironmentDataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.HDF5Dataset"><code class="docutils literal notranslate"><span class="pre">HDF5Dataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.create_video_dataloader"><code class="docutils literal notranslate"><span class="pre">create_video_dataloader()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.dataset_type"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.dataset_type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.data_source"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.data_source</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.extensions"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.extensions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.recursive"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.recursive</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.VideoDatasetConfig.obs_key"><code class="docutils literal notranslate"><span class="pre">VideoDatasetConfig.obs_key</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.video_datasets.create_video_dataset_from_config"><code class="docutils literal notranslate"><span class="pre">create_video_dataset_from_config()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.dataset_name"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.dataset_name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.num_frames"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.num_frames</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.image_size"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.image_size</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.batch_size"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.batch_size</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.num_workers"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.num_workers</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.cache_dir"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.cache_dir</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsConfig.split"><code class="docutils literal notranslate"><span class="pre">TinyWorldsConfig.split</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset.DATASET_CONFIGS"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset.DATASET_CONFIGS</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataset.get_info"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataset.get_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.DATASET_NAMES"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.DATASET_NAMES</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.create_dataloader"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.create_dataloader()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.list_available_datasets"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.list_available_datasets()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.TinyWorldsDataLoader.get_dataset_info"><code class="docutils literal notranslate"><span class="pre">TinyWorldsDataLoader.get_dataset_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.create_tinyworlds_dataloader"><code class="docutils literal notranslate"><span class="pre">create_tinyworlds_dataloader()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.tinyworlds.download_all_datasets"><code class="docutils literal notranslate"><span class="pre">download_all_datasets()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.add"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.add()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.sample"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.sample_sequence"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.sample_sequence()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.is_ready"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.is_ready()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.state_dict"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.state_dict()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.ReplayBuffer.load_state_dict"><code class="docutils literal notranslate"><span class="pre">ReplayBuffer.load_state_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.SequenceDataset"><code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.diamond_dataset.collate_fn"><code class="docutils literal notranslate"><span class="pre">collate_fn()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.cifar10.make_cifar10"><code class="docutils literal notranslate"><span class="pre">make_cifar10()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.make_imagenet1k"><code class="docutils literal notranslate"><span class="pre">make_imagenet1k()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNet"><code class="docutils literal notranslate"><span class="pre">ImageNet</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset.filter_dataset_"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.filter_dataset_()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.ImageNetSubset.classes"><code class="docutils literal notranslate"><span class="pre">ImageNetSubset.classes</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.copy_imgnt_locally"><code class="docutils literal notranslate"><span class="pre">copy_imgnt_locally()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.datasets.imagenet1k.make_imagefolder"><code class="docutils literal notranslate"><span class="pre">make_imagefolder()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.transforms.transforms.make_transforms"><code class="docutils literal notranslate"><span class="pre">make_transforms()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.transforms.transforms.GaussianBlur"><code class="docutils literal notranslate"><span class="pre">GaussianBlur</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.masks">Masking and JEPA helpers</a><ul class="nav section-nav flex-column">

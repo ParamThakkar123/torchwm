@@ -462,11 +462,6 @@ Masking and JEPA helpers
 Benchmarks and reports
 ----------------------
 
-.. automodule:: benchmarks
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. automodule:: world_models.benchmarks
    :members:
    :undoc-members:

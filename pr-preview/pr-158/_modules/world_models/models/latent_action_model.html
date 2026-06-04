@@ -334,12 +334,13 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;action_pooling must be either &#39;mean&#39; or &#39;windowed_attention&#39;&quot;</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">window_attention_heads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window_attention_heads must be at least 1&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">embedding_dim</span> <span class="o">%</span> <span class="n">window_attention_heads</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;embedding_dim must be divisible by window_attention_heads&quot;</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">window_attention_heads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window_attention_heads must be at least 1&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">embedding_dim</span> <span class="o">%</span> <span class="n">window_attention_heads</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;embedding_dim must be divisible by window_attention_heads&quot;</span>
+                <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="n">num_frames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="n">image_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span> <span class="o">=</span> <span class="n">patch_size</span>
@@ -457,36 +458,32 @@
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder_out</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder_out</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_pool_action_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pool per-frame action tokens before vector quantization.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pool_windowed_attention</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x_t_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_next_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply length-2 temporal attention, then mean-pool the attended tokens.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            x_embed: Encoder embeddings with shape (B, T, N, embedding_dim), where</span>
-<span class="sd">                N is the number of spatial patches.</span>
+<span class="sd">            x_t_embed: Current timestep embeddings with shape (B, N, embedding_dim).</span>
+<span class="sd">            x_next_embed: Next timestep embeddings with shape (B, N, embedding_dim).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Pooled action embeddings with shape (B, T, embedding_dim).</span>
+<span class="sd">            Pooled action embeddings with shape (B, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">x_embed</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_attention</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;window attention module is not initialized&quot;</span><span class="p">)</span>
 
-        <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">x_embed</span><span class="o">.</span><span class="n">shape</span>
-        <span class="c1"># Build length-2 temporal windows for every spatial patch, using the</span>
-        <span class="c1"># current frame token and the next frame token (repeat the final frame).</span>
-        <span class="n">next_tokens</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x_embed</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">x_embed</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">clone</span><span class="p">()],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">windows</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x_embed</span><span class="p">,</span> <span class="n">next_tokens</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="n">windows</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span> <span class="o">*</span> <span class="n">T</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">x_t_embed</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x_t_embed</span><span class="p">,</span> <span class="n">x_next_embed</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
         <span class="n">attended_windows</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_attention</span><span class="p">(</span>
             <span class="n">windows</span><span class="p">,</span>
             <span class="n">windows</span><span class="p">,</span>
             <span class="n">windows</span><span class="p">,</span>
             <span class="n">need_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">attended_windows</span> <span class="o">=</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">attended_windows</span> <span class="o">=</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 
 <div class="viewcode-block" id="LatentActionModel.encode">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.latent_action_model.LatentActionModel.encode">[docs]</a>
@@ -528,16 +525,28 @@
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_patches</span><span class="p">,</span> <span class="n">C_enc</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">:</span><span class="n">T</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (B, T, N, C)</span>
 
-        <span class="c1"># Project to VQ embedding space, optionally apply local temporal attention,</span>
-        <span class="c1"># then pool each timestep to one action embedding.</span>
-        <span class="n">x_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (B, T, N, embedding_dim)</span>
-        <span class="n">x_pooled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool_action_tokens</span><span class="p">(</span><span class="n">x_embed</span><span class="p">)</span>  <span class="c1"># (B, T, embedding_dim)</span>
-
-        <span class="c1"># Quantize each timestep.</span>
+        <span class="c1"># Quantize each timestep</span>
         <span class="n">z_all</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">indices_all</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
-            <span class="n">z_q_t</span><span class="p">,</span> <span class="n">indices_t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq</span><span class="p">(</span><span class="n">x_pooled</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:])</span>
+            <span class="n">x_t</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">t</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (B, N, C)</span>
+
+            <span class="n">x_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span><span class="n">x_t</span><span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">:</span>
+                <span class="n">next_t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">x_next_t</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">next_t</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (B, N, C)</span>
+                <span class="n">x_next_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span>
+                    <span class="n">x_next_t</span>
+                <span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
+                <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool_windowed_attention</span><span class="p">(</span>
+                    <span class="n">x_t_embed</span><span class="p">,</span> <span class="n">x_next_t_embed</span>
+                <span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Pool across spatial dimension</span>
+                <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="n">x_t_embed</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>
+
+            <span class="n">z_q_t</span><span class="p">,</span> <span class="n">indices_t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq</span><span class="p">(</span><span class="n">x_t_pooled</span><span class="p">)</span>
             <span class="n">z_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_q_t</span><span class="p">)</span>
             <span class="n">indices_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">indices_t</span><span class="p">)</span>
 

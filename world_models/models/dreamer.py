@@ -14,6 +14,7 @@ from collections import OrderedDict
 import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
+from world_models.envs.mujoco_env import make_mujoco_env_from_config
 from world_models.envs.brax_env import BraxImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
@@ -84,8 +85,9 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, Brax, and Unity ML-Agents backends and applies the
-    standard wrapper stack: action repeat, action normalization, and time limit.
+    Supports DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity ML-Agents backends
+    and applies the standard wrapper stack: action repeat, action normalization,
+    and time limit.
     """
     size = _resolve_image_size(args)
     backend = str(getattr(args, "env_backend", "dmc")).lower()
@@ -107,6 +109,8 @@ def make_env(args):
             size=size,
             render_mode=getattr(args, "gym_render_mode", "rgb_array"),
         )
+    elif backend in {"mujoco", "mjcf", "native_mujoco"}:
+        env = make_mujoco_env_from_config(args, size)
     elif backend in {"brax", "jax_brax"}:
         env = BraxImageEnv(
             args.env,
@@ -140,7 +144,7 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, brax, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))

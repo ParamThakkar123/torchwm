@@ -1,7 +1,7 @@
 class DreamerConfig:
     """Configuration container for Dreamer training, evaluation, and environment setup.
 
-    This class centralizes environment backend selection (DMC/Gym/Unity),
+    This class centralizes environment backend selection (DMC/Gym/Unity/Brax),
     model dimensions, replay and optimization settings, logging cadence, and
     checkpoint options consumed by `DreamerAgent`.
     """
@@ -10,6 +10,7 @@ class DreamerConfig:
         # Environment selection.
         # dmc: DeepMind Control Suite
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
+        # mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB
         # unity_mlagents: Unity ML-Agents executable
         # brax: JAX/Brax continuous-control environments
         self.env_backend = "dmc"
@@ -17,6 +18,15 @@ class DreamerConfig:
         self.env_instance = None
         self.image_size = (64, 64)
         self.gym_render_mode = "rgb_array"
+
+        # MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether
+        # `env` is a Gymnasium task ID or a native MJCF/MJB source.
+        self.mujoco_xml_path = None
+        self.mujoco_xml_string = None
+        self.mujoco_binary_path = None
+        self.mujoco_camera = None
+        self.mujoco_frame_skip = 1
+        self.mujoco_reset_noise_scale = 0.0
 
         # Brax options.
         self.brax_backend = "generalized"
@@ -88,9 +98,7 @@ class DreamerConfig:
 
         # Logging options
         self.enable_wandb = False
-        self.wandb_api_key = (
-            ""  # Required if enable_wandb is True (anonymous logins not supported)
-        )
+        self.wandb_api_key = ""  # Required if enable_wandb is True
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"

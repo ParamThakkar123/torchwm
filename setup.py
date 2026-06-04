@@ -39,6 +39,9 @@ setup(
             "pygame>=2.6.1",
             "autorom>=0.6.1",
         ],
+        "mujoco": [
+            "mujoco>=3.2.0",
+        ],
         "brax": [
             "brax>=0.13.0",
         ],
@@ -76,7 +79,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,brax,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,brax,dev,docs]",
         ],
     },
     classifiers=[

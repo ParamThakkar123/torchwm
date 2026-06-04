@@ -18,13 +18,14 @@ Wrappers <environments/wrappers>
 
 ## Quick start
 
-Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, Brax, and Unity environments:
+Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-cfg.env_backend = "dmc"  # "dmc", "gym", "brax", or "unity_mlagents"
+# env_backend may be one of: "dmc", "gym", "mujoco", "brax", or "unity_mlagents"
+cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 cfg.image_size = 64
 cfg.action_repeat = 2

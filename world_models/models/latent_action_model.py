@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, Literal
 
 from world_models.vision.vq_layer import VectorQuantizer
 from world_models.blocks.st_transformer import STTransformer
@@ -35,8 +35,21 @@ class LatentActionModel(nn.Module):
         vocab_size: int = 8,
         embedding_dim: int = 32,
         commitment_weight: float = 1.0,
+        action_pooling: Literal["mean", "windowed_attention"] = "mean",
+        window_attention_heads: int = 1,
     ):
         super().__init__()
+        if action_pooling not in {"mean", "windowed_attention"}:
+            raise ValueError(
+                "action_pooling must be either 'mean' or 'windowed_attention'"
+            )
+        if action_pooling == "windowed_attention":
+            if window_attention_heads < 1:
+                raise ValueError("window_attention_heads must be at least 1")
+            if embedding_dim % window_attention_heads != 0:
+                raise ValueError(
+                    "embedding_dim must be divisible by window_attention_heads"
+                )
         self.num_frames = num_frames
         self.image_size = image_size
         self.patch_size = patch_size
@@ -45,6 +58,7 @@ class LatentActionModel(nn.Module):
         self.decoder_dim = decoder_dim
         self.embedding_dim = embedding_dim
         self.in_channels = in_channels
+        self.action_pooling = action_pooling
 
         num_patches = (image_size // patch_size) ** 2
 
@@ -79,6 +93,15 @@ class LatentActionModel(nn.Module):
         )
 
         self.to_vq_embedding = nn.Linear(encoder_dim, embedding_dim)
+        self.window_attention = (
+            nn.MultiheadAttention(
+                embed_dim=embedding_dim,
+                num_heads=window_attention_heads,
+                batch_first=True,
+            )
+            if action_pooling == "windowed_attention"
+            else None
+        )
 
         self.vq = VectorQuantizer(
             vocab_size=vocab_size,
@@ -144,6 +167,33 @@ class LatentActionModel(nn.Module):
         nn.init.xavier_uniform_(self.decoder_out.weight)
         nn.init.zeros_(self.decoder_out.bias)
 
+    def _pool_windowed_attention(
+        self, x_t_embed: torch.Tensor, x_next_embed: torch.Tensor
+    ) -> torch.Tensor:
+        """Apply length-2 temporal attention, then mean-pool the attended tokens.
+
+        Args:
+            x_t_embed: Current timestep embeddings with shape (B, N, embedding_dim).
+            x_next_embed: Next timestep embeddings with shape (B, N, embedding_dim).
+
+        Returns:
+            Pooled action embeddings with shape (B, embedding_dim).
+        """
+        if self.window_attention is None:
+            raise RuntimeError("window attention module is not initialized")
+
+        B, N, E = x_t_embed.shape
+        windows = torch.stack([x_t_embed, x_next_embed], dim=2)
+        windows = windows.reshape(B * N, 2, E)
+        attended_windows, _ = self.window_attention(
+            windows,
+            windows,
+            windows,
+            need_weights=False,
+        )
+        attended_windows = attended_windows.reshape(B, N, 2, E)
+        return attended_windows.mean(dim=(1, 2))
+
     def encode(
         self, x_prev: torch.Tensor, x_next: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -190,8 +240,18 @@ class LatentActionModel(nn.Module):
 
             x_t_embed = self.to_vq_embedding(x_t)  # (B, N, embedding_dim)
 
-            # Pool across spatial dimension
-            x_t_pooled = x_t_embed.mean(dim=1)  # (B, embedding_dim)
+            if self.action_pooling == "windowed_attention":
+                next_t = min(t + 1, T - 1)
+                x_next_t = x[:, next_t, :, :]  # (B, N, C)
+                x_next_t_embed = self.to_vq_embedding(
+                    x_next_t
+                )  # (B, N, embedding_dim)
+                x_t_pooled = self._pool_windowed_attention(
+                    x_t_embed, x_next_t_embed
+                )  # (B, embedding_dim)
+            else:
+                # Pool across spatial dimension
+                x_t_pooled = x_t_embed.mean(dim=1)  # (B, embedding_dim)
 
             z_q_t, indices_t, _ = self.vq(x_t_pooled)
             z_all.append(z_q_t)
@@ -339,6 +399,8 @@ def create_latent_action_model(
     patch_size: int = 16,
     vocab_size: int = 8,
     embedding_dim: int = 32,
+    action_pooling: Literal["mean", "windowed_attention"] = "mean",
+    window_attention_heads: int = 1,
 ) -> LatentActionModel:
     """Factory function to create a Latent Action Model."""
     return LatentActionModel(
@@ -353,4 +415,6 @@ def create_latent_action_model(
         patch_size=patch_size,
         vocab_size=vocab_size,
         embedding_dim=embedding_dim,
+        action_pooling=action_pooling,
+        window_attention_heads=window_attention_heads,
     )

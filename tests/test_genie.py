@@ -103,6 +103,31 @@ class TestLatentActionModel:
         assert latent_actions.shape == (B, T)
         assert z_q.shape[0] == B
 
+    def test_encode_with_windowed_attention_pooling(self):
+        lam = create_latent_action_model(
+            num_frames=8,
+            image_size=32,
+            encoder_dim=256,
+            encoder_depth=4,
+            num_heads=8,
+            vocab_size=8,
+            embedding_dim=32,
+            action_pooling="windowed_attention",
+            window_attention_heads=4,
+        )
+        lam.eval()
+
+        B, C, T, H, W = 2, 3, 8, 32, 32
+        x_prev = torch.randn(B, C, T, H, W)
+        x_next = torch.randn(B, C, H, W)
+
+        with torch.no_grad():
+            latent_actions, z_q = lam.encode(x_prev, x_next)
+
+        assert lam.action_pooling == "windowed_attention"
+        assert latent_actions.shape == (B, T)
+        assert z_q.shape == (B, T, 32)
+
 
 class TestGenie:
     def test_initialization(self):

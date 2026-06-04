@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Literal
 
 from world_models.vision.video_tokenizer import VideoTokenizer
 from world_models.models.latent_action_model import LatentActionModel
@@ -51,6 +51,8 @@ class Genie(nn.Module):
         decoder_depth: int = 20,
         latent_action_depth: int = 20,
         use_bfloat16: bool = False,
+        action_pooling: Literal["mean", "windowed_attention"] = "mean",
+        window_attention_heads: int = 1,
     ):
         super().__init__()
         self.num_frames = num_frames
@@ -89,6 +91,8 @@ class Genie(nn.Module):
             vocab_size=action_vocab_size,
             embedding_dim=action_embedding_dim,
             commitment_weight=1.0,
+            action_pooling=action_pooling,
+            window_attention_heads=window_attention_heads,
         )
 
         # Dynamics Model (MaskGIT transformer)
@@ -437,6 +441,8 @@ def create_genie(
     dynamics_depth: int = 48,
     dynamics_num_heads: int = 36,
     use_bfloat16: bool = False,
+    action_pooling: Literal["mean", "windowed_attention"] = "mean",
+    window_attention_heads: int = 1,
 ) -> Genie:
     """Factory function to create a Genie model."""
     return Genie(
@@ -451,6 +457,8 @@ def create_genie(
         dynamics_depth=dynamics_depth,
         dynamics_num_heads=dynamics_num_heads,
         use_bfloat16=use_bfloat16,
+        action_pooling=action_pooling,
+        window_attention_heads=window_attention_heads,
     )
 
 
@@ -458,6 +466,8 @@ def create_genie_small(
     num_frames: int = 16,
     image_size: int = 64,
     use_bfloat16: bool = False,
+    action_pooling: Literal["mean", "windowed_attention"] = "mean",
+    window_attention_heads: int = 1,
 ) -> Genie:
     """Create a smaller Genie model for development/testing."""
     return Genie(
@@ -478,6 +488,8 @@ def create_genie_small(
         decoder_depth=8,
         latent_action_depth=8,
         use_bfloat16=use_bfloat16,
+        action_pooling=action_pooling,
+        window_attention_heads=window_attention_heads,
     )
 
 
@@ -485,6 +497,8 @@ def create_genie_large(
     num_frames: int = 16,
     image_size: int = 64,
     use_bfloat16: bool = True,
+    action_pooling: Literal["mean", "windowed_attention"] = "mean",
+    window_attention_heads: int = 1,
 ) -> Genie:
     """Create the full 11B parameter Genie model (approximate)."""
     return Genie(
@@ -505,4 +519,6 @@ def create_genie_large(
         decoder_depth=20,
         latent_action_depth=20,
         use_bfloat16=use_bfloat16,
+        action_pooling=action_pooling,
+        window_attention_heads=window_attention_heads,
     )

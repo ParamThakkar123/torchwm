@@ -70,6 +70,13 @@ class MyEnv(gym.Env):
 cfg.env_instance = MyEnv()
 ```
 
+
+## Brax
+
+Brax JAX-based continuous-control tasks are supported through the `brax`
+environment backend. See the dedicated {doc}`brax_env` page for installation,
+Dreamer configuration, adapter usage, and troubleshooting details.
+
 ## Unity ML-Agents
 
 For complex 3D environments and simulations.

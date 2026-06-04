@@ -155,6 +155,10 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 
+cfg.env_backend = "brax"     # JAX/Brax
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
+
 cfg.env_backend = "unity_mlagents"  # Unity ML-Agents
 cfg.unity_file_name = "env.exe"
 ```

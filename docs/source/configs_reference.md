@@ -16,6 +16,11 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
+    # Brax
+    brax_backend: str = "generalized"
+    brax_jit: bool = True
+    brax_auto_reset: bool = False
+
     # Unity ML-Agents
     unity_file_name: Optional[str] = None
     unity_behavior_name: Optional[str] = None
@@ -362,6 +367,11 @@ cfg.env = "walker-walk"
 # Gym
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
+
+# Brax
+cfg.env_backend = "brax"
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
 
 # Unity
 cfg.env_backend = "unity_mlagents"

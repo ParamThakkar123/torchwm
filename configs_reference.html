@@ -265,6 +265,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -356,6 +357,11 @@
     <span class="n">env_instance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">image_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
     <span class="n">gym_render_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
+
+    <span class="c1"># Brax</span>
+    <span class="n">brax_backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
+    <span class="n">brax_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">brax_auto_reset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># Unity ML-Agents</span>
     <span class="n">unity_file_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -700,6 +706,11 @@
 <span class="c1"># Gym</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
+
+<span class="c1"># Brax</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;ant&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
 
 <span class="c1"># Unity</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;unity_mlagents&quot;</span>

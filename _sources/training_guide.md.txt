@@ -116,6 +116,13 @@ cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
 ```
 
+### Brax
+```python :class: thebe
+cfg.env_backend = "brax"
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
+```
+
 ### Unity ML-Agents
 ```python :class: thebe
 cfg.env_backend = "unity_mlagents"

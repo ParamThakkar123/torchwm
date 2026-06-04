@@ -302,11 +302,21 @@
         <span class="c1"># dmc: DeepMind Control Suite</span>
         <span class="c1"># gym: generic Gym/Gymnasium env IDs or prebuilt env instances</span>
         <span class="c1"># unity_mlagents: Unity ML-Agents executable</span>
+        <span class="c1"># brax: JAX/Brax continuous-control environments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_instance</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gym_render_mode</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
+
+        <span class="c1"># Brax options.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brax_jit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brax_auto_reset</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Suppress noisy optional MuJoCo/MJX Warp import messages emitted during</span>
+        <span class="c1"># Brax imports. These messages are harmless when Warp is not installed</span>
+        <span class="c1"># but can clutter logs; enable suppression by default.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">brax_suppress_warp_warnings</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># Unity ML-Agents options.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unity_file_name</span> <span class="o">=</span> <span class="kc">None</span>

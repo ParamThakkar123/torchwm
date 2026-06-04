@@ -303,6 +303,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">world_models.envs.wrappers</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">env_wrapper</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.brax_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BraxImageEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory.dreamer_memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReplayBuffer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.dreamer_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSSM</span>
@@ -377,7 +378,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">make_env</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a Dreamer-compatible environment from `DreamerConfig` options.</span>
 
-<span class="sd">    Supports DMC, Gym/Gymnasium, and Unity ML-Agents backends and applies the</span>
+<span class="sd">    Supports DMC, Gym/Gymnasium, Brax, and Unity ML-Agents backends and applies the</span>
 <span class="sd">    standard wrapper stack: action repeat, action normalization, and time limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">size</span> <span class="o">=</span> <span class="n">_resolve_image_size</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
@@ -400,6 +401,19 @@
             <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
             <span class="n">render_mode</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;gym_render_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">),</span>
         <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;brax&quot;</span><span class="p">,</span> <span class="s2">&quot;jax_brax&quot;</span><span class="p">}:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">BraxImageEnv</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;brax_backend&quot;</span><span class="p">,</span> <span class="s2">&quot;generalized&quot;</span><span class="p">),</span>
+            <span class="n">episode_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;time_limit&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)),</span>
+            <span class="n">auto_reset</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;brax_auto_reset&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+            <span class="n">jit</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;brax_jit&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
+            <span class="n">suppress_warp_warnings</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;brax_suppress_warp_warnings&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;unity&quot;</span><span class="p">,</span> <span class="s2">&quot;unity_mlagents&quot;</span><span class="p">,</span> <span class="s2">&quot;mlagents&quot;</span><span class="p">}:</span>
         <span class="n">unity_file_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;unity_file_name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">unity_file_name</span><span class="p">:</span>
@@ -420,7 +434,7 @@
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Unknown env_backend=&#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;. Use one of: dmc, gym, unity_mlagents.&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown env_backend=&#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;. Use one of: dmc, gym, brax, unity_mlagents.&quot;</span>
         <span class="p">)</span>
 
     <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>

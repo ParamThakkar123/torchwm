@@ -7,6 +7,7 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
+from numpy.typing import NDArray
 from PIL import Image
 
 PROCGEN_ENVS = [
@@ -51,6 +52,23 @@ def normalize_procgen_env_name(env: str) -> str:
         valid = ", ".join(PROCGEN_ENVS)
         raise ValueError(f"Unknown Procgen environment '{env}'. Valid names: {valid}.")
     return name
+
+
+class _ProcgenActionSpace(gym.spaces.Box):
+    """One-hot-like continuous action space for discrete Procgen actions."""
+
+    def __init__(self, n: int):
+        self.n = int(n)
+        super().__init__(
+            low=-1.0, high=1.0, shape=(self.n,), dtype=np.float32
+        )
+
+    def sample(self, mask: Any = None, probability: Any = None) -> NDArray[np.float32]:
+        del mask, probability
+        idx = np.random.randint(0, self.n)
+        action: NDArray[np.float32] = -np.ones((self.n,), dtype=np.float32)
+        action[idx] = 1.0
+        return action
 
 
 def make_procgen_env(env: str, **kwargs: Any) -> "ProcgenImageEnv":
@@ -119,10 +137,7 @@ class ProcgenImageEnv:
         if base_action_space is not None and hasattr(base_action_space, "n"):
             action_n = int(base_action_space.n)
         self._discrete_n = int(action_n)
-        self._action_space = gym.spaces.Box(
-            low=-1.0, high=1.0, shape=(self._discrete_n,), dtype=np.float32
-        )
-        self._action_space.sample = self._sample_action
+        self._action_space = _ProcgenActionSpace(self._discrete_n)
         self._observation_space = gym.spaces.Dict(
             {
                 "image": gym.spaces.Box(
@@ -146,12 +161,6 @@ class ProcgenImageEnv:
     @property
     def max_episode_steps(self):
         return self._max_episode_steps
-
-    def _sample_action(self):
-        idx = np.random.randint(0, self._discrete_n)
-        action = -np.ones((self._discrete_n,), dtype=np.float32)
-        action[idx] = 1.0
-        return action
 
     def _to_native_action(self, action):
         vec = np.asarray(action, dtype=np.float32).reshape(-1)

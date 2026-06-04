@@ -354,6 +354,7 @@
 <li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/atari.html">Atari</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/mujoco.html">MuJoCo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/robotics.html">Gymnasium Robotics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/unity.html">Unity ML-Agents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/vectorized.html">Vectorized Environments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/wrappers.html">Wrappers</a></li>
@@ -361,11 +362,11 @@
 </div>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
+<span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;robotics&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="mi">64</span>
@@ -374,12 +375,19 @@
 </pre></div>
 </div>
 <p>For direct environment construction, import the relevant factory from <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span><span class="p">,</span> <span class="n">make_gym_env</span><span class="p">,</span> <span class="n">make_brax_env</span><span class="p">,</span> <span class="n">make_atari_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DeepMindControlEnv</span><span class="p">,</span>
+    <span class="n">make_atari_env</span><span class="p">,</span>
+    <span class="n">make_brax_env</span><span class="p">,</span>
+    <span class="n">make_gym_env</span><span class="p">,</span>
+    <span class="n">make_robotics_env</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">dmc_env</span> <span class="o">=</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="s2">&quot;cheetah-run&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="s2">&quot;Pendulum-v1&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">brax_env</span> <span class="o">=</span> <span class="n">make_brax_env</span><span class="p">(</span><span class="s2">&quot;ant&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">atari_env</span> <span class="o">=</span> <span class="n">make_atari_env</span><span class="p">(</span><span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">,</span> <span class="n">obs_type</span><span class="o">=</span><span class="s2">&quot;rgb&quot;</span><span class="p">,</span> <span class="n">frameskip</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">robotics_env</span> <span class="o">=</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="s2">&quot;HalfCheetah-v2&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -411,17 +419,21 @@
 </tr>
 <tr class="row-even"><td><p>MuJoCo</p></td>
 <td><p><a class="reference internal" href="environments/mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
-<td><p>You want configurable Humanoid or HalfCheetah Gymnasium factories.</p></td>
+<td><p>You want Gymnasium MuJoCo task ids or native MJCF/MJB models.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Unity ML-Agents</p></td>
+<tr class="row-odd"><td><p>Gymnasium Robotics</p></td>
+<td><p><a class="reference internal" href="environments/robotics.html"><span class="std std-doc">Gymnasium Robotics</span></a></p></td>
+<td><p>You need any id registered by Gymnasium Robotics, including legacy MuJoCo v2/v3 ids.</p></td>
+</tr>
+<tr class="row-even"><td><p>Unity ML-Agents</p></td>
 <td><p><a class="reference internal" href="environments/unity.html"><span class="std std-doc">Unity</span></a></p></td>
 <td><p>You want to train against external Unity executables with continuous-control behaviors.</p></td>
 </tr>
-<tr class="row-even"><td><p>Vectorized environments</p></td>
+<tr class="row-odd"><td><p>Vectorized environments</p></td>
 <td><p><a class="reference internal" href="environments/vectorized.html"><span class="std std-doc">Vectorized</span></a></p></td>
 <td><p>You need batched rollout collection across native ALE vector envs or multiprocessing Gym-like env factories.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Wrappers</p></td>
+<tr class="row-even"><td><p>Wrappers</p></td>
 <td><p><a class="reference internal" href="environments/wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
 <td><p>You need action repeat, time limits, action normalization, one-hot actions, reward observations, or image transforms.</p></td>
 </tr>
@@ -433,9 +445,9 @@
 <h2>Shared TorchWM environment conventions<a class="headerlink" href="#shared-torchwm-environment-conventions" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Image-based training code generally expects an observation dictionary with an <code class="docutils literal notranslate"><span class="pre">image</span></code> entry.</p></li>
-<li><p>DMC, Gym/Gymnasium, and Unity adapters return channel-first images shaped <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> with dtype <code class="docutils literal notranslate"><span class="pre">uint8</span></code>.</p></li>
+<li><p>DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, and Unity adapters return channel-first images shaped <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> with dtype <code class="docutils literal notranslate"><span class="pre">uint8</span></code>.</p></li>
 <li><p>Atari can expose raw ALE observations, native vectorized observations, or DIAMOND-style preprocessed frames; check the Atari page before feeding observations directly to a model.</p></li>
-<li><p>Dreamer environment creation applies <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, <code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code> after constructing the selected backend.</p></li>
+<li><p>Dreamer environment creation applies <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, <code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code> after constructing the selected backend. The lightweight catalog exposes Gymnasium Robotics ids to online world-model families except I-JEPA/JEPA, which uses image datasets rather than online Gymnasium environments.</p></li>
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">envs</span> <span class="pre">list</span></code> to inspect the lightweight backend catalog available to the CLI.</p></li>
 </ul>
 </section>

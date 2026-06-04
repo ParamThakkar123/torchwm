@@ -534,6 +534,10 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># native MJCF/MJB only</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">4</span>    <span class="c1"># native MJCF/MJB only</span>
 
+<span class="c1"># Gymnasium Robotics example (all ids registered by installed package):</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;robotics&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;HalfCheetah-v2&quot;</span>
+
 <span class="c1"># Brax example:</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>     <span class="c1"># JAX/Brax</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;ant&quot;</span>
@@ -548,7 +552,7 @@ from images and trains a behavior policy entirely in the latent space.</p>
 selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
 Gymnasium task ids such as <code class="docutils literal notranslate"><span class="pre">Humanoid-v4</span></code> for standard benchmark rewards, or use
 native MJCF/MJB sources plus <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> callbacks for custom rewards and
-termination logic.</p>
+termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;robotics&quot;</span></code>; TorchWM lists those ids dynamically from the installed <code class="docutils literal notranslate"><span class="pre">gymnasium-robotics</span></code> package.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>

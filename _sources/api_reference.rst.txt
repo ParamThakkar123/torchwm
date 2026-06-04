@@ -367,6 +367,11 @@ family.
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.envs.robotics_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.envs.unity_env
    :members:
    :undoc-members:

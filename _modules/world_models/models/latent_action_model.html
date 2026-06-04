@@ -290,7 +290,7 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Literal</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.vision.vq_layer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorQuantizer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.blocks.st_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">STTransformer</span>
@@ -326,8 +326,21 @@
         <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
         <span class="n">embedding_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
         <span class="n">commitment_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">action_pooling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;action_pooling must be either &#39;mean&#39; or &#39;windowed_attention&#39;&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">window_attention_heads</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window_attention_heads must be at least 1&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">embedding_dim</span> <span class="o">%</span> <span class="n">window_attention_heads</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;embedding_dim must be divisible by window_attention_heads&quot;</span>
+                <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="n">num_frames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="n">image_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span> <span class="o">=</span> <span class="n">patch_size</span>
@@ -336,6 +349,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder_dim</span> <span class="o">=</span> <span class="n">decoder_dim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">in_channels</span> <span class="o">=</span> <span class="n">in_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_pooling</span> <span class="o">=</span> <span class="n">action_pooling</span>
 
         <span class="n">num_patches</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_size</span> <span class="o">//</span> <span class="n">patch_size</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
 
@@ -370,6 +384,15 @@
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_dim</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_attention</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">MultiheadAttention</span><span class="p">(</span>
+                <span class="n">embed_dim</span><span class="o">=</span><span class="n">embedding_dim</span><span class="p">,</span>
+                <span class="n">num_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
+                <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">vq</span> <span class="o">=</span> <span class="n">VectorQuantizer</span><span class="p">(</span>
             <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
@@ -435,6 +458,33 @@
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder_out</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder_out</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pool_windowed_attention</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x_t_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x_next_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply length-2 temporal attention, then mean-pool the attended tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x_t_embed: Current timestep embeddings with shape (B, N, embedding_dim).</span>
+<span class="sd">            x_next_embed: Next timestep embeddings with shape (B, N, embedding_dim).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Pooled action embeddings with shape (B, embedding_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_attention</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;window attention module is not initialized&quot;</span><span class="p">)</span>
+
+        <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">x_t_embed</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x_t_embed</span><span class="p">,</span> <span class="n">x_next_embed</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">windows</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+        <span class="n">attended_windows</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_attention</span><span class="p">(</span>
+            <span class="n">windows</span><span class="p">,</span>
+            <span class="n">windows</span><span class="p">,</span>
+            <span class="n">windows</span><span class="p">,</span>
+            <span class="n">need_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">attended_windows</span> <span class="o">=</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attended_windows</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
 <div class="viewcode-block" id="LatentActionModel.encode">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.latent_action_model.LatentActionModel.encode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span>
@@ -483,8 +533,18 @@
 
             <span class="n">x_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span><span class="n">x_t</span><span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
 
-            <span class="c1"># Pool across spatial dimension</span>
-            <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="n">x_t_embed</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">:</span>
+                <span class="n">next_t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">x_next_t</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">next_t</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (B, N, C)</span>
+                <span class="n">x_next_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span>
+                    <span class="n">x_next_t</span>
+                <span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
+                <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool_windowed_attention</span><span class="p">(</span>
+                    <span class="n">x_t_embed</span><span class="p">,</span> <span class="n">x_next_t_embed</span>
+                <span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Pool across spatial dimension</span>
+                <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="n">x_t_embed</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>
 
             <span class="n">z_q_t</span><span class="p">,</span> <span class="n">indices_t</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vq</span><span class="p">(</span><span class="n">x_t_pooled</span><span class="p">)</span>
             <span class="n">z_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_q_t</span><span class="p">)</span>
@@ -642,6 +702,8 @@
     <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
     <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
     <span class="n">embedding_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LatentActionModel</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function to create a Latent Action Model.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">LatentActionModel</span><span class="p">(</span>
@@ -656,6 +718,8 @@
         <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">,</span>
         <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
         <span class="n">embedding_dim</span><span class="o">=</span><span class="n">embedding_dim</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="o">=</span><span class="n">action_pooling</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 </pre></div>

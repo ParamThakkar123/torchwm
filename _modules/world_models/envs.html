@@ -289,6 +289,11 @@
   <h1>Source code for world_models.envs</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">list_gymnasium_robotics_envs</span><span class="p">,</span>
+    <span class="n">make_robotics_env</span><span class="p">,</span>
+    <span class="n">register_gymnasium_robotics_envs</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">MuJoCoImageEnv</span><span class="p">,</span>
     <span class="n">make_mujoco_env</span><span class="p">,</span>
@@ -323,10 +328,17 @@
     <span class="n">backend</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mujoco&quot;</span><span class="p">,</span> <span class="s2">&quot;mjcf&quot;</span><span class="p">,</span> <span class="s2">&quot;native_mujoco&quot;</span><span class="p">}:</span>
         <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;robotics&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">}:</span>
+        <span class="k">return</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># Prefer a package-local factory if present.</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">pass</span>
 
@@ -352,6 +364,9 @@
     <span class="s2">&quot;MuJoCoImageEnv&quot;</span><span class="p">,</span>
     <span class="s2">&quot;make_mujoco_env&quot;</span><span class="p">,</span>
     <span class="s2">&quot;make_mujoco_env_from_config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;list_gymnasium_robotics_envs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_robotics_env&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;register_gymnasium_robotics_envs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GymImageEnv&quot;</span><span class="p">,</span>
     <span class="s2">&quot;make_gym_env&quot;</span><span class="p">,</span>
     <span class="s2">&quot;UnityMLAgentsEnv&quot;</span><span class="p">,</span>

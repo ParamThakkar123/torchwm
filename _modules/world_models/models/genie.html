@@ -290,7 +290,7 @@
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Literal</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.vision.video_tokenizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VideoTokenizer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.latent_action_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentActionModel</span>
@@ -342,6 +342,8 @@
         <span class="n">decoder_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
         <span class="n">latent_action_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
         <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="n">num_frames</span>
@@ -380,6 +382,8 @@
             <span class="n">vocab_size</span><span class="o">=</span><span class="n">action_vocab_size</span><span class="p">,</span>
             <span class="n">embedding_dim</span><span class="o">=</span><span class="n">action_embedding_dim</span><span class="p">,</span>
             <span class="n">commitment_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">action_pooling</span><span class="o">=</span><span class="n">action_pooling</span><span class="p">,</span>
+            <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Dynamics Model (MaskGIT transformer)</span>
@@ -752,6 +756,8 @@
     <span class="n">dynamics_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
     <span class="n">dynamics_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">36</span><span class="p">,</span>
     <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Genie</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function to create a Genie model.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Genie</span><span class="p">(</span>
@@ -766,6 +772,8 @@
         <span class="n">dynamics_depth</span><span class="o">=</span><span class="n">dynamics_depth</span><span class="p">,</span>
         <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="n">dynamics_num_heads</span><span class="p">,</span>
         <span class="n">use_bfloat16</span><span class="o">=</span><span class="n">use_bfloat16</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="o">=</span><span class="n">action_pooling</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -776,6 +784,8 @@
     <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
     <span class="n">image_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
     <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Genie</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a smaller Genie model for development/testing.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Genie</span><span class="p">(</span>
@@ -796,6 +806,8 @@
         <span class="n">decoder_depth</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
         <span class="n">latent_action_depth</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
         <span class="n">use_bfloat16</span><span class="o">=</span><span class="n">use_bfloat16</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="o">=</span><span class="n">action_pooling</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -806,6 +818,8 @@
     <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
     <span class="n">image_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
     <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+    <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Genie</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the full 11B parameter Genie model (approximate).&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Genie</span><span class="p">(</span>
@@ -826,6 +840,8 @@
         <span class="n">decoder_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">latent_action_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">use_bfloat16</span><span class="o">=</span><span class="n">use_bfloat16</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="o">=</span><span class="n">action_pooling</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">window_attention_heads</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 </pre></div>

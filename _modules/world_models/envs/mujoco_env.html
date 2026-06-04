@@ -304,7 +304,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">make_gymnasium_env_with_robotics_fallback</span><span class="p">,</span>
+    <span class="n">register_gymnasium_robotics_envs</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">RewardFn</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">float</span><span class="p">]</span>
 <span class="n">TerminalFn</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]</span>
@@ -467,15 +470,27 @@
                 <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="n">ctrlrange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;actuator_ctrlrange&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="n">limited</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;actuator_ctrllimited&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">ctrlrange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;actuator_ctrlrange&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+        <span class="p">)</span>
+        <span class="n">limited</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;actuator_ctrllimited&quot;</span><span class="p">,</span> <span class="p">[]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">ctrlrange</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">action_dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="n">limited</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">action_dim</span><span class="p">:</span>
             <span class="n">default_low</span><span class="p">,</span> <span class="n">default_high</span> <span class="o">=</span> <span class="n">default_control_range</span>
-            <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">limited</span><span class="p">,</span> <span class="n">ctrlrange</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_low</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-            <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">limited</span><span class="p">,</span> <span class="n">ctrlrange</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_high</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">limited</span><span class="p">,</span> <span class="n">ctrlrange</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_low</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">)</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">limited</span><span class="p">,</span> <span class="n">ctrlrange</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_high</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">action_dim</span><span class="p">,),</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_control_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-            <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">action_dim</span><span class="p">,),</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_control_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">action_dim</span><span class="p">,),</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_control_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">)</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">action_dim</span><span class="p">,),</span> <span class="nb">float</span><span class="p">(</span><span class="n">default_control_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -526,7 +541,9 @@
 <div class="viewcode-block" id="MuJoCoImageEnv.step">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
-        <span class="n">action_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">action_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">)</span>
         <span class="n">clipped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">action_arr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">high</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">clipped</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ctrl</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">clipped</span>
@@ -587,7 +604,8 @@
 <span class="sd">        model: Either a Gymnasium MuJoCo task id such as ``&quot;Humanoid-v4&quot;``,</span>
 <span class="sd">            an MJCF XML path/string, or an MJB binary path.</span>
 <span class="sd">        backend: ``&quot;auto&quot;`` infers native vs Gymnasium task mode. Use</span>
-<span class="sd">            ``&quot;native&quot;`` for MJCF/MJB or ``&quot;gymnasium&quot;`` for task ids.</span>
+<span class="sd">            ``&quot;native&quot;`` for MJCF/MJB, ``&quot;gymnasium&quot;`` for task ids, or</span>
+<span class="sd">            ``&quot;robotics&quot;`` for Gymnasium Robotics registrations.</span>
 <span class="sd">        seed: Seed forwarded to the image wrapper.</span>
 <span class="sd">        size: Target ``(height, width)`` image size.</span>
 <span class="sd">        render_mode: Render mode used for Gymnasium MuJoCo task ids.</span>
@@ -618,9 +636,16 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">MuJoCoImageEnv</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;gym&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">}:</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span>
+        <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gym&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gymnasium&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;robotics&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">,</span>
+    <span class="p">}:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Unknown MuJoCo backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">!r}</span><span class="s2">. Use &#39;auto&#39;, &#39;native&#39;, or &#39;gymnasium&#39;.&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown MuJoCo backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">!r}</span><span class="s2">. Use &#39;auto&#39;, &#39;native&#39;, &#39;gymnasium&#39;, or &#39;robotics&#39;.&quot;</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -629,10 +654,13 @@
 
     <span class="n">env_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">gym_kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="n">env_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">env_kwargs</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">),</span> <span class="o">**</span><span class="n">env_kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;robotics&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">}:</span>
+        <span class="n">register_gymnasium_robotics_envs</span><span class="p">()</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">make_gymnasium_env_with_robotics_fallback</span><span class="p">(</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">),</span>
+        <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">,</span>
+        <span class="n">gym_kwargs</span><span class="o">=</span><span class="n">env_kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="n">render_mode</span><span class="p">)</span></div>
 
 </pre></div>

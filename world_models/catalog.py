@@ -62,6 +62,19 @@ GYM_ENVS = [
     "Pusher-v2",
 ]
 
+
+def _list_available_robotics_envs() -> list[str]:
+    """Return all Gymnasium Robotics ids when the optional package exists."""
+    try:
+        from world_models.envs import list_gymnasium_robotics_envs
+
+        return list_gymnasium_robotics_envs()
+    except Exception:
+        return []
+
+
+ROBOTICS_ENVS: list[str] = _list_available_robotics_envs()
+
 UNITY_ENVS: list[str] = []
 
 
@@ -94,6 +107,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "OpenAI Gym environments",
         "environments": PLANET_BASE_ENVS,
     },
+    "robotics": {
+        "label": "Gymnasium Robotics",
+        "description": "Gymnasium Robotics and legacy MuJoCo v2/v3 environments",
+        "environments": ROBOTICS_ENVS,
+    },
     "unity": {
         "label": "Unity ML Agents",
         "description": "Unity ML Agents environments",
@@ -107,13 +125,36 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
 }
 
 
+def _dedupe_envs(*groups: list[str]) -> list[str]:
+    seen: set[str] = set()
+    combined: list[str] = []
+    for group in groups:
+        for env_id in group:
+            if env_id not in seen:
+                combined.append(env_id)
+                seen.add(env_id)
+    return combined
+
+
 def _build_env_catalog() -> dict[str, list[str]]:
     atari_envs = _list_available_atari_envs()
+    robotics_envs = _list_available_robotics_envs()
+    general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
+    atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
+    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs)
+    planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
     return {
-        "dreamerv1": DREAMER_ENVS + GYM_ENVS,
-        "dreamerv2": DREAMER_ENVS + GYM_ENVS,
-        "planet": PLANET_BASE_ENVS + atari_envs[:80],
-        "iris": atari_envs[:80],
+        "dreamer": dreamer_envs,
+        "dreamerv1": dreamer_envs,
+        "dreamerv2": dreamer_envs,
+        "planet": planet_envs,
+        "rssm": planet_envs,
+        "iris": atari_and_robotics_envs,
+        "diamond": atari_and_robotics_envs,
+        "genie": atari_and_robotics_envs,
+        "dit": atari_and_robotics_envs,
+        # I-JEPA/JEPA is intentionally omitted because it trains on image datasets
+        # rather than online Gymnasium environments.
     }
 
 

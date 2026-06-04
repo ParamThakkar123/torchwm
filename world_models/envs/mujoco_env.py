@@ -12,7 +12,10 @@ import numpy as np
 from PIL import Image
 
 from world_models.envs.gym_env import GymImageEnv
-
+from world_models.envs.robotics_env import (
+    make_gymnasium_env_with_robotics_fallback,
+    register_gymnasium_robotics_envs,
+)
 
 RewardFn = Callable[[Any, Any, np.ndarray, dict[str, Any]], float]
 TerminalFn = Callable[[Any, Any, dict[str, Any]], bool]
@@ -170,15 +173,27 @@ class MuJoCoImageEnv:
                 dtype=np.float32,
             )
 
-        ctrlrange = np.asarray(getattr(self.model, "actuator_ctrlrange", []), dtype=np.float32)
-        limited = np.asarray(getattr(self.model, "actuator_ctrllimited", []), dtype=bool)
+        ctrlrange = np.asarray(
+            getattr(self.model, "actuator_ctrlrange", []), dtype=np.float32
+        )
+        limited = np.asarray(
+            getattr(self.model, "actuator_ctrllimited", []), dtype=bool
+        )
         if ctrlrange.shape == (action_dim, 2) and limited.shape[0] == action_dim:
             default_low, default_high = default_control_range
-            low = np.where(limited, ctrlrange[:, 0], float(default_low)).astype(np.float32)
-            high = np.where(limited, ctrlrange[:, 1], float(default_high)).astype(np.float32)
+            low = np.where(limited, ctrlrange[:, 0], float(default_low)).astype(
+                np.float32
+            )
+            high = np.where(limited, ctrlrange[:, 1], float(default_high)).astype(
+                np.float32
+            )
         else:
-            low = np.full((action_dim,), float(default_control_range[0]), dtype=np.float32)
-            high = np.full((action_dim,), float(default_control_range[1]), dtype=np.float32)
+            low = np.full(
+                (action_dim,), float(default_control_range[0]), dtype=np.float32
+            )
+            high = np.full(
+                (action_dim,), float(default_control_range[1]), dtype=np.float32
+            )
         return gym.spaces.Box(low=low, high=high, dtype=np.float32)
 
     @property
@@ -224,7 +239,9 @@ class MuJoCoImageEnv:
         return {"image": self._render_chw()}
 
     def step(self, action):
-        action_arr = np.asarray(action, dtype=np.float32).reshape(self.action_space.shape)
+        action_arr = np.asarray(action, dtype=np.float32).reshape(
+            self.action_space.shape
+        )
         clipped = np.clip(action_arr, self.action_space.low, self.action_space.high)
         if clipped.size:
             self.data.ctrl[:] = clipped
@@ -275,7 +292,8 @@ def make_mujoco_env(
         model: Either a Gymnasium MuJoCo task id such as ``"Humanoid-v4"``,
             an MJCF XML path/string, or an MJB binary path.
         backend: ``"auto"`` infers native vs Gymnasium task mode. Use
-            ``"native"`` for MJCF/MJB or ``"gymnasium"`` for task ids.
+            ``"native"`` for MJCF/MJB, ``"gymnasium"`` for task ids, or
+            ``"robotics"`` for Gymnasium Robotics registrations.
         seed: Seed forwarded to the image wrapper.
         size: Target ``(height, width)`` image size.
         render_mode: Render mode used for Gymnasium MuJoCo task ids.
@@ -306,9 +324,16 @@ def make_mujoco_env(
             )
         return MuJoCoImageEnv(seed=seed, size=size, **kwargs)
 
-    if backend not in {"auto", "gym", "gymnasium", "task"}:
+    if backend not in {
+        "auto",
+        "gym",
+        "gymnasium",
+        "task",
+        "robotics",
+        "gymnasium_robotics",
+    }:
         raise ValueError(
-            f"Unknown MuJoCo backend={backend!r}. Use 'auto', 'native', or 'gymnasium'."
+            f"Unknown MuJoCo backend={backend!r}. Use 'auto', 'native', 'gymnasium', or 'robotics'."
         )
     if model is None:
         raise ValueError(
@@ -317,8 +342,11 @@ def make_mujoco_env(
 
     env_kwargs = dict(gym_kwargs or {})
     env_kwargs.update(kwargs)
-    try:
-        env = gym.make(str(model), render_mode=render_mode, **env_kwargs)
-    except TypeError:
-        env = gym.make(str(model), **env_kwargs)
+    if backend in {"robotics", "gymnasium_robotics"}:
+        register_gymnasium_robotics_envs()
+    env = make_gymnasium_env_with_robotics_fallback(
+        str(model),
+        render_mode=render_mode,
+        gym_kwargs=env_kwargs,
+    )
     return GymImageEnv(env, seed=seed, size=size, render_mode=render_mode)

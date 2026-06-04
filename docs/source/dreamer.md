@@ -167,6 +167,10 @@ cfg.env = "Humanoid-v4"      # or "models/cartpole.xml"
 cfg.mujoco_camera = None     # native MJCF/MJB only
 cfg.mujoco_frame_skip = 4    # native MJCF/MJB only
 
+# Gymnasium Robotics example (all ids registered by installed package):
+cfg.env_backend = "robotics"
+cfg.env = "HalfCheetah-v2"
+
 # Brax example:
 cfg.env_backend = "brax"     # JAX/Brax
 cfg.env = "ant"
@@ -181,7 +185,7 @@ For MuJoCo tasks, Dreamer delegates adapter construction to
 selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
 Gymnasium task ids such as `Humanoid-v4` for standard benchmark rewards, or use
 native MJCF/MJB sources plus `MuJoCoImageEnv` callbacks for custom rewards and
-termination logic.
+termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use `env_backend="robotics"`; TorchWM lists those ids dynamically from the installed `gymnasium-robotics` package.
 
 ## References
 

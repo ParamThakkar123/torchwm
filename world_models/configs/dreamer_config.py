@@ -1,7 +1,7 @@
 class DreamerConfig:
     """Configuration container for Dreamer training, evaluation, and environment setup.
 
-    This class centralizes environment backend selection (DMC/Gym/Unity/Brax),
+    This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
     model dimensions, replay and optimization settings, logging cadence, and
     checkpoint options consumed by `DreamerAgent`.
     """
@@ -11,6 +11,7 @@ class DreamerConfig:
         # dmc: DeepMind Control Suite
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
         # mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB
+        # robotics: Gymnasium Robotics env IDs (including legacy MuJoCo v2/v3)
         # unity_mlagents: Unity ML-Agents executable
         # brax: JAX/Brax continuous-control environments
         self.env_backend = "dmc"

@@ -1,5 +1,10 @@
 from .ale_atari_env import make_atari_env, list_available_atari_envs
 from .ale_atari_vector_env import make_atari_vector_env
+from .robotics_env import (
+    list_gymnasium_robotics_envs,
+    make_robotics_env,
+    register_gymnasium_robotics_envs,
+)
 from .mujoco_env import (
     MuJoCoImageEnv,
     make_mujoco_env,
@@ -32,10 +37,17 @@ def make_env(env_id: str, **kwargs):
     backend = str(kwargs.pop("backend", "")).lower()
     if backend in {"mujoco", "mjcf", "native_mujoco"}:
         return make_mujoco_env(env_id, **kwargs)
+    if backend in {"robotics", "gymnasium_robotics"}:
+        return make_robotics_env(env_id, **kwargs)
 
     # Prefer a package-local factory if present.
     try:
         return make_gym_env(env_id, **kwargs)
+    except Exception:
+        pass
+
+    try:
+        return make_robotics_env(env_id, **kwargs)
     except Exception:
         pass
 
@@ -60,6 +72,9 @@ __all__ = [
     "MuJoCoImageEnv",
     "make_mujoco_env",
     "make_mujoco_env_from_config",
+    "list_gymnasium_robotics_envs",
+    "make_robotics_env",
+    "register_gymnasium_robotics_envs",
     "GymImageEnv",
     "make_gym_env",
     "UnityMLAgentsEnv",

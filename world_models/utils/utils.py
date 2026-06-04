@@ -556,6 +556,16 @@ class TorchImageEnvWrapper:
             try:
                 self.env = gym.make(env, render_mode="rgb_array")
                 self._render_mode_supported = True
+            except ImportError as exc:
+                from world_models.envs.robotics_env import (
+                    is_moved_mujoco_error,
+                    make_robotics_env,
+                )
+
+                if not is_moved_mujoco_error(exc):
+                    raise
+                self.env = make_robotics_env(env, render_mode="rgb_array")
+                self._render_mode_supported = True
             except TypeError:
                 self.env = gym.make(env)
                 self._render_mode_supported = False

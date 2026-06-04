@@ -29,6 +29,8 @@ __all__ = [
     "DreamerAgent",
     "Planet",
     "JEPAAgent",
+    "IRISAgent",
+    "compute_lambda_return",
     "VisionTransformer",
     "ModularRSSM",
     "create_modular_rssm",
@@ -39,6 +41,7 @@ __all__ = [
     # RSSM Variants
     "RSSM",
     "RecurrentStateSpaceModel",
+    "DreamerRSSM",
     # Genie Sub-components
     "LatentActionModel",
     "DynamicsModel",
@@ -65,6 +68,14 @@ def __getattr__(name):
         from .jepa_agent import JEPAAgent
 
         return JEPAAgent
+    if name == "IRISAgent":
+        from .iris_agent import IRISAgent
+
+        return IRISAgent
+    if name == "compute_lambda_return":
+        from .iris_agent import compute_lambda_return
+
+        return compute_lambda_return
     if name == "VisionTransformer":
         from .vit import VisionTransformer
 
@@ -96,6 +107,10 @@ def __getattr__(name):
 
     # RSSM Variants
     if name == "RSSM":
+        from .dreamer_rssm import RSSM
+
+        return RSSM
+    if name == "DreamerRSSM":
         from .dreamer_rssm import RSSM
 
         return RSSM

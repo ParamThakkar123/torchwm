@@ -292,7 +292,7 @@
 <span></span><span class="k">class</span><span class="w"> </span><span class="nc">DreamerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration container for Dreamer training, evaluation, and environment setup.</span>
 
-<span class="sd">    This class centralizes environment backend selection (DMC/Gym/Unity),</span>
+<span class="sd">    This class centralizes environment backend selection (DMC/Gym/Unity/Brax),</span>
 <span class="sd">    model dimensions, replay and optimization settings, logging cadence, and</span>
 <span class="sd">    checkpoint options consumed by `DreamerAgent`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -301,6 +301,7 @@
         <span class="c1"># Environment selection.</span>
         <span class="c1"># dmc: DeepMind Control Suite</span>
         <span class="c1"># gym: generic Gym/Gymnasium env IDs or prebuilt env instances</span>
+        <span class="c1"># mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB</span>
         <span class="c1"># unity_mlagents: Unity ML-Agents executable</span>
         <span class="c1"># brax: JAX/Brax continuous-control environments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
@@ -308,6 +309,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">env_instance</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gym_render_mode</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
+
+        <span class="c1"># MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether</span>
+        <span class="c1"># `env` is a Gymnasium task ID or a native MJCF/MJB source.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_xml_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_xml_string</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_binary_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mujoco_reset_noise_scale</span> <span class="o">=</span> <span class="mf">0.0</span>
 
         <span class="c1"># Brax options.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
@@ -379,9 +389,7 @@
 
         <span class="c1"># Logging options</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">wandb_api_key</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">&quot;&quot;</span>  <span class="c1"># Required if enable_wandb is True (anonymous logins not supported)</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wandb_api_key</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># Required if enable_wandb is True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wandb_project</span> <span class="o">=</span> <span class="s2">&quot;torchwm&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">wandb_entity</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_dir</span> <span class="o">=</span> <span class="s2">&quot;runs&quot;</span></div>

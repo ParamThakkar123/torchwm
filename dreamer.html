@@ -528,6 +528,13 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>      <span class="c1"># Gym/Gymnasium</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
 
+<span class="c1"># MuJoCo example:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;mujoco&quot;</span>   <span class="c1"># MuJoCo task ids or native MJCF/MJB files</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Humanoid-v4&quot;</span>      <span class="c1"># or &quot;models/cartpole.xml&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># native MJCF/MJB only</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">4</span>    <span class="c1"># native MJCF/MJB only</span>
+
+<span class="c1"># Brax example:</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>     <span class="c1"># JAX/Brax</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;ant&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
@@ -536,6 +543,12 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">unity_file_name</span> <span class="o">=</span> <span class="s2">&quot;env.exe&quot;</span>
 </pre></div>
 </div>
+<p>For MuJoCo tasks, Dreamer delegates adapter construction to
+<code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config</span></code>, which keeps <code class="docutils literal notranslate"><span class="pre">make_env</span></code> focused on backend
+selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
+Gymnasium task ids such as <code class="docutils literal notranslate"><span class="pre">Humanoid-v4</span></code> for standard benchmark rewards, or use
+native MJCF/MJB sources plus <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> callbacks for custom rewards and
+termination logic.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>

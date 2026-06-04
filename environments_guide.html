@@ -361,11 +361,12 @@
 </div>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, Brax, and Unity environments:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>  <span class="c1"># &quot;dmc&quot;, &quot;gym&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
+<span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="mi">64</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">action_repeat</span> <span class="o">=</span> <span class="mi">2</span>

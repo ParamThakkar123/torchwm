@@ -15,6 +15,7 @@ import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
 from world_models.envs.mujoco_env import make_mujoco_env_from_config
+from world_models.envs.procgen_env import ProcgenImageEnv
 from world_models.envs.robotics_env import make_robotics_env
 from world_models.envs.brax_env import BraxImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
@@ -86,7 +87,8 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends
+    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+    Brax, and Unity ML-Agents backends
     and applies the standard wrapper stack: action repeat, action normalization,
     and time limit.
     """
@@ -112,6 +114,16 @@ def make_env(args):
         )
     elif backend in {"mujoco", "mjcf", "native_mujoco"}:
         env = make_mujoco_env_from_config(args, size)
+    elif backend in {"procgen", "coinrun"}:
+        env = ProcgenImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            distribution_mode=getattr(args, "procgen_distribution_mode", "easy"),
+            num_levels=int(getattr(args, "procgen_num_levels", 0)),
+            start_level=getattr(args, "procgen_start_level", None),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
     elif backend in {"robotics", "gymnasium_robotics"}:
         env = make_robotics_env(
             args.env,
@@ -152,7 +164,8 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, robotics, brax, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, "
+            "robotics, procgen, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))

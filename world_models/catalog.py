@@ -77,6 +77,25 @@ ROBOTICS_ENVS: list[str] = _list_available_robotics_envs()
 
 UNITY_ENVS: list[str] = []
 
+PROCGEN_ENVS = [
+    "bigfish",
+    "bossfight",
+    "caveflyer",
+    "chaser",
+    "climber",
+    "coinrun",
+    "dodgeball",
+    "fruitbot",
+    "heist",
+    "jumper",
+    "leaper",
+    "maze",
+    "miner",
+    "ninja",
+    "plunder",
+    "starpilot",
+]
+
 
 def _list_available_atari_envs() -> list[str]:
     """Return registered Atari ids without making catalog imports heavy."""
@@ -122,6 +141,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "Atari 2600 environments via ALE",
         "environments": ATARI_ENVS,
     },
+    "procgen": {
+        "label": "Procgen",
+        "description": "Procedurally generated benchmark games",
+        "environments": PROCGEN_ENVS,
+    },
 }
 
 
@@ -141,8 +165,10 @@ def _build_env_catalog() -> dict[str, list[str]]:
     robotics_envs = _list_available_robotics_envs()
     general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
-    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs)
-    planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
+    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs, PROCGEN_ENVS)
+    planet_envs = _dedupe_envs(
+        PLANET_BASE_ENVS, atari_envs[:80], robotics_envs, PROCGEN_ENVS
+    )
     return {
         "dreamer": dreamer_envs,
         "dreamerv1": dreamer_envs,

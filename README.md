@@ -25,6 +25,7 @@ pip install torchwm
 
 # With extras
 pip install torchwm[gym]       # Additional gym environments
+pip install torchwm[procgen]   # Procgen benchmark environments
 pip install torchwm[ml-agents] # Unity ML-Agents
 pip install torchwm[ml]        # TensorBoard, W&B logging
 pip install torchwm[viz]       # FastAPI visualization
@@ -59,7 +60,7 @@ processed = op.process({'image': image, 'action': action})
 - 🎯 **Unified Interface**: Consistent API across all world model algorithms
 - 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
 - 🚀 **High Performance**: Optimized for both training and inference
-- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
+- 🌍 **Multi-Environment**: Support for DMC, Gym, Procgen, Unity, and custom environments
 - 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
 - 🧠 **Research Ready**: Easy experimentation with different architectures
 
@@ -237,7 +238,7 @@ processed = op.process({'image': image, 'action': action})
 - 🎯 **Unified Interface**: Consistent API across all world model algorithms
 - 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
 - 🚀 **High Performance**: Optimized for both training and inference
-- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
+- 🌍 **Multi-Environment**: Support for DMC, Gym, Procgen, Unity, and custom environments
 - 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
 - 🧠 **Research Ready**: Easy experimentation with different architectures
 

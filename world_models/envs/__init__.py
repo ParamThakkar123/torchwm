@@ -11,6 +11,13 @@ from .mujoco_env import (
     make_mujoco_env_from_config,
 )
 from .gym_env import GymImageEnv, make_gym_env
+from .procgen_env import (
+    PROCGEN_ENVS,
+    ProcgenImageEnv,
+    list_procgen_envs,
+    make_procgen_env,
+    normalize_procgen_env_name,
+)
 from .brax_env import BraxImageEnv, make_brax_env
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
@@ -39,6 +46,8 @@ def make_env(env_id: str, **kwargs):
         return make_mujoco_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
+    if backend in {"procgen", "coinrun"}:
+        return make_procgen_env(env_id, **kwargs)
 
     # Prefer a package-local factory if present.
     try:
@@ -53,6 +62,11 @@ def make_env(env_id: str, **kwargs):
 
     try:
         return make_atari_env(env_id, **kwargs)
+    except Exception:
+        pass
+
+    try:
+        return make_procgen_env(env_id, **kwargs)
     except Exception:
         pass
 
@@ -77,6 +91,11 @@ __all__ = [
     "register_gymnasium_robotics_envs",
     "GymImageEnv",
     "make_gym_env",
+    "PROCGEN_ENVS",
+    "ProcgenImageEnv",
+    "list_procgen_envs",
+    "make_procgen_env",
+    "normalize_procgen_env_name",
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "DeepMindControlEnv",

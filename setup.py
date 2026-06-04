@@ -31,6 +31,11 @@ setup(
         "click>=8.0.0",
     ],
     extras_require={
+        "gpu": [
+            "torch>=1.13.0",
+            "torchvision>=0.14.0",
+            "torchaudio>=2.10.0",
+        ],
         "gym": [
             "ale-py>=0.11.2",
             "gym>=0.26.2",

@@ -39,6 +39,9 @@ setup(
             "pygame>=2.6.1",
             "autorom>=0.6.1",
         ],
+        "brax": [
+            "brax>=0.13.0",
+        ],
         "viz": [
             "fastapi[standard]>=0.116.0",
             "uvicorn>=0.35.0",
@@ -73,7 +76,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,dev,docs]",
+            "torchwm[gym,viz,ml,brax,dev,docs]",
         ],
     },
     classifiers=[

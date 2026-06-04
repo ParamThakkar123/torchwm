@@ -11,11 +11,21 @@ class DreamerConfig:
         # dmc: DeepMind Control Suite
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
         # unity_mlagents: Unity ML-Agents executable
+        # brax: JAX/Brax continuous-control environments
         self.env_backend = "dmc"
         self.env = "walker-walk"
         self.env_instance = None
         self.image_size = (64, 64)
         self.gym_render_mode = "rgb_array"
+
+        # Brax options.
+        self.brax_backend = "generalized"
+        self.brax_jit = True
+        self.brax_auto_reset = False
+        # Suppress noisy optional MuJoCo/MJX Warp import messages emitted during
+        # Brax imports. These messages are harmless when Warp is not installed
+        # but can clutter logs; enable suppression by default.
+        self.brax_suppress_warp_warnings = True
 
         # Unity ML-Agents options.
         self.unity_file_name = None

@@ -9,11 +9,13 @@ A **world model** is a learned simulator. It compresses observations into a late
 A common objective decomposes into reconstruction, dynamics, and task losses:
 
 ```{math}
+\begin{aligned}
 \mathcal{L}
-= \mathcal{L}_{\text{recon}}(x_t, \hat{x}_t)
-+ \beta\,D_{\mathrm{KL}}\big(q(z_t \mid x_{\le t}, a_{<t})\;\|\;p(z_t \mid z_{<t}, a_{<t})\big)
-+ \mathcal{L}_{\text{reward}}
-+ \mathcal{L}_{\text{policy}}.
+&= \mathcal{L}_{\text{recon}}(x_t, \hat{x}_t) \\
+&\quad + \beta\,D_{\mathrm{KL}}\!\left(q(z_t \mid x_{\le t}, a_{<t})\;\middle\|\;p(z_t \mid z_{<t}, a_{<t})\right) \\
+&\quad + \mathcal{L}_{\text{reward}}
+ + \mathcal{L}_{\text{policy}}.
+\end{aligned}
 ```
 
 The exact terms change by family: Dreamer and PlaNet emphasize latent state-space dynamics, IRIS and Genie emphasize discrete token dynamics, JEPA emphasizes representation prediction without pixel reconstruction, and DiT/DIAMOND emphasize diffusion-based generation.
@@ -195,9 +197,12 @@ This is useful for studying how controllability can emerge from observation-only
 Diffusion models learn to denoise corrupted data. Instead of predicting a single deterministic next frame, they learn a reverse process from noise to clean samples.
 
 ```{math}
-q(x_t \mid x_0) = \mathcal{N}\left(\sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I\right),
-\qquad
-\mathcal{L}_{\text{DDPM}} = \left\|\epsilon - \epsilon_\theta(x_t, t, c)\right\|_2^2.
+\begin{aligned}
+q(x_t \mid x_0)
+&= \mathcal{N}\left(\sqrt{\bar{\alpha}_t}\,x_0, (1-\bar{\alpha}_t)I\right), \\
+\mathcal{L}_{\text{DDPM}}
+&= \left\|\epsilon - \epsilon_\theta(x_t, t, c)\right\|_2^2.
+\end{aligned}
 ```
 
 ### TorchWM pieces

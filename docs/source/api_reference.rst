@@ -328,7 +328,36 @@ Memory, controllers, and inference operators
 Datasets, environments, and transforms
 --------------------------------------
 
+Environment adapters
+~~~~~~~~~~~~~~~~~~~~
+
+The environment APIs below mirror the dedicated environment guide pages: DMC,
+Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DIAMOND-style Atari support is intentionally not listed as an environment
+adapter because it is Atari preprocessing rather than a separate environment
+family.
+
 .. automodule:: world_models.envs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.dmc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.gym_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.ale_atari_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.ale_atari_vector_env
    :members:
    :undoc-members:
    :show-inheritance:
@@ -338,7 +367,7 @@ Datasets, environments, and transforms
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: world_models.envs.wrappers
+.. automodule:: world_models.envs.unity_env
    :members:
    :undoc-members:
    :show-inheritance:
@@ -347,6 +376,25 @@ Datasets, environments, and transforms
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. automodule:: world_models.envs.wrappers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Atari preprocessing helpers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These helpers wrap Atari environments for specific training recipes. They are
+not separate environment families.
+
+.. automodule:: world_models.envs.diamond_atari
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Datasets and transforms
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: world_models.datasets.video_datasets
    :members:

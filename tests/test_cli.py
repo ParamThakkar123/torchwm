@@ -120,3 +120,7 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
     assert calls["run_kwargs"]["num_episodes"] == 3
     assert calls["run_kwargs"]["checkpoint"] == str(tmp_path / "iris.pt")
     assert calls["run_kwargs"]["extra_kwargs"]["device"] == "cpu"
+
+
+def test_console_entrypoint_run_is_exported():
+    assert callable(cli.run)

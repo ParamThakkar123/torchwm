@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
     "myst_parser",
+    "sphinx_copybutton",
     "sphinxext.opengraph",
 ]
 
@@ -49,9 +50,10 @@ myst_enable_extensions = [
     "fieldlist",
 ]
 
-# Let MyST/Sphinx emit math nodes and let sphinx.ext.mathjax load MathJax in a
-# deterministic order. This is more reliable than hand-loading a placeholder
-# runtime from _static and supports both ```{math}``` fences and $...$ spans.
+# Let MyST/Sphinx emit math nodes and let sphinx.ext.mathjax load the
+# MathJax runtime exactly once. Keeping MathJax under Sphinx control avoids the
+# previous custom-loader race where a configuration object could prevent the
+# runtime from loading, leaving equations unrendered.
 myst_update_mathjax = False
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 mathjax3_config = {
@@ -59,11 +61,20 @@ mathjax3_config = {
         "inlineMath": [["$", "$"], ["\\(", "\\)"]],
         "displayMath": [["$$", "$$"], ["\\[", "\\]"]],
         "packages": {"[+]": ["ams"]},
+        "processEscapes": True,
+        "processEnvironments": True,
     },
     "options": {
         "skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"],
     },
 }
+
+# Add copy-to-clipboard controls to rendered code blocks. The prompt regexp
+# strips common Python and shell prompts when users copy examples.
+copybutton_selector = "div.highlight pre"
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
+copybutton_only_copy_prompt_lines = False
 
 # Heavy optional runtimes are mocked so the API reference can build in a docs
 # environment without installing all simulation backends.
@@ -110,21 +121,11 @@ html_theme_options = {
     "navbar_persistent": [],
 }
 
-# Include client-side assets in a controlled order:
-# 1) MathJax config + runtime so math renders reliably
-# 2) Navbar/search cleanup
-# 3) MathJax typeset helper
+# Include client-side assets. MathJax itself is loaded by sphinx.ext.mathjax;
+# adding custom MathJax bootstrap files here can race with Sphinx's runtime and
+# prevent equations from being typeset.
 html_js_files = [
-    # MathJax config (local) and runtime (CDN)
-    # Load MathJax config and runtime locally to avoid runtime ordering issues
-    "mathjax_config.js",
-    # Local loader that will load a vendored runtime (mathjax_runtime.js)
-    # when present. Do NOT prefix with `_static/` here; Sphinx will copy the
-    # referenced files into the built `_static/` dir and reference them as
-    # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
-    # paths in the output which break file:// viewing.
-    "mathjax_local.js",
-    # Small script to tidy duplicated navbar elements caused by theme options
+    # Small script to tidy duplicated navbar elements caused by theme options.
     "fix_navbar.js",
 ]
 

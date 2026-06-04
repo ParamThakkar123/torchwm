@@ -16,13 +16,18 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
-    # MuJoCo
+    # MuJoCo (optional)
     mujoco_xml_path: Optional[str] = None
     mujoco_xml_string: Optional[str] = None
     mujoco_binary_path: Optional[str] = None
     mujoco_camera: Optional[Union[str, int]] = None
     mujoco_frame_skip: int = 1
     mujoco_reset_noise_scale: float = 0.0
+
+    # Brax (optional)
+    brax_backend: str = "generalized"
+    brax_jit: bool = True
+    brax_auto_reset: bool = False
 
     # Unity ML-Agents
     unity_file_name: Optional[str] = None
@@ -371,11 +376,16 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
 
-# MuJoCo
+# MuJoCo example:
 cfg.env_backend = "mujoco"
 cfg.env = "Humanoid-v4"  # or "models/cartpole.xml"
 cfg.mujoco_camera = None  # native MJCF/MJB only
 cfg.mujoco_frame_skip = 4  # native MJCF/MJB only
+
+# Brax example:
+cfg.env_backend = "brax"
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
 
 # Unity
 cfg.env_backend = "unity_mlagents"

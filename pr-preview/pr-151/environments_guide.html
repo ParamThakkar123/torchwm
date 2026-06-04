@@ -265,6 +265,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -350,6 +351,7 @@
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment backend overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/dmc.html">DeepMind Control Suite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/gym.html">Gym and Gymnasium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/atari.html">Atari</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/mujoco.html">MuJoCo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/unity.html">Unity ML-Agents</a></li>
@@ -359,11 +361,12 @@
 </div>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, and Unity environments:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>  <span class="c1"># &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, or &quot;unity_mlagents&quot;</span>
+<span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="mi">64</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">action_repeat</span> <span class="o">=</span> <span class="mi">2</span>
@@ -371,10 +374,11 @@
 </pre></div>
 </div>
 <p>For direct environment construction, import the relevant factory from <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span><span class="p">,</span> <span class="n">make_gym_env</span><span class="p">,</span> <span class="n">make_atari_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span><span class="p">,</span> <span class="n">make_gym_env</span><span class="p">,</span> <span class="n">make_brax_env</span><span class="p">,</span> <span class="n">make_atari_env</span>
 
 <span class="n">dmc_env</span> <span class="o">=</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="s2">&quot;cheetah-run&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="s2">&quot;Pendulum-v1&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+<span class="n">brax_env</span> <span class="o">=</span> <span class="n">make_brax_env</span><span class="p">(</span><span class="s2">&quot;ant&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">atari_env</span> <span class="o">=</span> <span class="n">make_atari_env</span><span class="p">(</span><span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">,</span> <span class="n">obs_type</span><span class="o">=</span><span class="s2">&quot;rgb&quot;</span><span class="p">,</span> <span class="n">frameskip</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -397,23 +401,27 @@
 <td><p><a class="reference internal" href="environments/gym.html"><span class="std std-doc">Gym</span></a></p></td>
 <td><p>You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations.</p></td>
 </tr>
-<tr class="row-even"><td><p>Atari</p></td>
+<tr class="row-even"><td><p>Brax</p></td>
+<td><p><a class="reference internal" href="brax_env.html"><span class="std std-doc">Brax</span></a></p></td>
+<td><p>You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Atari</p></td>
 <td><p><a class="reference internal" href="environments/atari.html"><span class="std std-doc">Atari</span></a></p></td>
 <td><p>You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing.</p></td>
 </tr>
-<tr class="row-odd"><td><p>MuJoCo</p></td>
+<tr class="row-even"><td><p>MuJoCo</p></td>
 <td><p><a class="reference internal" href="environments/mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
 <td><p>You want configurable Humanoid or HalfCheetah Gymnasium factories.</p></td>
 </tr>
-<tr class="row-even"><td><p>Unity ML-Agents</p></td>
+<tr class="row-odd"><td><p>Unity ML-Agents</p></td>
 <td><p><a class="reference internal" href="environments/unity.html"><span class="std std-doc">Unity</span></a></p></td>
 <td><p>You want to train against external Unity executables with continuous-control behaviors.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Vectorized environments</p></td>
+<tr class="row-even"><td><p>Vectorized environments</p></td>
 <td><p><a class="reference internal" href="environments/vectorized.html"><span class="std std-doc">Vectorized</span></a></p></td>
 <td><p>You need batched rollout collection across native ALE vector envs or multiprocessing Gym-like env factories.</p></td>
 </tr>
-<tr class="row-even"><td><p>Wrappers</p></td>
+<tr class="row-odd"><td><p>Wrappers</p></td>
 <td><p><a class="reference internal" href="environments/wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
 <td><p>You need action repeat, time limits, action normalization, one-hot actions, reward observations, or image transforms.</p></td>
 </tr>
@@ -437,6 +445,7 @@
 <li><p><strong>Missing optional dependency</strong>: install the backend-specific package listed on the backend page.</p></li>
 <li><p><strong>Observation shape mismatch</strong>: verify whether your selected factory returns CHW image dictionaries, HWC images, RAM, or vector observations.</p></li>
 <li><p><strong>Action mismatch</strong>: distinguish raw discrete action indices from one-hot vectors and normalized continuous actions.</p></li>
+<li><p><strong>Brax backend mismatch</strong>: set <code class="docutils literal notranslate"><span class="pre">cfg.brax_backend</span></code> only to backends supported by your installed Brax release (for example <code class="docutils literal notranslate"><span class="pre">&quot;generalized&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mjx&quot;</span></code>).</p></li>
 <li><p><strong>Slow environments</strong>: disable rendering where possible, use action repeat, and consider vectorized rollout collection.</p></li>
 </ul>
 </section>

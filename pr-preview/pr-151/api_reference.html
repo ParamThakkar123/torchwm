@@ -265,6 +265,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -408,7 +409,7 @@ encoder = ConvEncoder(input_shape=(3, 64, 64), embed_size=256, activation=’rel
 <dt class="sig sig-object py" id="world_models.models.dreamer.make_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer.</span></span><span class="sig-name descname"><span class="pre">make_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer.html#make_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer.make_env" title="Link to this definition">#</a></dt>
 <dd><p>Construct a Dreamer-compatible environment from <cite>DreamerConfig</cite> options.</p>
-<p>Supports DMC, Gym/Gymnasium, native MuJoCo, and Unity ML-Agents backends
+<p>Supports DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity ML-Agents backends
 and applies the standard wrapper stack: action repeat, action normalization,
 and time limit.</p>
 </dd></dl>
@@ -4779,7 +4780,7 @@ decoded = decoder(tokens)</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/Unity),
+<p>This class centralizes environment backend selection (DMC/Gym/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -5921,7 +5922,7 @@ training entrypoints.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.dreamer_config.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.dreamer_config.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/Unity),
+<p>This class centralizes environment backend selection (DMC/Gym/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -9893,6 +9894,92 @@ domains, 2 for quadruped.</p></li>
 <span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DeepMindControlEnv.render" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">BraxImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">episode_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suppress_warp_warnings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">env_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#BraxImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BraxImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-like adapter for training TorchWM world models on Brax tasks.</p>
+<p>Brax environments are functional JAX environments: <code class="docutils literal notranslate"><span class="pre">reset</span></code> consumes a PRNG
+key and returns a state, while <code class="docutils literal notranslate"><span class="pre">step</span></code> consumes the previous state plus an
+action and returns the next state. This adapter stores the Brax state between
+calls and converts state observations into image observations compatible with
+pixel-based TorchWM agents such as Dreamer.</p>
+<p>If a Brax renderer is not available, vector observations are rendered as
+deterministic feature-band images so training code can still consume a pixel
+stream. The original vector observation is also exposed through
+<code class="docutils literal notranslate"><span class="pre">info[&quot;vector_observation&quot;]</span></code> after <code class="docutils literal notranslate"><span class="pre">step</span></code> for diagnostics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>backend</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>episode_length</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>auto_reset</strong> (<em>bool</em>)</p></li>
+<li><p><strong>jit</strong> (<em>bool</em>)</p></li>
+<li><p><strong>suppress_warp_warnings</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.BraxImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.BraxImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.BraxImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#BraxImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BraxImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#BraxImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BraxImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#BraxImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BraxImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BraxImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#BraxImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BraxImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_brax_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_brax_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/brax_env.html#make_brax_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_brax_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a TorchWM image wrapper for Brax environments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> – Brax environment name (for example, <code class="docutils literal notranslate"><span class="pre">&quot;ant&quot;</span></code>) or a pre-built Brax
+environment object exposing <code class="docutils literal notranslate"><span class="pre">reset(rng)</span></code> and <code class="docutils literal notranslate"><span class="pre">step(state,</span> <span class="pre">action)</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to <a class="reference internal" href="#world_models.envs.BraxImageEnv" title="world_models.envs.BraxImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">BraxImageEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-like wrapper that returns <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code>
+observations and exposes continuous actions in the Brax <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> range.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.BraxImageEnv" title="world_models.envs.BraxImageEnv">BraxImageEnv</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -14508,6 +14595,17 @@ along the batch dimension.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.step"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.render"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BraxImageEnv.close"><code class="docutils literal notranslate"><span class="pre">BraxImageEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_brax_env"><code class="docutils literal notranslate"><span class="pre">make_brax_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>

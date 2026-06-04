@@ -8,6 +8,7 @@ TorchWM supports several environment backends for training, evaluation, and data
 Environment backend overview <environments/index>
 DeepMind Control Suite <environments/dmc>
 Gym and Gymnasium <environments/gym>
+Brax <brax_env>
 Atari <environments/atari>
 MuJoCo <environments/mujoco>
 Unity ML-Agents <environments/unity>
@@ -17,13 +18,14 @@ Wrappers <environments/wrappers>
 
 ## Quick start
 
-Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, and Unity environments:
+Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-cfg.env_backend = "dmc"  # "dmc", "gym", "mujoco", or "unity_mlagents"
+# env_backend may be one of: "dmc", "gym", "mujoco", "brax", or "unity_mlagents"
+cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 cfg.image_size = 64
 cfg.action_repeat = 2
@@ -33,10 +35,11 @@ cfg.time_limit = 1000
 For direct environment construction, import the relevant factory from `world_models.envs`:
 
 ```python :class: thebe
-from world_models.envs import DeepMindControlEnv, make_gym_env, make_atari_env
+from world_models.envs import DeepMindControlEnv, make_gym_env, make_brax_env, make_atari_env
 
 dmc_env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
 gym_env = make_gym_env("Pendulum-v1", seed=0, size=(64, 64))
+brax_env = make_brax_env("ant", seed=0, image_size=(64, 64))
 atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 ```
 
@@ -46,6 +49,7 @@ atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 | --- | --- | --- |
 | DeepMind Control Suite | [DMC](environments/dmc.md) | You want Dreamer-style continuous-control tasks with rendered images and native DMC state observations. |
 | Gym/Gymnasium | [Gym](environments/gym.md) | You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations. |
+| Brax | [Brax](brax_env.md) | You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops. |
 | Atari | [Atari](environments/atari.md) | You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing. |
 | MuJoCo | [MuJoCo](environments/mujoco.md) | You want configurable Humanoid or HalfCheetah Gymnasium factories. |
 | Unity ML-Agents | [Unity](environments/unity.md) | You want to train against external Unity executables with continuous-control behaviors. |
@@ -65,4 +69,5 @@ atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 - **Missing optional dependency**: install the backend-specific package listed on the backend page.
 - **Observation shape mismatch**: verify whether your selected factory returns CHW image dictionaries, HWC images, RAM, or vector observations.
 - **Action mismatch**: distinguish raw discrete action indices from one-hot vectors and normalized continuous actions.
+- **Brax backend mismatch**: set `cfg.brax_backend` only to backends supported by your installed Brax release (for example `"generalized"` or `"mjx"`).
 - **Slow environments**: disable rendering where possible, use action repeat, and consider vectorized rollout collection.

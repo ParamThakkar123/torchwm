@@ -267,6 +267,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -527,10 +528,16 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>      <span class="c1"># Gym/Gymnasium</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
 
+<span class="c1"># MuJoCo example:</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;mujoco&quot;</span>   <span class="c1"># MuJoCo task ids or native MJCF/MJB files</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Humanoid-v4&quot;</span>      <span class="c1"># or &quot;models/cartpole.xml&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_camera</span> <span class="o">=</span> <span class="kc">None</span>     <span class="c1"># native MJCF/MJB only</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">mujoco_frame_skip</span> <span class="o">=</span> <span class="mi">4</span>    <span class="c1"># native MJCF/MJB only</span>
+
+<span class="c1"># Brax example:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>     <span class="c1"># JAX/Brax</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;ant&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>
 
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;unity_mlagents&quot;</span>  <span class="c1"># Unity ML-Agents</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">unity_file_name</span> <span class="o">=</span> <span class="s2">&quot;env.exe&quot;</span>

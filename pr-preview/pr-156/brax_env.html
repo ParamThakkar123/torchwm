@@ -398,6 +398,11 @@ root:</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">brax_backend</span> <span class="o">=</span> <span class="s2">&quot;generalized&quot;</span>  <span class="c1"># Use &quot;mjx&quot; when supported by your install.</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">brax_jit</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">brax_auto_reset</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># Optionally suppress noisy optional MuJoCo/MJX Warp import messages that may</span>
+<span class="c1"># appear during Brax imports when Warp isn&#39;t installed. These messages are</span>
+<span class="c1"># harmless but can clutter logs during tests or normal runs. Enabled by</span>
+<span class="c1"># default.</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">brax_suppress_warp_warnings</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">Dreamer</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>

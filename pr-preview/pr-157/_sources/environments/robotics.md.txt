@@ -46,6 +46,15 @@ env = make_robotics_env(
 
 `make_robotics_env()` returns a `GymImageEnv`, so observations follow TorchWM's image contract: `{"image": uint8[3, H, W]}`. Lower-level helpers also list all installed Robotics ids and retry Gymnasium creation when a moved MuJoCo v2/v3 id requires Robotics registration.
 
+## Example script
+
+TorchWM includes a compact Dreamer example for Robotics environments:
+
+```bash
+python examples/run_dreamer_robotics.py --env HalfCheetah-v2 --total-steps 2000
+python examples/run_dreamer_robotics.py --list-envs
+```
+
 ## MuJoCo compatibility
 
 The MuJoCo and generic Gym image factories also recognize the moved-environment error emitted by Gymnasium. If a legacy id such as `HalfCheetah-v2` fails because Gymnasium says the v2/v3 MuJoCo environments moved to Gymnasium Robotics, TorchWM imports/registers `gymnasium_robotics` and retries automatically.

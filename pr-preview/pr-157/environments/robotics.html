@@ -392,6 +392,14 @@
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">make_robotics_env()</span></code> returns a <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>, so observations follow TorchWM’s image contract: <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">uint8[3,</span> <span class="pre">H,</span> <span class="pre">W]}</span></code>. Lower-level helpers also list all installed Robotics ids and retry Gymnasium creation when a moved MuJoCo v2/v3 id requires Robotics registration.</p>
 </section>
+<section id="example-script">
+<h2>Example script<a class="headerlink" href="#example-script" title="Link to this heading">#</a></h2>
+<p>TorchWM includes a compact Dreamer example for Robotics environments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/run_dreamer_robotics.py<span class="w"> </span>--env<span class="w"> </span>HalfCheetah-v2<span class="w"> </span>--total-steps<span class="w"> </span><span class="m">2000</span>
+python<span class="w"> </span>examples/run_dreamer_robotics.py<span class="w"> </span>--list-envs
+</pre></div>
+</div>
+</section>
 <section id="mujoco-compatibility">
 <h2>MuJoCo compatibility<a class="headerlink" href="#mujoco-compatibility" title="Link to this heading">#</a></h2>
 <p>The MuJoCo and generic Gym image factories also recognize the moved-environment error emitted by Gymnasium. If a legacy id such as <code class="docutils literal notranslate"><span class="pre">HalfCheetah-v2</span></code> fails because Gymnasium says the v2/v3 MuJoCo environments moved to Gymnasium Robotics, TorchWM imports/registers <code class="docutils literal notranslate"><span class="pre">gymnasium_robotics</span></code> and retries automatically.</p>
@@ -457,6 +465,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-model-availability">World-model availability</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer-configuration">Dreamer configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factory-usage">Factory usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-script">Example script</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mujoco-compatibility">MuJoCo compatibility</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#troubleshooting">Troubleshooting</a></li>
 </ul>

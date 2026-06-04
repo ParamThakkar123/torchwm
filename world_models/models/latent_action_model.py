@@ -43,12 +43,13 @@ class LatentActionModel(nn.Module):
             raise ValueError(
                 "action_pooling must be either 'mean' or 'windowed_attention'"
             )
-        if window_attention_heads < 1:
-            raise ValueError("window_attention_heads must be at least 1")
-        if embedding_dim % window_attention_heads != 0:
-            raise ValueError(
-                "embedding_dim must be divisible by window_attention_heads"
-            )
+        if action_pooling == "windowed_attention":
+            if window_attention_heads < 1:
+                raise ValueError("window_attention_heads must be at least 1")
+            if embedding_dim % window_attention_heads != 0:
+                raise ValueError(
+                    "embedding_dim must be divisible by window_attention_heads"
+                )
         self.num_frames = num_frames
         self.image_size = image_size
         self.patch_size = patch_size
@@ -166,36 +167,32 @@ class LatentActionModel(nn.Module):
         nn.init.xavier_uniform_(self.decoder_out.weight)
         nn.init.zeros_(self.decoder_out.bias)
 
-    def _pool_action_tokens(self, x_embed: torch.Tensor) -> torch.Tensor:
-        """Pool per-frame action tokens before vector quantization.
+    def _pool_windowed_attention(
+        self, x_t_embed: torch.Tensor, x_next_embed: torch.Tensor
+    ) -> torch.Tensor:
+        """Apply length-2 temporal attention, then mean-pool the attended tokens.
 
         Args:
-            x_embed: Encoder embeddings with shape (B, T, N, embedding_dim), where
-                N is the number of spatial patches.
+            x_t_embed: Current timestep embeddings with shape (B, N, embedding_dim).
+            x_next_embed: Next timestep embeddings with shape (B, N, embedding_dim).
 
         Returns:
-            Pooled action embeddings with shape (B, T, embedding_dim).
+            Pooled action embeddings with shape (B, embedding_dim).
         """
-        if self.action_pooling == "mean":
-            return x_embed.mean(dim=2)
-
         if self.window_attention is None:
             raise RuntimeError("window attention module is not initialized")
 
-        B, T, N, E = x_embed.shape
-        # Build length-2 temporal windows for every spatial patch, using the
-        # current frame token and the next frame token (repeat the final frame).
-        next_tokens = torch.cat([x_embed[:, 1:], x_embed[:, -1:].clone()], dim=1)
-        windows = torch.stack([x_embed, next_tokens], dim=3)
-        windows = windows.reshape(B * T * N, 2, E)
+        B, N, E = x_t_embed.shape
+        windows = torch.stack([x_t_embed, x_next_embed], dim=2)
+        windows = windows.reshape(B * N, 2, E)
         attended_windows, _ = self.window_attention(
             windows,
             windows,
             windows,
             need_weights=False,
         )
-        attended_windows = attended_windows.reshape(B, T, N, 2, E)
-        return attended_windows.mean(dim=(2, 3))
+        attended_windows = attended_windows.reshape(B, N, 2, E)
+        return attended_windows.mean(dim=(1, 2))
 
     def encode(
         self, x_prev: torch.Tensor, x_next: torch.Tensor
@@ -235,16 +232,28 @@ class LatentActionModel(nn.Module):
         x = x.reshape(B, T + 1, num_patches, C_enc)
         x = x[:, :T, :, :]  # (B, T, N, C)
 
-        # Project to VQ embedding space, optionally apply local temporal attention,
-        # then pool each timestep to one action embedding.
-        x_embed = self.to_vq_embedding(x)  # (B, T, N, embedding_dim)
-        x_pooled = self._pool_action_tokens(x_embed)  # (B, T, embedding_dim)
-
-        # Quantize each timestep.
+        # Quantize each timestep
         z_all = []
         indices_all = []
         for t in range(T):
-            z_q_t, indices_t, _ = self.vq(x_pooled[:, t, :])
+            x_t = x[:, t, :, :]  # (B, N, C)
+
+            x_t_embed = self.to_vq_embedding(x_t)  # (B, N, embedding_dim)
+
+            if self.action_pooling == "windowed_attention":
+                next_t = min(t + 1, T - 1)
+                x_next_t = x[:, next_t, :, :]  # (B, N, C)
+                x_next_t_embed = self.to_vq_embedding(
+                    x_next_t
+                )  # (B, N, embedding_dim)
+                x_t_pooled = self._pool_windowed_attention(
+                    x_t_embed, x_next_t_embed
+                )  # (B, embedding_dim)
+            else:
+                # Pool across spatial dimension
+                x_t_pooled = x_t_embed.mean(dim=1)  # (B, embedding_dim)
+
+            z_q_t, indices_t, _ = self.vq(x_t_pooled)
             z_all.append(z_q_t)
             indices_all.append(indices_t)
 

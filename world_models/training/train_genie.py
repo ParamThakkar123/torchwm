@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Literal
 import numpy as np
 from dataclasses import dataclass
 from world_models.models.genie import Genie
@@ -26,6 +26,8 @@ class GenieConfig:
     action_embedding_dim: int = 32
     action_encoder_dim: int = 1024
     action_encoder_depth: int = 20
+    action_pooling: Literal["mean", "windowed_attention"] = "mean"
+    window_attention_heads: int = 1
 
     dynamics_dim: int = 512
     dynamics_depth: int = 8
@@ -282,6 +284,8 @@ def create_genie_trainer(
         encoder_depth=config.tokenizer_encoder_depth,
         decoder_depth=config.tokenizer_decoder_depth,
         latent_action_depth=config.action_encoder_depth,
+        action_pooling=config.action_pooling,
+        window_attention_heads=config.window_attention_heads,
     )
 
     trainer = GenieTrainer(model, config, device)

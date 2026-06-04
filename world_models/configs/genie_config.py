@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Literal
 
 
 @dataclass
@@ -22,6 +23,8 @@ class GenieConfig:
     action_encoder_dim: int = 256
     action_encoder_depth: int = 4
     action_num_heads: int = 8
+    action_pooling: Literal["mean", "windowed_attention"] = "mean"
+    window_attention_heads: int = 1
 
     dynamics_dim: int = 512
     dynamics_depth: int = 8
@@ -61,6 +64,8 @@ class GenieSmallConfig:
     action_encoder_dim: int = 512
     action_encoder_depth: int = 8
     action_num_heads: int = 8
+    action_pooling: Literal["mean", "windowed_attention"] = "mean"
+    window_attention_heads: int = 1
 
     dynamics_dim: int = 512
     dynamics_depth: int = 8
@@ -126,6 +131,8 @@ class LatentActionModelConfig:
     vocab_size: int = 8
     embedding_dim: int = 32
     commitment_weight: float = 1.0
+    action_pooling: Literal["mean", "windowed_attention"] = "mean"
+    window_attention_heads: int = 1
 
 
 @dataclass

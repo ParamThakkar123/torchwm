@@ -15,6 +15,7 @@ import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
 from world_models.envs.mujoco_env import make_mujoco_env_from_config
+from world_models.envs.brax_env import BraxImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
@@ -84,7 +85,7 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, native MuJoCo, and Unity ML-Agents backends
+    Supports DMC, Gym/Gymnasium, MuJoCo, Brax, and Unity ML-Agents backends
     and applies the standard wrapper stack: action repeat, action normalization,
     and time limit.
     """
@@ -110,6 +111,19 @@ def make_env(args):
         )
     elif backend in {"mujoco", "mjcf", "native_mujoco"}:
         env = make_mujoco_env_from_config(args, size)
+    elif backend in {"brax", "jax_brax"}:
+        env = BraxImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            backend=getattr(args, "brax_backend", "generalized"),
+            episode_length=int(getattr(args, "time_limit", 1000)),
+            auto_reset=bool(getattr(args, "brax_auto_reset", False)),
+            jit=bool(getattr(args, "brax_jit", True)),
+            suppress_warp_warnings=bool(
+                getattr(args, "brax_suppress_warp_warnings", True)
+            ),
+        )
     elif backend in {"unity", "unity_mlagents", "mlagents"}:
         unity_file_name = getattr(args, "unity_file_name", None)
         if not unity_file_name:
@@ -130,7 +144,7 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))

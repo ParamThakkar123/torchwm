@@ -161,10 +161,16 @@ cfg.env = "walker-walk"
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 
+# MuJoCo example:
 cfg.env_backend = "mujoco"   # MuJoCo task ids or native MJCF/MJB files
 cfg.env = "Humanoid-v4"      # or "models/cartpole.xml"
 cfg.mujoco_camera = None     # native MJCF/MJB only
 cfg.mujoco_frame_skip = 4    # native MJCF/MJB only
+
+# Brax example:
+cfg.env_backend = "brax"     # JAX/Brax
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
 
 cfg.env_backend = "unity_mlagents"  # Unity ML-Agents
 cfg.unity_file_name = "env.exe"

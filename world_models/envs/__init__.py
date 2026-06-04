@@ -6,6 +6,7 @@ from .mujoco_env import (
     make_mujoco_env_from_config,
 )
 from .gym_env import GymImageEnv, make_gym_env
+from .brax_env import BraxImageEnv, make_brax_env
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
     TimeLimit,
@@ -64,6 +65,8 @@ __all__ = [
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "DeepMindControlEnv",
+    "BraxImageEnv",
+    "make_brax_env",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

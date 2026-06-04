@@ -42,6 +42,9 @@ setup(
         "mujoco": [
             "mujoco>=3.2.0",
         ],
+        "brax": [
+            "brax>=0.13.0",
+        ],
         "viz": [
             "fastapi[standard]>=0.116.0",
             "uvicorn>=0.35.0",
@@ -76,7 +79,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,brax,dev,docs]",
         ],
     },
     classifiers=[

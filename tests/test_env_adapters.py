@@ -317,6 +317,90 @@ def test_make_mujoco_env_from_config_builds_xml_string_env(monkeypatch):
     assert env._frame_skip == 2
 
 
+class _FakeJaxRandom:
+    @staticmethod
+    def PRNGKey(seed):
+        return np.array([seed], dtype=np.int64)
+
+    @staticmethod
+    def split(key):
+        base = int(np.asarray(key).reshape(-1)[0])
+        return np.array([base + 1], dtype=np.int64), np.array(
+            [base + 2], dtype=np.int64
+        )
+
+
+class _FakeJax:
+    random = _FakeJaxRandom()
+
+    @staticmethod
+    def jit(fn):
+        return fn
+
+    @staticmethod
+    def device_get(value):
+        return value
+
+
+class _FakeBraxState:
+    def __init__(self, obs, reward=0.0, done=0.0, metrics=None, info=None):
+        self.obs = np.asarray(obs, dtype=np.float32)
+        self.reward = np.asarray(reward, dtype=np.float32)
+        self.done = np.asarray(done, dtype=np.float32)
+        self.metrics = metrics or {}
+        self.info = info or {}
+
+
+class _FakeBraxEnv:
+    action_size = 2
+    episode_length = 7
+
+    def __init__(self):
+        self.last_action = None
+
+    def reset(self, rng):
+        return _FakeBraxState(np.array([0.0, 0.5, 1.0], dtype=np.float32))
+
+    def step(self, state, action):
+        self.last_action = np.asarray(action, dtype=np.float32)
+        return _FakeBraxState(
+            np.array([1.0, 0.0, -1.0], dtype=np.float32),
+            reward=1.25,
+            done=0.0,
+            metrics={"metric": np.asarray(3.0, dtype=np.float32)},
+        )
+
+
+def test_brax_image_env_adapts_functional_brax_api(monkeypatch):
+    from world_models.envs.brax_env import BraxImageEnv
+
+    monkeypatch.setattr(
+        "world_models.envs.brax_env._require_module",
+        lambda module_name, install_hint, **kwargs: {
+            "jax": _FakeJax,
+            "jax.numpy": np,
+            "brax.envs": Mock(get_environment=lambda *args, **kwargs: _FakeBraxEnv()),
+        }[module_name],
+    )
+
+    wrapped = BraxImageEnv(
+        "ant", seed=0, size=(32, 32), backend="generalized", jit=True
+    )
+    obs = wrapped.reset()
+    assert obs["image"].shape == (3, 32, 32)
+    assert wrapped.action_space.shape == (2,)
+    assert wrapped.max_episode_steps == 7
+
+    next_obs, reward, done, info = wrapped.step(np.array([2.0, -2.0], dtype=np.float32))
+
+    assert next_obs["image"].shape == (3, 32, 32)
+    assert reward == 1.25
+    assert done is False
+    assert np.array_equal(info["action"], np.array([1.0, -1.0], dtype=np.float32))
+    assert info["vector_observation"].shape == (3,)
+    assert "discount" in info
+
+
 @patch("world_models.models.dreamer.env_wrapper.TimeLimit")
 @patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
 @patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
@@ -345,3 +429,72 @@ def test_make_env_native_mujoco_backend(
 
     assert out_env is env
     mock_make_mujoco_env.assert_called_once_with(cfg, cfg.image_size)
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.BraxImageEnv")
+def test_make_env_brax_backend(
+    mock_brax_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "brax"
+    cfg.env = "ant"
+    cfg.image_size = (64, 64)
+    cfg.brax_backend = "mjx"
+    cfg.brax_jit = False
+    cfg.brax_auto_reset = False
+    cfg.time_limit = 100
+
+    env = Mock()
+    mock_brax_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_brax_env.assert_called_once_with(
+        cfg.env,
+        seed=cfg.seed,
+        size=cfg.image_size,
+        backend=cfg.brax_backend,
+        episode_length=cfg.time_limit,
+        auto_reset=cfg.brax_auto_reset,
+        jit=cfg.brax_jit,
+        suppress_warp_warnings=cfg.brax_suppress_warp_warnings,
+    )
+
+
+def test_require_module_filters_warp_messages(monkeypatch, capsys):
+    import importlib
+
+    from world_models.envs import brax_env as be
+
+    # Make find_spec always report modules exist.
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name: True)
+
+    def fake_import(name):
+        # Simulate noisy import-time prints from MuJoCo/MJX shim.
+        print("Some other message")
+        print("Failed to import warp: No module named 'warp'")
+        print("Failed to import mujoco_warp: No module named 'mujoco_warp'")
+
+        class M:
+            pass
+
+        return M
+
+    monkeypatch.setattr(importlib, "import_module", fake_import)
+
+    # When suppression is enabled, only the non-warp line should be replayed.
+    mod = be._require_module("brax.envs", "hint", suppress_warp_warnings=True)
+    captured = capsys.readouterr()
+    assert "Some other message" in captured.out
+    assert "Failed to import warp:" not in captured.out
+    assert "Failed to import mujoco_warp:" not in captured.out

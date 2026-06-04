@@ -156,6 +156,7 @@ Dreamer supports multiple backends through `DreamerConfig.env_backend`:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
+- `brax`: JAX/Brax continuous-control environments
 - `unity_mlagents`: Unity ML-Agents executable environments
 
 ## Typical Training Flow

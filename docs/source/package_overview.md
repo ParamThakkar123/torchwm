@@ -18,7 +18,7 @@ from world_models import DreamerAgent, DreamerConfig
 |----------|--------|
 | **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
 | **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig` |
-| **Environments** | `make_atari_env`, `GymImageEnv`, `DeepMindControlEnv`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, etc. |
+| **Environments** | `make_atari_env`, `GymImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, etc. |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
 | **Reward** | `RewardModel`, `ValueModel` |
 | **Utilities** | `__version__` |

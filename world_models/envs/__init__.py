@@ -12,6 +12,7 @@ from .mujoco_env import (
 )
 from .gym_env import GymImageEnv, make_gym_env
 from .brax_env import BraxImageEnv, make_brax_env
+from .dmlab import DMLabEnv, make_dmlab_env, DMLAB_LEVELS
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
     TimeLimit,
@@ -39,6 +40,8 @@ def make_env(env_id: str, **kwargs):
         return make_mujoco_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
+    if backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        return make_dmlab_env(env_id, **kwargs)
 
     # Prefer a package-local factory if present.
     try:
@@ -82,6 +85,9 @@ __all__ = [
     "DeepMindControlEnv",
     "BraxImageEnv",
     "make_brax_env",
+    "DMLabEnv",
+    "make_dmlab_env",
+    "DMLAB_LEVELS",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

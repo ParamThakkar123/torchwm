@@ -29,6 +29,24 @@ PLANET_BASE_ENVS = [
     "Humanoid-v4",
 ]
 
+DMLAB_ENVS = [
+    "rooms_collect_good_objects_train",
+    "rooms_collect_good_objects_test",
+    "rooms_exploit_deferred_effects_train",
+    "rooms_exploit_deferred_effects_test",
+    "rooms_select_nonmatching_object",
+    "rooms_watermaze",
+    "rooms_keys_doors_puzzle",
+    "language_select_described_object",
+    "language_select_located_object",
+    "language_execute_random_task",
+    "nav_maze_static_01",
+    "nav_maze_static_02",
+    "nav_maze_random_goal_01",
+    "nav_maze_random_goal_02",
+    "lt_chasm",
+]
+
 GYM_ENVS = [
     "CartPole-v1",
     "Pendulum-v1",
@@ -97,6 +115,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "DeepMind Control Suite",
         "environments": DREAMER_ENVS,
     },
+    "dmlab": {
+        "label": "DeepMind Lab",
+        "description": "DeepMind Lab 3D navigation and puzzle tasks",
+        "environments": DMLAB_ENVS,
+    },
     "mujoco": {
         "label": "MuJoCo",
         "description": "MuJoCo physics environments",
@@ -141,7 +164,7 @@ def _build_env_catalog() -> dict[str, list[str]]:
     robotics_envs = _list_available_robotics_envs()
     general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
-    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs)
+    dreamer_envs = _dedupe_envs(DREAMER_ENVS, DMLAB_ENVS, general_control_envs)
     planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
     return {
         "dreamer": dreamer_envs,

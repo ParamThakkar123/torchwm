@@ -51,6 +51,34 @@ cfg.log_dir = "runs"
 
 Logs will be saved to the specified directory and can be viewed with `tensorboard --logdir runs`.
 
+## Quick Start: Friendly API
+
+The recommended entrypoint for common workflows is `torchwm`. It mirrors the
+canonical `world_models` package, but gives users short factory helpers for
+discovery, model creation, environment creation, and operators.
+
+```python :class: thebe
+import torchwm
+
+print(torchwm.list_models())
+print(torchwm.list_env_backends())
+
+agent = torchwm.create_model("dreamer", env="walker-walk", total_steps=1_000_000)
+env = torchwm.make_env("CartPole-v1", backend="gym")
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+```
+
+You can still import direct research components from `world_models` when you
+need lower-level control:
+
+```python :class: thebe
+from world_models import DreamerAgent, DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+agent = DreamerAgent(cfg)
+```
+
 ## Quick Start: Dreamer
 
 TorchWM implements multiple world model algorithms. Click on each to see detailed documentation:
@@ -73,10 +101,11 @@ Operators handle input preprocessing: normalizing images, encoding actions, toke
 ### Basic Usage
 
 ```python :class: thebe
-from world_models.inference.operators import DreamerOperator
+import torchwm
 
 # Create operator with config parameters
-op = DreamerOperator(
+op = torchwm.get_operator(
+    "dreamer",
     image_size=64,  # Image size for Dreamer
     action_dim=6    # Action dimension
 )
@@ -130,12 +159,13 @@ result = op(inputs)
 Operators use parameters from config classes:
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-op = DreamerOperator(
+cfg = torchwm.create_config("dreamer")
+op = torchwm.get_operator(
+    "dreamer",
     image_size=cfg.operator_image_size,
-    action_dim=cfg.operator_action_dim
+    action_dim=cfg.operator_action_dim,
 )
 ```
 
@@ -152,7 +182,9 @@ tokens = tokenize_text("Hello world", max_length=512)
 
 ## Environment Backends
 
-Dreamer supports multiple backends through `DreamerConfig.env_backend`:
+Dreamer supports multiple backends through `DreamerConfig.env_backend`; the
+top-level `torchwm.make_env()` helper uses the same backend names for standalone
+environment creation:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance

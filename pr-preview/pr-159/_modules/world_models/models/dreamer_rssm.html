@@ -305,7 +305,7 @@
 
 
 <div class="viewcode-block" id="RSSM">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RSSM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Recurrent State-Space Model used by Dreamer for latent dynamics learning.</span>
 
@@ -394,7 +394,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fc_state_posterior</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RSSM.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RSSM state with zeros.</span>
 
@@ -417,7 +417,7 @@
 
 
 <div class="viewcode-block" id="RSSM.get_dist">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.get_dist">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_dist">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an Independent Normal distribution from mean and std.</span>
 
@@ -434,7 +434,7 @@
 
 
 <div class="viewcode-block" id="RSSM.observe_step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.observe_step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.observe_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update state using actual observation (observe mode).</span>
 
@@ -469,7 +469,7 @@
 
 
 <div class="viewcode-block" id="RSSM.imagine_step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.imagine_step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.imagine_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">imagine_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict next state without observation (imagine mode).</span>
 
@@ -500,7 +500,7 @@
 
 
 <div class="viewcode-block" id="RSSM.get_prior">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.get_prior">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_prior">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_prior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute prior distribution over stochastic state.</span>
 
@@ -519,7 +519,7 @@
 
 
 <div class="viewcode-block" id="RSSM.get_posterior">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.get_posterior">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_posterior">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute posterior distribution over stochastic state.</span>
 
@@ -539,7 +539,7 @@
 
 
 <div class="viewcode-block" id="RSSM.detach_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.detach_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.detach_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Detach state tensors from computation graph.</span>
 
@@ -556,7 +556,7 @@
 
 
 <div class="viewcode-block" id="RSSM.seq_to_batch">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.seq_to_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.seq_to_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert sequence state to batch format.</span>
 
@@ -570,7 +570,7 @@
 
 
 <div class="viewcode-block" id="RSSM.observe_rollout">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.observe_rollout">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.observe_rollout">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a sequence of observations (observe mode rollout).</span>
 
@@ -610,7 +610,7 @@
 
 
 <div class="viewcode-block" id="RSSM.imagine_rollout">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.imagine_rollout">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.imagine_rollout">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">horizon</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate imagined trajectory using policy (imagine mode rollout).</span>
 
@@ -636,7 +636,7 @@
 
 
 <div class="viewcode-block" id="RSSM.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.RSSM.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward pass for training (computes sequence of states).</span>
 

@@ -293,7 +293,7 @@
 
 
 <div class="viewcode-block" id="ReplayBuffer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ReplayBuffer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ReplayBuffer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ReplayBuffer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixed-size replay buffer for Dreamer with image observations and transitions.</span>
 
@@ -375,7 +375,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="ReplayBuffer.add">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ReplayBuffer.add">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ReplayBuffer.add">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">ac</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">rew</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">done</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a transition to the buffer.</span>
 
@@ -447,7 +447,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="ReplayBuffer.sample">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ReplayBuffer.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ReplayBuffer.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample a batch of sequences for training.</span>
 
@@ -469,7 +469,7 @@
 
 
 <div class="viewcode-block" id="Memory">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.Memory">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Memory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple deque-based memory for storing transitions.</span>
 
@@ -490,7 +490,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">:</span> <span class="n">Deque</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">capacity</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Memory.append">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.Memory.append">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory.append">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Append a transition to memory.</span>
 
@@ -502,7 +502,7 @@
 
 
 <div class="viewcode-block" id="Memory.sample">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.Memory.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample random batch of transitions from memory.</span>
 
@@ -523,7 +523,7 @@
 
 
 <div class="viewcode-block" id="Episode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.Episode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Episode">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Episode</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Stores a single episode for PlaNet&#39;s imagination and planning.</span>
 
@@ -565,7 +565,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">info</span> <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="Episode.append">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.Episode.append">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Episode.append">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminal</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>

@@ -292,7 +292,7 @@
 
 
 <div class="viewcode-block" id="CNNEncoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.CNNEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.CNNEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CNNEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A Convolutional Neural Network (CNN) encoder for processing image inputs.&quot;&quot;&quot;</span>
 
@@ -310,7 +310,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CNNEncoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.CNNEncoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.CNNEncoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
         <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">observation</span><span class="p">))</span>
         <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">hidden</span><span class="p">))</span>

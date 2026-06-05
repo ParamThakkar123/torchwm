@@ -294,7 +294,7 @@
 
 
 <div class="viewcode-block" id="VectorQuantizer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VectorQuantizer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Vector Quantizer for discrete autoencoder.</span>
 
@@ -322,7 +322,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">codebook</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">vocab_size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="VectorQuantizer.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizer.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizer.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
@@ -412,7 +412,7 @@
 
 
 <div class="viewcode-block" id="VectorQuantizer.decode_indices">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizer.decode_indices">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizer.decode_indices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode token indices back to embeddings.</span>
 
@@ -435,7 +435,7 @@
 
 
 <div class="viewcode-block" id="VectorQuantizerEMA">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizerEMA">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizerEMA">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VectorQuantizerEMA</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Vector Quantizer with Exponential Moving Average updates.</span>
 
@@ -472,7 +472,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ema_embed_avg</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ema_embed_avg</span>  <span class="c1"># type: ignore[name-defined]</span>
 
 <div class="viewcode-block" id="VectorQuantizerEMA.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizerEMA.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizerEMA.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
@@ -543,7 +543,7 @@
 
 
 <div class="viewcode-block" id="VectorQuantizerEMA.decode_indices">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.VectorQuantizerEMA.decode_indices">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.VectorQuantizerEMA.decode_indices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode token indices to embeddings.</span>
 

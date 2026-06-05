@@ -304,7 +304,7 @@
 
 
 <div class="viewcode-block" id="compute_lambda_return">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.compute_lambda_return">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.compute_lambda_return">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_lambda_return</span><span class="p">(</span>
     <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -340,7 +340,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISAgent</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete IRIS Agent with world model and policy.</span>
 
@@ -449,7 +449,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="IRISAgent.forward_actor_critic">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.forward_actor_critic">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.forward_actor_critic">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward_actor_critic</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">frames</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>  <span class="c1"># (B, T, C, H, W)</span>
@@ -503,7 +503,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IRISAgent.act">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.act">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.act">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">act</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">frame</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -544,7 +544,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.imagine_rollout">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.imagine_rollout">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.imagine_rollout">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">initial_frame</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -617,7 +617,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.update_autoencoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.update_autoencoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.update_autoencoder">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_autoencoder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update discrete autoencoder.</span>
 
@@ -660,7 +660,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.update_transformer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.update_transformer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.update_transformer">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_transformer</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">frames</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>  <span class="c1"># (B, T+1, C, H, W)</span>
@@ -740,7 +740,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.update_actor_critic">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.update_actor_critic">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.update_actor_critic">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_actor_critic</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">imagined_trajectory</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -822,7 +822,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.save">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.save">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save agent state.&quot;&quot;&quot;</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
@@ -846,7 +846,7 @@
 
 
 <div class="viewcode-block" id="IRISAgent.load">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISAgent.load">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISAgent.load">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load agent state.&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">serialization</span><span class="o">.</span><span class="n">safe_globals</span><span class="p">([</span><span class="n">IRISConfig</span><span class="p">]):</span>

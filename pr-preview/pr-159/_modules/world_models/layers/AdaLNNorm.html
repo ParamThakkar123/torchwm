@@ -292,7 +292,7 @@
 
 
 <div class="viewcode-block" id="AdaLNNormalization">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.AdaLNNormalization">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.AdaLNNormalization">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaLNNormalization</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adaptive layer normalization conditioned on an external embedding.</span>
 
@@ -306,7 +306,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">to_scale_shift</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">t_dim</span><span class="p">,</span> <span class="n">d_model</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 
 <div class="viewcode-block" id="AdaLNNormalization.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.AdaLNNormalization.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.AdaLNNormalization.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">):</span>
         <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">scale_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_scale_shift</span><span class="p">(</span><span class="n">t_emb</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>

@@ -293,7 +293,7 @@
 
 
 <div class="viewcode-block" id="ConvBlock">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.ConvBlock">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.ConvBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConvBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convolutional block with adaptive group normalization.&quot;&quot;&quot;</span>
 
@@ -312,7 +312,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cond_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">cond_dim</span><span class="p">,</span> <span class="n">out_channels</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ConvBlock.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.ConvBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.ConvBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">cond</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -327,7 +327,7 @@
 
 
 <div class="viewcode-block" id="RewardTerminationModel">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationModel">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RewardTerminationModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reward and termination prediction model.</span>
@@ -373,7 +373,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">termination_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">lstm_dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RewardTerminationModel.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationModel.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationModel.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -419,7 +419,7 @@
 
 
 <div class="viewcode-block" id="RewardTerminationModel.predict">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationModel.predict">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationModel.predict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -453,7 +453,7 @@
 
 
 <div class="viewcode-block" id="RewardTerminationModel.init_hidden">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationModel.init_hidden">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationModel.init_hidden">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_hidden</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -466,7 +466,7 @@
 
 
 <div class="viewcode-block" id="RewardTerminationLoss">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationLoss">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationLoss">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RewardTerminationLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Loss function for reward and termination prediction.&quot;&quot;&quot;</span>
 
@@ -476,7 +476,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">termination_criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RewardTerminationLoss.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.RewardTerminationLoss.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.RewardTerminationLoss.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">reward_logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>

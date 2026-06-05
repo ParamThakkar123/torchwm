@@ -26,14 +26,15 @@ class MyOperator(OperatorABC):
 
 ## Dreamer Operator
 
-For Dreamer model's image and action processing:
+For Dreamer model's image and action processing, use the top-level operator
+factory in application code:
 
 ```python :class: thebe
-from world_models.inference.operators import DreamerOperator
-from PIL import Image
 import torch
+import torchwm
+from PIL import Image
 
-op = DreamerOperator(image_size=64, action_dim=6)
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 
 # Process single image and action
 image = Image.open('obs.png')
@@ -116,31 +117,35 @@ print(result['done'].shape)   # torch.Size([1])
 
 ## Configuration Integration
 
-Operators work seamlessly with config classes:
+Operators work seamlessly with config classes and the friendly `torchwm`
+factories:
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig, JEPAConfig, IRISConfig
+import torchwm
 
 # Dreamer
-dreamer_cfg = DreamerConfig()
-dreamer_op = DreamerOperator(
+dreamer_cfg = torchwm.create_config("dreamer")
+dreamer_op = torchwm.get_operator(
+    "dreamer",
     image_size=dreamer_cfg.operator_image_size,
-    action_dim=dreamer_cfg.operator_action_dim
+    action_dim=dreamer_cfg.operator_action_dim,
 )
 
 # JEPA
-jepa_cfg = JEPAConfig()
-jepa_op = JEPAOperator(
+jepa_cfg = torchwm.create_config("jepa")
+jepa_op = torchwm.get_operator(
+    "jepa",
     image_size=jepa_cfg.operator_image_size,
     patch_size=jepa_cfg.operator_patch_size,
-    mask_ratio=jepa_cfg.operator_mask_ratio
+    mask_ratio=jepa_cfg.operator_mask_ratio,
 )
 
 # IRIS
-iris_cfg = IRISConfig()
-iris_op = IrisOperator(
+iris_cfg = torchwm.create_config("iris")
+iris_op = torchwm.get_operator(
+    "iris",
     seq_length=iris_cfg.operator_seq_length,
-    vocab_size=iris_cfg.operator_vocab_size
+    vocab_size=iris_cfg.operator_vocab_size,
 )
 ```
 

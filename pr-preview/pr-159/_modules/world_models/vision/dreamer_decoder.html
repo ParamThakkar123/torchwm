@@ -310,7 +310,7 @@
 
 
 <div class="viewcode-block" id="TanhBijector">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.TanhBijector">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TanhBijector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TanhBijector</span><span class="p">(</span><span class="n">distributions</span><span class="o">.</span><span class="n">Transform</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bijective tanh transform for squashing Gaussian distributions to [-1, 1].</span>
 
@@ -352,7 +352,7 @@
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TanhBijector.atanh">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.TanhBijector.atanh">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TanhBijector.atanh">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">atanh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span></div>
 
@@ -365,7 +365,7 @@
         <span class="k">return</span> <span class="n">y</span>
 
 <div class="viewcode-block" id="TanhBijector.log_abs_det_jacobian">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.TanhBijector.log_abs_det_jacobian">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TanhBijector.log_abs_det_jacobian">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_abs_det_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span></div>
 </div>
@@ -373,7 +373,7 @@
 
 
 <div class="viewcode-block" id="ConvDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ConvDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConvDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convolutional decoder for reconstructing observations from latent states.</span>
 
@@ -437,7 +437,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">convtranspose</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ConvDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ConvDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
         <span class="n">out_batch_shape</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
@@ -453,7 +453,7 @@
 
 
 <div class="viewcode-block" id="DenseDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DenseDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DenseDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DenseDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP decoder for reward/value/discount prediction from latent features.</span>
 
@@ -520,7 +520,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DenseDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DenseDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DenseDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
 
@@ -537,7 +537,7 @@
 
 
 <div class="viewcode-block" id="SampleDist">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.SampleDist">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SampleDist">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SampleDist</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribution wrapper that estimates statistics via Monte Carlo sampling.</span>
 
@@ -557,14 +557,14 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SampleDist.mean">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.SampleDist.mean">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SampleDist.mean">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SampleDist.mode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.SampleDist.mode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SampleDist.mode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">expand</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">))</span>
         <span class="n">sample</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
@@ -580,7 +580,7 @@
 
 
 <div class="viewcode-block" id="SampleDist.entropy">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.SampleDist.entropy">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SampleDist.entropy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">expand</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">))</span>
         <span class="n">sample</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
@@ -589,7 +589,7 @@
 
 
 <div class="viewcode-block" id="SampleDist.sample">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.SampleDist.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SampleDist.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span></div>
 </div>
@@ -597,7 +597,7 @@
 
 
 <div class="viewcode-block" id="ActionDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ActionDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ActionDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dreamer actor head producing squashed continuous actions from latent features.</span>
 
@@ -641,7 +641,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">action_model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ActionDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ActionDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">deter</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
         <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -662,7 +662,7 @@
 
 
 <div class="viewcode-block" id="ActionDecoder.add_exploration">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ActionDecoder.add_exploration">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionDecoder.add_exploration">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_exploration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">action_noise</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">action_noise</span><span class="p">)</span><span class="o">.</span><span class="n">rsample</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 </div>

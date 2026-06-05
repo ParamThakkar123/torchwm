@@ -10,9 +10,29 @@ Public package surface
 
 These modules expose the most common imports and lazy constructors.
 
-**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.envs``, and ``world_models.inference``.
+**Primary modules:** ``torchwm``, ``world_models``, ``world_models.api``, ``world_models.models``, ``world_models.configs``, ``world_models.envs``, and ``world_models.inference``.
+
+``torchwm`` is the friendly installed-package namespace. It mirrors the
+canonical ``world_models`` public API, so the following are equivalent for
+common workflows::
+
+   import torchwm
+   agent = torchwm.create_model("dreamer", env="walker-walk")
+
+   import world_models
+   agent = world_models.create_model("dreamer", env="walker-walk")
+
+.. automodule:: torchwm
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.api
    :members:
    :undoc-members:
    :show-inheritance:

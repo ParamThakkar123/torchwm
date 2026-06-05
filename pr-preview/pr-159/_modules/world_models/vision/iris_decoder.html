@@ -296,7 +296,7 @@
 
 
 <div class="viewcode-block" id="IRISDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;CNN Decoder for IRIS discrete autoencoder.</span>
 
@@ -358,7 +358,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_proj</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">base_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <div class="viewcode-block" id="IRISDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode tokens to images.</span>
 
@@ -394,7 +394,7 @@
 
 
 <div class="viewcode-block" id="IRISDecoder.decode_from_embeddings">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISDecoder.decode_from_embeddings">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISDecoder.decode_from_embeddings">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_from_embeddings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_flat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode flattened token embeddings to images.</span>
 
@@ -415,7 +415,7 @@
 
 
 <div class="viewcode-block" id="IRISDecoder.decode_from_indices">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.IRISDecoder.decode_from_indices">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISDecoder.decode_from_indices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_from_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode discrete token indices into images.</span>
 
@@ -447,7 +447,7 @@
 
 
 <div class="viewcode-block" id="UpsampleBlock">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.UpsampleBlock">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.UpsampleBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UpsampleBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Upsampling block with optional residual connection.&quot;&quot;&quot;</span>
 
@@ -471,7 +471,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Upsample</span><span class="p">(</span><span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="UpsampleBlock.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.UpsampleBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.UpsampleBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
@@ -480,7 +480,7 @@
 
 
 <div class="viewcode-block" id="ResidualBlock">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ResidualBlock">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ResidualBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Residual block for decoder.&quot;&quot;&quot;</span>
 
@@ -494,7 +494,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="ResidualBlock.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.ResidualBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ResidualBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 </div>
@@ -502,7 +502,7 @@
 
 
 <div class="viewcode-block" id="DiscreteAutoencoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DiscreteAutoencoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DiscreteAutoencoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DiscreteAutoencoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete Discrete Autoencoder combining encoder and decoder.</span>
 
@@ -536,7 +536,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="DiscreteAutoencoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DiscreteAutoencoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DiscreteAutoencoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Full encode-decode forward pass.</span>
 
@@ -575,14 +575,14 @@
 
 
 <div class="viewcode-block" id="DiscreteAutoencoder.encode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DiscreteAutoencoder.encode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DiscreteAutoencoder.encode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Encode to token indices.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">encode_to_indices</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DiscreteAutoencoder.decode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.DiscreteAutoencoder.decode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DiscreteAutoencoder.decode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode token indices to images.&quot;&quot;&quot;</span>
         <span class="n">embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">decode_from_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>

@@ -362,7 +362,7 @@
 </section>
 <section id="main-api">
 <h2>Main API<a class="headerlink" href="#main-api" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="s2">&quot;cheetah-run&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
@@ -372,7 +372,7 @@
 </section>
 <section id="dreamer-configuration">
 <h2>Dreamer configuration<a class="headerlink" href="#dreamer-configuration" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
@@ -383,7 +383,7 @@
 <span class="n">cfg</span><span class="o">.</span><span class="n">time_limit</span> <span class="o">=</span> <span class="mi">1000</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">world_models.models.dreamer.make_env()</span></code> recognizes <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;dmc&quot;</span></code>, creates <code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code>, and then applies <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, <code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">torchwm.create_model(&quot;dreamer&quot;,</span> <span class="pre">...)</span></code> and Dreamer’s environment builder recognize <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;dmc&quot;</span></code>, creates <code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code>, and then applies <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, <code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>.</p>
 </section>
 <section id="common-task-ids">
 <h2>Common task IDs<a class="headerlink" href="#common-task-ids" title="Link to this heading">#</a></h2>

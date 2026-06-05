@@ -362,10 +362,10 @@
 </section>
 <section id="humanoid-factory">
 <h2>Humanoid factory<a class="headerlink" href="#humanoid-factory" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_humanoid_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">make_humanoid_env</span><span class="p">(</span>
-    <span class="n">version</span><span class="o">=</span><span class="s2">&quot;v4&quot;</span><span class="p">,</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span>
+    <span class="s2">&quot;Humanoid-v4&quot;</span><span class="p">,</span>
     <span class="n">forward_reward_weight</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span>
     <span class="n">ctrl_cost_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
     <span class="n">contact_cost_weight</span><span class="o">=</span><span class="mf">5e-7</span><span class="p">,</span>
@@ -379,10 +379,10 @@
 </section>
 <section id="halfcheetah-factory">
 <h2>HalfCheetah factory<a class="headerlink" href="#halfcheetah-factory" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_half_cheetah_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env</span>
 
-<span class="n">env</span> <span class="o">=</span> <span class="n">make_half_cheetah_env</span><span class="p">(</span>
-    <span class="n">version</span><span class="o">=</span><span class="s2">&quot;v4&quot;</span><span class="p">,</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span>
+    <span class="s2">&quot;HalfCheetah-v4&quot;</span><span class="p">,</span>
     <span class="n">forward_reward_weight</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
     <span class="n">reset_noise_scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
     <span class="n">exclude_current_positions_from_observation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -395,7 +395,7 @@
 <section id="using-mujoco-with-dreamer-style-image-observations">
 <h2>Using MuJoCo with Dreamer-style image observations<a class="headerlink" href="#using-mujoco-with-dreamer-style-image-observations" title="Link to this heading">#</a></h2>
 <p>Because the MuJoCo factories return raw Gymnasium environments, wrap the environment with <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code> or configure Dreamer through the Gym backend:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
@@ -404,10 +404,10 @@
 </pre></div>
 </div>
 <p>For custom factory output:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_half_cheetah_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env</span>
 
-<span class="n">base_env</span> <span class="o">=</span> <span class="n">make_half_cheetah_env</span><span class="p">(</span><span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
+<span class="n">base_env</span> <span class="o">=</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="s2">&quot;HalfCheetah-v4&quot;</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">base_env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 </pre></div>
 </div>

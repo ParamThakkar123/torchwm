@@ -388,7 +388,7 @@
 </pre></div>
 </div>
 <p>Equivalent direct API:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
@@ -434,11 +434,16 @@ addition to its config, so pass those as constructor overrides:</p>
 <section id="custom-training-loop">
 <h2>Custom Training Loop<a class="headerlink" href="#custom-training-loop" title="Link to this heading">#</a></h2>
 <p>For advanced users, implement custom training:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerMemory</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">ReplayBuffer</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">memory</span> <span class="o">=</span> <span class="n">DreamerMemory</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">memory</span> <span class="o">=</span> <span class="n">ReplayBuffer</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="mi">100_000</span><span class="p">,</span>
+    <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="n">seq_len</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span><span class="p">):</span>
     <span class="c1"># Collect experience</span>

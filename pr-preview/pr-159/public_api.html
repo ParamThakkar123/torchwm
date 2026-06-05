@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-159/public_api.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="TorchWM exposes two public namespaces: torchwm: the friendly installed-package namespace for application code and examples., world_models: the canonical research namespace for direct component impo..." />
-<meta name="description" content="TorchWM exposes two public namespaces: torchwm: the friendly installed-package namespace for application code and examples., world_models: the canonical research namespace for direct component impo..." />
+<meta property="og:description" content="TorchWM exposes torchwm as the friendly public namespace for both application code and direct component imports. Use it for factory helpers, operators, model classes, config classes, and environmen..." />
+<meta name="description" content="TorchWM exposes torchwm as the friendly public namespace for both application code and direct component imports. Use it for factory helpers, operators, model classes, config classes, and environmen..." />
 
     <title>Public API Quick Reference &#8212; TorchWM 0.4.0 documentation</title>
   
@@ -346,13 +346,9 @@
                   
   <section id="public-api-quick-reference">
 <h1>Public API Quick Reference<a class="headerlink" href="#public-api-quick-reference" title="Link to this heading">#</a></h1>
-<p>TorchWM exposes two public namespaces:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">torchwm</span></code>: the friendly installed-package namespace for application code and examples.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">world_models</span></code>: the canonical research namespace for direct component imports.</p></li>
-</ul>
-<p>Both namespaces expose the same top-level lazy exports, so you can choose the
-name that best fits your codebase.</p>
+<p>TorchWM exposes <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> as the friendly public namespace for both
+application code and direct component imports. Use it for factory helpers,
+operators, model classes, config classes, and environment constructors.</p>
 <section id="common-workflow">
 <h2>Common Workflow<a class="headerlink" href="#common-workflow" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
@@ -411,8 +407,8 @@ name that best fits your codebase.</p>
 <section id="direct-imports-still-work">
 <h2>Direct Imports Still Work<a class="headerlink" href="#direct-imports-still-work" title="Link to this heading">#</a></h2>
 <p>The factory API is a convenience layer. Advanced and research workflows can keep
-using direct imports from <code class="docutils literal notranslate"><span class="pre">world_models</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span><span class="p">,</span> <span class="n">RSSM</span>
+using direct imports from <code class="docutils literal notranslate"><span class="pre">torchwm</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span><span class="p">,</span> <span class="n">RSSM</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>

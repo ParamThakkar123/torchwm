@@ -5,7 +5,7 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 ## Quick Import (Public API)
 
 For applications and examples, prefer the installed package name, `torchwm`. It
-mirrors the canonical `world_models` package and exposes the same lazy public
+mirrors the TorchWM implementation package and exposes the same lazy public
 API without importing optional training backends until you use them.
 
 ```python
@@ -17,11 +17,10 @@ env = torchwm.make_env("CartPole-v1", backend="gym")
 op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 ```
 
-Use `world_models` when you want the canonical research namespace or direct
-component imports:
+Use `torchwm` for direct component imports as well as factory helpers:
 
 ```python
-from world_models import DreamerAgent, DreamerConfig
+from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"

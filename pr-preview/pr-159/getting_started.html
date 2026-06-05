@@ -393,7 +393,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <section id="quick-start-friendly-api">
 <h2>Quick Start: Friendly API<a class="headerlink" href="#quick-start-friendly-api" title="Link to this heading">#</a></h2>
 <p>The recommended entrypoint for common workflows is <code class="docutils literal notranslate"><span class="pre">torchwm</span></code>. It mirrors the
-canonical <code class="docutils literal notranslate"><span class="pre">world_models</span></code> package, but gives users short factory helpers for
+TorchWM implementation package, but gives users short factory helpers for
 discovery, model creation, environment creation, and operators.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
@@ -405,9 +405,9 @@ discovery, model creation, environment creation, and operators.</p>
 <span class="n">op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span><span class="s2">&quot;dreamer&quot;</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You can still import direct research components from <code class="docutils literal notranslate"><span class="pre">world_models</span></code> when you
+<p>You can still import direct research components from <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> when you
 need lower-level control:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
@@ -513,7 +513,7 @@ need lower-level control:</p>
 </section>
 <section id="jepa-example-self-supervised">
 <h3>JEPA Example (Self-Supervised)<a class="headerlink" href="#jepa-example-self-supervised" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAOperator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAOperator</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">JEPAOperator</span><span class="p">(</span><span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
 <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;images&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">image1</span><span class="p">,</span> <span class="n">image2</span><span class="p">]}</span>
@@ -525,7 +525,7 @@ need lower-level control:</p>
 </section>
 <section id="iris-example-sequence-processing">
 <h3>IRIS Example (Sequence Processing)<a class="headerlink" href="#iris-example-sequence-processing" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">IrisOperator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">IrisOperator</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">IrisOperator</span><span class="p">(</span><span class="n">seq_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="mi">32000</span><span class="p">)</span>
 <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tokens&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">2054</span><span class="p">,</span> <span class="mi">2003</span><span class="p">,</span> <span class="mi">102</span><span class="p">]}</span>  <span class="c1"># Token sequence</span>
@@ -551,11 +551,11 @@ need lower-level control:</p>
 </section>
 <section id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">#</a></h3>
-<p>Common preprocessing functions are available in <code class="docutils literal notranslate"><span class="pre">world_models.inference.operators.utils</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_image</span><span class="p">,</span> <span class="n">tokenize_text</span>
+<p>For most applications, use <code class="docutils literal notranslate"><span class="pre">torchwm.get_operator()</span></code> for preprocessing. Advanced utility functions remain available to package internals.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="n">normalized_img</span> <span class="o">=</span> <span class="n">normalize_image</span><span class="p">(</span><span class="n">pil_image</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">))</span>
-<span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize_text</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span><span class="s2">&quot;jepa&quot;</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">process</span><span class="p">({</span><span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">pil_image</span><span class="p">]})</span>
 </pre></div>
 </div>
 </section>

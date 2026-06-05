@@ -11,7 +11,7 @@ keeps examples short and avoids deep imports.
 ## Loading Trained Models
 
 ```python :class: thebe
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 # Load from checkpoint
 agent = DreamerAgent.from_pretrained("path/to/checkpoint")
@@ -29,7 +29,7 @@ See {doc}`operators_guide` for detailed operator usage.
 ```python :class: thebe
 import torch
 import torchwm
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
@@ -48,7 +48,7 @@ with torch.no_grad():
 ```python :class: thebe
 import torch
 import torchwm
-from world_models.models import JEPAAgent
+from torchwm import JEPAAgent
 
 op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
 agent = JEPAAgent.from_pretrained("jepa_checkpoint")
@@ -67,7 +67,7 @@ Generate imagined trajectories:
 
 ```python :class: thebe
 # Dreamer imagination
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
@@ -114,7 +114,7 @@ For interactive applications:
 ```python :class: thebe
 import torch
 import torchwm
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 class InferenceServer:
     def __init__(self):
@@ -134,17 +134,18 @@ server = InferenceServer()
 ### JIT Compilation
 
 ```python :class: thebe
-from world_models.utils.jit_utils import jit_compile_module
+import torch
 
-agent = jit_compile_module(agent)
+agent = torch.jit.script(agent)
 ```
 
 ### Memory Efficient Inference
 
 ```python :class: thebe
-from world_models.utils.memory_utils import optimize_memory_efficient_ops
+import torch
 
-optimize_memory_efficient_ops()
+with torch.inference_mode():
+    output = agent.predict(processed)
 ```
 
 ## Exporting Models
@@ -167,7 +168,7 @@ torch.onnx.export(agent, dummy_input, "model.onnx")
 
 ```python :class: thebe
 import torchwm
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 env = torchwm.make_env("Pendulum-v1", backend="gym")
 agent = DreamerAgent.from_pretrained("pendulum_checkpoint")

@@ -364,7 +364,7 @@
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;robotics&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
@@ -375,8 +375,8 @@
 <span class="n">cfg</span><span class="o">.</span><span class="n">time_limit</span> <span class="o">=</span> <span class="mi">1000</span>
 </pre></div>
 </div>
-<p>For direct environment construction, import the relevant factory from <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<p>For direct environment construction, use the top-level <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> factories:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DeepMindControlEnv</span><span class="p">,</span>
     <span class="n">make_atari_env</span><span class="p">,</span>
     <span class="n">make_brax_env</span><span class="p">,</span>

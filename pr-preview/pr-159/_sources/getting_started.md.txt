@@ -54,7 +54,7 @@ Logs will be saved to the specified directory and can be viewed with `tensorboar
 ## Quick Start: Friendly API
 
 The recommended entrypoint for common workflows is `torchwm`. It mirrors the
-canonical `world_models` package, but gives users short factory helpers for
+TorchWM implementation package, but gives users short factory helpers for
 discovery, model creation, environment creation, and operators.
 
 ```python :class: thebe
@@ -68,11 +68,11 @@ env = torchwm.make_env("CartPole-v1", backend="gym")
 op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 ```
 
-You can still import direct research components from `world_models` when you
+You can still import direct research components from `torchwm` when you
 need lower-level control:
 
 ```python :class: thebe
-from world_models import DreamerAgent, DreamerConfig
+from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"
@@ -133,7 +133,7 @@ processed = op.process(raw_inputs)
 ### JEPA Example (Self-Supervised)
 
 ```python :class: thebe
-from world_models.inference.operators import JEPAOperator
+from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
 inputs = {'images': [image1, image2]}
@@ -145,7 +145,7 @@ result = op(inputs)
 ### IRIS Example (Sequence Processing)
 
 ```python :class: thebe
-from world_models.inference.operators import IrisOperator
+from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
 inputs = {'tokens': [101, 2054, 2003, 102]}  # Token sequence
@@ -171,13 +171,13 @@ op = torchwm.get_operator(
 
 ### Utilities
 
-Common preprocessing functions are available in `world_models.inference.operators.utils`:
+For most applications, use `torchwm.get_operator()` for preprocessing. Advanced utility functions remain available to package internals.
 
 ```python :class: thebe
-from world_models.inference.operators.utils import normalize_image, tokenize_text
+import torchwm
 
-normalized_img = normalize_image(pil_image, size=(224, 224))
-tokens = tokenize_text("Hello world", max_length=512)
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
+processed = op.process({"images": [pil_image]})
 ```
 
 ## Environment Backends

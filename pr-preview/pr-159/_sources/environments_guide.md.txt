@@ -22,7 +22,7 @@ Wrappers <environments/wrappers>
 Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 # env_backend may be one of: "dmc", "gym", "mujoco", "robotics", "brax", or "unity_mlagents"
@@ -33,10 +33,10 @@ cfg.action_repeat = 2
 cfg.time_limit = 1000
 ```
 
-For direct environment construction, import the relevant factory from `world_models.envs`:
+For direct environment construction, use the top-level `torchwm` factories:
 
 ```python :class: thebe
-from world_models.envs import (
+from torchwm import (
     DeepMindControlEnv,
     make_atari_env,
     make_brax_env,

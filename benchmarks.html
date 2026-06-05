@@ -468,12 +468,13 @@ through the main TorchWM CLI alongside <code class="docutils literal notranslate
 </section>
 <section id="running-the-atari-100k-benchmark">
 <h2>Running the Atari 100k benchmark<a class="headerlink" href="#running-the-atari-100k-benchmark" title="Link to this heading">#</a></h2>
-<p>To run the full Atari 100k benchmark on all 26 games using IRIS:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>benchmarks/atari_100k.py
+<p>To run the full Atari 100k benchmark on all configured games with the
+centralized benchmark module:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>world_models.benchmarks.atari_100k<span class="w"> </span>--benchmark
 </pre></div>
 </div>
-<p>This trains IRIS on each game for 100k environment steps with 5 random seeds per
-game, computes human-normalized scores, and compares to baselines.</p>
+<p>This runs the Atari 100k evaluator from <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks</span></code>, computes
+human-normalized scores, and reports aggregate metrics across games and seeds.</p>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>

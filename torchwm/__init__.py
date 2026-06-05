@@ -1,7 +1,6 @@
 """Friendly top-level package for TorchWM.
 
-``torchwm`` mirrors the public ``world_models`` API so users can choose the
-package name they installed::
+``torchwm`` is the recommended public namespace for users::
 
     import torchwm
 
@@ -11,12 +10,15 @@ package name they installed::
 from __future__ import annotations
 
 from importlib import import_module
+import sys
 from typing import Any
 
-import world_models as _world_models
+_world_models = import_module("world_models")
+api = import_module("world_models.api")
+sys.modules[f"{__name__}.api"] = api
 
 __version__ = _world_models.__version__
-__all__ = list(_world_models.__all__)
+__all__ = [*list(_world_models.__all__), "api"]
 
 
 def __getattr__(name: str) -> Any:
@@ -30,7 +32,3 @@ def __getattr__(name: str) -> Any:
 
 def __dir__() -> list[str]:
     return sorted(set(globals()) | set(__all__))
-
-
-# Keep module tools that introspect subpackages working after the alias import.
-world_models = import_module("world_models")

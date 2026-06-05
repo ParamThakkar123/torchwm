@@ -1,24 +1,23 @@
 import torchwm
-import world_models
-from world_models import api
+from torchwm import api
 
 
 def test_top_level_torchwm_exports_user_facing_factories():
-    assert torchwm.__version__ == world_models.__version__
-    assert torchwm.create_config is world_models.create_config
+    assert torchwm.__version__ == "0.4.0"
+    assert torchwm.create_config is api.create_config
     assert "dreamer" in torchwm.list_models()
     assert "gym" in torchwm.list_env_backends()
 
 
 def test_create_config_accepts_aliases_and_overrides():
-    cfg = world_models.create_config("dreamerv1", env="cartpole-swingup", seed=123)
+    cfg = torchwm.create_config("dreamerv1", env="cartpole-swingup", seed=123)
     assert cfg.env == "cartpole-swingup"
     assert cfg.seed == 123
 
 
 def test_model_and_backend_specs_resolve_aliases():
-    assert world_models.get_model_spec("i-jepa").name == "jepa"
-    assert world_models.get_env_backend_spec("gymnasium").name == "gym"
+    assert torchwm.get_model_spec("i-jepa").name == "jepa"
+    assert torchwm.get_env_backend_spec("gymnasium").name == "gym"
 
 
 def test_make_env_dispatches_to_selected_backend(monkeypatch):

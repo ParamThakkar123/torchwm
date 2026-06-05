@@ -10,7 +10,7 @@ surface.  Common workflows can use the small factory helpers::
     env = torchwm.make_env("CartPole-v1", backend="gym")
 
 Lower-level research components remain available as lazy top-level exports, for
-example ``from world_models import DreamerAgent, ConvEncoder, ReplayBuffer``.
+example ``from torchwm import DreamerAgent, ConvEncoder, ReplayBuffer``.
 """
 
 from __future__ import annotations
@@ -120,6 +120,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "make_atari_env": "world_models.envs",
     "list_available_atari_envs": "world_models.envs",
     "make_atari_vector_env": "world_models.envs",
+    "make_diamond_atari_env": "world_models.envs.diamond_atari",
     "MuJoCoImageEnv": "world_models.envs",
     "make_mujoco_env": "world_models.envs",
     "make_mujoco_env_from_config": "world_models.envs",

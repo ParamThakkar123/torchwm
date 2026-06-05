@@ -71,17 +71,23 @@ by learning entirely in the imagination of a world model:
 
 ## Training
 
+```bash
+# For full IRIS runs, prefer the TorchWM CLI.
+# The CLI wires the trainer, Atari environment, replay buffers, and checkpoints.
+torchwm train iris --env ALE/Pong-v5 --device cuda
+```
+
+For custom research code, build an agent directly from the public namespace:
+
 ```python :class: thebe
-from world_models.training.train_iris import IRISTrainer
-from world_models.configs.iris_config import IRISConfig
+import torch
+import torchwm
 
-trainer = IRISTrainer(
-    game="ALE/Pong-v5",
-    device="cuda",
-    seed=42,
+agent = torchwm.create_model(
+    "iris",
+    action_size=4,
+    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
 )
-
-trainer.train(total_epochs=600)
 ```
 
 ### Warm-start Delays
@@ -123,7 +129,7 @@ python -m benchmarks.atari_100k --device cuda --num_seeds 5
 ### Configuration
 
 ```python :class: thebe
-from world_models.configs.iris_config import IRISConfig
+from torchwm import IRISConfig
 
 config = IRISConfig()
 

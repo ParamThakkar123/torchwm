@@ -50,7 +50,7 @@ The lower-level research modules are still available when you need direct
 control:
 
 ```python
-from world_models import DreamerAgent, DreamerConfig
+from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"
@@ -241,7 +241,7 @@ The lower-level research modules are still available when you need direct
 control:
 
 ```python
-from world_models import DreamerAgent, DreamerConfig
+from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"

@@ -16,7 +16,7 @@ Operators provide a consistent interface for preprocessing inputs before feeding
 All operators inherit from `OperatorABC`:
 
 ```python :class: thebe
-from world_models.inference.operators.base import OperatorABC
+from torchwm import OperatorABC
 
 class MyOperator(OperatorABC):
     def process(self, inputs):
@@ -54,7 +54,7 @@ result = op.process({'image': obs_tensor, 'action': torch.tensor(action)})
 For JEPA's self-supervised image processing with masking:
 
 ```python :class: thebe
-from world_models.inference.operators import JEPAOperator
+from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
 
@@ -75,7 +75,7 @@ result = op.process({'images': images, 'mask': custom_mask})
 For IRIS's sequence processing:
 
 ```python :class: thebe
-from world_models.inference.operators import IrisOperator
+from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
 
@@ -96,7 +96,7 @@ result = op.process({'tokens': tokens, 'embeddings': embeddings})
 For PlaNet's environment state processing:
 
 ```python :class: thebe
-from world_models.inference.operators import PlaNetOperator
+from torchwm import PlaNetOperator
 
 op = PlaNetOperator(state_dim=32, action_dim=4)
 
@@ -151,21 +151,14 @@ iris_op = torchwm.get_operator(
 
 ## Utilities
 
-Common preprocessing functions in `world_models.inference.operators.utils`:
+For most applications, prefer the operator factory instead of importing
+preprocessing utilities directly:
 
 ```python :class: thebe
-from world_models.inference.operators.utils import (
-    normalize_image,
-    tokenize_text,
-    resize_image
-)
+import torchwm
 
-# Image processing
-normalized = normalize_image(pil_image, size=(224, 224))
-resized = resize_image(tensor_image, size=(64, 64))
-
-# Text processing
-tokens = tokenize_text("Hello world", max_length=512)
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
+processed = op.process({"images": [pil_image]})
 ```
 
 ## Error Handling

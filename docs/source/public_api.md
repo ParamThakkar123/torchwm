@@ -1,12 +1,8 @@
 # Public API Quick Reference
 
-TorchWM exposes two public namespaces:
-
-- `torchwm`: the friendly installed-package namespace for application code and examples.
-- `world_models`: the canonical research namespace for direct component imports.
-
-Both namespaces expose the same top-level lazy exports, so you can choose the
-name that best fits your codebase.
+TorchWM exposes `torchwm` as the friendly public namespace for both
+application code and direct component imports. Use it for factory helpers,
+operators, model classes, config classes, and environment constructors.
 
 ## Common Workflow
 
@@ -46,10 +42,10 @@ op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 ## Direct Imports Still Work
 
 The factory API is a convenience layer. Advanced and research workflows can keep
-using direct imports from `world_models`:
+using direct imports from `torchwm`:
 
 ```python
-from world_models import DreamerAgent, DreamerConfig, RSSM
+from torchwm import DreamerAgent, DreamerConfig, RSSM
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"

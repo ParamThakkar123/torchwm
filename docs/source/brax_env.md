@@ -42,8 +42,8 @@ pip install -e .[brax]
 Set `DreamerConfig.env_backend` to `"brax"` and choose a Brax task name:
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
-from world_models.models.dreamer import Dreamer
+from torchwm import DreamerConfig
+from torchwm import Dreamer
 
 cfg = DreamerConfig()
 cfg.env_backend = "brax"
@@ -76,7 +76,7 @@ want the world model to collect.
 You can also construct the adapter directly:
 
 ```python :class: thebe
-from world_models.envs import make_brax_env
+from torchwm import make_brax_env
 
 env = make_brax_env(
     "ant",

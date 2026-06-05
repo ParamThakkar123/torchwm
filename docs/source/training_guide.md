@@ -48,7 +48,7 @@ agent.train()
 Equivalent direct API:
 
 ```python :class: thebe
-from world_models import DreamerAgent, DreamerConfig
+from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "dmc"
@@ -96,11 +96,16 @@ agent = torchwm.create_model(
 For advanced users, implement custom training:
 
 ```python :class: thebe
-from world_models.memory import DreamerMemory
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent, ReplayBuffer
 
 agent = DreamerAgent(cfg)
-memory = DreamerMemory(cfg)
+memory = ReplayBuffer(
+    size=100_000,
+    obs_shape=(3, 64, 64),
+    action_size=6,
+    seq_len=50,
+    batch_size=50,
+)
 
 for step in range(cfg.total_steps):
     # Collect experience

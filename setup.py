@@ -48,6 +48,9 @@ setup(
         "brax": [
             "brax>=0.13.0",
         ],
+        "bsuite": [
+            "bsuite>=0.3.5",
+        ],
         "viz": [
             "fastapi[standard]>=0.116.0",
             "uvicorn>=0.35.0",
@@ -82,7 +85,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,robotics,brax,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,bsuite,dev,docs]",
         ],
     },
     classifiers=[

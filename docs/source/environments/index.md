@@ -21,6 +21,7 @@ Wrappers <wrappers>
 | --- | --- | --- | --- | --- |
 | [DeepMind Control Suite](dmc.md) | Dreamer-style continuous-control tasks with state and rendered image observations | `DeepMindControlEnv`, `env_backend="dmc"` | Dict with DMC state keys plus `image` | Continuous `Box` from the DMC action spec |
 | [Gym and Gymnasium](gym.md) | Classic control, Box2D, custom Gym environments, and generic rendered tasks | `GymImageEnv`, `make_gym_env`, `env_backend="gym"` | Dict with `image` only | Original continuous `Box` or one-hot vector for discrete actions |
+| DeepMind BSuite | Small diagnostic RL benchmark tasks such as `catch/0` and `deep_sea/0` | `BSuiteImageEnv`, `make_bsuite_env`, `env_backend="bsuite"` | Dict with synthetic `image` only | One-hot vector for discrete actions |
 | [Atari](atari.md) | Atari 2600 environments through Gymnasium/ALE | `make_atari_env`, `make_atari_vector_env` | ALE RGB/RAM observations | Discrete Atari actions |
 | [MuJoCo](mujoco.md) | Gymnasium MuJoCo task ids and native MJCF/MJB models | `make_mujoco_env` | Image dict via `GymImageEnv`/`MuJoCoImageEnv` | Continuous `Box` |
 | [Gymnasium Robotics](robotics.md) | All ids registered by the installed Gymnasium Robotics package, including moved legacy MuJoCo v2/v3 ids | `make_robotics_env`, `list_gymnasium_robotics_envs` | Image dict via `GymImageEnv` | Continuous `Box` |
@@ -34,7 +35,7 @@ Most TorchWM training code expects image observations as a dictionary entry name
 
 DIAMOND-style Atari support is documented on the Atari page as a preprocessing helper for Atari rollouts. It is not a separate environment backend.
 
-Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, or Unity environments:
+Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, BSuite, Brax, MuJoCo, Robotics, or Unity environments:
 
 1. `ActionRepeat` repeats each selected action for `cfg.action_repeat` environment steps.
 2. `NormalizeActions` exposes finite continuous action bounds as normalized `[-1, 1]` policy outputs.

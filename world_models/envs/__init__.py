@@ -12,6 +12,7 @@ from .mujoco_env import (
 )
 from .gym_env import GymImageEnv, make_gym_env
 from .brax_env import BraxImageEnv, make_brax_env
+from .bsuite_env import BSuiteImageEnv, make_bsuite_env, list_available_bsuite_ids
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
     TimeLimit,
@@ -37,6 +38,8 @@ def make_env(env_id: str, **kwargs):
     backend = str(kwargs.pop("backend", "")).lower()
     if backend in {"mujoco", "mjcf", "native_mujoco"}:
         return make_mujoco_env(env_id, **kwargs)
+    if backend in {"bsuite", "behavior_suite", "behaviour_suite"}:
+        return make_bsuite_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
 
@@ -61,6 +64,11 @@ def make_env(env_id: str, **kwargs):
     except Exception:
         pass
 
+    try:
+        return make_bsuite_env(env_id, **kwargs)
+    except Exception:
+        pass
+
     # Fall back to gym.
     return gym.make(env_id, **kwargs)
 
@@ -82,6 +90,9 @@ __all__ = [
     "DeepMindControlEnv",
     "BraxImageEnv",
     "make_brax_env",
+    "BSuiteImageEnv",
+    "make_bsuite_env",
+    "list_available_bsuite_ids",
     "TimeLimit",
     "ActionRepeat",
     "NormalizeActions",

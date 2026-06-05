@@ -62,6 +62,25 @@ torchwm benchmark \
   --device cpu
 ```
 
+
+Run DreamerV1 on a DeepMind BSuite diagnostic task:
+
+```bash
+torchwm benchmark \
+  --agent dreamerv1 \
+  --game catch/0 \
+  --env-backend bsuite \
+  --checkpoint checkpoints/dreamerv1/bsuite_catch.pt \
+  --seeds 0,1 \
+  --episodes 10 \
+  --device cpu
+```
+
+The BSuite backend is optional. Install it with `pip install torchwm[bsuite]` or
+`pip install bsuite` before running BSuite tasks. TorchWM wraps BSuite's compact
+`dm_env` observations as synthetic RGB images so the existing pixel-based
+Dreamer benchmark path can evaluate trained world-model agents.
+
 Run all registered adapters on the same game with per-agent checkpoints:
 
 ```bash
@@ -83,9 +102,10 @@ Common `torchwm benchmark` options:
 
 - `--agent AGENT` / `-a AGENT`: run one adapter (`iris`, `diamond`, `dreamerv1`, or `dreamerv2`).
 - `--all-agents`: run every registered adapter on the same environment.
-- `--game GAME` / `-g GAME`: Gym/ALE environment id, such as `ALE/Pong-v5`.
+- `--game GAME` / `-g GAME`: environment id, such as `ALE/Pong-v5` or a BSuite id like `catch/0`.
 - `--checkpoint PATH` / `-c PATH`: checkpoint path for single-agent benchmarks.
 - `--checkpoint-map AGENT=PATH`: repeatable per-agent checkpoint mapping for `--all-agents`.
+- `--env-backend BACKEND`: optional backend hint forwarded to adapters. Use `bsuite` for DeepMind BSuite ids such as `catch/0`.
 - `--seeds SEEDS`: either `N` for seeds `0..N-1`, or a comma-separated list such as `0,1,2`.
 - `--episodes N` / `-n N`: number of evaluation episodes per seed.
 - `--out-dir DIR`: output directory for report artifacts. The legacy alias `--out_dir` is also accepted.

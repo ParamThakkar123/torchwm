@@ -19,13 +19,13 @@ Wrappers <environments/wrappers>
 
 ## Quick start
 
-Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
+Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, BSuite, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-# env_backend may be one of: "dmc", "gym", "mujoco", "robotics", "brax", or "unity_mlagents"
+# env_backend may be one of: "dmc", "gym", "mujoco", "robotics", "bsuite", "brax", or "unity_mlagents"
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 cfg.image_size = 64
@@ -40,6 +40,7 @@ from world_models.envs import (
     DeepMindControlEnv,
     make_atari_env,
     make_brax_env,
+    make_bsuite_env,
     make_gym_env,
     make_robotics_env,
 )
@@ -47,6 +48,7 @@ from world_models.envs import (
 dmc_env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
 gym_env = make_gym_env("Pendulum-v1", seed=0, size=(64, 64))
 brax_env = make_brax_env("ant", seed=0, image_size=(64, 64))
+bsuite_env = make_bsuite_env("catch/0", seed=0, size=(64, 64))
 atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 robotics_env = make_robotics_env("HalfCheetah-v2", seed=0, size=(64, 64))
 ```
@@ -56,6 +58,7 @@ robotics_env = make_robotics_env("HalfCheetah-v2", seed=0, size=(64, 64))
 | Backend | Page | Use when |
 | --- | --- | --- |
 | DeepMind Control Suite | [DMC](environments/dmc.md) | You want Dreamer-style continuous-control tasks with rendered images and native DMC state observations. |
+| DeepMind BSuite | `BSuiteImageEnv`, `env_backend="bsuite"` | You want small diagnostic RL benchmark tasks such as `catch/0` or `deep_sea/0`. |
 | Gym/Gymnasium | [Gym](environments/gym.md) | You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations. |
 | Brax | [Brax](brax_env.md) | You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops. |
 | Atari | [Atari](environments/atari.md) | You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing. |

@@ -117,7 +117,8 @@ trainer.train(total_epochs=600)
 python -m world_models.training.train_iris --game "ALE/Pong-v5"
 
 # Benchmark
-python -m benchmarks.atari_100k --device cuda --num_seeds 5
+python -m world_models.benchmarks.cli --agent iris --game "ALE/Pong-v5" \
+  --checkpoint path/to/iris.pt --seeds 5
 ```
 
 ### Configuration

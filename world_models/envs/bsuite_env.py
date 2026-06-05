@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib
+import importlib.util
 from typing import Any
 
 import gymnasium as gym
@@ -21,17 +23,34 @@ BSUITE_EXAMPLE_IDS = [
 
 def list_available_bsuite_ids() -> list[str]:
     """Return the installed BSuite sweep ids, or examples if BSuite is absent."""
-    try:
-        from bsuite import sweep
-
-        return list(sweep.SWEEP)
-    except Exception:
+    if importlib.util.find_spec("bsuite") is None:
         return list(BSUITE_EXAMPLE_IDS)
+
+    bsuite = importlib.import_module("bsuite")
+    sweep = getattr(bsuite, "sweep", None)
+    ids = getattr(sweep, "SWEEP", None)
+    if ids is None:
+        return list(BSUITE_EXAMPLE_IDS)
+    return list(ids)
 
 
 def make_bsuite_env(bsuite_id: str, **kwargs: Any) -> "BSuiteImageEnv":
     """Create a Dreamer-compatible image wrapper around a BSuite task."""
     return BSuiteImageEnv(bsuite_id=bsuite_id, **kwargs)
+
+
+class _BSuiteDiscreteActionSpace(gym.spaces.Box):
+    """Box action space that samples normalized one-hot actions for BSuite."""
+
+    def __init__(self, n: int):
+        self.n = int(n)
+        super().__init__(low=-1.0, high=1.0, shape=(self.n,), dtype=np.float32)
+
+    def sample(self, mask: Any | None = None, probability: Any | None = None):
+        del mask, probability
+        action: np.ndarray = np.full((self.n,), -1.0, dtype=np.float32)
+        action[np.random.randint(self.n)] = 1.0
+        return action
 
 
 class BSuiteImageEnv:
@@ -55,6 +74,7 @@ class BSuiteImageEnv:
         self._seed = int(seed)
         self._size = (int(size[0]), int(size[1]))
         self._env = env if env is not None else self._load_bsuite_env(bsuite_id)
+        self._discrete_n: int | None = None
         self._last_time_step: Any | None = None
         self._action_space = self._make_action_space(self._env.action_spec())
         self._observation_space = gym.spaces.Dict(
@@ -70,13 +90,12 @@ class BSuiteImageEnv:
 
     @staticmethod
     def _load_bsuite_env(bsuite_id: str):
-        try:
-            import bsuite
-        except Exception as exc:
+        if importlib.util.find_spec("bsuite") is None:
             raise ImportError(
                 "BSuite support requires the optional 'bsuite' package. "
                 "Install it with `pip install bsuite` or `pip install torchwm[bsuite]`."
-            ) from exc
+            )
+        bsuite = importlib.import_module("bsuite")
         return bsuite.load_from_id(bsuite_id)
 
     @property
@@ -133,10 +152,8 @@ class BSuiteImageEnv:
         num_values = getattr(action_spec, "num_values", None)
         if num_values is not None:
             n = int(num_values)
-            space = gym.spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
-            space.sample = lambda: self._one_hot_action(np.random.randint(n))
             self._discrete_n = n
-            return space
+            return _BSuiteDiscreteActionSpace(n)
 
         minimum = np.asarray(getattr(action_spec, "minimum", -1.0), dtype=np.float32)
         maximum = np.asarray(getattr(action_spec, "maximum", 1.0), dtype=np.float32)
@@ -157,7 +174,7 @@ class BSuiteImageEnv:
     def _one_hot_action(self, action: int):
         if self._discrete_n is None:
             return np.asarray(action, dtype=np.float32)
-        out = np.full((self._discrete_n,), -1.0, dtype=np.float32)
+        out: np.ndarray = np.full((self._discrete_n,), -1.0, dtype=np.float32)
         out[int(action)] = 1.0
         return out
 
@@ -184,14 +201,15 @@ class BSuiteImageEnv:
         arr = np.nan_to_num(arr, nan=0.0, posinf=1.0, neginf=0.0).clip(0.0, 1.0)
 
         side = int(np.ceil(np.sqrt(arr.size)))
-        canvas = np.zeros((side * side,), dtype=np.float32)
+        canvas: np.ndarray = np.zeros((side * side,), dtype=np.float32)
         canvas[: arr.size] = arr
         image = (canvas.reshape(side, side) * 255.0).astype(np.uint8)
         image = np.repeat(image[..., None], 3, axis=-1)
         if image.shape[:2] != self._size:
+            resampling = getattr(Image, "Resampling", Image)
             image = np.asarray(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), resampling.BILINEAR
                 )
             )
         return image

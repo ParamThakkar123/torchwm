@@ -5,6 +5,8 @@ This guide covers how to use trained TorchWM models for inference and deployment
 ## Overview
 
 TorchWM provides standardized inference through operators and future pipelines.
+For application code, prefer the top-level `torchwm.get_operator()` factory; it
+keeps examples short and avoids deep imports.
 
 ## Loading Trained Models
 
@@ -26,9 +28,10 @@ See {doc}`operators_guide` for detailed operator usage.
 
 ```python :class: thebe
 import torch
-from world_models.inference.operators import DreamerOperator
+import torchwm
+from world_models.models import DreamerAgent
 
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
 # Single step prediction
@@ -43,10 +46,11 @@ with torch.no_grad():
 ### JEPA
 
 ```python :class: thebe
+import torch
+import torchwm
 from world_models.models import JEPAAgent
-from world_models.inference.operators import JEPAOperator
 
-op = JEPAOperator()
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
 agent = JEPAAgent.from_pretrained("jepa_checkpoint")
 
 # Representation learning
@@ -108,10 +112,14 @@ with torch.no_grad():
 For interactive applications:
 
 ```python :class: thebe
+import torch
+import torchwm
+from world_models.models import DreamerAgent
+
 class InferenceServer:
     def __init__(self):
         self.agent = DreamerAgent.from_pretrained("checkpoint").eval()
-        self.op = DreamerOperator()
+        self.op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 
     def predict(self, obs, action):
         processed = self.op({'image': obs, 'action': action})
@@ -158,11 +166,12 @@ torch.onnx.export(agent, dummy_input, "model.onnx")
 ### With Gym Environments
 
 ```python :class: thebe
-import gymnasium as gym
+import torchwm
+from world_models.models import DreamerAgent
 
-env = gym.make("Pendulum-v1")
+env = torchwm.make_env("Pendulum-v1", backend="gym")
 agent = DreamerAgent.from_pretrained("pendulum_checkpoint")
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=env.action_space.shape[0])
 
 obs, _ = env.reset()
 done = False

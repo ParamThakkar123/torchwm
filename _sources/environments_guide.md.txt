@@ -8,7 +8,7 @@ TorchWM supports several environment backends for training, evaluation, and data
 Environment backend overview <environments/index>
 DeepMind Control Suite <environments/dmc>
 Gym and Gymnasium <environments/gym>
-Brax <brax_env>
+Brax <environments/brax>
 Atari <environments/atari>
 MuJoCo <environments/mujoco>
 Gymnasium Robotics <environments/robotics>
@@ -57,7 +57,7 @@ robotics_env = make_robotics_env("HalfCheetah-v2", seed=0, size=(64, 64))
 | --- | --- | --- |
 | DeepMind Control Suite | [DMC](environments/dmc.md) | You want Dreamer-style continuous-control tasks with rendered images and native DMC state observations. |
 | Gym/Gymnasium | [Gym](environments/gym.md) | You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations. |
-| Brax | [Brax](brax_env.md) | You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops. |
+| Brax | [Brax](environments/brax.md) | You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops. |
 | Atari | [Atari](environments/atari.md) | You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing. |
 | MuJoCo | [MuJoCo](environments/mujoco.md) | You want Gymnasium MuJoCo task ids or native MJCF/MJB models. |
 | Gymnasium Robotics | [Gymnasium Robotics](environments/robotics.md) | You need any id registered by Gymnasium Robotics, including legacy MuJoCo v2/v3 ids. |

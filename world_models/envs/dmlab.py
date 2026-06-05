@@ -63,6 +63,26 @@ def make_dmlab_env(level: str, **kwargs: Any) -> "DMLabEnv":
     return DMLabEnv(level=level, **kwargs)
 
 
+class _OneHotActionSpace(gym.spaces.Box):
+    """Box action space that samples normalized one-hot vectors."""
+
+    def __init__(self, actions: int):
+        self._actions = int(actions)
+        super().__init__(
+            low=-1.0,
+            high=1.0,
+            shape=(self._actions,),
+            dtype=np.float32,
+        )
+
+    def sample(self, mask: None = None, probability: None = None) -> np.ndarray:
+        if mask is not None or probability is not None:
+            raise ValueError("DMLab action sampling does not support masks.")
+        action: np.ndarray = -np.ones((self._actions,), dtype=np.float32)
+        action[np.random.randint(0, self._actions)] = 1.0
+        return action
+
+
 class DMLabEnv:
     """Gym-style adapter for DeepMind Lab 3D environments.
 
@@ -118,13 +138,7 @@ class DMLabEnv:
         )
         self._last_obs: dict[str, np.ndarray] | None = None
 
-        self._action_space = gym.spaces.Box(
-            low=-1.0,
-            high=1.0,
-            shape=(self._action_set.shape[0],),
-            dtype=np.float32,
-        )
-        self._action_space.sample = self._sample_action
+        self._action_space = _OneHotActionSpace(self._action_set.shape[0])
         self._observation_space = self._build_observation_space()
 
     def _build_observation_space(self):
@@ -225,11 +239,6 @@ class DMLabEnv:
         if close is not None:
             close()
 
-    def _sample_action(self):
-        action = -np.ones((self._action_set.shape[0],), dtype=np.float32)
-        action[np.random.randint(0, self._action_set.shape[0])] = 1.0
-        return action
-
     def _to_native_action(self, action):
         arr = np.asarray(action)
         if arr.shape == (self._action_set.shape[1],) and np.issubdtype(
@@ -242,7 +251,7 @@ class DMLabEnv:
     def _action_to_one_hot(self, native_action):
         matches = np.all(self._action_set == native_action, axis=1)
         index = int(np.argmax(matches)) if matches.any() else 0
-        action = -np.ones((self._action_set.shape[0],), dtype=np.float32)
+        action: np.ndarray = -np.ones((self._action_set.shape[0],), dtype=np.float32)
         action[index] = 1.0
         return action
 

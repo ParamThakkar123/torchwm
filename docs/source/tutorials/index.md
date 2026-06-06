@@ -2,18 +2,18 @@
 
 These notebooks provide runnable Python workflows for training each supported TorchWM world-model family on a representative environment or dataset, plus a benchmark notebook for Atari evaluation.
 
-```{toctree}
-:maxdepth: 1
+The notebooks are linked as downloadable `.ipynb` files instead of rendered pages so the documentation site can build in minimal environments that do not install notebook-rendering extensions. Open a notebook locally with Jupyter or VS Code, then uncomment the long-running training cells when you are ready to run them.
 
-notebooks/dreamer_dmc_walker
-notebooks/planet_gym_cartpole
-notebooks/jepa_cifar10
-notebooks/iris_atari_pong
-notebooks/genie_tinyworlds_sonic
-notebooks/diamond_atari_breakout
-notebooks/dit_cifar10
-notebooks/atari_benchmark
-```
+## Notebook downloads
+
+- {download}`Dreamer on DeepMind Control Walker <notebooks/dreamer_dmc_walker.ipynb>`
+- {download}`PlaNet/RSSM on Gym CartPole <notebooks/planet_gym_cartpole.ipynb>`
+- {download}`JEPA on CIFAR-10 <notebooks/jepa_cifar10.ipynb>`
+- {download}`IRIS on Atari Pong <notebooks/iris_atari_pong.ipynb>`
+- {download}`Genie on TinyWorlds SONIC <notebooks/genie_tinyworlds_sonic.ipynb>`
+- {download}`DIAMOND on Atari Breakout <notebooks/diamond_atari_breakout.ipynb>`
+- {download}`DiT/DDPM on CIFAR-10 <notebooks/dit_cifar10.ipynb>`
+- {download}`Run a trained model on the Atari benchmark <notebooks/atari_benchmark.ipynb>`
 
 ## Recommended order
 
@@ -26,4 +26,4 @@ notebooks/atari_benchmark
 7. DiT/DDPM on CIFAR-10 for diffusion-transformer generation.
 8. Atari benchmark notebook to evaluate trained checkpoints.
 
-Most training cells are commented out by default so documentation builds do not launch expensive downloads or training jobs. Uncomment the final training cells after verifying optional dependencies and dataset paths.
+Most training cells are commented out by default so documentation builds and first-time notebook opens do not launch expensive downloads or training jobs. Uncomment the final training cells after verifying optional dependencies and dataset paths.

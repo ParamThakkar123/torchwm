@@ -22,7 +22,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.mathjax",
     "myst_parser",
-    "nbsphinx",
     "sphinx_copybutton",
     "sphinxext.opengraph",
 ]
@@ -41,11 +40,6 @@ autodoc_default_options = {
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
-
-# Tutorial notebooks are examples, not CI workloads. Do not execute them while
-# building documentation; users can run selected cells locally after installing
-# the optional environment/dataset dependencies they need.
-nbsphinx_execute = "never"
 
 myst_enable_extensions = [
     "colon_fence",

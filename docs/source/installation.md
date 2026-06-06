@@ -66,15 +66,35 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 ## Docker
 
-Build and run using Docker:
+Build the default CPU image and run the TorchWM CLI:
 
 ```bash
 # Build
 docker build -t torchwm .
 
-# Run
-docker run -it torchwm
+# Show the CLI help
+docker run --rm torchwm
+
+# Run a specific command
+docker run --rm torchwm models list
 ```
+
+The Dockerfile installs PyTorch explicitly before installing TorchWM so the wheel
+source is controlled by the `PYTORCH_INDEX_URL` build argument. The default uses
+CPU wheels. To build against a CUDA wheel index, pass the matching PyTorch index
+and run the container with the NVIDIA runtime:
+
+```bash
+docker build \
+  --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu121 \
+  -t torchwm:cu121 .
+
+docker run --rm --gpus all torchwm:cu121 models list
+```
+
+Additional optional dependency groups can be installed at build time with
+`TORCHWM_EXTRAS`, for example `--build-arg TORCHWM_EXTRAS=viz,ml`. Runtime data is
+stored under `/data/torchwm`, which you can persist with a bind mount or volume.
 
 ## Verification
 

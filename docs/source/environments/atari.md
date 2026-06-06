@@ -14,7 +14,7 @@ If ROMs are not already available, install and run AutoROM according to your env
 ## Raw Atari APIs
 
 ```python
-from world_models.envs.ale_atari_env import make_atari_env, list_available_atari_envs
+from torchwm import make_atari_env, list_available_atari_envs
 
 env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
 print(list_available_atari_envs()[:10])
@@ -40,7 +40,7 @@ Additional keyword arguments are forwarded to `gymnasium.make()`.
 This is not a separate environment in TorchWM. It is an Atari preprocessing path implemented by `DiamondAtariWrapper` and `make_diamond_atari_env()` for users who want DIAMOND-compatible Atari rollouts.
 
 ```python
-from world_models.envs.diamond_atari import make_diamond_atari_env
+from torchwm import make_diamond_atari_env
 
 env = make_diamond_atari_env(
     game="ALE/Breakout-v5",
@@ -70,7 +70,7 @@ The factory creates the underlying Gymnasium Atari environment with `obs_type="r
 For parallel Atari simulation, use `make_atari_vector_env()`:
 
 ```python
-from world_models.envs.ale_atari_vector_env import make_atari_vector_env
+from torchwm import make_atari_vector_env
 
 vec_env = make_atari_vector_env(
     game="pong",

@@ -33,25 +33,38 @@ pip install torchwm[dev]       # Testing and linting
 
 ### Training a Dreamer Agent
 
+Use the friendly top-level API for the common path:
+
 ```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-cfg.total_steps = 1_000_000
-
-agent = DreamerAgent(cfg)
+agent = torchwm.create_model(
+    "dreamer",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
 agent.train()
 ```
 
-### Using Inference Operators
+The lower-level research modules are still available when you need direct
+control:
 
 ```python
-from world_models.inference.operators import DreamerOperator
+from torchwm import DreamerAgent, DreamerConfig
 
-op = DreamerOperator(image_size=64, action_dim=6)
-processed = op.process({'image': image, 'action': action})
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+agent = DreamerAgent(cfg)
+```
+
+### Creating Environments and Operators
+
+```python
+import torchwm
+
+env = torchwm.make_env("CartPole-v1", backend="gym")
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+processed = op.process({"image": image, "action": action})
 ```
 
 ## 🚀 Features
@@ -211,25 +224,38 @@ uv add torch torchvision torchaudio
 
 ### Training a Dreamer Agent
 
+Use the friendly top-level API for the common path:
+
 ```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-cfg.total_steps = 1_000_000
-
-agent = DreamerAgent(cfg)
+agent = torchwm.create_model(
+    "dreamer",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
 agent.train()
 ```
 
-### Using Inference Operators
+The lower-level research modules are still available when you need direct
+control:
 
 ```python
-from world_models.inference.operators import DreamerOperator
+from torchwm import DreamerAgent, DreamerConfig
 
-op = DreamerOperator(image_size=64, action_dim=6)
-processed = op.process({'image': image, 'action': action})
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+agent = DreamerAgent(cfg)
+```
+
+### Creating Environments and Operators
+
+```python
+import torchwm
+
+env = torchwm.make_env("CartPole-v1", backend="gym")
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+processed = op.process({"image": image, "action": action})
 ```
 
 ## Features

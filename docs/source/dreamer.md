@@ -90,8 +90,8 @@ The core world model combining:
 ## Training
 
 ```python :class: thebe
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+from torchwm import DreamerAgent
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "gym"

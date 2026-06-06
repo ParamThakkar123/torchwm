@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/environments/wrappers.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="world_models.envs.wrappers contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization..." />
-<meta name="description" content="world_models.envs.wrappers contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization..." />
+<meta property="og:description" content="torchwm exposes reusable environment wrappers used by Dreamer and other environment pipelines. The wrapper module contains reusable preprocessing wrappers used by Dreamer and other environment pipe..." />
+<meta name="description" content="torchwm exposes reusable environment wrappers used by Dreamer and other environment pipelines. The wrapper module contains reusable preprocessing wrappers used by Dreamer and other environment pipe..." />
 
     <title>Environment Wrappers &#8212; TorchWM 0.4.0 documentation</title>
   
@@ -260,6 +260,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
@@ -351,7 +352,7 @@
                   
   <section id="environment-wrappers">
 <h1>Environment Wrappers<a class="headerlink" href="#environment-wrappers" title="Link to this heading">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">world_models.envs.wrappers</span></code> contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization, observation dictionaries, one-hot actions, reward observations, and image transforms.</p>
+<p><code class="docutils literal notranslate"><span class="pre">torchwm</span></code> exposes reusable environment wrappers used by Dreamer and other environment pipelines. The wrapper module contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization, observation dictionaries, one-hot actions, reward observations, and image transforms.</p>
 <section id="standard-dreamer-wrapper-stack">
 <h2>Standard Dreamer wrapper stack<a class="headerlink" href="#standard-dreamer-wrapper-stack" title="Link to this heading">#</a></h2>
 <p>Dreamer environment construction applies wrappers in this order:</p>
@@ -404,8 +405,7 @@
 </section>
 <section id="example-composition">
 <h2>Example composition<a class="headerlink" href="#example-composition" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_gym_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionRepeat</span><span class="p">,</span> <span class="n">NormalizeActions</span><span class="p">,</span> <span class="n">TimeLimit</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ActionRepeat</span><span class="p">,</span> <span class="n">NormalizeActions</span><span class="p">,</span> <span class="n">TimeLimit</span><span class="p">,</span> <span class="n">make_gym_env</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="s2">&quot;Pendulum-v1&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>

@@ -82,7 +82,7 @@ Verify your installation:
 
 ```python :class: thebe
 import torch
-import world_models
+import torchwm
 
 print(f"PyTorch: {torch.__version__}")
 print(f"CUDA available: {torch.cuda.is_available()}")

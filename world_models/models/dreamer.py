@@ -31,6 +31,14 @@ from world_models.utils.dreamer_utils import (
     TwoHotEncoder,
 )
 from world_models.configs.dreamer_config import DreamerConfig
+from world_models.utils.logging_utils import (
+    assert_finite,
+    collect_system_stats,
+    get_package_logger,
+    setup_logging,
+)
+
+logger = get_package_logger(__name__)
 
 # Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
 # causes mujoco to raise a RuntimeError during import. Respect an existing
@@ -209,8 +217,10 @@ class Dreamer:
         adaptive_buffer_size = min(args.buffer_size, max_buffer_size)
 
         if adaptive_buffer_size < args.buffer_size:
-            print(
-                f"Reducing buffer size from {args.buffer_size} to {adaptive_buffer_size} due to memory constraints."
+            logger.warning(
+                "Reducing buffer size from %s to %s due to memory constraints.",
+                args.buffer_size,
+                adaptive_buffer_size,
             )
 
         self.data_buffer = ReplayBuffer(
@@ -338,6 +348,7 @@ class Dreamer:
         if restore:
             self.restore_checkpoint(self.restore_path)
 
+    @assert_finite
     def world_model_loss(self, obs, acs, rews, nonterms):
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
@@ -404,6 +415,7 @@ class Dreamer:
 
         return model_loss
 
+    @assert_finite
     def actor_loss(self):
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
@@ -446,6 +458,7 @@ class Dreamer:
             actor_loss = -torch.mean(self.discounts * self.returns)
         return actor_loss
 
+    @assert_finite
     def value_loss(self):
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
@@ -717,6 +730,15 @@ class DreamerAgent:
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
 
+        setup_logging(
+            "world_models",
+            getattr(self.args, "log_level", "INFO"),
+            getattr(self.args, "log_file", None),
+        )
+        if getattr(self.args, "detect_anomaly", False):
+            torch.autograd.set_detect_anomaly(True)
+            logger.warning("torch.autograd anomaly detection is enabled")
+
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
         torch.manual_seed(self.args.seed)
@@ -737,12 +759,16 @@ class DreamerAgent:
 
         self.logger = Logger(
             self.logdir,
-            self.args.enable_wandb,
-            self.args.wandb_api_key,
-            self.args.wandb_project,
-            self.args.wandb_entity,
-            self.args.video_format,
-            self.args.video_fps,
+            enable_wandb=self.args.enable_wandb,
+            wandb_api_key=self.args.wandb_api_key,
+            wandb_project=self.args.wandb_project,
+            wandb_entity=self.args.wandb_entity,
+            video_format=self.args.video_format,
+            video_fps=self.args.video_fps,
+            enable_tensorboard=getattr(self.args, "enable_tensorboard", False),
+            enable_console=getattr(self.args, "enable_console_metrics", True),
+            enable_jsonl=getattr(self.args, "enable_jsonl", True),
+            jsonl_filename=getattr(self.args, "jsonl_filename", "metrics.jsonl"),
         )
 
     def train(self, total_steps=None):
@@ -771,17 +797,22 @@ class DreamerAgent:
         self.logger.flush()
 
         while global_step <= total_steps:
-            print("##################################")
-            print(f"At global step {global_step}")
+            logger.info("At global step %s", global_step)
 
             logs = OrderedDict()
+            video_images = []
 
+            update_start = time.perf_counter()
             for _ in range(self.args.update_steps):
                 model_loss, actor_loss, value_loss = self.dreamer.train_one_batch()
+            update_elapsed = max(time.perf_counter() - update_start, 1e-9)
 
+            collect_count = self.args.collect_steps // self.args.action_repeat
+            collect_start = time.perf_counter()
             train_rews = self.dreamer.act_and_collect_data(
-                self.train_env, self.args.collect_steps // self.args.action_repeat
+                self.train_env, collect_count
             )
+            collect_elapsed = max(time.perf_counter() - collect_start, 1e-9)
 
             logs.update(
                 {
@@ -792,8 +823,25 @@ class DreamerAgent:
                     "train_max_reward": np.max(train_rews),
                     "train_min_reward": np.min(train_rews),
                     "train_std_reward": np.std(train_rews),
+                    "throughput/env_steps_per_sec": (
+                        collect_count * self.args.action_repeat
+                    )
+                    / collect_elapsed,
+                    "throughput/grad_steps_per_sec": self.args.update_steps
+                    / update_elapsed,
+                    "replay/fill_ratio": min(
+                        1.0,
+                        self.dreamer.data_buffer.steps
+                        / max(1, self.dreamer.data_buffer.size),
+                    ),
+                    "replay/steps": self.dreamer.data_buffer.steps,
+                    "replay/episodes": self.dreamer.data_buffer.episodes,
                 }
             )
+
+            stats_freq = getattr(self.args, "log_system_stats_freq", 0)
+            if stats_freq and global_step % stats_freq == 0:
+                logs.update(collect_system_stats(self.dreamer.device))
 
             if global_step % self.args.test_interval == 0:
                 episode_rews, video_images, latents = self.dreamer.evaluate(
@@ -816,9 +864,10 @@ class DreamerAgent:
             if (
                 global_step % self.args.log_video_freq == 0
                 and self.args.log_video_freq != -1
+                and len(video_images) > 0
                 and len(video_images[0]) != 0
             ):
-                self.logger.log_video(
+                self.logger.log_videos(
                     video_images, global_step, self.args.max_videos_to_save
                 )
             if global_step % self.args.checkpoint_interval == 0:

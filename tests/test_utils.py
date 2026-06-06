@@ -333,3 +333,82 @@ class TestUtils:
             writer.close()
 
             assert os.path.exists(path)
+
+
+def test_metrics_logger_writes_jsonl(tmp_path):
+    import json
+
+    from world_models.utils.logging_utils import MetricsLogger
+
+    metrics = MetricsLogger(
+        str(tmp_path),
+        enable_console=False,
+        enable_jsonl=True,
+        enable_tensorboard=False,
+        enable_wandb=False,
+    )
+    metrics.log({"loss": 1.25}, step=7)
+    metrics.flush()
+    metrics.close()
+
+    payload = json.loads((tmp_path / "metrics.jsonl").read_text().strip())
+    assert payload["step"] == 7
+    assert payload["loss"] == 1.25
+
+
+def test_assert_finite_decorator_rejects_nan():
+    import pytest
+    import torch
+
+    from world_models.utils.logging_utils import assert_finite
+
+    @assert_finite
+    def bad_loss():
+        return torch.tensor(float("nan"))
+
+    with pytest.raises(FloatingPointError):
+        bad_loss()
+
+
+def test_metrics_logger_writes_tensorboard_scalars_and_videos(tmp_path, monkeypatch):
+    import torch
+
+    import world_models.utils.logging_utils as logging_utils
+
+    events = []
+
+    class FakeSummaryWriter:
+        def __init__(self, log_dir):
+            self.log_dir = log_dir
+
+        def add_scalar(self, key, value, step):
+            events.append(("scalar", key, value, step))
+
+        def add_video(self, key, value, global_step=None, fps=20):
+            events.append(("video", key, tuple(value.shape), global_step, fps))
+
+        def flush(self):
+            events.append(("flush",))
+
+        def close(self):
+            events.append(("close",))
+
+    monkeypatch.setattr(
+        logging_utils, "_load_summary_writer", lambda: FakeSummaryWriter
+    )
+
+    metrics = logging_utils.MetricsLogger(
+        str(tmp_path),
+        enable_console=False,
+        enable_jsonl=False,
+        enable_tensorboard=True,
+        enable_wandb=False,
+    )
+    metrics.log({"loss": 2.0, "nested": {"not": "scalar"}}, step=3)
+    metrics.log_video("rollout", torch.zeros(4, 8, 8, 3), step=3, fps=12)
+    metrics.close()
+
+    assert ("scalar", "loss", 2.0, 3) in events
+    assert ("video", "rollout", (1, 4, 3, 8, 8), 3, 12) in events
+    assert ("flush",) in events
+    assert ("close",) in events

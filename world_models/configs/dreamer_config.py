@@ -105,3 +105,11 @@ class DreamerConfig:
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        self.log_level = "INFO"
+        self.log_file = None
+        self.enable_tensorboard = False
+        self.enable_console_metrics = True
+        self.enable_jsonl = True
+        self.jsonl_filename = "metrics.jsonl"
+        self.log_system_stats_freq = int(1e3)
+        self.detect_anomaly = False

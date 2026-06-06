@@ -101,3 +101,12 @@ default = true
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: tests that are expensive enough to skip in the default fast subset",
+    "gpu: tests that require a CUDA-capable GPU",
+    "integration: tests that exercise external services, optional backends, or cross-package workflows",
+    "selenium: tests that require Selenium WebDriver and a running web stack",
+]

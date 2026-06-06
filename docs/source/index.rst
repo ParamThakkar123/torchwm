@@ -21,7 +21,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    inference_guide
    environments_guide
    environments/index
-   brax_env
+   cli
    package_overview
    world_models_guide
 

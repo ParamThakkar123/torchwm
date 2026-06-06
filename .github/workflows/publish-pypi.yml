@@ -6,26 +6,148 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+
+concurrency:
+  group: publish-pypi-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
 
 jobs:
-  build:
+  publish:
+    name: Build and publish release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout release target
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish || github.event.repository.default_branch }}
+          fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set release version
+        id: release-version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          import re
+
+          tag = os.environ["RELEASE_TAG"].strip()
+          version = tag[1:] if tag.startswith(("v", "V")) else tag
+          pep440_version = re.compile(
+              r"""
+              [0-9]+(?:\.[0-9]+)*
+              (?:(?:a|b|rc)[0-9]+)?
+              (?:\.post[0-9]+)?
+              (?:\.dev[0-9]+)?
+              (?:\+[a-z0-9]+(?:[._-][a-z0-9]+)*)?
+              """,
+              re.IGNORECASE | re.VERBOSE,
+          )
+          if not pep440_version.fullmatch(version):
+              raise SystemExit(
+                  f"Release tag {tag!r} does not produce a valid PEP 440 version. "
+                  "Use a tag like v1.2.3 or 1.2.3."
+              )
+
+          print(f"version={version}")
+          PY
+
+      - name: Update pyproject.toml version
+        env:
+          PACKAGE_VERSION: ${{ steps.release-version.outputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["PACKAGE_VERSION"]
+          path = Path("pyproject.toml")
+          text = path.read_text(encoding="utf-8")
+          updated = re.sub(
+              r'(?m)^(version\s*=\s*)["\'][^"\']+["\']',
+              rf'\1"{version}"',
+              text,
+              count=1,
+          )
+          if updated == text:
+              raise SystemExit("Could not find a top-level project version in pyproject.toml")
+          path.write_text(updated, encoding="utf-8")
+          PY
+
+      - name: Commit version bump
+        env:
+          PACKAGE_VERSION: ${{ steps.release-version.outputs.version }}
+          TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add pyproject.toml
+          if git diff --cached --quiet; then
+            echo "pyproject.toml already contains version ${PACKAGE_VERSION}."
+            exit 0
+          fi
+
+          git commit -m "chore: bump version to ${PACKAGE_VERSION}"
+
+          push_branch="${TARGET_COMMITISH:-$DEFAULT_BRANCH}"
+          if ! git ls-remote --exit-code --heads origin "$push_branch" >/dev/null 2>&1; then
+            push_branch="$DEFAULT_BRANCH"
+          fi
+
+          git push origin "HEAD:${push_branch}"
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
           cache: 'pip'
 
       - name: Install build dependencies
-        run: pip install build
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
 
       - name: Build package
         run: python -m build
+
+      - name: Check package metadata
+        run: python -m twine check dist/*
+
+      - name: Verify built package version
+        env:
+          PACKAGE_VERSION: ${{ steps.release-version.outputs.version }}
+        run: |
+          python - <<'PY'
+          import email.parser
+          import os
+          import zipfile
+          from pathlib import Path
+
+          expected_version = os.environ["PACKAGE_VERSION"]
+          wheels = sorted(Path("dist").glob("*.whl"))
+          if not wheels:
+              raise SystemExit("No wheel was built in dist/.")
+
+          with zipfile.ZipFile(wheels[0]) as wheel:
+              metadata_path = next(
+                  name for name in wheel.namelist() if name.endswith(".dist-info/METADATA")
+              )
+              metadata = email.parser.Parser().parsestr(
+                  wheel.read(metadata_path).decode("utf-8")
+              )
+
+          built_version = metadata["Version"]
+          if built_version != expected_version:
+              raise SystemExit(
+                  f"Built package version {built_version!r} does not match "
+                  f"release version {expected_version!r}."
+              )
+          PY
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

@@ -11,6 +11,7 @@ from .mujoco_env import (
     make_mujoco_env_from_config,
 )
 from .gym_env import GymImageEnv, make_gym_env
+from .world_model_env import WorldModelEnv, make_world_model_env
 from .brax_env import BraxImageEnv, make_brax_env
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
@@ -39,6 +40,8 @@ def make_env(env_id: str, **kwargs):
         return make_mujoco_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
+    if backend in {"world-model", "world_model", "model", "wm"}:
+        return make_world_model_env(env_id, **kwargs)
 
     # Prefer a package-local factory if present.
     try:
@@ -77,6 +80,8 @@ __all__ = [
     "register_gymnasium_robotics_envs",
     "GymImageEnv",
     "make_gym_env",
+    "WorldModelEnv",
+    "make_world_model_env",
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "DeepMindControlEnv",

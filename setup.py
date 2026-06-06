@@ -19,6 +19,7 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
+    package_data={"world_models": ["configs/experiments/*.yaml"]},
     entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
     python_requires=">=3.10",
     install_requires=[
@@ -27,6 +28,7 @@ setup(
         "torchaudio>=2.10.0",
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
+        "omegaconf>=2.3.0",
         "tqdm>=4.67.1",
         "click>=8.0.0",
     ],

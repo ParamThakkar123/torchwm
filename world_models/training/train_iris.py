@@ -21,6 +21,11 @@ except Exception:
     cv2 = None
 
 from world_models.configs.iris_config import IRISConfig
+from world_models.experiments import (
+    dump_config,
+    load_experiment_config,
+    update_config_object,
+)
 from world_models.models.iris_agent import IRISAgent
 from world_models.memory.iris_memory import IRISReplayBuffer
 from world_models.envs.ale_atari_env import make_atari_env
@@ -439,29 +444,54 @@ class IRISTrainer:
         return self.metrics
 
 
-def main():
-    """Run IRIS training on a single Atari game."""
+def main(argv: list[str] | None = None):
+    """Run IRIS training with YAML config files and dot-list overrides."""
     parser = argparse.ArgumentParser(description="Train IRIS on Atari")
-    parser.add_argument("--game", type=str, default="ALE/Pong-v5", help="Atari game")
-    parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
-    parser.add_argument("--epochs", type=int, default=600, help="Total epochs")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--config", type=str, default=None, help="YAML config path")
+    parser.add_argument(
+        "--print-config",
+        action="store_true",
+        help="Print the composed IRIS config and exit before training.",
+    )
+    parser.add_argument("--game", type=str, default=None, help="Atari game")
+    parser.add_argument("--device", type=str, default=None, help="Device (cuda/cpu)")
+    parser.add_argument("--epochs", type=int, default=None, help="Total epochs")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument(
         "--save_dir", type=str, default="checkpoints/iris", help="Save directory"
     )
+    parser.add_argument(
+        "overrides",
+        nargs="*",
+        help="OmegaConf dot-list overrides such as total_epochs=100 seed=7.",
+    )
+    args = parser.parse_args(argv)
 
-    args = parser.parse_args()
+    config = IRISConfig()
+    values = load_experiment_config(config, args.config, args.overrides)
+    config = update_config_object(config, values)
+
+    game = args.game if args.game is not None else config.env
+    device = args.device if args.device is not None else "cuda"
+    seed = args.seed if args.seed is not None else 42
+    total_epochs = args.epochs if args.epochs is not None else config.total_epochs
+
+    if args.print_config:
+        print(dump_config(values))
+        return config
 
     trainer = IRISTrainer(
-        game=args.game,
-        device=args.device,
-        seed=args.seed,
+        game=game,
+        device=device,
+        seed=seed,
+        config=config,
     )
 
     trainer.train(
-        total_epochs=args.epochs,
+        total_epochs=total_epochs,
         save_dir=args.save_dir,
     )
+    return config
 
 
 if __name__ == "__main__":

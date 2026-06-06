@@ -124,3 +124,7 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
 
 def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
+
+
+def test_train_lists_diamond_entrypoint():
+    assert cli.TRAINING_MODULES["diamond"] == "world_models.training.train_diamond"

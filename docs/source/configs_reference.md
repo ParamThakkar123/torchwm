@@ -424,3 +424,34 @@ cfg.expl_decay = 0.0001
 cfg.kl_scale = 0.1
 cfg.free_nats = 1.0
 ```
+
+## Experiment YAML and OmegaConf overrides
+
+TorchWM provides a shared experiment configuration layer in
+`world_models.experiments`. Training entrypoints can compose their Python
+configuration defaults with a YAML file and Hydra/OmegaConf-style dot-list
+overrides, while still receiving plain Python dictionaries or config objects at
+runtime.
+
+Built-in YAML starters live under `world_models/configs/experiments/`:
+
+- `diamond.yaml` for DIAMOND Atari experiments.
+- `iris.yaml` for IRIS Atari experiments.
+- `jepa.yaml` for JEPA image pretraining experiments.
+
+Examples:
+
+```bash
+torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=1
+```
+
+```bash
+torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100 env=ALE/Breakout-v5
+```
+
+```bash
+torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimization.epochs=50 data.batch_size=128
+```
+
+Use `--print-config` with these entrypoints to inspect the fully composed config
+without launching a run.

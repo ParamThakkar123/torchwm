@@ -266,7 +266,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -22799,72 +22799,9 @@ matching typical transformer training best practices.</p>
 </dd></dl>
 
 </section>
-<section id="module-benchmarks">
-<span id="benchmarks-and-reports"></span><h2>Benchmarks and reports<a class="headerlink" href="#module-benchmarks" title="Link to this heading">#</a></h2>
-<p>IRIS Benchmark Suite</p>
-<p>This module provides tools for running IRIS on the Atari 100k benchmark.</p>
-<dl class="simple">
-<dt>Usage:</dt><dd><p>python -m benchmarks.atari_100k –device cuda</p>
-</dd>
-</dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="benchmarks.run_atari_100k">
-<span class="sig-prename descclassname"><span class="pre">benchmarks.</span></span><span class="sig-name descname"><span class="pre">run_atari_100k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">games</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results/iris_atari100k.json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#run_atari_100k"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.run_atari_100k" title="Link to this definition">#</a></dt>
-<dd><p>Run IRIS on all Atari 100k games.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>games</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of games to run (default: all 26)</p></li>
-<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>) – IRIS config</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – Device to run on</p></li>
-<li><p><strong>output_file</strong> (<em>str</em>) – Output JSON file for results</p></li>
-<li><p><strong>num_seeds</strong> (<em>int</em>) – Number of seeds per game</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="benchmarks.run_single_game">
-<span class="sig-prename descclassname"><span class="pre">benchmarks.</span></span><span class="sig-name descname"><span class="pre">run_single_game</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#run_single_game"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.run_single_game" title="Link to this definition">#</a></dt>
-<dd><p>Run IRIS on a single game with multiple seeds.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>game</strong> (<em>str</em>) – Game name (e.g., “ALE/Pong-v5”)</p></li>
-<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.iris_config.IRISConfig" title="world_models.configs.iris_config.IRISConfig"><em>IRISConfig</em></a>) – IRIS config</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – Device to run on</p></li>
-<li><p><strong>num_seeds</strong> (<em>int</em>) – Number of random seeds to run</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with results</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>Dict</em></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="benchmarks.compute_human_normalized_score">
-<span class="sig-prename descclassname"><span class="pre">benchmarks.</span></span><span class="sig-name descname"><span class="pre">compute_human_normalized_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmarks/atari_100k.html#compute_human_normalized_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#benchmarks.compute_human_normalized_score" title="Link to this definition">#</a></dt>
-<dd><p>Compute human-normalized score for a game.</p>
-<p>Formula: (score - random) / (human - random)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>score</strong> (<em>float</em>)</p></li>
-<li><p><strong>game</strong> (<em>str</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<p id="module-world_models.benchmarks">Benchmarks sub-module - Benchmark runners and adapters for world models.</p>
+<section id="module-world_models.benchmarks">
+<span id="benchmarks-and-reports"></span><h2>Benchmarks and reports<a class="headerlink" href="#module-world_models.benchmarks" title="Link to this heading">#</a></h2>
+<p>Benchmarks sub-module - Benchmark runners and adapters for world models.</p>
 <p>This package provides tools for running standardized evaluations of world
 models (Dreamer, IRIS, DIAMOND) across multiple seeds and computing aggregate
 metrics.</p>
@@ -26748,10 +26685,7 @@ along the batch dimension.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.helpers.jepa_helper.init_opt"><code class="docutils literal notranslate"><span class="pre">init_opt()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-benchmarks">Benchmarks and reports</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.run_atari_100k"><code class="docutils literal notranslate"><span class="pre">run_atari_100k()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.run_single_game"><code class="docutils literal notranslate"><span class="pre">run_single_game()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#benchmarks.compute_human_normalized_score"><code class="docutils literal notranslate"><span class="pre">compute_human_normalized_score()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.benchmarks">Benchmarks and reports</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.benchmarks.BenchmarkRunner"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.benchmarks.BenchmarkRunner.run"><code class="docutils literal notranslate"><span class="pre">BenchmarkRunner.run()</span></code></a></li>
 </ul>

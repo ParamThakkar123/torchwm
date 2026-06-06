@@ -116,14 +116,15 @@ print(per_seed)
 
 ## Running the Atari 100k benchmark
 
-To run the full Atari 100k benchmark on all 26 games using IRIS:
+To run the full Atari 100k benchmark on all configured games with the
+centralized benchmark module:
 
 ```bash
-python benchmarks/atari_100k.py
+python -m world_models.benchmarks.atari_100k --benchmark
 ```
 
-This trains IRIS on each game for 100k environment steps with 5 random seeds per
-game, computes human-normalized scores, and compares to baselines.
+This runs the Atari 100k evaluator from `world_models/benchmarks`, computes
+human-normalized scores, and reports aggregate metrics across games and seeds.
 
 ## Outputs
 

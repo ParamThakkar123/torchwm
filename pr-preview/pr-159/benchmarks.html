@@ -265,7 +265,7 @@
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -452,12 +452,13 @@ analysis:</p>
 </section>
 <section id="running-the-atari-100k-benchmark">
 <h2>Running the Atari 100k benchmark<a class="headerlink" href="#running-the-atari-100k-benchmark" title="Link to this heading">#</a></h2>
-<p>To run the full Atari 100k benchmark on all 26 games using IRIS:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>benchmarks/atari_100k.py
+<p>To run the full Atari 100k benchmark on all configured games with the
+centralized benchmark module:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>world_models.benchmarks.atari_100k<span class="w"> </span>--benchmark
 </pre></div>
 </div>
-<p>This trains IRIS on each game for 100k environment steps with 5 random seeds per
-game, computes human-normalized scores, and compares to baselines.</p>
+<p>This runs the Atari 100k evaluator from <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks</span></code>, computes
+human-normalized scores, and reports aggregate metrics across games and seeds.</p>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>

@@ -34,6 +34,12 @@ Commands
   a compressed `.npz` with keys `observations`, `actions`, `rewards`,
   `dones`.
 
+- `replay browse <buffer.h5> [--host HOST] [--port PORT] [--no-open]` - Start
+  a local replay-buffer browser for HDF5 buffers. The browser lets you switch
+  episodes, scrub or arrow-key through steps, and view reward/action/done
+  metadata overlaid on each observation. Use `--summary` to inspect episode
+  counts and returns without starting the browser server.
+
 - `train <model> [extra args...] [--inproc]` - Launch an existing training
   entrypoint. The CLI maps simple model names to modules in
   `world_models.training` (e.g. `iris`, `planet`, `jepa`, `rssm`, `genie`). By
@@ -54,6 +60,8 @@ Environment / optional dependencies
   - `collect`: requires `gym`/`gymnasium` and `numpy`.
   - `datasets convert`: requires `h5py`, `numpy` and video helpers used by the
     repository.
+  - `replay browse`: requires `h5py`; frame rendering additionally requires
+    `numpy` and Pillow.
 
 Notes and examples
 ------------------
@@ -86,6 +94,12 @@ torchwm datasets convert data/my_dataset.h5 --out-dir /tmp/videos
 
 ```bash
 torchwm collect --env ALE/Pong-v5 --steps 1000 --out pong.npz
+```
+
+- Example: browse an HDF5 replay buffer in a local web UI
+
+```bash
+torchwm replay browse data/buffer.h5
 ```
 
 - Example: run training for the `iris` entrypoint in a subprocess

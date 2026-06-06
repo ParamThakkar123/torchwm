@@ -124,3 +124,48 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
 
 def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
+
+
+def test_replay_browse_summary_flat_hdf5(tmp_path):
+    import pytest
+
+    h5py = pytest.importorskip("h5py")
+    np = pytest.importorskip("numpy")
+
+    path = tmp_path / "buffer.h5"
+    with h5py.File(path, "w") as f:
+        f.create_dataset("observations", data=np.zeros((4, 8, 8, 3), dtype=np.uint8))
+        f.create_dataset("actions", data=np.array([0, 1, 2, 3], dtype=np.int64))
+        f.create_dataset("rewards", data=np.array([1.0, 2.0, -1.0, 4.0], dtype=np.float32))
+        f.create_dataset("dones", data=np.array([False, True, False, True]))
+
+    runner = CliRunner()
+    res = runner.invoke(cli.app, ["replay", "browse", str(path), "--summary"])
+
+    assert res.exit_code == 0
+    assert "Replay buffer:" in res.output
+    assert "2 episodes" in res.output
+    assert "4 steps" in res.output
+    assert "episode_0 length=2 return=3.0" in res.output
+    assert "episode_1 length=2 return=3.0" in res.output
+
+
+def test_replay_browse_can_render_frame_png(tmp_path):
+    import pytest
+
+    h5py = pytest.importorskip("h5py")
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("PIL.Image")
+    from tools.replay_browser import render_frame_png
+
+    path = tmp_path / "buffer.h5"
+    with h5py.File(path, "w") as f:
+        episode = f.create_group("episode_000")
+        episode.create_dataset("obs", data=np.full((1, 3, 8, 8), 255, dtype=np.uint8))
+        episode.create_dataset("actions", data=np.array([7], dtype=np.int64))
+        episode.create_dataset("rewards", data=np.array([1.5], dtype=np.float32))
+        episode.create_dataset("dones", data=np.array([True]))
+
+    png = render_frame_png(path, 0, 0)
+
+    assert png.startswith(b"\x89PNG")

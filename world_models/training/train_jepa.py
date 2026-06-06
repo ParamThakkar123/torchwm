@@ -8,7 +8,7 @@ except Exception:
 import copy
 import logging
 import sys
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 import numpy as np
 import torch

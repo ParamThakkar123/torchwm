@@ -15,14 +15,18 @@ import dataclasses
 import importlib.util
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
-if importlib.util.find_spec("omegaconf") is not None:
-    from omegaconf import OmegaConf
-else:  # pragma: no cover - exercised in environments without OmegaConf
-    OmegaConf = None  # type: ignore[assignment]
+_omegaconf_module = (
+    importlib.import_module("omegaconf")
+    if importlib.util.find_spec("omegaconf") is not None
+    else None
+)
+OmegaConf: Any | None = (
+    getattr(_omegaconf_module, "OmegaConf") if _omegaconf_module is not None else None
+)
 
 T = TypeVar("T")
 
@@ -42,8 +46,8 @@ class ExperimentArgs:
 
 def public_config_dict(config: Any) -> dict[str, Any]:
     """Convert dataclasses, mappings, and simple config objects to dictionaries."""
-    if dataclasses.is_dataclass(config):
-        return dataclasses.asdict(config)
+    if dataclasses.is_dataclass(config) and not isinstance(config, type):
+        return dataclasses.asdict(cast(Any, config))
     if isinstance(config, Mapping):
         return {str(key): _to_plain(value) for key, value in config.items()}
     if hasattr(config, "to_dict") and callable(config.to_dict):
@@ -221,8 +225,8 @@ def _deep_merge(target: MutableMapping[str, Any], source: Mapping[str, Any]) -> 
 
 
 def _to_plain(value: Any) -> Any:
-    if dataclasses.is_dataclass(value):
-        return dataclasses.asdict(value)
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        return dataclasses.asdict(cast(Any, value))
     if isinstance(value, Mapping):
         return {str(key): _to_plain(val) for key, val in value.items()}
     if isinstance(value, tuple):

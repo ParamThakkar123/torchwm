@@ -4,13 +4,13 @@ import torch.nn.functional as F
 import math
 from einops import rearrange
 from world_models.configs.dit_config import DiTConfig as Config
-from world_models.layers.AdaLNNorm import AdaLNNormalization
+from world_models.layers.ada_ln_norm import AdaLNNormalization
 from world_models.blocks.mhsa import MultiHeadSelfAttention
 from world_models.models.diffusion.DDPM import DDPM
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from torchvision.transforms import RandomHorizontalFlip, Compose, ToTensor
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 import time
 from torchvision.utils import save_image
 import os

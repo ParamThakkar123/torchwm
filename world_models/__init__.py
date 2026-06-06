@@ -146,6 +146,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "SelectAction": "world_models.envs",
     # Inference operators.
     "OperatorABC": "world_models.inference.operators",
+    "TensorSpec": "world_models.inference.operators",
     "DreamerOperator": "world_models.inference.operators",
     "JEPAOperator": "world_models.inference.operators",
     "IrisOperator": "world_models.inference.operators",

@@ -75,7 +75,7 @@ Open `docs/build/html/index.html` in your browser.
 from torchwm import OperatorABC
 
 class NewOperator(OperatorABC):
-    def process(self, inputs):
+    def preprocess(self, inputs):
         # Your preprocessing logic
         return processed_tensors
 ```

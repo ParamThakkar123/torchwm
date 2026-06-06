@@ -13,13 +13,13 @@ Operators provide a consistent interface for preprocessing inputs before feeding
 
 ## Base Operator Class
 
-All operators inherit from `OperatorABC`:
+All operators inherit from `OperatorABC`, which provides a `process()` pipeline composed of `preprocess()`, `forward()`, and `postprocess()`, plus `batch()`, `to(device)`, `train()`, `eval()`, and optional tensor shape/dtype validation via `TensorSpec`:
 
 ```python :class: thebe
 from torchwm import OperatorABC
 
 class MyOperator(OperatorABC):
-    def process(self, inputs):
+    def preprocess(self, inputs):
         # Your preprocessing logic
         return processed_tensors
 ```

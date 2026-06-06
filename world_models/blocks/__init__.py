@@ -53,11 +53,11 @@ def __getattr__(name):
 
     # Normalization
     if name == "RMSNorm":
-        from world_models.layers.RMSNorm import RMSNorm
+        from world_models.layers.rms_norm import RMSNorm
 
         return RMSNorm
     if name == "AdaLNNormalization":
-        from world_models.layers.AdaLNNorm import AdaLNNormalization
+        from world_models.layers.ada_ln_norm import AdaLNNormalization
 
         return AdaLNNormalization
 

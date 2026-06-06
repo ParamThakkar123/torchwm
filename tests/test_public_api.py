@@ -63,3 +63,12 @@ def test_create_model_for_factory_only_spec_filters_through_signature(monkeypatc
         "required": 3,
         "optional": 5,
     }
+
+
+def test_layer_and_helper_packages_are_importable():
+    import world_models.helpers as helpers
+    from world_models.layers import AdaLNNormalization, RMSNorm
+
+    assert "load_checkpoint" in dir(helpers)
+    assert RMSNorm.__name__ == "RMSNorm"
+    assert AdaLNNormalization.__name__ == "AdaLNNormalization"

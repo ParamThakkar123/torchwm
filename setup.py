@@ -11,7 +11,7 @@ README = (
 
 setup(
     name="torchwm",
-    version="0.3.2",
+    version="0.4.1",
     description="A Pytorch Based library for training world models",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -40,6 +40,7 @@ setup(
         ],
         "dmc": [
             "dm-control>=1.0.28",
+            "mujoco>=3.3.0",
             "gymnasium>=1.2.2",
             "opencv-python>=4.12.0.88",
             "moviepy>=2.2.1",

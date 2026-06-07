@@ -6,6 +6,8 @@ Install from PyPI:
 
 ```bash
 pip install torchwm
+# Add backend extras as needed, for example:
+pip install "torchwm[dmc]"
 ```
 
 Install from source:

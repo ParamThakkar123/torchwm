@@ -16,6 +16,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    :caption: User Guides
 
    public_api
+   tutorials/index
    operators_guide
    training_guide
    inference_guide

@@ -5,10 +5,10 @@ The DeepMind Control Suite (DMC) backend is the default Dreamer environment path
 ## Install
 
 ```bash
-pip install dm-control
+pip install "torchwm[dmc]"
 ```
 
-DMC is not part of TorchWM's minimal dependencies. Install it in the Python environment that runs training or evaluation.
+DMC is not part of TorchWM's minimal dependencies. Install the DMC extra in the Python environment that runs training or evaluation; it declares both `dm-control` and `mujoco`. In managed notebook runtimes such as Kaggle, prefer a fresh kernel and install only the DMC packages you need; mixed `dm-control` and `mujoco` versions can raise low-level `MjData` attribute errors.
 
 ## Main API
 
@@ -67,7 +67,7 @@ Pass `camera=<id>` when constructing `DeepMindControlEnv` directly. If no camera
 
 ## Troubleshooting
 
-- **`ModuleNotFoundError: dm_control`**: install `dm-control` in the active environment.
+- **`ModuleNotFoundError: dm_control`**: install `torchwm[dmc]` in the active environment, or explicitly install both `dm-control` and `mujoco`.
 - **Task name parsing errors**: use `domain-task` format, such as `walker-walk`; use `cup-catch` for `ball_in_cup/catch`.
 - **Unexpected image size**: set `cfg.image_size` or pass `size=(height, width)` directly.
 - **Action range issues**: if you bypass Dreamer `make_env()`, add `NormalizeActions` yourself when the policy emits normalized actions.

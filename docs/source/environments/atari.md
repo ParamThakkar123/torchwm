@@ -6,7 +6,7 @@ TorchWM exposes Atari 2600 environments through Gymnasium and the Arcade Learnin
 
 ```bash
 pip install ale-py
-pip install torchwm[gym]
+pip install "torchwm[atari]"
 ```
 
 If ROMs are not already available, install and run AutoROM according to your environment's legal and operational requirements.

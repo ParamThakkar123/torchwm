@@ -1584,9 +1584,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="torchwm.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1597,14 +1597,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1673,7 +1669,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1712,6 +1710,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="torchwm.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1723,8 +1726,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -1957,7 +1964,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="torchwm.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -6704,9 +6711,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="world_models.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -6717,14 +6724,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6793,7 +6796,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6832,6 +6837,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="world_models.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -6843,8 +6853,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -7077,7 +7091,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -11060,9 +11074,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -11073,14 +11087,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -11149,7 +11159,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -11188,6 +11200,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -11199,8 +11216,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -14174,7 +14195,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -23453,6 +23474,121 @@ benchmark reporting.</p>
 <section id="module-world_models.utils.dreamer_utils">
 <span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-world_models.utils.dreamer_utils" title="Link to this heading">#</a></h2>
 <dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.symlog">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">symlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#symlog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.symlog" title="Link to this definition">#</a></dt>
+<dd><p>Symmetric log transform used by Dreamer V2 for reward/value targets.</p>
+<p>Defined as <code class="docutils literal notranslate"><span class="pre">sign(x)</span> <span class="pre">*</span> <span class="pre">log(1</span> <span class="pre">+</span> <span class="pre">|x|)</span></code>. This compresses large positive or
+negative values into a range that is easier to predict with a categorical
+distribution over a bounded set of buckets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.symexp">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">symexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#symexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.symexp" title="Link to this definition">#</a></dt>
+<dd><p>Inverse of <a class="reference internal" href="#world_models.utils.dreamer_utils.symlog" title="world_models.utils.dreamer_utils.symlog"><code class="xref py py-func docutils literal notranslate"><span class="pre">symlog()</span></code></a>.</p>
+<p>Defined as <code class="docutils literal notranslate"><span class="pre">sign(x)</span> <span class="pre">*</span> <span class="pre">(exp(|x|)</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">TwoHotEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Two-hot encoding for symlog targets (Dreamer V2 reward/value heads).</p>
+<p>A target value is softly assigned to the two nearest buckets on a uniform
+grid spanning <code class="docutils literal notranslate"><span class="pre">[-symlog_range,</span> <span class="pre">symlog_range]</span></code>. The categorical logits
+produced by a network can then be decoded back into a real value by
+computing the expected bucket center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_buckets</strong> (<em>int</em>) – Number of buckets in the categorical distribution.</p></li>
+<li><p><strong>symlog_range</strong> (<em>float</em>) – Maximum absolute value (in symlog space) covered by the
+grid. Values outside the range are clipped to the boundary buckets.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers">
+<span class="sig-name descname"><span class="pre">register_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.register_buffers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers" title="Link to this definition">#</a></dt>
+<dd><p>Allocate the bucket-center buffer on CPU. Use <a class="reference internal" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to" title="world_models.utils.dreamer_utils.TwoHotEncoder.to"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code></a> to move.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>device</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#world_models.utils.dreamer_utils.TwoHotEncoder" title="world_models.utils.dreamer_utils.TwoHotEncoder"><em>TwoHotEncoder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.encode">
+<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.encode" title="Link to this definition">#</a></dt>
+<dd><p>Two-hot encode a real-valued target into soft bucket probabilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target</strong> (<em>Tensor</em>) – Tensor of arbitrary shape containing real-valued targets.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with an extra final dimension of size <code class="docutils literal notranslate"><span class="pre">num_buckets</span></code>
+containing the soft two-hot distribution. The encoding assumes
+the target is already in symlog space, matching Dreamer V2.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.decode">
+<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.decode" title="Link to this definition">#</a></dt>
+<dd><p>Decode categorical logits into the expected real-valued prediction.</p>
+<p>The logits are first softmaxed and then combined with the bucket
+centers. The output is passed through <a class="reference internal" href="#world_models.utils.dreamer_utils.symexp" title="world_models.utils.dreamer_utils.symexp"><code class="xref py py-func docutils literal notranslate"><span class="pre">symexp()</span></code></a> to invert the
+symlog transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>logits</strong> (<em>Tensor</em>) – Tensor with a final dimension of <code class="docutils literal notranslate"><span class="pre">num_buckets</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with the same shape as <code class="docutils literal notranslate"><span class="pre">logits</span></code> minus the last dimension.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="world_models.utils.dreamer_utils.get_parameters">
 <span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.get_parameters" title="Link to this definition">#</a></dt>
 <dd><p>Given a list of torch modules, returns a list of their parameters.
@@ -26758,6 +26894,15 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.utils.dreamer_utils">Utilities</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.symlog"><code class="docutils literal notranslate"><span class="pre">symlog()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.symexp"><code class="docutils literal notranslate"><span class="pre">symexp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.register_buffers()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.to()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.encode"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.encode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.decode"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.decode()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.get_parameters"><code class="docutils literal notranslate"><span class="pre">get_parameters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.FreezeParameters"><code class="docutils literal notranslate"><span class="pre">FreezeParameters</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a><ul class="nav section-nav flex-column">

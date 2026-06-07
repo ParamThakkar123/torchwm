@@ -5,10 +5,10 @@ The DeepMind Control Suite (DMC) backend is the default Dreamer environment path
 ## Install
 
 ```bash
-pip install dm-control
+pip install "torchwm[dmc]"
 ```
 
-DMC is not part of TorchWM's minimal dependencies. Install it in the Python environment that runs training or evaluation.
+DMC is not part of TorchWM's minimal dependencies. Install the DMC extra in the Python environment that runs training or evaluation. In managed notebook runtimes such as Kaggle, prefer a fresh kernel and install only the DMC packages you need; mixed `dm-control` and `mujoco` versions can raise low-level `MjData` attribute errors.
 
 ## Main API
 

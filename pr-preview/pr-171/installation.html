@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-171/installation.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Additional Gym environment dependencies (hu..." />
-<meta name="description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, gym, Additional Gym environment dependencies (hu..." />
+<meta property="og:description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, dmc, DeepMind Control Suite dependencies for DMC..." />
+<meta name="description" content="TorchWM supports multiple installation methods depending on your use case. From PyPI: For stable releases: Available Extras:,, Extra, Description,,, dmc, DeepMind Control Suite dependencies for DMC..." />
 
     <title>Installation &#8212; TorchWM 0.4.0 documentation</title>
   
@@ -351,19 +351,26 @@
 <section id="from-pypi">
 <h2>From PyPI<a class="headerlink" href="#from-pypi" title="Link to this heading">#</a></h2>
 <p>For stable releases:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Core dependencies (torch, torchvision, torchaudio, gym, gymnasium, etc.)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Minimal library install. This keeps managed notebook runtimes from pulling in</span>
+<span class="c1"># every simulator, visualization, and benchmark dependency at once.</span>
 pip<span class="w"> </span>install<span class="w"> </span>torchwm
 
-<span class="c1"># With specific extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym<span class="o">]</span><span class="w">       </span><span class="c1"># Additional gym environments (huggingface-hub, pygame, autorom)</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml-agents<span class="o">]</span><span class="w"> </span><span class="c1"># Unity ML-Agents support</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml<span class="o">]</span><span class="w">        </span><span class="c1"># TensorBoard, Weights &amp; Biases, logging tools</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>viz<span class="o">]</span><span class="w">       </span><span class="c1"># FastAPI, Uvicorn, documentation tools</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>docs<span class="o">]</span><span class="w">      </span><span class="c1"># Sphinx and documentation tools</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>dev<span class="o">]</span><span class="w">       </span><span class="c1"># Testing and development tools (pytest, mypy, pre-commit)</span>
+<span class="c1"># Add the backends you need for your tutorial or experiment.</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[dmc]&quot;</span><span class="w">        </span><span class="c1"># DeepMind Control Suite / Dreamer DMC tutorials</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[gym]&quot;</span><span class="w">        </span><span class="c1"># Gym/Gymnasium image environments</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[atari]&quot;</span><span class="w">      </span><span class="c1"># ALE Atari environments</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[mujoco]&quot;</span><span class="w">     </span><span class="c1"># MuJoCo / Gymnasium MuJoCo tasks</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[robotics]&quot;</span><span class="w">   </span><span class="c1"># Gymnasium Robotics tasks</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[brax]&quot;</span><span class="w">       </span><span class="c1"># Brax tasks</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[datasets]&quot;</span><span class="w">   </span><span class="c1"># HDF5 / Hugging Face dataset helpers</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[ml-agents]&quot;</span><span class="w">  </span><span class="c1"># Unity ML-Agents support</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[ml]&quot;</span><span class="w">         </span><span class="c1"># TensorBoard, Weights &amp; Biases, logging tools</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[viz]&quot;</span><span class="w">        </span><span class="c1"># FastAPI/Uvicorn visualization server</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[docs]&quot;</span><span class="w">       </span><span class="c1"># Sphinx and documentation tools</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[dev]&quot;</span><span class="w">        </span><span class="c1"># Testing and development tools</span>
 
-<span class="c1"># Install multiple extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym,ml-agents,dev<span class="o">]</span>
+<span class="c1"># Install multiple extras.</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[dmc,atari,ml]&quot;</span>
 </pre></div>
 </div>
 <section id="available-extras">
@@ -375,23 +382,41 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gym</span></code></p></td>
-<td><p>Additional Gym environment dependencies (huggingface-hub, pygame, autorom)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dmc</span></code></p></td>
+<td><p>DeepMind Control Suite dependencies for DMC Dreamer tutorials</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gym</span></code></p></td>
+<td><p>Gym/Gymnasium image environments and video helpers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">atari</span></code></p></td>
+<td><p>ALE Atari environments and preprocessing helpers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mujoco</span></code></p></td>
+<td><p>MuJoCo / Gymnasium MuJoCo task support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">robotics</span></code></p></td>
+<td><p>Gymnasium Robotics support</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">brax</span></code></p></td>
+<td><p>Brax support</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">datasets</span></code></p></td>
+<td><p>HDF5 and Hugging Face dataset helpers</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ml-agents</span></code></p></td>
 <td><p>Unity ML-Agents support</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ml</span></code></p></td>
-<td><p>TensorBoard, Weights &amp; Biases, and logging tools</p></td>
+<td><p>TensorBoard, Weights &amp; Biases, and analysis tools</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">viz</span></code></p></td>
-<td><p>FastAPI, Uvicorn for visualization server</p></td>
+<td><p>FastAPI and Uvicorn for the visualization server</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
 <td><p>Sphinx and documentation building tools</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
-<td><p>pytest, mypy, pre-commit for development</p></td>
+<td><p>pytest, mypy, pre-commit, and browser-test tooling</p></td>
 </tr>
 </tbody>
 </table>
@@ -399,8 +424,21 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 </section>
 <section id="core-dependencies">
 <h3>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Link to this heading">#</a></h3>
-<p>The minimal installation includes: torch, torchvision, torchaudio, einops, pyyaml, tqdm, opencv-python, requests, gym, gymnasium, moviepy, h5py, plotly, ale-py, selenium, scikit-learn, umap-learn.</p>
+<p>The minimal installation includes only the common Python and PyTorch runtime pieces: <code class="docutils literal notranslate"><span class="pre">torch</span></code>, <code class="docutils literal notranslate"><span class="pre">torchvision</span></code>, <code class="docutils literal notranslate"><span class="pre">einops</span></code>, <code class="docutils literal notranslate"><span class="pre">pyyaml</span></code>, <code class="docutils literal notranslate"><span class="pre">tqdm</span></code>, <code class="docutils literal notranslate"><span class="pre">requests</span></code>, and <code class="docutils literal notranslate"><span class="pre">click</span></code>. Environment backends, dataset downloads, browser testing, and visualization dependencies live in extras so <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torchwm</span></code> does not replace large portions of preinstalled notebook runtimes.</p>
 </section>
+</section>
+<section id="managed-notebooks-such-as-kaggle-or-colab">
+<h2>Managed notebooks such as Kaggle or Colab<a class="headerlink" href="#managed-notebooks-such-as-kaggle-or-colab" title="Link to this heading">#</a></h2>
+<p>Managed notebook images often come with pinned CUDA, PyTorch, NumPy, and simulator packages. If a runtime already contains most scientific dependencies, prefer either a fresh virtual environment or a minimal install that preserves the platform stack:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Preserve the managed runtime&#39;s pinned packages.</span>
+pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>torchwm
+
+<span class="c1"># Then add only the backend needed by the notebook.</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;einops&gt;=0.8.2&quot;</span><span class="w"> </span><span class="s2">&quot;pyyaml&gt;=6.0.3&quot;</span><span class="w"> </span><span class="s2">&quot;tqdm&gt;=4.67.1&quot;</span><span class="w"> </span><span class="s2">&quot;requests&gt;=2.32.0&quot;</span><span class="w"> </span><span class="s2">&quot;click&gt;=8.0.0&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dm-control&gt;=1.0.28&quot;</span><span class="w"> </span><span class="s2">&quot;gymnasium&gt;=1.2.2&quot;</span><span class="w"> </span><span class="s2">&quot;opencv-python&gt;=4.12.0.88&quot;</span><span class="w"> </span><span class="s2">&quot;moviepy&gt;=2.2.1&quot;</span>
+</pre></div>
+</div>
+<p>After changing MuJoCo or <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> versions in a running notebook, restart the kernel before importing <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> or <code class="docutils literal notranslate"><span class="pre">dm_control</span></code>. Attribute errors inside <code class="docutils literal notranslate"><span class="pre">dm_control.mujoco</span></code> such as missing fields on <code class="docutils literal notranslate"><span class="pre">MjData</span></code> usually indicate a <code class="docutils literal notranslate"><span class="pre">dm-control</span></code>/<code class="docutils literal notranslate"><span class="pre">mujoco</span></code> ABI mismatch from mixed package versions.</p>
 </section>
 <section id="from-source">
 <h2>From Source<a class="headerlink" href="#from-source" title="Link to this heading">#</a></h2>
@@ -412,18 +450,18 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 
 <span class="c1"># With extras</span>
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[gym,ml-agents,ml,viz,dev,docs]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dmc,atari,datasets,ml-agents,ml,viz,dev,docs]&quot;</span>
 </pre></div>
 </div>
 </section>
 <section id="cuda-support">
 <h2>CUDA Support<a class="headerlink" href="#cuda-support" title="Link to this heading">#</a></h2>
-<p>For GPU acceleration, install PyTorch with CUDA:</p>
+<p>For GPU acceleration, install PyTorch with CUDA before installing TorchWM when your platform does not already provide it:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using uv (recommended)</span>
-uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
+uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 
 <span class="c1"># Or using pip</span>
-pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
+pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 </pre></div>
 </div>
 </section>
@@ -504,6 +542,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#core-dependencies">Core Dependencies</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#managed-notebooks-such-as-kaggle-or-colab">Managed notebooks such as Kaggle or Colab</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-support">CUDA Support</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#docker">Docker</a></li>

@@ -15,6 +15,10 @@ The notebooks are linked as downloadable `.ipynb` files instead of rendered page
 - {download}`DiT/DDPM on CIFAR-10 <notebooks/dit_cifar10.ipynb>`
 - {download}`Run a trained model on the Atari benchmark <notebooks/atari_benchmark.ipynb>`
 
+## Managed notebook runtimes
+
+If you are running these notebooks on Kaggle, Colab, or another image with preinstalled CUDA/PyTorch packages, install only the extras needed by the notebook instead of forcing every TorchWM optional dependency into the runtime. For example, the Dreamer DMC notebook includes a managed-runtime recipe that uses `pip install --no-deps torchwm` followed by the DMC backend packages, then asks you to restart the kernel before importing TorchWM.
+
 ## Recommended order
 
 1. Dreamer on DeepMind Control Walker for online latent-dynamics RL.

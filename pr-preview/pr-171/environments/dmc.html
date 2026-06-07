@@ -356,10 +356,10 @@
 <p>The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps <code class="docutils literal notranslate"><span class="pre">dm_control.suite</span></code> tasks with a Gym-like interface, keeps all native DMC state observations, and adds a rendered RGB image so image-based world models can train on a consistent observation contract.</p>
 <section id="install">
 <h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>dm-control
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[dmc]&quot;</span>
 </pre></div>
 </div>
-<p>DMC is not part of TorchWM’s minimal dependencies. Install it in the Python environment that runs training or evaluation.</p>
+<p>DMC is not part of TorchWM’s minimal dependencies. Install the DMC extra in the Python environment that runs training or evaluation. In managed notebook runtimes such as Kaggle, prefer a fresh kernel and install only the DMC packages you need; mixed <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> and <code class="docutils literal notranslate"><span class="pre">mujoco</span></code> versions can raise low-level <code class="docutils literal notranslate"><span class="pre">MjData</span></code> attribute errors.</p>
 </section>
 <section id="main-api">
 <h2>Main API<a class="headerlink" href="#main-api" title="Link to this heading">#</a></h2>

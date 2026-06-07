@@ -1,8 +1,12 @@
+import pytest
+
 import torch
 import numpy as np
 
 from world_models.configs.diamond_config import DiamondConfig
 from world_models.training.train_diamond import DiamondAgent
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 def test_hidden_state_save_load_and_broadcast(tmp_path):

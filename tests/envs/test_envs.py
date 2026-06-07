@@ -1,5 +1,8 @@
 import pytest
+
 from world_models.envs.dmc import DeepMindControlEnv
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 @pytest.mark.skip(reason="Requires MuJoCo/EGL which is not available")

@@ -13,10 +13,10 @@ MuJoCo tasks may require platform-specific dependencies. Verify that a simple `g
 ## Humanoid factory
 
 ```python
-from world_models.envs.mujoco_env import make_humanoid_env
+from torchwm import make_mujoco_env
 
-env = make_humanoid_env(
-    version="v4",
+env = make_mujoco_env(
+    "Humanoid-v4",
     forward_reward_weight=1.25,
     ctrl_cost_weight=0.1,
     contact_cost_weight=5e-7,
@@ -31,10 +31,10 @@ The factory builds `Humanoid-{version}` and forwards common reward, reset, healt
 ## HalfCheetah factory
 
 ```python
-from world_models.envs.mujoco_env import make_half_cheetah_env
+from torchwm import make_mujoco_env
 
-env = make_half_cheetah_env(
-    version="v4",
+env = make_mujoco_env(
+    "HalfCheetah-v4",
     forward_reward_weight=0.1,
     reset_noise_scale=0.1,
     exclude_current_positions_from_observation=True,
@@ -49,7 +49,7 @@ The factory builds `HalfCheetah-{version}` and forwards the selected reward, res
 Because the MuJoCo factories return raw Gymnasium environments, wrap the environment with `GymImageEnv` or configure Dreamer through the Gym backend:
 
 ```python
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "gym"
@@ -60,10 +60,10 @@ cfg.gym_render_mode = "rgb_array"
 For custom factory output:
 
 ```python
-from world_models.envs.gym_env import GymImageEnv
-from world_models.envs.mujoco_env import make_half_cheetah_env
+from torchwm import GymImageEnv
+from torchwm import make_mujoco_env
 
-base_env = make_half_cheetah_env(render_mode="rgb_array")
+base_env = make_mujoco_env("HalfCheetah-v4", render_mode="rgb_array")
 env = GymImageEnv(base_env, seed=0, size=(64, 64))
 ```
 

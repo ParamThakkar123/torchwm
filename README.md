@@ -29,15 +29,16 @@ TorchWM depends on PyTorch but does not force a single PyTorch wheel index. If y
 uv add torch torchvision torchaudio --index https://download.pytorch.org/whl/cu121
 ```
 
+Use the friendly top-level API for the common path:
+
 ```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-cfg.total_steps = 1_000_000
-
-agent = DreamerAgent(cfg)
+agent = torchwm.create_model(
+    "dreamer",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
 agent.train()
 ```
 

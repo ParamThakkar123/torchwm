@@ -71,8 +71,8 @@ Predicts future latent representations from current encoding:
 ## Training
 
 ```python :class: thebe
-from world_models.models import JEPAAgent
-from world_models.configs import JEPAConfig
+from torchwm import JEPAAgent
+from torchwm import JEPAConfig
 
 cfg = JEPAConfig()
 cfg.dataset = "imagefolder"

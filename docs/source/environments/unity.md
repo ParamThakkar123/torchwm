@@ -13,7 +13,7 @@ You also need a Unity environment executable built for the platform running trai
 ## Main API
 
 ```python
-from world_models.envs.unity_env import UnityMLAgentsEnv
+from torchwm import UnityMLAgentsEnv
 
 env = UnityMLAgentsEnv(
     file_name="/path/to/UnityEnvironment.x86_64",
@@ -34,7 +34,7 @@ If `behavior_name` is omitted, TorchWM uses the first behavior advertised by the
 ## Dreamer configuration
 
 ```python
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "unity_mlagents"

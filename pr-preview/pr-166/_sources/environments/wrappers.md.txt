@@ -1,6 +1,6 @@
 # Environment Wrappers
 
-`world_models.envs.wrappers` contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization, observation dictionaries, one-hot actions, reward observations, and image transforms.
+`torchwm` exposes reusable environment wrappers used by Dreamer and other environment pipelines. The wrapper module contains reusable preprocessing wrappers used by Dreamer and other environment pipelines. These wrappers let you compose time limits, action repeats, action normalization, observation dictionaries, one-hot actions, reward observations, and image transforms.
 
 ## Standard Dreamer wrapper stack
 
@@ -31,8 +31,7 @@ This creates a stable interface for policies that emit normalized actions and tr
 ## Example composition
 
 ```python
-from world_models.envs.gym_env import make_gym_env
-from world_models.envs.wrappers import ActionRepeat, NormalizeActions, TimeLimit
+from torchwm import ActionRepeat, NormalizeActions, TimeLimit, make_gym_env
 
 env = make_gym_env("Pendulum-v1", size=(64, 64), render_mode="rgb_array")
 env = ActionRepeat(env, amount=2)

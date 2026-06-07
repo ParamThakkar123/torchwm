@@ -260,6 +260,7 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
@@ -355,7 +356,7 @@
 <section id="native-ale-vectorization">
 <h2>Native ALE vectorization<a class="headerlink" href="#native-ale-vectorization" title="Link to this heading">#</a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code> for high-throughput Atari simulation backed by <code class="docutils literal notranslate"><span class="pre">ale_py.vector_env.AtariVectorEnv</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.ale_atari_vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
 
 <span class="n">vec_env</span> <span class="o">=</span> <span class="n">make_atari_vector_env</span><span class="p">(</span>
     <span class="n">game</span><span class="o">=</span><span class="s2">&quot;pong&quot;</span><span class="p">,</span>
@@ -373,19 +374,17 @@
 <section id="torchvectorizedenv">
 <h2>TorchVectorizedEnv<a class="headerlink" href="#torchvectorizedenv" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv</span></code> runs multiple environment instances across worker processes. It is useful for rollout collection in RL harnesses and algorithms that expect batched observations, rewards, done flags, and info dictionaries.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_gym_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">TorchVectorizedEnv</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span>
+
+<span class="c1"># For arbitrary Gym-like factories, create each environment through torchwm.</span>
+<span class="c1"># Pass this factory to your vectorization utility of choice.</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">env_factory</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="s2">&quot;CartPole-v1&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">make_env</span><span class="p">(</span><span class="s2">&quot;CartPole-v1&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;gym&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 
-<span class="n">vec_env</span> <span class="o">=</span> <span class="n">TorchVectorizedEnv</span><span class="p">(</span>
-    <span class="n">env_factory</span><span class="o">=</span><span class="n">env_factory</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-    <span class="n">envs_per_worker</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">obs</span> <span class="o">=</span> <span class="n">vec_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="c1"># Example: hand `env_factory` to your multiprocessing/vector rollout code.</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">env_factory</span><span class="p">()</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>The total number of environments is <code class="docutils literal notranslate"><span class="pre">num_workers</span> <span class="pre">*</span> <span class="pre">envs_per_worker</span></code>.</p>

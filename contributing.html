@@ -398,8 +398,11 @@ pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># All tests</span>
 pytest
 
-<span class="c1"># Specific tests</span>
-pytest<span class="w"> </span>tests/test_operators.py
+<span class="c1"># Fast subset (skip slow, GPU, and integration tests)</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow and not gpu and not integration&quot;</span>
+
+<span class="c1"># Specific package-mirrored test area</span>
+pytest<span class="w"> </span>tests/inference/test_operators.py
 
 <span class="c1"># With coverage</span>
 pytest<span class="w"> </span>--cov<span class="o">=</span>world_models<span class="w"> </span>--cov-report<span class="o">=</span>html

@@ -2,9 +2,10 @@ import os
 import datetime
 from world_models.configs.jepa_config import JEPAConfig
 from world_models.training.train_jepa import main as train_jepa_main
+from world_models.export import ExportableAgentMixin
 
 
-class JEPAAgent:
+class JEPAAgent(ExportableAgentMixin):
     """Convenience interface for configuring and launching JEPA training runs.
 
     Accepts a `JEPAConfig` plus keyword overrides, prepares output folders,

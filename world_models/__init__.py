@@ -20,6 +20,15 @@ from typing import Any
 
 __version__ = "0.4.0"
 
+
+try:
+    from world_models.export import install_export_method as _install_export_method
+
+    _install_export_method()
+except ModuleNotFoundError as exc:  # pragma: no cover - torch-free metadata imports
+    if exc.name != "torch":
+        raise
+
 _API_EXPORTS = {
     "EnvBackendSpec": "world_models.api",
     "ModelSpec": "world_models.api",
@@ -33,6 +42,9 @@ _API_EXPORTS = {
     "list_envs": "world_models.api",
     "list_models": "world_models.api",
     "make_env": "world_models.api",
+    "export_any": "world_models.export",
+    "export_model": "world_models.export",
+    "ExportableAgentMixin": "world_models.export",
 }
 
 _LAZY_EXPORTS: dict[str, str] = {

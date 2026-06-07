@@ -4,11 +4,14 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Dict, Tuple, Literal
 import numpy as np
 from dataclasses import dataclass
+
+from world_models.configs.serialization import SerializableConfigMixin
 from world_models.models.genie import Genie
+from world_models.models.model_io import save_config_next_to_checkpoint
 
 
 @dataclass
-class GenieConfig:
+class GenieConfig(SerializableConfigMixin):
     """Configuration for Genie training."""
 
     num_frames: int = 16

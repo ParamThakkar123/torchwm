@@ -4,9 +4,20 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, TypeVar
 
 import torch
+
+
+class ConfigProtocol(Protocol):
+    @classmethod
+    def from_dict(cls, values: dict[str, Any]) -> Any: ...
+
+    @classmethod
+    def from_yaml(cls, path_or_yaml: str | Path) -> Any: ...
+
+
+ConfigT = TypeVar("ConfigT", bound=ConfigProtocol)
 
 
 def apply_config_overrides(config: Any, overrides: dict[str, Any]) -> Any:
@@ -17,7 +28,7 @@ def apply_config_overrides(config: Any, overrides: dict[str, Any]) -> Any:
     return config
 
 
-def coerce_config(config_cls: type, config: Any | None) -> Any:
+def coerce_config(config_cls: type[ConfigT], config: Any | None) -> ConfigT:
     if config is None:
         return config_cls()
     if isinstance(config, config_cls):

@@ -110,3 +110,4 @@ class DreamerConfig(SerializableConfigMixin):
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        self.logdir = None

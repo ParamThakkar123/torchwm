@@ -5,6 +5,7 @@ try:
 except Exception:
     pass
 
+import argparse
 import copy
 import logging
 import sys
@@ -43,14 +44,44 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
 
-def main(args, resume_preempt=False):
+def _load_cli_config(argv: list[str] | None = None) -> dict:
+    """Load JEPA config from an optional YAML file for console-script use."""
+    parser = argparse.ArgumentParser(description="Train JEPA")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Path to a YAML config matching JEPAConfig.to_dict() output.",
+    )
+    parsed = parser.parse_args(argv)
+    if parsed.config is None:
+        return JEPAConfig().to_dict()
+    with open(parsed.config, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def main(args=None, resume_preempt=False):
     """Run JEPA training using a nested config dict or `JEPAConfig` instance.
 
     This entrypoint initializes distributed context, data pipeline, masking,
     models, optimizers/schedulers, checkpointing, and the full epoch loop.
     """
-    if isinstance(args, JEPAConfig):
+    if args is None or isinstance(args, list):
+        args = _load_cli_config(args)
+    elif isinstance(args, tuple):
+        args = _load_cli_config(list(args))
+    elif isinstance(args, JEPAConfig):
         args = args.to_dict()
+
+    logging_args = args.get("logging", {})
+    if logging_args.get("enable_sweep", False):
+        sweep_id = wandb.sweep(
+            logging_args.get("sweep_config", {}),
+            project=logging_args.get("wandb_project"),
+            entity=logging_args.get("wandb_entity") or None,
+        )
+        wandb.agent(sweep_id, function=sweep_train)
+        return
 
     # ----------------------------------------------------------------------- #
     #  PASSED IN PARAMS FROM CONFIG FILE
@@ -461,12 +492,4 @@ def sweep_train():
 
 
 if __name__ == "__main__":
-    cfg = JEPAConfig()
-    # TODO: Load config from file if needed
-    if cfg.enable_sweep:
-        sweep_id = wandb.sweep(
-            cfg.sweep_config, project=cfg.wandb_project, entity=cfg.wandb_entity
-        )
-        wandb.agent(sweep_id, function=sweep_train)
-    else:
-        main(cfg.to_dict())
+    main()

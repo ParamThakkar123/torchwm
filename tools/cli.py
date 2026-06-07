@@ -23,11 +23,12 @@ logger = logging.getLogger("torchwm.cli")
 # Keep this mapping cheap to import so ``torchwm models list`` and validation do
 # not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
-    "iris": "world_models.training.train_iris",
-    "planet": "world_models.training.train_planet",
-    "jepa": "world_models.training.train_jepa",
-    "rssm": "world_models.training.train_rssm",
+    "diamond": "world_models.training.train_diamond",
     "genie": "world_models.training.train_genie",
+    "iris": "world_models.training.train_iris",
+    "jepa": "world_models.training.train_jepa",
+    "planet": "world_models.training.train_planet",
+    "rssm": "world_models.training.train_rssm",
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
@@ -590,6 +591,16 @@ def main(*args: Any, **kwargs: Any) -> Any:
 def run() -> None:
     """Console-script entrypoint used by the installed ``torchwm`` command."""
     app(prog_name="torchwm")
+
+
+def run_train() -> None:
+    """Console-script entrypoint used by the installed ``torchwm-train`` command.
+
+    This is equivalent to ``torchwm train MODEL [ARGS...]`` and dispatches via
+    ``TRAINING_MODULES`` so new training modules only need to be added to that
+    mapping instead of registering another packaging entry point.
+    """
+    train.main(prog_name="torchwm-train")
 
 
 if __name__ == "__main__":

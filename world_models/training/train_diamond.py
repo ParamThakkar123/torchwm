@@ -923,8 +923,9 @@ def train_diamond(
     agent.train()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+def main(argv: Optional[list[str]] = None) -> None:
+    """Parse CLI arguments and train DIAMOND on an Atari game."""
+    parser = argparse.ArgumentParser(description="Train DIAMOND on Atari")
     parser.add_argument("--game", type=str, default="Breakout-v5")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
@@ -933,6 +934,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     train_diamond(args.game, args.seed, args.preset, args.device)
+
+
+if __name__ == "__main__":
+    main()

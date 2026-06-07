@@ -1,3 +1,5 @@
+import argparse
+
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -291,3 +293,55 @@ def create_genie_trainer(
     trainer = GenieTrainer(model, config, device)
 
     return trainer, model
+
+
+def main(argv: Optional[list[str]] = None) -> None:
+    """Console entrypoint for Genie trainer setup.
+
+    The generic ``VideoDataset`` in this module is intentionally abstract, so this
+    command provides a discoverable entrypoint for inspecting defaults and
+    constructing a trainer. Use a concrete dataset script, such as
+    ``scripts/train_genie_tinyworlds.py``, for end-to-end data loading.
+    """
+    parser = argparse.ArgumentParser(description="Prepare Genie training")
+    parser.add_argument(
+        "--device",
+        type=str,
+        default=None,
+        help="Device override, for example 'cuda' or 'cpu'.",
+    )
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=None,
+        help="Override the default Genie max training steps.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Construct the trainer and print its resolved configuration without training.",
+    )
+    args = parser.parse_args(argv)
+
+    config = GenieConfig()
+    if args.max_steps is not None:
+        config.max_steps = args.max_steps
+    device = torch.device(args.device) if args.device else None
+    trainer, _ = create_genie_trainer(config=config, device=device)
+
+    if args.dry_run:
+        print(
+            "Created GenieTrainer "
+            f"on {trainer.device} with max_steps={trainer.config.max_steps}"
+        )
+        return
+
+    parser.error(
+        "Genie requires a concrete video dataset; use --dry-run to validate "
+        "trainer construction or scripts/train_genie_tinyworlds.py for an "
+        "end-to-end example."
+    )
+
+
+if __name__ == "__main__":
+    main()

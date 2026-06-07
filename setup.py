@@ -19,7 +19,13 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
-    entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
+    package_data={"torchwm": ["py.typed", "__init__.pyi"]},
+    entry_points={
+        "console_scripts": [
+            "torchwm=tools.cli:run",
+            "torchwm-train=tools.cli:run_train",
+        ]
+    },
     python_requires=">=3.10",
     install_requires=[
         "torch>=1.13.0",

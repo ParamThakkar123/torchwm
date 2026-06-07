@@ -1,10 +1,9 @@
-"""Typing-only module to make the historical top-level name
-``torchwm`` point to the current package ``world_models`` for static
-type checkers (mypy). This is a stub only — it does not create a
-runtime package directory and therefore doesn't affect imports at
-runtime.
-"""
+"""Typing stub for the friendly ``torchwm`` public package."""
 
-from world_models import *  # re-export for type checking
+from typing import Any
 
-__all__ = [name for name in globals().keys() if not name.startswith("_")]
+__version__: str
+api: Any
+
+
+def __getattr__(name: str) -> Any: ...

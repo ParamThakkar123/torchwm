@@ -358,7 +358,7 @@ class DiamondConfig:
 ### Basic Configuration
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"

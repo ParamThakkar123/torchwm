@@ -75,7 +75,7 @@ Open `docs/build/html/index.html` in your browser.
 ### 1. New Operators
 
 ```python
-from world_models.inference.operators.base import OperatorABC
+from torchwm import OperatorABC
 
 class NewOperator(OperatorABC):
     def process(self, inputs):

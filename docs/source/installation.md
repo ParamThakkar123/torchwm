@@ -52,15 +52,15 @@ pip install -e .
 pip install -e ".[gym,ml-agents,ml,viz,dev,docs]"
 ```
 
-## CUDA Support
+## PyTorch Build Selection
 
-For GPU acceleration, install PyTorch with CUDA:
+TorchWM does not pin a single PyTorch wheel index. Install the PyTorch build that matches your platform (CPU, macOS, CUDA, ROCm, etc.) using the index recommended by the [PyTorch installation selector](https://pytorch.org/get-started/locally/).
 
 ```bash
-# Using uv (recommended)
-uv add torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Example: CUDA 12.1 wheels. Replace the index for CPU, ROCm, or other CUDA versions.
+uv add torch torchvision torchaudio --index https://download.pytorch.org/whl/cu121
 
-# Or using pip
+# Or using pip.
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 

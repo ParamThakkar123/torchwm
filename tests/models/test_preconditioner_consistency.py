@@ -1,3 +1,5 @@
+import pytest
+
 import torch
 
 from world_models.models.diffusion.diamond_diffusion import (
@@ -5,6 +7,8 @@ from world_models.models.diffusion.diamond_diffusion import (
     DiffusionUNet,
     EulerSampler,
 )
+
+pytestmark = [pytest.mark.integration]
 
 
 class DummyModel(DiffusionUNet):

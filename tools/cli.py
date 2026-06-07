@@ -439,6 +439,63 @@ def benchmark(
         raise click.exceptions.Exit(1)
 
 
+@app.group("replay")
+def replay_app() -> None:
+    """Replay-buffer inspection commands."""
+
+
+@replay_app.command("browse")
+@click.argument("buffer", type=click.Path(path_type=Path, exists=True, dir_okay=False))
+@click.option(
+    "--host",
+    default="127.0.0.1",
+    show_default=True,
+    help="Host for the local browser server.",
+)
+@click.option(
+    "--port",
+    default=0,
+    show_default=True,
+    type=int,
+    help="Port for the local browser server; 0 selects a free port.",
+)
+@click.option("--no-open", is_flag=True, help="Do not open a web browser automatically.")
+@click.option(
+    "--summary",
+    is_flag=True,
+    help="Print replay-buffer summary and exit without starting the browser.",
+)
+def replay_browse(
+    buffer: Path, host: str, port: int, no_open: bool, summary: bool
+) -> None:
+    """Scroll through replay-buffer episodes with rewards/actions overlaid."""
+    from tools.replay_browser import serve_replay_browser, summarize_replay_buffer
+
+    try:
+        metadata = summarize_replay_buffer(buffer)
+    except click.ClickException as exc:
+        _echo_error(str(exc))
+        raise click.exceptions.Exit(1) from exc
+
+    click.echo(
+        f"Replay buffer: {buffer} ({metadata['episode_count']} episodes, "
+        f"{metadata['transition_count']} steps)"
+    )
+    click.echo(f"Observation shape: {metadata['observation_shape']}")
+    click.echo(f"Action shape: {metadata['action_shape']}")
+    for index, episode in enumerate(metadata["episodes"][:10]):
+        reward = episode["reward_sum"] if episode["reward_sum"] is not None else "n/a"
+        click.echo(
+            f"- {index}: {episode['name']} length={episode['length']} return={reward}"
+        )
+    if len(metadata["episodes"]) > 10:
+        click.echo(f"... and {len(metadata['episodes']) - 10} more episodes")
+    if summary:
+        return
+
+    serve_replay_browser(buffer, metadata, host, port, open_browser=not no_open)
+
+
 @app.command("collect")
 @click.option("--env", "env", required=True, help="Environment id (Gym/Atari).")
 @click.option(

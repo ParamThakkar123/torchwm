@@ -50,7 +50,7 @@ def main(args, resume_preempt=False):
     models, optimizers/schedulers, checkpointing, and the full epoch loop.
     """
     if isinstance(args, JEPAConfig):
-        args = args.to_dict()
+        args = args.to_train_dict()
 
     # ----------------------------------------------------------------------- #
     #  PASSED IN PARAMS FROM CONFIG FILE
@@ -457,7 +457,7 @@ def sweep_train():
         for key, value in wandb.config.items():
             if hasattr(cfg, key):
                 setattr(cfg, key, value)
-        main(cfg.to_dict())
+        main(cfg.to_train_dict())
 
 
 if __name__ == "__main__":
@@ -469,4 +469,4 @@ if __name__ == "__main__":
         )
         wandb.agent(sweep_id, function=sweep_train)
     else:
-        main(cfg.to_dict())
+        main(cfg.to_train_dict())

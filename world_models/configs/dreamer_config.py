@@ -1,4 +1,9 @@
-class DreamerConfig:
+from __future__ import annotations
+
+from world_models.configs.serialization import SerializableConfigMixin
+
+
+class DreamerConfig(SerializableConfigMixin):
     """Configuration container for Dreamer training, evaluation, and environment setup.
 
     This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),

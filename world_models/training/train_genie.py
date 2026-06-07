@@ -239,8 +239,10 @@ class GenieTrainer:
 
     def save_checkpoint(self, path: str):
         """Save model checkpoint."""
+        save_config_next_to_checkpoint(self.config, path)
         torch.save(
             {
+                "config": self.config.to_dict(),
                 "model_state_dict": self.model.state_dict(),
                 "optimizer_state_dict": self.optimizer.state_dict(),
                 "scheduler_state_dict": self.scheduler.state_dict(),

@@ -2,6 +2,30 @@
 
 This page documents all configuration classes in TorchWM.
 
+## Shared Serialization API
+
+All model config classes exported by TorchWM support a common
+serialization interface:
+
+```python
+from torchwm import DreamerConfig, GenieConfig, JEPAConfig
+
+cfg = GenieConfig(image_size=32, num_frames=8)
+cfg_dict = cfg.to_dict()
+yaml_text = cfg.to_yaml("configs/genie.yaml")
+restored = GenieConfig.from_yaml("configs/genie.yaml")
+
+# JEPA keeps a separate nested dict for the trainer entrypoint.
+jepa = JEPAConfig()
+trainer_args = jepa.to_train_dict()
+```
+
+The corresponding model or agent classes expose HF-style construction and
+introspection helpers where weights are resident in the object, including
+`from_config(...)`, `from_pretrained(...)`, `summary()`, and
+`parameter_count()`. Checkpoint save paths write a sibling `config.yaml` so runs
+can be reproduced without guessing hyperparameters.
+
 ## DreamerConfig
 
 Configuration for Dreamer agent training.

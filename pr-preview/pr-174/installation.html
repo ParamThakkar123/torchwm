@@ -415,13 +415,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="cuda-support">
-<h2>CUDA Support<a class="headerlink" href="#cuda-support" title="Link to this heading">#</a></h2>
-<p>For GPU acceleration, install PyTorch with CUDA:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using uv (recommended)</span>
-uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
+<section id="pytorch-build-selection">
+<h2>PyTorch Build Selection<a class="headerlink" href="#pytorch-build-selection" title="Link to this heading">#</a></h2>
+<p>TorchWM does not pin a single PyTorch wheel index. Install the PyTorch build that matches your platform (CPU, macOS, CUDA, ROCm, etc.) using the index recommended by the <a class="reference external" href="https://pytorch.org/get-started/locally/">PyTorch installation selector</a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example: CUDA 12.1 wheels. Replace the index for CPU, ROCm, or other CUDA versions.</span>
+uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index<span class="w"> </span>https://download.pytorch.org/whl/cu121
 
-<span class="c1"># Or using pip</span>
+<span class="c1"># Or using pip.</span>
 pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 </pre></div>
 </div>
@@ -504,7 +504,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-support">CUDA Support</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch-build-selection">PyTorch Build Selection</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#docker">Docker</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verification">Verification</a></li>
 </ul>

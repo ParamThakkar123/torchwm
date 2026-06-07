@@ -14,7 +14,7 @@
 <meta property="og:description" content="The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps dm_control.suite tasks with a Gym-like interface, keeps all native DMC state observations, and ..." />
 <meta name="description" content="The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps dm_control.suite tasks with a Gym-like interface, keeps all native DMC state observations, and ..." />
 
-    <title>DeepMind Control Suite &#8212; TorchWM 0.4.0 documentation</title>
+    <title>DeepMind Control Suite &#8212; TorchWM 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -129,7 +129,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.1 documentation</p>
   
 </a></div>
     
@@ -359,7 +359,7 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;torchwm[dmc]&quot;</span>
 </pre></div>
 </div>
-<p>DMC is not part of TorchWM’s minimal dependencies. Install the DMC extra in the Python environment that runs training or evaluation. In managed notebook runtimes such as Kaggle, prefer a fresh kernel and install only the DMC packages you need; mixed <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> and <code class="docutils literal notranslate"><span class="pre">mujoco</span></code> versions can raise low-level <code class="docutils literal notranslate"><span class="pre">MjData</span></code> attribute errors.</p>
+<p>DMC is not part of TorchWM’s minimal dependencies. Install the DMC extra in the Python environment that runs training or evaluation; it declares both <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> and <code class="docutils literal notranslate"><span class="pre">mujoco</span></code>. In managed notebook runtimes such as Kaggle, prefer a fresh kernel and install only the DMC packages you need; mixed <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> and <code class="docutils literal notranslate"><span class="pre">mujoco</span></code> versions can raise low-level <code class="docutils literal notranslate"><span class="pre">MjData</span></code> attribute errors.</p>
 </section>
 <section id="main-api">
 <h2>Main API<a class="headerlink" href="#main-api" title="Link to this heading">#</a></h2>
@@ -432,7 +432,7 @@
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ModuleNotFoundError:</span> <span class="pre">dm_control</span></code></strong>: install <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> in the active environment.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ModuleNotFoundError:</span> <span class="pre">dm_control</span></code></strong>: install <code class="docutils literal notranslate"><span class="pre">torchwm[dmc]</span></code> in the active environment, or explicitly install both <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> and <code class="docutils literal notranslate"><span class="pre">mujoco</span></code>.</p></li>
 <li><p><strong>Task name parsing errors</strong>: use <code class="docutils literal notranslate"><span class="pre">domain-task</span></code> format, such as <code class="docutils literal notranslate"><span class="pre">walker-walk</span></code>; use <code class="docutils literal notranslate"><span class="pre">cup-catch</span></code> for <code class="docutils literal notranslate"><span class="pre">ball_in_cup/catch</span></code>.</p></li>
 <li><p><strong>Unexpected image size</strong>: set <code class="docutils literal notranslate"><span class="pre">cfg.image_size</span></code> or pass <code class="docutils literal notranslate"><span class="pre">size=(height,</span> <span class="pre">width)</span></code> directly.</p></li>
 <li><p><strong>Action range issues</strong>: if you bypass Dreamer <code class="docutils literal notranslate"><span class="pre">make_env()</span></code>, add <code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code> yourself when the policy emits normalized actions.</p></li>

@@ -125,6 +125,12 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="JAX/Brax continuous-control environments.",
         aliases=(),
     ),
+    "bsuite": EnvBackendSpec(
+        name="bsuite",
+        factory_path="world_models.envs:make_bsuite_env",
+        description="Behaviour Suite for Reinforcement Learning (BSuite) environments.",
+        aliases=("behavior_suite", "behaviour_suite"),
+    ),
     "unity": EnvBackendSpec(
         name="unity",
         factory_path="world_models.envs:make_unity_mlagents_env",
@@ -138,7 +144,9 @@ def _normalize(name: str) -> str:
     return name.strip().lower().replace("_", "-")
 
 
-def _alias_map(specs: dict[str, ModelSpec] | dict[str, EnvBackendSpec]) -> dict[str, str]:
+def _alias_map(
+    specs: dict[str, ModelSpec] | dict[str, EnvBackendSpec],
+) -> dict[str, str]:
     aliases: dict[str, str] = {}
     for canonical, spec in specs.items():
         aliases[_normalize(canonical)] = canonical
@@ -153,7 +161,9 @@ def _resolve_model_name(name: str) -> str:
         return aliases[_normalize(name)]
     except KeyError as exc:
         available = ", ".join(list_models())
-        raise ValueError(f"Unknown model {name!r}. Available models: {available}") from exc
+        raise ValueError(
+            f"Unknown model {name!r}. Available models: {available}"
+        ) from exc
 
 
 def _resolve_backend_name(name: str) -> str:
@@ -162,7 +172,9 @@ def _resolve_backend_name(name: str) -> str:
         return aliases[_normalize(name)]
     except KeyError as exc:
         available = ", ".join(list_env_backends())
-        raise ValueError(f"Unknown environment backend {name!r}. Available: {available}") from exc
+        raise ValueError(
+            f"Unknown environment backend {name!r}. Available: {available}"
+        ) from exc
 
 
 def _load_object(import_path: str) -> Any:
@@ -199,7 +211,9 @@ def _split_config_and_constructor_overrides(
     config: Any, overrides: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     config_keys = _config_fields(config)
-    config_overrides = {key: value for key, value in overrides.items() if key in config_keys}
+    config_overrides = {
+        key: value for key, value in overrides.items() if key in config_keys
+    }
     constructor_overrides = {
         key: value for key, value in overrides.items() if key not in config_keys
     }
@@ -226,7 +240,9 @@ def _apply_overrides(config: Any, overrides: dict[str, Any]) -> Any:
     return config
 
 
-def _supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+def _supported_kwargs(
+    factory: Callable[..., Any], kwargs: dict[str, Any]
+) -> dict[str, Any]:
     params = signature(factory).parameters
     if any(param.kind == param.VAR_KEYWORD for param in params.values()):
         return dict(kwargs)
@@ -234,7 +250,9 @@ def _supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> di
     return {key: value for key, value in kwargs.items() if key in supported}
 
 
-def _call_with_supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> Any:
+def _call_with_supported_kwargs(
+    factory: Callable[..., Any], kwargs: dict[str, Any]
+) -> Any:
     params = signature(factory).parameters
     accepts_kwargs = any(param.kind == param.VAR_KEYWORD for param in params.values())
     if accepts_kwargs:
@@ -312,8 +330,8 @@ def create_model(model: str, config: Any | None = None, **overrides: Any) -> Any
     if spec.config_path is not None:
         if config is None:
             config = create_config(spec.name)
-        config_overrides, constructor_overrides = _split_config_and_constructor_overrides(
-            config, overrides
+        config_overrides, constructor_overrides = (
+            _split_config_and_constructor_overrides(config, overrides)
         )
         config = _apply_overrides(config, config_overrides)
         if spec.name in {"genie", "genie-small", "genie-large"}:
@@ -356,7 +374,9 @@ def list_envs(model: str | None = None) -> list[str] | dict[str, list[str]]:
         return list(ENVIRONMENTS_BY_MODEL[canonical])
     except KeyError as exc:
         available = ", ".join(sorted(ENVIRONMENTS_BY_MODEL))
-        raise ValueError(f"Unknown model environment catalog {model!r}: {available}") from exc
+        raise ValueError(
+            f"Unknown model environment catalog {model!r}: {available}"
+        ) from exc
 
 
 __all__ = [

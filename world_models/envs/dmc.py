@@ -2,6 +2,40 @@ import gymnasium as gym
 import numpy as np
 
 
+_MUJOCO_ABI_MISSING_FIELDS = (
+    "flex_bandwidth",
+    "qLDiagSqrtInv",
+    "flex_xvert0",
+    "jnt_actgravcomp",
+    "solver_iter",
+    "tex_rgb",
+)
+
+
+def is_dm_control_mujoco_abi_error(exc: AttributeError) -> bool:
+    """Return True for common dm-control/MuJoCo struct-field mismatches."""
+
+    message = str(exc)
+    return (
+        "MjModel" in message
+        or "MjData" in message
+        or any(field in message for field in _MUJOCO_ABI_MISSING_FIELDS)
+    )
+
+
+def dm_control_mujoco_abi_message(original_error: AttributeError) -> str:
+    """Build a user-facing message for mismatched dm-control/MuJoCo wheels."""
+
+    return (
+        "DeepMind Control failed while initializing MuJoCo. This usually means "
+        "the installed dm-control and mujoco wheels are ABI-incompatible. "
+        "Reinstall a matching pair with `pip install --upgrade --force-reinstall "
+        "'dm-control>=1.0.28' 'mujoco>=3.3.1'`, restart the Python kernel, "
+        "and verify with `pip show dm-control mujoco`. Original error: "
+        f"{original_error}"
+    )
+
+
 class DeepMindControlEnv:
     """Gym-style adapter for DeepMind Control Suite tasks.
 
@@ -39,7 +73,12 @@ class DeepMindControlEnv:
         if isinstance(domain, str):
             from dm_control import suite
 
-            self._env = suite.load(domain, task, task_kwargs={"random": seed})
+            try:
+                self._env = suite.load(domain, task, task_kwargs={"random": seed})
+            except AttributeError as exc:
+                if is_dm_control_mujoco_abi_error(exc):
+                    raise RuntimeError(dm_control_mujoco_abi_message(exc)) from exc
+                raise
         else:
             assert task is None
             self._env = domain()

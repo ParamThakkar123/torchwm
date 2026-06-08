@@ -60,7 +60,7 @@ pip install --no-deps torchwm
 
 # Then add only the backend needed by the notebook.
 pip install "einops>=0.8.2" "pyyaml>=6.0.3" "tqdm>=4.67.1" "requests>=2.32.0" "click>=8.0.0"
-pip install "dm-control>=1.0.28" "mujoco>=3.3.0" "gymnasium>=1.2.2" "opencv-python>=4.12.0.88" "moviepy>=2.2.1"
+pip install "dm-control>=1.0.28" "mujoco>=3.3.1" "gymnasium>=1.2.2" "opencv-python>=4.12.0.88" "moviepy>=2.2.1"
 ```
 
 `torchwm[dmc]` declares both `dm-control` and `mujoco`; if `pip show dm-control mujoco` reports either package missing after installation, upgrade to a TorchWM release that includes the `dmc` extra or install from this repository. After changing MuJoCo or `dm-control` versions in a running notebook, restart the kernel before importing `torchwm` or `dm_control`. Attribute errors inside `dm_control.mujoco` such as missing fields on `MjData` usually indicate a `dm-control`/`mujoco` ABI mismatch from mixed package versions.

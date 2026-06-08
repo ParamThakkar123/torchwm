@@ -81,3 +81,29 @@ class TestDeepMindControlEnv:
 
 class TestMujocoEnv:
     pass
+
+
+def test_dmc_mujoco_abi_error_detection_covers_model_and_data_fields():
+    from world_models.envs.dmc import is_dm_control_mujoco_abi_error
+
+    assert is_dm_control_mujoco_abi_error(
+        AttributeError("'MjModel' object has no attribute 'flex_bandwidth'")
+    )
+    assert is_dm_control_mujoco_abi_error(
+        AttributeError("'MjData' object has no attribute 'qLDiagSqrtInv'")
+    )
+    assert not is_dm_control_mujoco_abi_error(
+        AttributeError("'Other' object has no attribute 'unrelated'")
+    )
+
+
+def test_dmc_mujoco_abi_message_contains_reinstall_command():
+    from world_models.envs.dmc import dm_control_mujoco_abi_message
+
+    message = dm_control_mujoco_abi_message(
+        AttributeError("'MjModel' object has no attribute 'flex_bandwidth'")
+    )
+
+    assert "dm-control>=1.0.28" in message
+    assert "mujoco>=3.3.1" in message
+    assert "pip show dm-control mujoco" in message

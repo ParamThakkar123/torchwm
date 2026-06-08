@@ -23,11 +23,13 @@ BSUITE_EXAMPLE_IDS = [
 
 def list_available_bsuite_ids() -> list[str]:
     """Return the installed BSuite sweep ids, or examples if BSuite is absent."""
-    if importlib.util.find_spec("bsuite") is None:
+    if (
+        importlib.util.find_spec("bsuite") is None
+        or importlib.util.find_spec("bsuite.sweep") is None
+    ):
         return list(BSUITE_EXAMPLE_IDS)
 
-    bsuite = importlib.import_module("bsuite")
-    sweep = getattr(bsuite, "sweep", None)
+    sweep = importlib.import_module("bsuite.sweep")
     ids = getattr(sweep, "SWEEP", None)
     if ids is None:
         return list(BSUITE_EXAMPLE_IDS)

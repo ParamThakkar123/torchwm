@@ -7,34 +7,7 @@ dependencies.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 from typing import Any
-
-
-@dataclass(frozen=True)
-class EnvBackendSpec:
-    """Public metadata for an environment backend exposed by TorchWM.
-
-    The spec is intentionally lightweight and import-safe so CLI commands, docs,
-    and integrations can enumerate backends without importing heavy simulation
-    packages. ``env_backend`` is the value used by DreamerConfig when it differs
-    from the catalog key.
-    """
-
-    key: str
-    label: str
-    description: str
-    environments: tuple[str, ...]
-    env_backend: str
-    aliases: tuple[str, ...] = ()
-
-    def as_dict(self) -> dict[str, Any]:
-        """Return the legacy dictionary representation used by older callers."""
-        data = asdict(self)
-        data["environments"] = list(self.environments)
-        data["aliases"] = list(self.aliases)
-        return data
-
 
 DREAMER_ENVS = [
     "cartpole-balance",
@@ -54,24 +27,6 @@ PLANET_BASE_ENVS = [
     "Acrobot-v1",
     "HalfCheetah-v4",
     "Humanoid-v4",
-]
-
-DMLAB_ENVS = [
-    "rooms_collect_good_objects_train",
-    "rooms_collect_good_objects_test",
-    "rooms_exploit_deferred_effects_train",
-    "rooms_exploit_deferred_effects_test",
-    "rooms_select_nonmatching_object",
-    "rooms_watermaze",
-    "rooms_keys_doors_puzzle",
-    "language_select_described_object",
-    "language_select_located_object",
-    "language_execute_random_task",
-    "nav_maze_static_01",
-    "nav_maze_static_02",
-    "nav_maze_random_goal_01",
-    "nav_maze_random_goal_02",
-    "lt_chasm",
 ]
 
 GYM_ENVS = [
@@ -122,6 +77,48 @@ ROBOTICS_ENVS: list[str] = _list_available_robotics_envs()
 
 UNITY_ENVS: list[str] = []
 
+PROCGEN_ENVS = [
+    "bigfish",
+    "bossfight",
+    "caveflyer",
+    "chaser",
+    "climber",
+    "coinrun",
+    "dodgeball",
+    "fruitbot",
+    "heist",
+    "jumper",
+    "leaper",
+    "maze",
+    "miner",
+    "ninja",
+    "plunder",
+    "starpilot",
+]
+
+
+def _list_available_bsuite_ids() -> list[str]:
+    """Return BSuite sweep ids or examples without making catalog imports heavy."""
+    try:
+        from world_models.envs import list_available_bsuite_ids
+
+        return list_available_bsuite_ids()
+    except Exception:
+        return [
+            "bandit/0",
+            "cartpole/0",
+            "catch/0",
+            "deep_sea/0",
+            "discounting_chain/0",
+            "memory_len/0",
+            "mnist/0",
+            "mountain_car/0",
+            "umbrella_chain/0",
+        ]
+
+
+BSUITE_ENVS: list[str] = _list_available_bsuite_ids()
+
 
 def _list_available_atari_envs() -> list[str]:
     """Return registered Atari ids without making catalog imports heavy."""
@@ -136,67 +133,47 @@ def _list_available_atari_envs() -> list[str]:
 ATARI_ENVS: list[str] = _list_available_atari_envs()
 
 
-ENV_BACKEND_SPECS: tuple[EnvBackendSpec, ...] = (
-    EnvBackendSpec(
-        key="dm_control",
-        label="DM Control",
-        description="DeepMind Control Suite",
-        environments=tuple(DREAMER_ENVS),
-        env_backend="dmc",
-        aliases=("dmc",),
-    ),
-    EnvBackendSpec(
-        key="dmlab",
-        label="DeepMind Lab",
-        description="DeepMind Lab 3D navigation and puzzle tasks",
-        environments=tuple(DMLAB_ENVS),
-        env_backend="dmlab",
-        aliases=("deepmind_lab", "deepmindlab"),
-    ),
-    EnvBackendSpec(
-        key="mujoco",
-        label="MuJoCo",
-        description="MuJoCo physics environments",
-        environments=tuple(GYM_ENVS),
-        env_backend="mujoco",
-        aliases=("mjcf", "native_mujoco"),
-    ),
-    EnvBackendSpec(
-        key="gym",
-        label="Gym",
-        description="OpenAI Gym environments",
-        environments=tuple(PLANET_BASE_ENVS),
-        env_backend="gym",
-        aliases=("gymnasium", "generic"),
-    ),
-    EnvBackendSpec(
-        key="robotics",
-        label="Gymnasium Robotics",
-        description="Gymnasium Robotics and legacy MuJoCo v2/v3 environments",
-        environments=tuple(ROBOTICS_ENVS),
-        env_backend="robotics",
-        aliases=("gymnasium_robotics",),
-    ),
-    EnvBackendSpec(
-        key="unity",
-        label="Unity ML Agents",
-        description="Unity ML Agents environments",
-        environments=tuple(UNITY_ENVS),
-        env_backend="unity_mlagents",
-        aliases=("unity", "mlagents"),
-    ),
-    EnvBackendSpec(
-        key="atari",
-        label="Atari",
-        description="Atari 2600 environments via ALE",
-        environments=tuple(ATARI_ENVS),
-        env_backend="gym",
-        aliases=("ale",),
-    ),
-)
-
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
-    spec.key: spec.as_dict() for spec in ENV_BACKEND_SPECS
+    "dm_control": {
+        "label": "DM Control",
+        "description": "DeepMind Control Suite",
+        "environments": DREAMER_ENVS,
+    },
+    "mujoco": {
+        "label": "MuJoCo",
+        "description": "MuJoCo physics environments",
+        "environments": GYM_ENVS,
+    },
+    "gym": {
+        "label": "Gym",
+        "description": "OpenAI Gym environments",
+        "environments": PLANET_BASE_ENVS,
+    },
+    "robotics": {
+        "label": "Gymnasium Robotics",
+        "description": "Gymnasium Robotics and legacy MuJoCo v2/v3 environments",
+        "environments": ROBOTICS_ENVS,
+    },
+    "unity": {
+        "label": "Unity ML Agents",
+        "description": "Unity ML Agents environments",
+        "environments": UNITY_ENVS,
+    },
+    "atari": {
+        "label": "Atari",
+        "description": "Atari 2600 environments via ALE",
+        "environments": ATARI_ENVS,
+    },
+    "procgen": {
+        "label": "Procgen",
+        "description": "Procedurally generated benchmark games",
+        "environments": PROCGEN_ENVS,
+    },
+    "bsuite": {
+        "label": "BSuite",
+        "description": "DeepMind Behaviour Suite diagnostic RL tasks",
+        "environments": BSUITE_ENVS,
+    },
 }
 
 
@@ -216,8 +193,13 @@ def _build_env_catalog() -> dict[str, list[str]]:
     robotics_envs = _list_available_robotics_envs()
     general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
-    dreamer_envs = _dedupe_envs(DREAMER_ENVS, DMLAB_ENVS, general_control_envs)
-    planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
+    bsuite_envs = _list_available_bsuite_ids()
+    dreamer_envs = _dedupe_envs(
+        DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs
+    )
+    planet_envs = _dedupe_envs(
+        PLANET_BASE_ENVS, atari_envs[:80], robotics_envs, PROCGEN_ENVS
+    )
     return {
         "dreamer": dreamer_envs,
         "dreamerv1": dreamer_envs,
@@ -234,12 +216,3 @@ def _build_env_catalog() -> dict[str, list[str]]:
 
 
 ENVIRONMENTS_BY_MODEL = _build_env_catalog()
-
-
-__all__ = [
-    "EnvBackendSpec",
-    "ENV_BACKEND_SPECS",
-    "ENV_BACKENDS",
-    "ENVIRONMENTS_BY_MODEL",
-    "DMLAB_ENVS",
-]

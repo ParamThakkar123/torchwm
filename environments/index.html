@@ -387,43 +387,49 @@
 <td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code> only</p></td>
 <td><p>Original continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code> or one-hot vector for discrete actions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="brax.html"><span class="std std-doc">Brax</span></a></p></td>
+<tr class="row-even"><td><p>DeepMind BSuite</p></td>
+<td><p>Small diagnostic RL benchmark tasks such as <code class="docutils literal notranslate"><span class="pre">catch/0</span></code> and <code class="docutils literal notranslate"><span class="pre">deep_sea/0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_bsuite_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;bsuite&quot;</span></code></p></td>
+<td><p>Dict with synthetic <code class="docutils literal notranslate"><span class="pre">image</span></code> only</p></td>
+<td><p>One-hot vector for discrete actions</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="brax.html"><span class="std std-doc">Brax</span></a></p></td>
 <td><p>JAX/Brax continuous-control tasks through a Gym-like image adapter</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">BraxImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_brax_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;brax&quot;</span></code></p></td>
 <td><p>Dict with synthesized <code class="docutils literal notranslate"><span class="pre">image</span></code>; raw vector in <code class="docutils literal notranslate"><span class="pre">info[&quot;vector_observation&quot;]</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> matching <code class="docutils literal notranslate"><span class="pre">env.action_size</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="atari.html"><span class="std std-doc">Atari</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="atari.html"><span class="std std-doc">Atari</span></a></p></td>
 <td><p>Atari 2600 environments through Gymnasium/ALE</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_atari_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_atari_vector_env</span></code></p></td>
 <td><p>ALE RGB/RAM observations</p></td>
 <td><p>Discrete Atari actions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
 <td><p>Gymnasium MuJoCo task ids and native MJCF/MJB models</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_mujoco_env</span></code></p></td>
 <td><p>Image dict via <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>/<code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="robotics.html"><span class="std std-doc">Gymnasium Robotics</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="robotics.html"><span class="std std-doc">Gymnasium Robotics</span></a></p></td>
 <td><p>All ids registered by the installed Gymnasium Robotics package, including moved legacy MuJoCo v2/v3 ids</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_robotics_env</span></code>, <code class="docutils literal notranslate"><span class="pre">list_gymnasium_robotics_envs</span></code></p></td>
 <td><p>Image dict via <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="unity.html"><span class="std std-doc">Unity ML-Agents</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="unity.html"><span class="std std-doc">Unity ML-Agents</span></a></p></td>
 <td><p>External Unity executable simulations with continuous-control behaviors</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;unity_mlagents&quot;</span></code></p></td>
 <td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="vectorized.html"><span class="std std-doc">Vectorized environments</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="vectorized.html"><span class="std std-doc">Vectorized environments</span></a></p></td>
 <td><p>Multiprocess/vector rollout collection and native ALE vectorization</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_atari_vector_env</span></code></p></td>
 <td><p>Batched observations</p></td>
 <td><p>Batched actions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
 <td><p>Shared preprocessing, action conversion, time limits, reward observations, and image transforms</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">world_models.envs.wrappers</span></code></p></td>
 <td><p>Backend-dependent</p></td>
@@ -437,7 +443,7 @@
 <h2>Shared conventions<a class="headerlink" href="#shared-conventions" title="Link to this heading">#</a></h2>
 <p>Most TorchWM training code expects image observations as a dictionary entry named <code class="docutils literal notranslate"><span class="pre">image</span></code> with channel-first shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> and <code class="docutils literal notranslate"><span class="pre">uint8</span></code> values. Backend adapters that wrap vector-only environments synthesize an image representation so pixel-based agents can still run.</p>
 <p>DIAMOND-style Atari support is documented on the Atari page as a preprocessing helper for Atari rollouts. It is not a separate environment backend.</p>
-<p>Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, Brax, or Unity environments:</p>
+<p>Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, BSuite, Brax, MuJoCo, Robotics, or Unity environments:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code> repeats each selected action for <code class="docutils literal notranslate"><span class="pre">cfg.action_repeat</span></code> environment steps.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code> exposes finite continuous action bounds as normalized <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> policy outputs.</p></li>

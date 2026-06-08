@@ -10877,7 +10877,7 @@ compatibility helper.</p></li>
 <dt class="sig sig-object py" id="world_models.models.dreamer.make_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer.</span></span><span class="sig-name descname"><span class="pre">make_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer.html#make_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer.make_env" title="Link to this definition">#</a></dt>
 <dd><p>Construct a Dreamer-compatible environment from <cite>DreamerConfig</cite> options.</p>
-<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends
+<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, BSuite, and Unity ML-Agents backends
 and applies the standard wrapper stack: action repeat, action normalization,
 and time limit.</p>
 </dd></dl>
@@ -20633,6 +20633,104 @@ observations and exposes continuous actions in the Brax <code class="docutils li
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">BSuiteImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bsuite_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-like wrapper for DeepMind BSuite <code class="docutils literal notranslate"><span class="pre">dm_env</span></code> environments.</p>
+<p>BSuite tasks expose compact <code class="docutils literal notranslate"><span class="pre">dm_env</span></code> observations and mostly discrete
+actions. This adapter presents a Gym/Gymnasium-style API with image
+observations under <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> so TorchWM’s pixel-based world
+models can train and evaluate on BSuite diagnostic tasks without requiring
+the base environment to implement rendering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bsuite_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>env</strong> (<em>Any</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.render" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_bsuite_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_bsuite_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bsuite_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#make_bsuite_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_bsuite_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a Dreamer-compatible image wrapper around a BSuite task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bsuite_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.BSuiteImageEnv" title="world_models.envs.bsuite_env.BSuiteImageEnv"><em>BSuiteImageEnv</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.list_available_bsuite_ids">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">list_available_bsuite_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#list_available_bsuite_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.list_available_bsuite_ids" title="Link to this definition">#</a></dt>
+<dd><p>Return the installed BSuite sweep ids, or examples if BSuite is absent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="world_models.envs.TimeLimit">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">TimeLimit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/wrappers.html#TimeLimit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.TimeLimit" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -26535,6 +26633,18 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_brax_env"><code class="docutils literal notranslate"><span class="pre">make_brax_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.step"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.render"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.close"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_bsuite_env"><code class="docutils literal notranslate"><span class="pre">make_bsuite_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_available_bsuite_ids"><code class="docutils literal notranslate"><span class="pre">list_available_bsuite_ids()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>

@@ -11,10 +11,10 @@ project = "TorchWM"
 copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
 
-# Auto-read version from world_models package
+# Auto-read version from the public torchwm package
 
-import world_models
-release = world_models.__version__
+import torchwm
+release = torchwm.__version__
 
 extensions = [
     "sphinx.ext.autodoc",

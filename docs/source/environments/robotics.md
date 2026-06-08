@@ -21,7 +21,7 @@ Gymnasium Robotics ids are listed dynamically from Gymnasium's registry after `g
 ## Dreamer configuration
 
 ```python
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "robotics"
@@ -34,7 +34,7 @@ The Dreamer wrapper stack still applies action repeat, action normalization, and
 ## Factory usage
 
 ```python
-from world_models.envs.robotics_env import make_robotics_env
+from torchwm import make_robotics_env
 
 env = make_robotics_env(
     "HalfCheetah-v2",

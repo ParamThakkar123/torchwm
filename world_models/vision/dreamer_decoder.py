@@ -148,6 +148,46 @@ class ConvDecoder(nn.Module):
         return out_dist
 
 
+class _TwoHotDistribution:
+    """Categorical distribution over symlog-spaced buckets (Dreamer V2).
+
+    Stores raw logits and provides ``log_prob`` and ``mode`` / ``mean`` for
+    use in the world model and actor-critic losses. Decoding goes through
+    :func:`dreamer_utils.symexp` to invert the symlog transform.
+    """
+
+    def __init__(self, logits, num_buckets, symlog_range):
+        self.logits = logits
+        self.num_buckets = int(num_buckets)
+        self.symlog_range = float(symlog_range)
+        centers = torch.linspace(
+            -self.symlog_range, self.symlog_range, self.num_buckets
+        )
+        self._centers = centers.to(logits.device)
+
+    def log_prob(self, target):
+        if target.shape[-1] != self.num_buckets:
+            return self._log_prob_symlog(target)
+        return torch.log_softmax(self.logits, dim=-1) * target
+
+    def _log_prob_symlog(self, target):
+        from world_models.utils.dreamer_utils import TwoHotEncoder
+
+        encoder = TwoHotEncoder(
+            num_buckets=self.num_buckets, symlog_range=self.symlog_range
+        ).to(target.device)
+        encoded = encoder.encode(target)
+        return (torch.log_softmax(self.logits, dim=-1) * encoded).sum(-1)
+
+    def mean(self):
+        from world_models.utils.dreamer_utils import symexp
+
+        probs = torch.softmax(self.logits, dim=-1)
+        centers = self._centers.to(probs.device)
+        expectation = (probs * centers).sum(-1, keepdim=True)
+        return symexp(expectation)
+
+
 class DenseDecoder(nn.Module):
     """MLP decoder for reward/value/discount prediction from latent features.
 
@@ -190,7 +230,16 @@ class DenseDecoder(nn.Module):
     """
 
     def __init__(
-        self, stoch_size, deter_size, output_shape, n_layers, units, activation, dist
+        self,
+        stoch_size,
+        deter_size,
+        output_shape,
+        n_layers,
+        units,
+        activation,
+        dist,
+        num_buckets=255,
+        symlog_range=10.0,
     ):
         super().__init__()
 
@@ -200,6 +249,8 @@ class DenseDecoder(nn.Module):
         self.units = units
         self.act_fn = _str_to_activation[activation]
         self.dist = dist
+        self.num_buckets = int(num_buckets)
+        self.symlog_range = float(symlog_range)
 
         layers = []
 
@@ -209,7 +260,12 @@ class DenseDecoder(nn.Module):
             layers.append(nn.Linear(in_ch, out_ch))
             layers.append(self.act_fn)
 
-        layers.append(nn.Linear(self.units, int(np.prod(self.output_shape))))
+        if self.dist == "symlog_twohot":
+            out_dim = int(np.prod(self.output_shape)) * self.num_buckets
+        else:
+            out_dim = int(np.prod(self.output_shape))
+
+        layers.append(nn.Linear(self.units, out_dim))
 
         self.model = nn.Sequential(*layers)
 
@@ -222,6 +278,12 @@ class DenseDecoder(nn.Module):
             return Independent(Bernoulli(logits=out), len(self.output_shape))
         if self.dist == "none":
             return out
+        if self.dist == "symlog_twohot":
+            logits = out.reshape(
+                *out.shape[:-1], int(np.prod(self.output_shape)), self.num_buckets
+            )
+            return _TwoHotDistribution(logits, self.num_buckets, self.symlog_range)
+        raise NotImplementedError(self.dist)
 
         raise NotImplementedError(self.dist)
 

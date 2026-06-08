@@ -174,6 +174,11 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "DeepMind Behaviour Suite diagnostic RL tasks",
         "environments": BSUITE_ENVS,
     },
+    "dmlab": {
+        "label": "DeepMind Lab",
+        "description": "DeepMind Lab 3D navigation and puzzle tasks",
+        "environments": _list_available_dmlab_levels(),
+    },
 }
 
 
@@ -188,14 +193,24 @@ def _dedupe_envs(*groups: list[str]) -> list[str]:
     return combined
 
 
+def _list_available_dmlab_levels() -> list[str]:
+    try:
+        from world_models.envs.dmlab import DMLAB_LEVELS
+
+        return list(DMLAB_LEVELS)
+    except Exception:
+        return []
+
+
 def _build_env_catalog() -> dict[str, list[str]]:
     atari_envs = _list_available_atari_envs()
     robotics_envs = _list_available_robotics_envs()
     general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
     bsuite_envs = _list_available_bsuite_ids()
+    dmlab_envs = _list_available_dmlab_levels()
     dreamer_envs = _dedupe_envs(
-        DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs
+        DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs, dmlab_envs
     )
     planet_envs = _dedupe_envs(
         PLANET_BASE_ENVS, atari_envs[:80], robotics_envs, PROCGEN_ENVS

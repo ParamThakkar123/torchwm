@@ -10,9 +10,26 @@ Public package surface
 
 These modules expose the most common imports and lazy constructors.
 
+**Primary module:** ``torchwm``. Implementation modules are documented below for API completeness.
+
+Use ``torchwm`` for common workflows::
+
+   import torchwm
+   agent = torchwm.create_model("dreamer", env="walker-walk")
+
+.. automodule:: torchwm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 **Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.catalog``, ``world_models.envs``, and ``world_models.inference``.
 
 .. automodule:: world_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.api
    :members:
    :undoc-members:
    :show-inheritance:
@@ -337,7 +354,7 @@ Environment adapters
 ~~~~~~~~~~~~~~~~~~~~
 
 The environment APIs below mirror the dedicated environment guide pages: DMC,
-DeepMind Lab, Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DeepMind Lab, Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.
@@ -368,6 +385,11 @@ family.
    :show-inheritance:
 
 .. automodule:: world_models.envs.ale_atari_vector_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.procgen_env
    :members:
    :undoc-members:
    :show-inheritance:
@@ -471,11 +493,6 @@ Masking and JEPA helpers
 
 Benchmarks and reports
 ----------------------
-
-.. automodule:: benchmarks
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: world_models.benchmarks
    :members:

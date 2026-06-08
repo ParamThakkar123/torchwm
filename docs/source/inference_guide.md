@@ -5,11 +5,13 @@ This guide covers how to use trained TorchWM models for inference and deployment
 ## Overview
 
 TorchWM provides standardized inference through operators and future pipelines.
+For application code, prefer the top-level `torchwm.get_operator()` factory; it
+keeps examples short and avoids deep imports.
 
 ## Loading Trained Models
 
 ```python :class: thebe
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 # Load from checkpoint
 agent = DreamerAgent.from_pretrained("path/to/checkpoint")
@@ -26,9 +28,10 @@ See {doc}`operators_guide` for detailed operator usage.
 
 ```python :class: thebe
 import torch
-from world_models.inference.operators import DreamerOperator
+import torchwm
+from torchwm import DreamerAgent
 
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
 # Single step prediction
@@ -43,10 +46,11 @@ with torch.no_grad():
 ### JEPA
 
 ```python :class: thebe
-from world_models.models import JEPAAgent
-from world_models.inference.operators import JEPAOperator
+import torch
+import torchwm
+from torchwm import JEPAAgent
 
-op = JEPAOperator()
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
 agent = JEPAAgent.from_pretrained("jepa_checkpoint")
 
 # Representation learning
@@ -63,7 +67,7 @@ Generate imagined trajectories:
 
 ```python :class: thebe
 # Dreamer imagination
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
@@ -108,10 +112,14 @@ with torch.no_grad():
 For interactive applications:
 
 ```python :class: thebe
+import torch
+import torchwm
+from torchwm import DreamerAgent
+
 class InferenceServer:
     def __init__(self):
         self.agent = DreamerAgent.from_pretrained("checkpoint").eval()
-        self.op = DreamerOperator()
+        self.op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 
     def predict(self, obs, action):
         processed = self.op({'image': obs, 'action': action})
@@ -126,17 +134,18 @@ server = InferenceServer()
 ### JIT Compilation
 
 ```python :class: thebe
-from world_models.utils.jit_utils import jit_compile_module
+import torch
 
-agent = jit_compile_module(agent)
+agent = torch.jit.script(agent)
 ```
 
 ### Memory Efficient Inference
 
 ```python :class: thebe
-from world_models.utils.memory_utils import optimize_memory_efficient_ops
+import torch
 
-optimize_memory_efficient_ops()
+with torch.inference_mode():
+    output = agent.predict(processed)
 ```
 
 ## Exporting Models
@@ -158,11 +167,12 @@ torch.onnx.export(agent, dummy_input, "model.onnx")
 ### With Gym Environments
 
 ```python :class: thebe
-import gymnasium as gym
+import torchwm
+from torchwm import DreamerAgent
 
-env = gym.make("Pendulum-v1")
+env = torchwm.make_env("Pendulum-v1", backend="gym")
 agent = DreamerAgent.from_pretrained("pendulum_checkpoint")
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=env.action_space.shape[0])
 
 obs, _ = env.reset()
 done = False

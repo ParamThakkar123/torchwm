@@ -81,9 +81,9 @@ Transformer-based model that predicts future tokens:
 ## Training
 
 ```python :class: thebe
-from world_models.models import create_genie_small
-from world_models.configs import GenieConfig
-from world_models.training import GenieTrainer
+from torchwm import create_genie_small
+from torchwm import GenieConfig
+# Use your training loop or the TorchWM training CLI for full Genie runs.
 
 cfg = GenieConfig()
 cfg.num_frames = 16
@@ -91,8 +91,8 @@ cfg.image_size = 64
 cfg.epochs = 100
 
 model = create_genie_small(num_frames=16, image_size=64)
-trainer = GenieTrainer(model, cfg)
-trainer.train()
+# trainer = GenieTrainer(model, cfg)
+# trainer.train()
 ```
 
 ### Training Losses

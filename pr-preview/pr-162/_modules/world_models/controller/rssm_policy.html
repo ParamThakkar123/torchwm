@@ -292,7 +292,7 @@
 
 
 <div class="viewcode-block" id="RSSMPolicy">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rssm_policy.RSSMPolicy">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSMPolicy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RSSMPolicy</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Model-predictive controller using Cross-Entropy Method (CEM) with RSSM.</span>
 
@@ -365,7 +365,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">latent_size</span>
 
 <div class="viewcode-block" id="RSSMPolicy.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSMPolicy.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -395,7 +395,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
 
 <div class="viewcode-block" id="RSSMPolicy.poll">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.poll">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSMPolicy.poll">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">explore</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_poll</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>

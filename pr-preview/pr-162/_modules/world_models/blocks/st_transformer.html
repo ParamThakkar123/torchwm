@@ -293,7 +293,7 @@
 
 
 <div class="viewcode-block" id="STSpatialAttention">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STSpatialAttention">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STSpatialAttention">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">STSpatialAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Spatial attention layer for spatiotemporal transformer.</span>
 
@@ -340,7 +340,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">proj_drop</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">proj_drop</span><span class="p">)</span>
 
 <div class="viewcode-block" id="STSpatialAttention.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STSpatialAttention.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STSpatialAttention.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -371,7 +371,7 @@
 
 
 <div class="viewcode-block" id="STTemporalAttention">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTemporalAttention">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTemporalAttention">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">STTemporalAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Temporal attention layer with causal masking for spatiotemporal transformer.</span>
 
@@ -418,7 +418,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">proj_drop</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">proj_drop</span><span class="p">)</span>
 
 <div class="viewcode-block" id="STTemporalAttention.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTemporalAttention.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTemporalAttention.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">causal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -457,7 +457,7 @@
 
 
 <div class="viewcode-block" id="STMLP">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STMLP">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STMLP">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">STMLP</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP for ST-Transformer block.&quot;&quot;&quot;</span>
 
@@ -478,7 +478,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">drop</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">drop</span><span class="p">)</span>
 
 <div class="viewcode-block" id="STMLP.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STMLP.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STMLP.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -491,7 +491,7 @@
 
 
 <div class="viewcode-block" id="STTransformerBlock">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTransformerBlock">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTransformerBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">STTransformerBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Combined spatiotemporal transformer block with interleaved attention.</span>
 
@@ -582,7 +582,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span> <span class="o">=</span> <span class="n">DropPath</span><span class="p">(</span><span class="n">drop_path</span><span class="p">)</span> <span class="k">if</span> <span class="n">drop_path</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
 
 <div class="viewcode-block" id="STTransformerBlock.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTransformerBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTransformerBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -615,7 +615,7 @@
 
 
 <div class="viewcode-block" id="DropPath">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.DropPath">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DropPath">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DropPath</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Drop paths (Stochastic Depth) per sample.&quot;&quot;&quot;</span>
 
@@ -624,7 +624,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">drop_prob</span> <span class="o">=</span> <span class="n">drop_prob</span>
 
 <div class="viewcode-block" id="DropPath.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.DropPath.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DropPath.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_prob</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">x</span>
@@ -639,7 +639,7 @@
 
 
 <div class="viewcode-block" id="STTransformer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTransformer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTransformer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">STTransformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Spatiotemporal Transformer for video modeling.</span>
 
@@ -686,7 +686,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
 
 <div class="viewcode-block" id="STTransformer.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.STTransformer.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.STTransformer.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
@@ -715,7 +715,7 @@
 
 
 <div class="viewcode-block" id="create_st_transformer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.blocks.st_transformer.create_st_transformer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.create_st_transformer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_st_transformer</span><span class="p">(</span>
     <span class="n">num_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
     <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>

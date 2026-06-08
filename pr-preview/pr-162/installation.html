@@ -57,7 +57,7 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-162/installation.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Using Operators for Inference" href="operators_guide.html" />
+    <link rel="next" title="Public API Quick Reference" href="public_api.html" />
     <link rel="prev" title="Getting Started" href="getting_started.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -414,13 +415,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </pre></div>
 </div>
 </section>
-<section id="cuda-support">
-<h2>CUDA Support<a class="headerlink" href="#cuda-support" title="Link to this heading">#</a></h2>
-<p>For GPU acceleration, install PyTorch with CUDA:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using uv (recommended)</span>
-uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
+<section id="pytorch-build-selection">
+<h2>PyTorch Build Selection<a class="headerlink" href="#pytorch-build-selection" title="Link to this heading">#</a></h2>
+<p>TorchWM does not pin a single PyTorch wheel index. Install the PyTorch build that matches your platform (CPU, macOS, CUDA, ROCm, etc.) using the index recommended by the <a class="reference external" href="https://pytorch.org/get-started/locally/">PyTorch installation selector</a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example: CUDA 12.1 wheels. Replace the index for CPU, ROCm, or other CUDA versions.</span>
+uv<span class="w"> </span>add<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index<span class="w"> </span>https://download.pytorch.org/whl/cu121
 
-<span class="c1"># Or using pip</span>
+<span class="c1"># Or using pip.</span>
 pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>torchvision<span class="w"> </span>torchaudio<span class="w"> </span>--index-url<span class="w"> </span>https://download.pytorch.org/whl/cu121
 </pre></div>
 </div>
@@ -440,7 +441,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 <h2>Verification<a class="headerlink" href="#verification" title="Link to this heading">#</a></h2>
 <p>Verify your installation:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">world_models</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PyTorch: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CUDA available: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -470,11 +471,11 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
       </div>
     </a>
     <a class="right-next"
-       href="operators_guide.html"
+       href="public_api.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Using Operators for Inference</p>
+        <p class="prev-next-title">Public API Quick Reference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -503,7 +504,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </s
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">From Source</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cuda-support">CUDA Support</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch-build-selection">PyTorch Build Selection</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#docker">Docker</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verification">Verification</a></li>
 </ul>

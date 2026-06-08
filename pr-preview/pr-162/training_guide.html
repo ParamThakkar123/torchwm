@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-162/training_guide.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="This guide covers how to train world models in TorchWM. Overview: TorchWM supports training multiple world model algorithms with a unified interface. Basic Training Flow: Select an algorithm and cr..." />
-<meta name="description" content="This guide covers how to train world models in TorchWM. Overview: TorchWM supports training multiple world model algorithms with a unified interface. Basic Training Flow: Select an algorithm and cr..." />
+<meta property="og:description" content="This guide covers how to train world models in TorchWM. Overview: TorchWM supports training multiple world model algorithms with a unified interface. Basic Training Flow: Select an algorithm, Overr..." />
+<meta name="description" content="This guide covers how to train world models in TorchWM. Overview: TorchWM supports training multiple world model algorithms with a unified interface. Basic Training Flow: Select an algorithm, Overr..." />
 
     <title>Training Guide &#8212; TorchWM 0.4.0 documentation</title>
   
@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -353,24 +354,47 @@
 <section id="basic-training-flow">
 <h2>Basic Training Flow<a class="headerlink" href="#basic-training-flow" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>Select an algorithm and create config</p></li>
-<li><p>Set environment/dataset parameters</p></li>
-<li><p>Configure training hyperparameters</p></li>
-<li><p>Initialize agent and call train()</p></li>
+<li><p>Select an algorithm</p></li>
+<li><p>Override environment, dataset, or optimization parameters</p></li>
+<li><p>Initialize the agent</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">train()</span></code> and monitor logs/checkpoints</p></li>
 </ol>
+<p>The simplest path is the top-level <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+    <span class="s2">&quot;dreamer&quot;</span><span class="p">,</span>
+    <span class="n">env_backend</span><span class="o">=</span><span class="s2">&quot;dmc&quot;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="s2">&quot;walker-walk&quot;</span><span class="p">,</span>
+    <span class="n">total_steps</span><span class="o">=</span><span class="mi">1_000_000</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For research code, the lower-level config and agent classes remain available.</p>
 </section>
 <section id="dreamer-training">
 <h2>Dreamer Training<a class="headerlink" href="#dreamer-training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<p>Preferred application API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="c1"># Configure</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+    <span class="s2">&quot;dreamer&quot;</span><span class="p">,</span>
+    <span class="n">env_backend</span><span class="o">=</span><span class="s2">&quot;dmc&quot;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="s2">&quot;walker-walk&quot;</span><span class="p">,</span>
+    <span class="n">total_steps</span><span class="o">=</span><span class="mi">1_000_000</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Equivalent direct API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">DreamerConfig</span>
+
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">1_000_000</span>
 
-<span class="c1"># Train</span>
 <span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 </pre></div>
@@ -378,41 +402,48 @@
 </section>
 <section id="jepa-training">
 <h2>JEPA Training<a class="headerlink" href="#jepa-training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagenet&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">100</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">JEPAAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+    <span class="s2">&quot;jepa&quot;</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;imagenet&quot;</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
 <section id="iris-training">
 <h2>IRIS Training<a class="headerlink" href="#iris-training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISConfig</span>
+<p><code class="docutils literal notranslate"><span class="pre">IRISAgent</span></code> needs constructor arguments such as <code class="docutils literal notranslate"><span class="pre">action_size</span></code> and <code class="docutils literal notranslate"><span class="pre">device</span></code> in
+addition to its config, so pass those as constructor overrides:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">IRISConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_name</span> <span class="o">=</span> <span class="s2">&quot;Pong-v5&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">total_epochs</span> <span class="o">=</span> <span class="mi">100</span>
-
-<span class="n">agent</span> <span class="o">=</span> <span class="n">IRISAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+    <span class="s2">&quot;iris&quot;</span><span class="p">,</span>
+    <span class="n">env_name</span><span class="o">=</span><span class="s2">&quot;Pong-v5&quot;</span><span class="p">,</span>
+    <span class="n">total_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">),</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="custom-training-loop">
 <h2>Custom Training Loop<a class="headerlink" href="#custom-training-loop" title="Link to this heading">#</a></h2>
 <p>For advanced users, implement custom training:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerMemory</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span><span class="p">,</span> <span class="n">ReplayBuffer</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">memory</span> <span class="o">=</span> <span class="n">DreamerMemory</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">memory</span> <span class="o">=</span> <span class="n">ReplayBuffer</span><span class="p">(</span>
+    <span class="n">size</span><span class="o">=</span><span class="mi">100_000</span><span class="p">,</span>
+    <span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="n">seq_len</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span><span class="p">):</span>
     <span class="c1"># Collect experience</span>

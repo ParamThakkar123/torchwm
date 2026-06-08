@@ -57,8 +57,8 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-162/environments/atari.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="MuJoCo" href="mujoco.html" />
-    <link rel="prev" title="Gym and Gymnasium" href="gym.html" />
+    <link rel="next" title="Procgen" href="procgen.html" />
+    <link rel="prev" title="Brax Environments" href="brax.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -362,7 +363,7 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 </section>
 <section id="raw-atari-apis">
 <h2>Raw Atari APIs<a class="headerlink" href="#raw-atari-apis" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">make_atari_env</span><span class="p">(</span><span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">,</span> <span class="n">obs_type</span><span class="o">=</span><span class="s2">&quot;rgb&quot;</span><span class="p">,</span> <span class="n">frameskip</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">list_available_atari_envs</span><span class="p">()[:</span><span class="mi">10</span><span class="p">])</span>
@@ -412,7 +413,7 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 <section id="atari-preprocessing-for-diamond-style-training">
 <h2>Atari preprocessing for DIAMOND-style training<a class="headerlink" href="#atari-preprocessing-for-diamond-style-training" title="Link to this heading">#</a></h2>
 <p>This is not a separate environment in TorchWM. It is an Atari preprocessing path implemented by <code class="docutils literal notranslate"><span class="pre">DiamondAtariWrapper</span></code> and <code class="docutils literal notranslate"><span class="pre">make_diamond_atari_env()</span></code> for users who want DIAMOND-compatible Atari rollouts.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.diamond_atari</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_diamond_atari_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_diamond_atari_env</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">make_diamond_atari_env</span><span class="p">(</span>
     <span class="n">game</span><span class="o">=</span><span class="s2">&quot;ALE/Breakout-v5&quot;</span><span class="p">,</span>
@@ -456,7 +457,7 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
 <section id="native-vectorized-atari">
 <h2>Native vectorized Atari<a class="headerlink" href="#native-vectorized-atari" title="Link to this heading">#</a></h2>
 <p>For parallel Atari simulation, use <code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.ale_atari_vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
 
 <span class="n">vec_env</span> <span class="o">=</span> <span class="n">make_atari_vector_env</span><span class="p">(</span>
     <span class="n">game</span><span class="o">=</span><span class="s2">&quot;pong&quot;</span><span class="p">,</span>
@@ -503,20 +504,20 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="gym.html"
+       href="brax.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Gym and Gymnasium</p>
+        <p class="prev-next-title">Brax Environments</p>
       </div>
     </a>
     <a class="right-next"
-       href="mujoco.html"
+       href="procgen.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">MuJoCo</p>
+        <p class="prev-next-title">Procgen</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

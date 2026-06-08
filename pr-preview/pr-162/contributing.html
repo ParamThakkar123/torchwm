@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -397,8 +398,11 @@ pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># All tests</span>
 pytest
 
-<span class="c1"># Specific tests</span>
-pytest<span class="w"> </span>tests/test_operators.py
+<span class="c1"># Fast subset (skip slow, GPU, and integration tests)</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow and not gpu and not integration&quot;</span>
+
+<span class="c1"># Specific package-mirrored test area</span>
+pytest<span class="w"> </span>tests/inference/test_operators.py
 
 <span class="c1"># With coverage</span>
 pytest<span class="w"> </span>--cov<span class="o">=</span>world_models<span class="w"> </span>--cov-report<span class="o">=</span>html
@@ -418,7 +422,7 @@ sphinx-build<span class="w"> </span>-b<span class="w"> </span>html<span class="w
 <h2>Adding New Features<a class="headerlink" href="#adding-new-features" title="Link to this heading">#</a></h2>
 <section id="new-operators">
 <h3>1. New Operators<a class="headerlink" href="#new-operators" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">NewOperator</span><span class="p">(</span><span class="n">OperatorABC</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>

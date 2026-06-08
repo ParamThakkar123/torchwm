@@ -4,21 +4,37 @@ TorchWM is organized into focused modules so you can use only the pieces you nee
 
 ## Quick Import (Public API)
 
-Import everything you need from a single namespace:
+For applications and examples, prefer the installed package name, `torchwm`. It
+mirrors the TorchWM implementation package and exposes the same lazy public
+API without importing optional training backends until you use them.
 
 ```python
-import world_models
-# or
-from world_models import DreamerAgent, DreamerConfig
+import torchwm
+
+print(torchwm.list_models())
+agent = torchwm.create_model("dreamer", env="walker-walk", total_steps=1_000_000)
+env = torchwm.make_env("CartPole-v1", backend="gym")
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+```
+
+Use `torchwm` for direct component imports as well as factory helpers:
+
+```python
+from torchwm import DreamerAgent, DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+agent = DreamerAgent(cfg)
 ```
 
 ### Available Exports
 
 | Category | Exports |
 |----------|--------|
-| **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
-| **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig` |
-| **Environments** | `make_atari_env`, `GymImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, etc. |
+| **Friendly factories** | `create_config`, `create_model`, `make_env`, `list_models`, `list_env_backends`, `list_envs` |
+| **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `IRISAgent`, `Genie`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
+| **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig`, `GenieConfig`, `GenieSmallConfig` |
+| **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `make_procgen_env`, `GymImageEnv`, `ProcgenImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, wrappers, etc. |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
 | **Reward** | `RewardModel`, `ValueModel` |
 | **Utilities** | `__version__` |
@@ -26,18 +42,15 @@ from world_models import DreamerAgent, DreamerConfig
 Example usage:
 
 ```python
-from world_models import DreamerAgent, DreamerConfig
-from world_models import get_operator
+import torchwm
 
 # Training
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-agent = DreamerAgent(cfg)
+agent = torchwm.create_model("dreamer", env="walker-walk", total_steps=1_000_000)
 agent.train()
 
 # Inference preprocessing
-op = get_operator('dreamer', image_size=64, action_dim=6)
-processed = op.process({'image': image, 'action': action})
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+processed = op.process({"image": image, "action": action})
 ```
 
 ## Core Modules

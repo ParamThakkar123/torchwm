@@ -288,7 +288,7 @@
                   
   <h1>Source code for world_models.configs.dreamer_config</h1><div class="highlight"><pre>
 <div class="viewcode-block" id="DreamerConfig">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.DreamerConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerConfig">[docs]</a>
 <span></span><span class="k">class</span><span class="w"> </span><span class="nc">DreamerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration container for Dreamer training, evaluation, and environment setup.</span>
 
@@ -304,6 +304,7 @@
         <span class="c1"># gym: generic Gym/Gymnasium env IDs or prebuilt env instances</span>
         <span class="c1"># mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB</span>
         <span class="c1"># robotics: Gymnasium Robotics env IDs (including legacy MuJoCo v2/v3)</span>
+        <span class="c1"># procgen: Procgen procedurally generated benchmark games</span>
         <span class="c1"># unity_mlagents: Unity ML-Agents executable</span>
         <span class="c1"># brax: JAX/Brax continuous-control environments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
@@ -320,6 +321,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_observations</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_config</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_renderer</span> <span class="o">=</span> <span class="s2">&quot;hardware&quot;</span>
+
+        <span class="c1"># Procgen options. Use env values like &quot;coinrun&quot; or &quot;procgen-coinrun-v0&quot;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_distribution_mode</span> <span class="o">=</span> <span class="s2">&quot;easy&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_num_levels</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_start_level</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether</span>
         <span class="c1"># `env` is a Gymnasium task ID or a native MJCF/MJB source.</span>
@@ -379,6 +385,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kl_alpha</span> <span class="o">=</span> <span class="mf">0.8</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">disc_loss_coeff</span> <span class="o">=</span> <span class="mf">10.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_buckets</span> <span class="o">=</span> <span class="mi">255</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symlog_range</span> <span class="o">=</span> <span class="mf">10.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_learning_rate</span> <span class="o">=</span> <span class="mf">6e-4</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_learning_rate</span> <span class="o">=</span> <span class="mf">8e-5</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value_learning_rate</span> <span class="o">=</span> <span class="mf">8e-5</span>

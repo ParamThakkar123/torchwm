@@ -7,7 +7,34 @@ dependencies.
 
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass
 from typing import Any
+
+
+@dataclass(frozen=True)
+class EnvBackendSpec:
+    """Public metadata for an environment backend exposed by TorchWM.
+
+    The spec is intentionally lightweight and import-safe so CLI commands, docs,
+    and integrations can enumerate backends without importing heavy simulation
+    packages. ``env_backend`` is the value used by DreamerConfig when it differs
+    from the catalog key.
+    """
+
+    key: str
+    label: str
+    description: str
+    environments: tuple[str, ...]
+    env_backend: str
+    aliases: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return the legacy dictionary representation used by older callers."""
+        data = asdict(self)
+        data["environments"] = list(self.environments)
+        data["aliases"] = list(self.aliases)
+        return data
+
 
 DREAMER_ENVS = [
     "cartpole-balance",
@@ -109,42 +136,67 @@ def _list_available_atari_envs() -> list[str]:
 ATARI_ENVS: list[str] = _list_available_atari_envs()
 
 
+ENV_BACKEND_SPECS: tuple[EnvBackendSpec, ...] = (
+    EnvBackendSpec(
+        key="dm_control",
+        label="DM Control",
+        description="DeepMind Control Suite",
+        environments=tuple(DREAMER_ENVS),
+        env_backend="dmc",
+        aliases=("dmc",),
+    ),
+    EnvBackendSpec(
+        key="dmlab",
+        label="DeepMind Lab",
+        description="DeepMind Lab 3D navigation and puzzle tasks",
+        environments=tuple(DMLAB_ENVS),
+        env_backend="dmlab",
+        aliases=("deepmind_lab", "deepmindlab"),
+    ),
+    EnvBackendSpec(
+        key="mujoco",
+        label="MuJoCo",
+        description="MuJoCo physics environments",
+        environments=tuple(GYM_ENVS),
+        env_backend="mujoco",
+        aliases=("mjcf", "native_mujoco"),
+    ),
+    EnvBackendSpec(
+        key="gym",
+        label="Gym",
+        description="OpenAI Gym environments",
+        environments=tuple(PLANET_BASE_ENVS),
+        env_backend="gym",
+        aliases=("gymnasium", "generic"),
+    ),
+    EnvBackendSpec(
+        key="robotics",
+        label="Gymnasium Robotics",
+        description="Gymnasium Robotics and legacy MuJoCo v2/v3 environments",
+        environments=tuple(ROBOTICS_ENVS),
+        env_backend="robotics",
+        aliases=("gymnasium_robotics",),
+    ),
+    EnvBackendSpec(
+        key="unity",
+        label="Unity ML Agents",
+        description="Unity ML Agents environments",
+        environments=tuple(UNITY_ENVS),
+        env_backend="unity_mlagents",
+        aliases=("unity", "mlagents"),
+    ),
+    EnvBackendSpec(
+        key="atari",
+        label="Atari",
+        description="Atari 2600 environments via ALE",
+        environments=tuple(ATARI_ENVS),
+        env_backend="gym",
+        aliases=("ale",),
+    ),
+)
+
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
-    "dm_control": {
-        "label": "DM Control",
-        "description": "DeepMind Control Suite",
-        "environments": DREAMER_ENVS,
-    },
-    "dmlab": {
-        "label": "DeepMind Lab",
-        "description": "DeepMind Lab 3D navigation and puzzle tasks",
-        "environments": DMLAB_ENVS,
-    },
-    "mujoco": {
-        "label": "MuJoCo",
-        "description": "MuJoCo physics environments",
-        "environments": GYM_ENVS,
-    },
-    "gym": {
-        "label": "Gym",
-        "description": "OpenAI Gym environments",
-        "environments": PLANET_BASE_ENVS,
-    },
-    "robotics": {
-        "label": "Gymnasium Robotics",
-        "description": "Gymnasium Robotics and legacy MuJoCo v2/v3 environments",
-        "environments": ROBOTICS_ENVS,
-    },
-    "unity": {
-        "label": "Unity ML Agents",
-        "description": "Unity ML Agents environments",
-        "environments": UNITY_ENVS,
-    },
-    "atari": {
-        "label": "Atari",
-        "description": "Atari 2600 environments via ALE",
-        "environments": ATARI_ENVS,
-    },
+    spec.key: spec.as_dict() for spec in ENV_BACKEND_SPECS
 }
 
 
@@ -182,3 +234,12 @@ def _build_env_catalog() -> dict[str, list[str]]:
 
 
 ENVIRONMENTS_BY_MODEL = _build_env_catalog()
+
+
+__all__ = [
+    "EnvBackendSpec",
+    "ENV_BACKEND_SPECS",
+    "ENV_BACKENDS",
+    "ENVIRONMENTS_BY_MODEL",
+    "DMLAB_ENVS",
+]

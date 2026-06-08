@@ -10,7 +10,7 @@ Public package surface
 
 These modules expose the most common imports and lazy constructors.
 
-**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.envs``, and ``world_models.inference``.
+**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.catalog``, ``world_models.envs``, and ``world_models.inference``.
 
 .. automodule:: world_models
    :members:
@@ -18,6 +18,11 @@ These modules expose the most common imports and lazy constructors.
    :show-inheritance:
 
 .. automodule:: world_models.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.catalog
    :members:
    :undoc-members:
    :show-inheritance:

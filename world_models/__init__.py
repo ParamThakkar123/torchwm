@@ -215,6 +215,19 @@ def __getattr__(name):
         return getattr(_envs, name)
 
     # =====================================================================
+    # CATALOG
+    # =====================================================================
+    if name in (
+        "EnvBackendSpec",
+        "ENV_BACKEND_SPECS",
+        "ENV_BACKENDS",
+        "ENVIRONMENTS_BY_MODEL",
+    ):
+        from world_models import catalog as _catalog
+
+        return getattr(_catalog, name)
+
+    # =====================================================================
     # INFERENCE OPERATORS
     # =====================================================================
     if name in (
@@ -400,6 +413,10 @@ __all__ = [
     "DMLabEnv",
     "make_dmlab_env",
     "DMLAB_LEVELS",
+    "EnvBackendSpec",
+    "ENV_BACKEND_SPECS",
+    "ENV_BACKENDS",
+    "ENVIRONMENTS_BY_MODEL",
     "UnityMLAgentsEnv",
     "make_unity_mlagents_env",
     "MujocoEnv",

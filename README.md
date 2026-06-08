@@ -18,6 +18,14 @@ TorchWM provides reusable PyTorch components and training utilities for Dreamer-
 # Install the core package from PyPI.
 pip install torchwm
 
+# With extras
+pip install torchwm[gym]       # Additional gym environments
+pip install torchwm[procgen]   # Procgen benchmark environments
+pip install torchwm[ml-agents] # Unity ML-Agents
+pip install torchwm[ml]        # TensorBoard, W&B logging
+pip install torchwm[viz]       # FastAPI visualization
+pip install torchwm[dev]       # Testing and linting
+
 # Or add it to a uv-managed project.
 uv add torchwm
 ```

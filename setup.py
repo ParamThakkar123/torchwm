@@ -48,6 +48,9 @@ setup(
         "brax": [
             "brax>=0.13.0",
         ],
+        "procgen": [
+            "procgen>=0.10.7",
+        ],
         "bsuite": [
             "bsuite>=0.3.5",
         ],
@@ -85,7 +88,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,robotics,brax,bsuite,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
         ],
     },
     classifiers=[

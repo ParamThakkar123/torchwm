@@ -119,6 +119,12 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="Gymnasium Robotics environments.",
         aliases=("gymnasium_robotics",),
     ),
+    "procgen": EnvBackendSpec(
+        name="procgen",
+        factory_path="world_models.envs:make_procgen_env",
+        description="Procedurally generated benchmark environments.",
+        aliases=("coinrun",),
+    ),
     "brax": EnvBackendSpec(
         name="brax",
         factory_path="world_models.envs:make_brax_env",

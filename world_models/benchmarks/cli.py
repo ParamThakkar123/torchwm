@@ -7,7 +7,6 @@ import torch
 from world_models.benchmarks.runner import BenchmarkRunner, MultiAgentBenchmarkRunner
 from world_models.benchmarks import adapters
 
-
 AGENTS = {
     "diamond": adapters.DiamondAdapter,
     "iris": adapters.IRISAdapter,
@@ -35,6 +34,12 @@ def main():
         "--all-agents", action="store_true", help="Run benchmark for all agents"
     )
     parser.add_argument("--game", type=str, required=True)
+    parser.add_argument(
+        "--env-backend",
+        type=str,
+        default=None,
+        help="Optional environment backend forwarded to adapters (for example: gym, dmc, bsuite).",
+    )
     parser.add_argument(
         "--seeds",
         type=str,
@@ -71,7 +76,14 @@ def main():
         runner = MultiAgentBenchmarkRunner(adapters=all_adapters, out_dir=args.out_dir)
 
         runner.run_all(
-            env_spec={"game": args.game},
+            env_spec={
+                "game": args.game,
+                **(
+                    {"env_backend": args.env_backend.lower()}
+                    if args.env_backend
+                    else {}
+                ),
+            },
             seeds=seeds,
             num_episodes=args.episodes,
             checkpoints=None,  # Could extend to support per-agent checkpoints
@@ -87,6 +99,8 @@ def main():
         runner = BenchmarkRunner(adapter_cls=adapter_cls, out_dir=args.out_dir)
 
         env_spec = {"game": args.game}
+        if args.env_backend:
+            env_spec["env_backend"] = args.env_backend.lower()
 
         runner.run(
             env_spec=env_spec,

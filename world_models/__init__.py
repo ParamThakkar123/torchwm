@@ -117,6 +117,9 @@ _LAZY_EXPORTS: dict[str, str] = {
     "HUMAN_SCORES": "world_models.configs",
     "RANDOM_SCORES": "world_models.configs",
     # Environments and wrappers.
+    "BSuiteImageEnv": "world_models.envs",
+    "make_bsuite_env": "world_models.envs",
+    "list_available_bsuite_ids": "world_models.envs",
     "make_atari_env": "world_models.envs",
     "list_available_atari_envs": "world_models.envs",
     "make_atari_vector_env": "world_models.envs",

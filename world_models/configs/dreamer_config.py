@@ -84,6 +84,8 @@ class DreamerConfig:
         self.kl_loss_coeff = 1.0
         self.kl_alpha = 0.8
         self.disc_loss_coeff = 10.0
+        self.num_buckets = 255
+        self.symlog_range = 10.0
         self.model_learning_rate = 6e-4
         self.actor_learning_rate = 8e-5
         self.value_learning_rate = 8e-5

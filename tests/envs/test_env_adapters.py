@@ -804,3 +804,88 @@ def test_make_env_procgen_backend(
         start_level=cfg.procgen_start_level,
         max_episode_steps=cfg.time_limit,
     )
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.BSuiteImageEnv")
+def test_make_env_bsuite_backend(
+    mock_bsuite_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "bsuite"
+    cfg.env = "catch/0"
+    cfg.image_size = (64, 64)
+
+    env = Mock()
+    mock_bsuite_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_bsuite_env.assert_called_once_with(cfg.env, seed=cfg.seed, size=cfg.image_size)
+
+
+class _FakeActionSpec:
+    num_values = 3
+
+
+class _FakeTimeStep:
+    def __init__(self, observation, reward=0.0, discount=1.0, last=False):
+        self.observation = observation
+        self.reward = reward
+        self.discount = discount
+        self._last = last
+
+    def last(self):
+        return self._last
+
+
+class _FakeBSuiteEnv:
+    bsuite_num_episodes = 2
+
+    def __init__(self):
+        self.last_action = None
+
+    def action_spec(self):
+        return _FakeActionSpec()
+
+    def reset(self):
+        return _FakeTimeStep({"state": np.array([0.0, 1.0], dtype=np.float32)})
+
+    def step(self, action):
+        self.last_action = action
+        return _FakeTimeStep(
+            np.array([1.0, 0.0], dtype=np.float32), reward=1.5, last=True
+        )
+
+    def close(self):
+        self.closed = True
+
+
+def test_bsuite_image_env_wraps_dm_env_discrete_task():
+    from world_models.envs.bsuite_env import BSuiteImageEnv
+
+    base_env = _FakeBSuiteEnv()
+    env = BSuiteImageEnv("catch/0", seed=7, size=(16, 16), env=base_env)
+
+    obs = env.reset()
+    assert obs["image"].shape == (3, 16, 16)
+    assert env.action_space.shape == (3,)
+
+    next_obs, reward, done, info = env.step(
+        np.array([-1.0, 1.0, -1.0], dtype=np.float32)
+    )
+    assert next_obs["image"].shape == (3, 16, 16)
+    assert reward == 1.5
+    assert done is True
+    assert base_env.last_action == 1
+    assert info["bsuite_id"] == "catch/0"
+    assert np.array_equal(info["action"], np.array([-1.0, 1.0, -1.0], dtype=np.float32))

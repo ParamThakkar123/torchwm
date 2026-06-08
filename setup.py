@@ -51,6 +51,9 @@ setup(
         "procgen": [
             "procgen>=0.10.7",
         ],
+        "bsuite": [
+            "bsuite>=0.3.5",
+        ],
         "viz": [
             "fastapi[standard]>=0.116.0",
             "uvicorn>=0.35.0",
@@ -85,7 +88,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,robotics,brax,procgen,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
         ],
     },
     classifiers=[

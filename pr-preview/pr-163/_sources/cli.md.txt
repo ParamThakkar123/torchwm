@@ -1,5 +1,5 @@
-CLI
-===
+TorchWM CLI
+===========
 
 The project exposes a small command-line interface for common developer tasks:
 
@@ -94,10 +94,8 @@ torchwm collect --env ALE/Pong-v5 --steps 1000 --out pong.npz
 torchwm train iris -- --config configs/iris.yaml
 ```
 
-Recommended next steps
-----------------------
+Maintaining this page
+---------------------
 
-1. Add a link to this page from the docs index (`docs/source/index` or the
-   project's navigation file) so users discover the CLI docs.
-2. If you add new CLI commands, update this file with their usage and any new
-   optional dependencies.
+If you add or rename CLI commands in `tools.cli`, update this page with the
+new usage, examples, and any additional optional dependencies.

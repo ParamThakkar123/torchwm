@@ -50,8 +50,11 @@ Run the test suite:
 # All tests
 pytest
 
-# Specific tests
-pytest tests/test_operators.py
+# Fast subset (skip slow, GPU, and integration tests)
+pytest -m "not slow and not gpu and not integration"
+
+# Specific package-mirrored test area
+pytest tests/inference/test_operators.py
 
 # With coverage
 pytest --cov=world_models --cov-report=html
@@ -72,7 +75,7 @@ Open `docs/build/html/index.html` in your browser.
 ### 1. New Operators
 
 ```python
-from world_models.inference.operators.base import OperatorABC
+from torchwm import OperatorABC
 
 class NewOperator(OperatorABC):
     def process(self, inputs):

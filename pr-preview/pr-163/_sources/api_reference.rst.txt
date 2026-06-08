@@ -10,9 +10,24 @@ Public package surface
 
 These modules expose the most common imports and lazy constructors.
 
-**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.envs``, and ``world_models.inference``.
+**Primary module:** ``torchwm``. Implementation modules are documented below for API completeness.
+
+Use ``torchwm`` for common workflows::
+
+   import torchwm
+   agent = torchwm.create_model("dreamer", env="walker-walk")
+
+.. automodule:: torchwm
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.api
    :members:
    :undoc-members:
    :show-inheritance:
@@ -461,11 +476,6 @@ Masking and JEPA helpers
 
 Benchmarks and reports
 ----------------------
-
-.. automodule:: benchmarks
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 .. automodule:: world_models.benchmarks
    :members:

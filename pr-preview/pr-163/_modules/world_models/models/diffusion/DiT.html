@@ -308,7 +308,7 @@
 
 
 <div class="viewcode-block" id="sinusoidal_time_embedding">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.sinusoidal_time_embedding">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.sinusoidal_time_embedding">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create sinusoidal timestep embeddings for diffusion conditioning.</span>
 
@@ -347,7 +347,7 @@
 
 
 <div class="viewcode-block" id="PatchEmbed">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.PatchEmbed">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchEmbed">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PatchEmbed</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Patchify an image into a sequence of learnable patch tokens.</span>
 
@@ -384,7 +384,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_patches</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">))</span>
 
 <div class="viewcode-block" id="PatchEmbed.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.PatchEmbed.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchEmbed.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b c h w -&gt; b (h w) c&quot;</span><span class="p">)</span>
@@ -395,7 +395,7 @@
 
 
 <div class="viewcode-block" id="PatchUnEmbed">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.PatchUnEmbed">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchUnEmbed">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PatchUnEmbed</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reconstruct image-like tensors from patch-token sequences.</span>
 
@@ -413,7 +413,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="PatchUnEmbed.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.PatchUnEmbed.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchUnEmbed.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b (h w) c -&gt; b c h w&quot;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
@@ -424,7 +424,7 @@
 
 
 <div class="viewcode-block" id="TransformerBlock">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.TransformerBlock">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.TransformerBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TransformerBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Conditioned transformer block used inside the DiT backbone.</span>
 
@@ -446,7 +446,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="TransformerBlock.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.TransformerBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.TransformerBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">):</span>
         <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">)</span>
         <span class="n">attn_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
@@ -460,7 +460,7 @@
 
 
 <div class="viewcode-block" id="DiT">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.DiT">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DiT</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Diffusion Transformer model for image denoising and generation.</span>
 
@@ -498,7 +498,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
 
 <div class="viewcode-block" id="DiT.forward">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.DiT.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
         <span class="n">t_emb</span> <span class="o">=</span> <span class="n">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_dim</span><span class="p">)</span>
         <span class="n">t_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span><span class="p">(</span><span class="n">t_emb</span><span class="p">)</span>
@@ -512,7 +512,7 @@
 
 
 <div class="viewcode-block" id="DiT.train">
-<a class="viewcode-back" href="../../../../api_reference.html#world_models.models.diffusion.DiT.DiT.train">[docs]</a>
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.train">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>

@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -425,9 +426,9 @@ needing explicit action labels.</p>
 </section>
 <section id="training">
 <h2>Training<a class="headerlink" href="#training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_genie_small</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieConfig</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieTrainer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_genie_small</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieConfig</span>
+<span class="c1"># Use your training loop or the TorchWM training CLI for full Genie runs.</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="mi">16</span>
@@ -435,8 +436,8 @@ needing explicit action labels.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">100</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">create_genie_small</span><span class="p">(</span><span class="n">num_frames</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
-<span class="n">trainer</span> <span class="o">=</span> <span class="n">GenieTrainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
-<span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="c1"># trainer = GenieTrainer(model, cfg)</span>
+<span class="c1"># trainer.train()</span>
 </pre></div>
 </div>
 <section id="training-losses">

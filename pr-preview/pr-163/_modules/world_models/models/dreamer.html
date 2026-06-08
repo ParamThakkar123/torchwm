@@ -312,7 +312,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.dreamer_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSSM</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.vision.dreamer_decoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvDecoder</span><span class="p">,</span> <span class="n">DenseDecoder</span><span class="p">,</span> <span class="n">ActionDecoder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.vision.dreamer_encoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvEncoder</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.utils.dreamer_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">FreezeParameters</span><span class="p">,</span> <span class="n">compute_return</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.utils.dreamer_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Logger</span><span class="p">,</span>
+    <span class="n">FreezeParameters</span><span class="p">,</span>
+    <span class="n">compute_return</span><span class="p">,</span>
+    <span class="n">symlog</span> <span class="k">as</span> <span class="n">_symlog</span><span class="p">,</span>
+    <span class="n">symexp</span> <span class="k">as</span> <span class="n">_symexp</span><span class="p">,</span>
+    <span class="n">TwoHotEncoder</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dreamer_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="c1"># Only set MUJOCO_GL for non-Windows platforms. On Windows the &#39;egl&#39; value</span>
@@ -552,6 +559,14 @@
             <span class="n">output_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cnn_activation_function</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">head_dist</span> <span class="o">=</span> <span class="s2">&quot;symlog_twohot&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span> <span class="k">else</span> <span class="s2">&quot;normal&quot;</span>
+        <span class="n">head_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">head_dist</span> <span class="o">==</span> <span class="s2">&quot;symlog_twohot&quot;</span><span class="p">:</span>
+            <span class="n">head_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;num_buckets&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;num_buckets&quot;</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+                <span class="s2">&quot;symlog_range&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;symlog_range&quot;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+            <span class="p">}</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span> <span class="o">=</span> <span class="n">DenseDecoder</span><span class="p">(</span>
             <span class="n">stoch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">,</span>
             <span class="n">deter_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">deter_size</span><span class="p">,</span>
@@ -559,7 +574,8 @@
             <span class="n">n_layers</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">num_units</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dense_activation_function</span><span class="p">,</span>
-            <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">head_dist</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">head_kwargs</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span> <span class="o">=</span> <span class="n">DenseDecoder</span><span class="p">(</span>
             <span class="n">stoch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">,</span>
@@ -568,7 +584,8 @@
             <span class="n">n_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
             <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">num_units</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">dense_activation_function</span><span class="p">,</span>
-            <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+            <span class="n">dist</span><span class="o">=</span><span class="n">head_dist</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">head_kwargs</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">discount_model</span> <span class="o">=</span> <span class="n">DenseDecoder</span><span class="p">(</span>
@@ -640,6 +657,7 @@
         <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;stoch&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">rew_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
         <span class="n">obs_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_decoder</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+        <span class="n">disc_dist</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span><span class="p">:</span>
             <span class="n">disc_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discount_model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
 
@@ -680,20 +698,18 @@
                 <span class="n">kl_loss</span><span class="p">,</span> <span class="n">kl_loss</span><span class="o">.</span><span class="n">new_full</span><span class="p">(</span><span class="n">kl_loss</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">free_nats</span><span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="n">obs_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obs_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
-        <span class="n">rew_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rew_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span><span class="p">:</span>
-            <span class="n">disc_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">disc_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">nonterms</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span><span class="p">:</span>
-            <span class="n">model_loss</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">*</span> <span class="n">kl_loss</span>
-                <span class="o">+</span> <span class="n">obs_loss</span>
-                <span class="o">+</span> <span class="n">rew_loss</span>
-                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">disc_loss_coeff</span> <span class="o">*</span> <span class="n">disc_loss</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
+            <span class="n">target_rew</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">model_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">*</span> <span class="n">kl_loss</span> <span class="o">+</span> <span class="n">obs_loss</span> <span class="o">+</span> <span class="n">rew_loss</span>
+            <span class="n">target_rew</span> <span class="o">=</span> <span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">obs_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obs_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="n">rew_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rew_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">target_rew</span><span class="p">))</span>
+
+        <span class="n">model_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">*</span> <span class="n">kl_loss</span> <span class="o">+</span> <span class="n">obs_loss</span> <span class="o">+</span> <span class="n">rew_loss</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span> <span class="ow">and</span> <span class="n">disc_dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">disc_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">disc_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">nonterms</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">model_loss</span> <span class="o">=</span> <span class="n">model_loss</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">disc_loss_coeff</span> <span class="o">*</span> <span class="n">disc_loss</span>
 
         <span class="k">return</span> <span class="n">model_loss</span></div>
 
@@ -733,7 +749,13 @@
 
         <span class="n">discounts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">discounts</span><span class="p">[:</span><span class="mi">1</span><span class="p">]),</span> <span class="n">discounts</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">discounts</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-        <span class="n">actor_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+            <span class="n">actor_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">actor_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">actor_loss</span></div>
 
 
@@ -745,10 +767,12 @@
             <span class="n">value_targ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
         <span class="n">value_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span><span class="p">(</span><span class="n">value_feat</span><span class="p">)</span>
-        <span class="n">value_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="p">)</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span>
+            <span class="n">log_prob</span> <span class="o">=</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log_prob</span> <span class="o">=</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">value_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">log_prob</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value_loss</span></div>
 
 

@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -351,7 +352,7 @@
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment backend overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/dmc.html">DeepMind Control Suite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/gym.html">Gym and Gymnasium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environments/brax.html">Brax</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/atari.html">Atari</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/mujoco.html">MuJoCo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/robotics.html">Gymnasium Robotics</a></li>
@@ -363,7 +364,7 @@
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code> for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, BSuite, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="c1"># env_backend may be one of: &quot;dmc&quot;, &quot;gym&quot;, &quot;mujoco&quot;, &quot;robotics&quot;, &quot;bsuite&quot;, &quot;brax&quot;, or &quot;unity_mlagents&quot;</span>
@@ -374,8 +375,8 @@
 <span class="n">cfg</span><span class="o">.</span><span class="n">time_limit</span> <span class="o">=</span> <span class="mi">1000</span>
 </pre></div>
 </div>
-<p>For direct environment construction, import the relevant factory from <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<p>For direct environment construction, use the top-level <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> factories:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DeepMindControlEnv</span><span class="p">,</span>
     <span class="n">make_atari_env</span><span class="p">,</span>
     <span class="n">make_brax_env</span><span class="p">,</span>
@@ -416,7 +417,7 @@
 <td><p>You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Brax</p></td>
-<td><p><a class="reference internal" href="brax_env.html"><span class="std std-doc">Brax</span></a></p></td>
+<td><p><a class="reference internal" href="environments/brax.html"><span class="std std-doc">Brax</span></a></p></td>
 <td><p>You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops.</p></td>
 </tr>
 <tr class="row-even"><td><p>Atari</p></td>

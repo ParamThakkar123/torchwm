@@ -82,7 +82,7 @@ Final layer predicting noise (ε) same dimension as input:
 ## Training
 
 ```python :class: thebe
-from world_models.configs import DiTConfig, get_dit_config
+from torchwm import DiTConfig, get_dit_config
 
 cfg = get_dit_config(
     DATASET="CIFAR10",

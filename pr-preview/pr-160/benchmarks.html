@@ -259,12 +259,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -350,19 +351,17 @@ in experiment logs, reports, and papers.</p>
 <section id="quick-overview">
 <h2>Quick Overview<a class="headerlink" href="#quick-overview" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>Code lives under <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks/</span></code>.</p></li>
 <li><p>Preferred CLI entrypoint: <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">benchmark</span></code>.</p></li>
-<li><p>Module entrypoint: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">world_models.benchmarks.cli</span></code>.</p></li>
-<li><p>Python API: <code class="docutils literal notranslate"><span class="pre">world_models.benchmarks.runner.BenchmarkRunner</span></code>.</p></li>
+<li><p>Benchmark adapters live in the TorchWM source tree under <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks/</span></code>.</p></li>
 </ul>
 </section>
 <section id="supported-adapters">
 <h2>Supported adapters<a class="headerlink" href="#supported-adapters" title="Link to this heading">#</a></h2>
 <p>The benchmark CLI currently registers these adapters out of the box:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">diamond</span></code> - DIAMOND diffusion world-model agent (<code class="docutils literal notranslate"><span class="pre">world_models.training.train_diamond.DiamondAgent</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">iris</span></code> - IRIS transformer-based agent (<code class="docutils literal notranslate"><span class="pre">world_models.training.train_iris.IRISTrainer</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dreamerv1</span></code> / <code class="docutils literal notranslate"><span class="pre">dreamerv2</span></code> - Dreamer family (<code class="docutils literal notranslate"><span class="pre">world_models.models.dreamer.DreamerAgent</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diamond</span></code> - DIAMOND diffusion world-model agent</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iris</span></code> - IRIS transformer-based agent</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dreamerv1</span></code> / <code class="docutils literal notranslate"><span class="pre">dreamerv2</span></code> - Dreamer family</p></li>
 </ul>
 <p>Benchmarks are intended for trained models. For single-agent runs, pass a
 checkpoint with <code class="docutils literal notranslate"><span class="pre">--checkpoint</span></code>. For multi-agent runs, pass one or more
@@ -401,6 +400,21 @@ to <code class="docutils literal notranslate"><span class="pre">results/bench</s
 <span class="w">  </span>--device<span class="w"> </span>cpu
 </pre></div>
 </div>
+<p>Run DreamerV1 on a DeepMind BSuite diagnostic task:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>benchmark<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--agent<span class="w"> </span>dreamerv1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--game<span class="w"> </span>catch/0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--env-backend<span class="w"> </span>bsuite<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--checkpoint<span class="w"> </span>checkpoints/dreamerv1/bsuite_catch.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seeds<span class="w"> </span><span class="m">0</span>,1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--episodes<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--device<span class="w"> </span>cpu
+</pre></div>
+</div>
+<p>The BSuite backend is optional. Install it with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torchwm[bsuite]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">bsuite</span></code> before running BSuite tasks. TorchWM wraps BSuite’s compact
+<code class="docutils literal notranslate"><span class="pre">dm_env</span></code> observations as synthetic RGB images so the existing pixel-based
+Dreamer benchmark path can evaluate trained world-model agents.</p>
 <p>Run all registered adapters on the same game with per-agent checkpoints:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>benchmark<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--all-agents<span class="w"> </span><span class="se">\</span>
@@ -421,9 +435,10 @@ to <code class="docutils literal notranslate"><span class="pre">results/bench</s
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--agent</span> <span class="pre">AGENT</span></code> / <code class="docutils literal notranslate"><span class="pre">-a</span> <span class="pre">AGENT</span></code>: run one adapter (<code class="docutils literal notranslate"><span class="pre">iris</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">dreamerv1</span></code>, or <code class="docutils literal notranslate"><span class="pre">dreamerv2</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--all-agents</span></code>: run every registered adapter on the same environment.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--game</span> <span class="pre">GAME</span></code> / <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">GAME</span></code>: Gym/ALE environment id, such as <code class="docutils literal notranslate"><span class="pre">ALE/Pong-v5</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--game</span> <span class="pre">GAME</span></code> / <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">GAME</span></code>: environment id, such as <code class="docutils literal notranslate"><span class="pre">ALE/Pong-v5</span></code> or a BSuite id like <code class="docutils literal notranslate"><span class="pre">catch/0</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint</span> <span class="pre">PATH</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">PATH</span></code>: checkpoint path for single-agent benchmarks.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint-map</span> <span class="pre">AGENT=PATH</span></code>: repeatable per-agent checkpoint mapping for <code class="docutils literal notranslate"><span class="pre">--all-agents</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--env-backend</span> <span class="pre">BACKEND</span></code>: optional backend hint forwarded to adapters. Use <code class="docutils literal notranslate"><span class="pre">bsuite</span></code> for DeepMind BSuite ids such as <code class="docutils literal notranslate"><span class="pre">catch/0</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--seeds</span> <span class="pre">SEEDS</span></code>: either <code class="docutils literal notranslate"><span class="pre">N</span></code> for seeds <code class="docutils literal notranslate"><span class="pre">0..N-1</span></code>, or a comma-separated list such as <code class="docutils literal notranslate"><span class="pre">0,1,2</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--episodes</span> <span class="pre">N</span></code> / <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">N</span></code>: number of evaluation episodes per seed.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--out-dir</span> <span class="pre">DIR</span></code>: output directory for report artifacts. The legacy alias <code class="docutils literal notranslate"><span class="pre">--out_dir</span></code> is also accepted.</p></li>
@@ -433,47 +448,33 @@ to <code class="docutils literal notranslate"><span class="pre">results/bench</s
 </ul>
 <p>You can also run <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">benchmark</span> <span class="pre">--help</span></code> to see the installed CLI help.</p>
 </section>
-<section id="module-cli-compatibility">
-<h2>Module CLI compatibility<a class="headerlink" href="#module-cli-compatibility" title="Link to this heading">#</a></h2>
-<p>The lower-level module entrypoint remains available for scripts that already use
-it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>world_models.benchmarks.cli<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--agent<span class="w"> </span>iris<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--game<span class="w"> </span>ALE/Pong-v5<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--checkpoint<span class="w"> </span>checkpoints/iris/pong.pt<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--seeds<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--episodes<span class="w"> </span><span class="m">3</span>
+<section id="python-usage">
+<h2>Python usage<a class="headerlink" href="#python-usage" title="Link to this heading">#</a></h2>
+<p>For benchmark runs, prefer the main TorchWM CLI so commands are consistent with
+the rest of the package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>benchmark<span class="w"> </span>--agent<span class="w"> </span>iris<span class="w"> </span>--game<span class="w"> </span>ALE/Pong-v5<span class="w"> </span>--checkpoint<span class="w"> </span>checkpoints/iris/pong.pt
 </pre></div>
 </div>
-<p>For new usage, prefer <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">benchmark</span></code> so benchmark runs are discoverable
-through the main TorchWM CLI alongside <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">envs</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">datasets</span></code>.</p>
-</section>
-<section id="python-api-example">
-<h2>Python API example<a class="headerlink" href="#python-api-example" title="Link to this heading">#</a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">BenchmarkRunner</span></code> when you need programmatic control:</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.benchmarks.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">BenchmarkRunner</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">adapters</span>
+<p>The command writes benchmark JSON reports under the configured output
+directory. Load those reports with standard Python tools when you need custom
+analysis:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
-<span class="n">runner</span> <span class="o">=</span> <span class="n">BenchmarkRunner</span><span class="p">(</span><span class="n">adapter_cls</span><span class="o">=</span><span class="n">adapters</span><span class="o">.</span><span class="n">IRISAdapter</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;results/bench&quot;</span><span class="p">)</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-    <span class="n">env_spec</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;game&quot;</span><span class="p">:</span> <span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">},</span>
-    <span class="n">seeds</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="n">num_episodes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">checkpoint</span><span class="o">=</span><span class="s2">&quot;checkpoints/iris/pong.pt&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;results/bench/benchmark_results.json&quot;</span><span class="p">))</span>
+<span class="n">per_seed</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">][</span><span class="s2">&quot;per_seed_means&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">per_seed</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="running-the-atari-100k-benchmark">
 <h2>Running the Atari 100k benchmark<a class="headerlink" href="#running-the-atari-100k-benchmark" title="Link to this heading">#</a></h2>
-<p>To run the full Atari 100k benchmark on all 26 games using IRIS:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>benchmarks/atari_100k.py
+<p>To run the full Atari 100k benchmark on all configured games with the
+centralized benchmark module:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>world_models.benchmarks.atari_100k<span class="w"> </span>--benchmark
 </pre></div>
 </div>
-<p>This trains IRIS on each game for 100k environment steps with 5 random seeds per
-game, computes human-normalized scores, and compares to baselines.</p>
+<p>This runs the Atari 100k evaluator from <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks</span></code>, computes
+human-normalized scores, and reports aggregate metrics across games and seeds.</p>
 </section>
 <section id="outputs">
 <h2>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h2>
@@ -492,20 +493,8 @@ root output directory, with per-agent details under subdirectories.</p>
 <section id="computing-iqm-and-bootstrap-cis">
 <h2>Computing IQM and bootstrap CIs<a class="headerlink" href="#computing-iqm-and-bootstrap-cis" title="Link to this heading">#</a></h2>
 <p>The runner stores per-seed means in the JSON under
-<code class="docutils literal notranslate"><span class="pre">aggregate.per_seed_means</span></code>. Use the provided metrics helpers to compute IQM and
-bootstrap confidence intervals:</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">reporting</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-
-<span class="n">res</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;results/bench/benchmark_results.json&quot;</span><span class="p">))</span>
-<span class="n">per_seed</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">][</span><span class="s2">&quot;per_seed_means&quot;</span><span class="p">]</span>
-<span class="n">iqm</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">iqm_of_array</span><span class="p">(</span><span class="n">per_seed</span><span class="p">)</span>
-<span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">bootstrap_iqm_ci</span><span class="p">(</span><span class="n">per_seed</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IQM=</span><span class="si">{</span><span class="n">iqm</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (95% CI </span><span class="si">{</span><span class="n">lower</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">upper</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-
-<span class="n">reporting</span><span class="o">.</span><span class="n">export_latex</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;results/bench/benchmark_results.tex&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<code class="docutils literal notranslate"><span class="pre">aggregate.per_seed_means</span></code>. Use your preferred statistics package to compute
+IQM and confidence intervals from that array.</p>
 </section>
 <section id="extending-the-harness">
 <h2>Extending the harness<a class="headerlink" href="#extending-the-harness" title="Link to this heading">#</a></h2>
@@ -516,7 +505,7 @@ bootstrap confidence intervals:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">evaluate(num_episodes:</span> <span class="pre">int,</span> <span class="pre">render:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False)</span></code> returning <code class="docutils literal notranslate"><span class="pre">{&quot;episode_returns&quot;:</span> <span class="pre">list[float]}</span></code></p></li>
 </ul>
 </li>
-<li><p>Register your adapter in <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks/cli.py</span></code> to expose it through both <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">world_models.benchmarks.cli</span></code> and <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">benchmark</span></code>.</p></li>
+<li><p>Register your adapter in <code class="docutils literal notranslate"><span class="pre">world_models/benchmarks/cli.py</span></code> to expose it through <code class="docutils literal notranslate"><span class="pre">torchwm</span> <span class="pre">benchmark</span></code>.</p></li>
 </ul>
 </section>
 <section id="tests-and-ci">
@@ -577,8 +566,7 @@ bootstrap confidence intervals:</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#supported-adapters">Supported adapters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm-cli-examples">TorchWM CLI examples</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cli-options">CLI options</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-cli-compatibility">Module CLI compatibility</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-api-example">Python API example</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-usage">Python usage</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-atari-100k-benchmark">Running the Atari 100k benchmark</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#computing-iqm-and-bootstrap-cis">Computing IQM and bootstrap CIs</a></li>

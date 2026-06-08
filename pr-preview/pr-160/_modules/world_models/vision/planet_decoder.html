@@ -293,7 +293,7 @@
 
 
 <div class="viewcode-block" id="CNNDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.vision.planet_decoder.CNNDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.CNNDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CNNDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A Convolutional Neural Network (CNN) decoder for reconstructing image outputs.&quot;&quot;&quot;</span>
 
@@ -310,7 +310,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conv4</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ConvTranspose2d</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CNNDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.vision.planet_decoder.CNNDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.CNNDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">state</span><span class="p">,</span> <span class="n">latent</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">hidden</span> <span class="o">=</span> <span class="n">hidden</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

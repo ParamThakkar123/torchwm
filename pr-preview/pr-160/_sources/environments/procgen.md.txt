@@ -58,6 +58,15 @@ cfg.procgen_start_level = None  # defaults to cfg.seed
 
 Procgen actions are discrete. For consistency with TorchWM's other discrete image adapters, the wrapper exposes a continuous one-hot-like action space with shape `(n,)` and values in `[-1, 1]`. The selected action is the index of the largest value in the model action vector.
 
+## Example script
+
+TorchWM includes a compact Dreamer example for Procgen environments:
+
+```bash
+python examples/run_dreamer_procgen.py --env coinrun --total-steps 2000
+python examples/run_dreamer_procgen.py --list-envs
+```
+
 ## Available games
 
 TorchWM recognizes the standard Procgen games: `bigfish`, `bossfight`, `caveflyer`, `chaser`, `climber`, `coinrun`, `dodgeball`, `fruitbot`, `heist`, `jumper`, `leaper`, `maze`, `miner`, `ninja`, `plunder`, and `starpilot`.

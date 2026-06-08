@@ -57,7 +57,7 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-160/environments/gym.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Atari" href="atari.html" />
+    <link rel="next" title="Brax Environments" href="brax.html" />
     <link rel="prev" title="DeepMind Control Suite" href="dmc.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -363,7 +364,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </section>
 <section id="main-apis">
 <h2>Main APIs<a class="headerlink" href="#main-apis" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
 
 <span class="n">env</span> <span class="o">=</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="s2">&quot;Pendulum-v1&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
@@ -371,7 +372,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 <p>You can also wrap an already-created environment:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
 
 <span class="n">base_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;CartPole-v1&quot;</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">base_env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
@@ -380,7 +381,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </section>
 <section id="dreamer-configuration">
 <h2>Dreamer configuration<a class="headerlink" href="#dreamer-configuration" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
@@ -427,7 +428,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>collect<span class="w"> </span>--env<span class="w"> </span>CartPole-v1<span class="w"> </span>--steps<span class="w"> </span><span class="m">1000</span><span class="w"> </span>--out<span class="w"> </span>cartpole.npz
 </pre></div>
 </div>
-<p>The command first tries <code class="docutils literal notranslate"><span class="pre">world_models.envs.make_env()</span></code> and falls back to <code class="docutils literal notranslate"><span class="pre">gym.make()</span></code>.</p>
+<p>The command first tries <code class="docutils literal notranslate"><span class="pre">torchwm.make_env()</span></code> and falls back to <code class="docutils literal notranslate"><span class="pre">gym.make()</span></code>.</p>
 </section>
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
@@ -460,11 +461,11 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
       </div>
     </a>
     <a class="right-next"
-       href="atari.html"
+       href="brax.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Atari</p>
+        <p class="prev-next-title">Brax Environments</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

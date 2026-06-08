@@ -13,7 +13,7 @@ DMC is not part of TorchWM's minimal dependencies. Install it in the Python envi
 ## Main API
 
 ```python
-from world_models.envs.dmc import DeepMindControlEnv
+from torchwm import DeepMindControlEnv
 
 env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
 obs = env.reset()
@@ -24,7 +24,7 @@ The environment name uses a `domain-task` string. TorchWM splits the string at t
 ## Dreamer configuration
 
 ```python
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "dmc"
@@ -35,7 +35,7 @@ cfg.action_repeat = 2
 cfg.time_limit = 1000
 ```
 
-`world_models.models.dreamer.make_env()` recognizes `env_backend="dmc"`, creates `DeepMindControlEnv`, and then applies `ActionRepeat`, `NormalizeActions`, and `TimeLimit`.
+`torchwm.create_model("dreamer", ...)` and Dreamer's environment builder recognize `env_backend="dmc"`, creates `DeepMindControlEnv`, and then applies `ActionRepeat`, `NormalizeActions`, and `TimeLimit`.
 
 ## Common task IDs
 

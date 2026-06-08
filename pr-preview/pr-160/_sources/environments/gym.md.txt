@@ -16,7 +16,7 @@ Install the extras needed by the specific Gymnasium environment ID you plan to u
 ## Main APIs
 
 ```python
-from world_models.envs.gym_env import GymImageEnv, make_gym_env
+from torchwm import GymImageEnv, make_gym_env
 
 env = make_gym_env("Pendulum-v1", seed=0, size=(64, 64), render_mode="rgb_array")
 obs = env.reset()
@@ -26,7 +26,7 @@ You can also wrap an already-created environment:
 
 ```python
 import gymnasium as gym
-from world_models.envs.gym_env import GymImageEnv
+from torchwm import GymImageEnv
 
 base_env = gym.make("CartPole-v1", render_mode="rgb_array")
 env = GymImageEnv(base_env, seed=123, size=(64, 64))
@@ -35,7 +35,7 @@ env = GymImageEnv(base_env, seed=123, size=(64, 64))
 ## Dreamer configuration
 
 ```python
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env_backend = "gym"
@@ -86,7 +86,7 @@ The CLI can collect random-policy rollouts from Gym-like environments:
 torchwm collect --env CartPole-v1 --steps 1000 --out cartpole.npz
 ```
 
-The command first tries `world_models.envs.make_env()` and falls back to `gym.make()`.
+The command first tries `torchwm.make_env()` and falls back to `gym.make()`.
 
 ## Troubleshooting
 

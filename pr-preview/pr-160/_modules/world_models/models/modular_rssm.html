@@ -315,12 +315,12 @@
 
 
 <div class="viewcode-block" id="EncoderBase">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.EncoderBase">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.EncoderBase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EncoderBase</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for observation encoders.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EncoderBase.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.EncoderBase.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.EncoderBase.forward">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Encode observations to embeddings.&quot;&quot;&quot;</span>
@@ -331,7 +331,7 @@
     <span class="n">embed_size</span><span class="p">:</span> <span class="nb">int</span>
 
 <div class="viewcode-block" id="EncoderBase.get_embed_size">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.EncoderBase.get_embed_size">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.EncoderBase.get_embed_size">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_embed_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the embedding size. Override in subclasses.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
@@ -340,12 +340,12 @@
 
 
 <div class="viewcode-block" id="DecoderBase">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.DecoderBase">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DecoderBase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DecoderBase</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for observation decoders.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DecoderBase.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.DecoderBase.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DecoderBase.forward">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode latent features to observation distributions.&quot;&quot;&quot;</span>
@@ -355,12 +355,12 @@
 
 
 <div class="viewcode-block" id="BackboneBase">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.BackboneBase">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BackboneBase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BackboneBase</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for recurrent dynamics backbones.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BackboneBase.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.BackboneBase.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BackboneBase.forward">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -374,7 +374,7 @@
 
 
 <div class="viewcode-block" id="BackboneBase.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.BackboneBase.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BackboneBase.init_state">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
@@ -391,7 +391,7 @@
 
 
 <div class="viewcode-block" id="ConvEncoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ConvEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConvEncoder</span><span class="p">(</span><span class="n">EncoderBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convolutional encoder from Dreamer (image observations).&quot;&quot;&quot;</span>
 
@@ -425,7 +425,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="ConvEncoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ConvEncoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvEncoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">reshaped</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">)</span>
         <span class="n">embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span><span class="p">(</span><span class="n">reshaped</span><span class="p">)</span>
@@ -437,7 +437,7 @@
 
 
 <div class="viewcode-block" id="MLPEncoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.MLPEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MLPEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MLPEncoder</span><span class="p">(</span><span class="n">EncoderBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP encoder for state-based observations.&quot;&quot;&quot;</span>
 
@@ -463,7 +463,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MLPEncoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.MLPEncoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MLPEncoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span></div>
 </div>
@@ -471,7 +471,7 @@
 
 
 <div class="viewcode-block" id="ViTEncoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ViTEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ViTEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ViTEncoder</span><span class="p">(</span><span class="n">EncoderBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Vision Transformer encoder for image observations.&quot;&quot;&quot;</span>
 
@@ -509,7 +509,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">embed_size</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ViTEncoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ViTEncoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ViTEncoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">B</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">patch_embed</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
@@ -528,7 +528,7 @@
 
 
 <div class="viewcode-block" id="TransformerBlock">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.TransformerBlock">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TransformerBlock">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TransformerBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transformer block for ViT encoder.&quot;&quot;&quot;</span>
 
@@ -546,7 +546,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="TransformerBlock.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.TransformerBlock.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TransformerBlock.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
@@ -556,7 +556,7 @@
 
 
 <div class="viewcode-block" id="ConvDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ConvDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConvDecoder</span><span class="p">(</span><span class="n">DecoderBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convolutional decoder for image observations.&quot;&quot;&quot;</span>
 
@@ -591,7 +591,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">convtranspose</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ConvDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ConvDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ConvDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">out_batch_shape</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
@@ -606,7 +606,7 @@
 
 
 <div class="viewcode-block" id="MLPDecoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.MLPDecoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MLPDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MLPDecoder</span><span class="p">(</span><span class="n">DecoderBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP decoder for state-based observations.&quot;&quot;&quot;</span>
 
@@ -634,7 +634,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MLPDecoder.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.MLPDecoder.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MLPDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">:</span>
@@ -647,7 +647,7 @@
 
 
 <div class="viewcode-block" id="GRUBackbone">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.GRUBackbone">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GRUBackbone">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GRUBackbone</span><span class="p">(</span><span class="n">BackboneBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;GRU-based recurrent dynamics backbone (standard RSSM).&quot;&quot;&quot;</span>
 
@@ -682,7 +682,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_size</span>
 
 <div class="viewcode-block" id="GRUBackbone.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.GRUBackbone.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GRUBackbone.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -695,7 +695,7 @@
 
 
 <div class="viewcode-block" id="GRUBackbone.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.GRUBackbone.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GRUBackbone.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -741,7 +741,7 @@
 
 
 <div class="viewcode-block" id="LSTMBackbone">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.LSTMBackbone">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.LSTMBackbone">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LSTMBackbone</span><span class="p">(</span><span class="n">BackboneBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;LSTM-based recurrent dynamics backbone.&quot;&quot;&quot;</span>
 
@@ -776,7 +776,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_size</span>
 
 <div class="viewcode-block" id="LSTMBackbone.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.LSTMBackbone.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.LSTMBackbone.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -790,7 +790,7 @@
 
 
 <div class="viewcode-block" id="LSTMBackbone.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.LSTMBackbone.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.LSTMBackbone.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -845,7 +845,7 @@
 
 
 <div class="viewcode-block" id="TransformerBackbone">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.TransformerBackbone">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TransformerBackbone">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TransformerBackbone</span><span class="p">(</span><span class="n">BackboneBase</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transformer-based dynamics backbone for long-range dependencies.&quot;&quot;&quot;</span>
 
@@ -888,7 +888,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_size</span>
 
 <div class="viewcode-block" id="TransformerBackbone.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.TransformerBackbone.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TransformerBackbone.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -901,7 +901,7 @@
 
 
 <div class="viewcode-block" id="TransformerBackbone.forward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.TransformerBackbone.forward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TransformerBackbone.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -963,7 +963,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModularRSSM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Modular RSSM with swappable encoder, decoder, and backbone.</span>
 
@@ -1008,7 +1008,7 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">embedding_size</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
 
 <div class="viewcode-block" id="ModularRSSM.init_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.init_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.init_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
@@ -1016,7 +1016,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.get_dist">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.get_dist">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.get_dist">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_dist</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">:</span>
@@ -1025,7 +1025,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.observe_step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.observe_step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.observe_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prev_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -1041,7 +1041,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.imagine_step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.imagine_step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.imagine_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">imagine_step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">prev_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
@@ -1053,7 +1053,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.observe_rollout">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.observe_rollout">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.observe_rollout">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_rollout</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -1083,7 +1083,7 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.imagine_rollout">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.imagine_rollout">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.imagine_rollout">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">actor</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -1105,13 +1105,13 @@
 
 
 <div class="viewcode-block" id="ModularRSSM.decode_observation">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.decode_observation">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.decode_observation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ModularRSSM.decode_reward">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.decode_reward">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.decode_reward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_decoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Reward decoder not provided&quot;</span><span class="p">)</span>
@@ -1129,13 +1129,13 @@
         <span class="p">}</span>
 
 <div class="viewcode-block" id="ModularRSSM.detach_state">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.detach_state">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.detach_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
 
 <div class="viewcode-block" id="ModularRSSM.seq_to_batch">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.ModularRSSM.seq_to_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ModularRSSM.seq_to_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">v</span>
@@ -1146,7 +1146,7 @@
 
 
 <div class="viewcode-block" id="create_modular_rssm">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.modular_rssm.create_modular_rssm">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.create_modular_rssm">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_modular_rssm</span><span class="p">(</span>
     <span class="n">encoder_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;conv&quot;</span><span class="p">,</span>
     <span class="n">decoder_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;conv&quot;</span><span class="p">,</span>

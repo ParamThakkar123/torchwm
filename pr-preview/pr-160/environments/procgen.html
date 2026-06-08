@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -400,6 +401,14 @@
 </div>
 <p>Procgen actions are discrete. For consistency with TorchWM’s other discrete image adapters, the wrapper exposes a continuous one-hot-like action space with shape <code class="docutils literal notranslate"><span class="pre">(n,)</span></code> and values in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>. The selected action is the index of the largest value in the model action vector.</p>
 </section>
+<section id="example-script">
+<h2>Example script<a class="headerlink" href="#example-script" title="Link to this heading">#</a></h2>
+<p>TorchWM includes a compact Dreamer example for Procgen environments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>examples/run_dreamer_procgen.py<span class="w"> </span>--env<span class="w"> </span>coinrun<span class="w"> </span>--total-steps<span class="w"> </span><span class="m">2000</span>
+python<span class="w"> </span>examples/run_dreamer_procgen.py<span class="w"> </span>--list-envs
+</pre></div>
+</div>
+</section>
 <section id="available-games">
 <h2>Available games<a class="headerlink" href="#available-games" title="Link to this heading">#</a></h2>
 <p>TorchWM recognizes the standard Procgen games: <code class="docutils literal notranslate"><span class="pre">bigfish</span></code>, <code class="docutils literal notranslate"><span class="pre">bossfight</span></code>, <code class="docutils literal notranslate"><span class="pre">caveflyer</span></code>, <code class="docutils literal notranslate"><span class="pre">chaser</span></code>, <code class="docutils literal notranslate"><span class="pre">climber</span></code>, <code class="docutils literal notranslate"><span class="pre">coinrun</span></code>, <code class="docutils literal notranslate"><span class="pre">dodgeball</span></code>, <code class="docutils literal notranslate"><span class="pre">fruitbot</span></code>, <code class="docutils literal notranslate"><span class="pre">heist</span></code>, <code class="docutils literal notranslate"><span class="pre">jumper</span></code>, <code class="docutils literal notranslate"><span class="pre">leaper</span></code>, <code class="docutils literal notranslate"><span class="pre">maze</span></code>, <code class="docutils literal notranslate"><span class="pre">miner</span></code>, <code class="docutils literal notranslate"><span class="pre">ninja</span></code>, <code class="docutils literal notranslate"><span class="pre">plunder</span></code>, and <code class="docutils literal notranslate"><span class="pre">starpilot</span></code>.</p>
@@ -457,6 +466,7 @@
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-apis">Main APIs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer-configuration">Dreamer configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observations-and-actions">Observations and actions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-script">Example script</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#available-games">Available games</a></li>
 </ul>
   </nav></div>

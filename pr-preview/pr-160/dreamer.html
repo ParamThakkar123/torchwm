@@ -262,12 +262,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operators_guide.html">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -435,8 +436,8 @@ from images and trains a behavior policy entirely in the latent space.</p>
 </section>
 <section id="training">
 <h2>Training<a class="headerlink" href="#training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
@@ -538,6 +539,12 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;robotics&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;HalfCheetah-v2&quot;</span>
 
+<span class="c1"># Procgen example:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;procgen&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;coinrun&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">procgen_distribution_mode</span> <span class="o">=</span> <span class="s2">&quot;easy&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">procgen_num_levels</span> <span class="o">=</span> <span class="mi">0</span>
+
 <span class="c1"># Brax example:</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>     <span class="c1"># JAX/Brax</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;ant&quot;</span>
@@ -552,7 +559,7 @@ from images and trains a behavior policy entirely in the latent space.</p>
 selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
 Gymnasium task ids such as <code class="docutils literal notranslate"><span class="pre">Humanoid-v4</span></code> for standard benchmark rewards, or use
 native MJCF/MJB sources plus <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> callbacks for custom rewards and
-termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;robotics&quot;</span></code>; TorchWM lists those ids dynamically from the installed <code class="docutils literal notranslate"><span class="pre">gymnasium-robotics</span></code> package.</p>
+termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;robotics&quot;</span></code>; TorchWM lists those ids dynamically from the installed <code class="docutils literal notranslate"><span class="pre">gymnasium-robotics</span></code> package. Procgen games use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;procgen&quot;</span></code> with shorthand names such as <code class="docutils literal notranslate"><span class="pre">coinrun</span></code> or Gym-style ids such as <code class="docutils literal notranslate"><span class="pre">procgen-coinrun-v0</span></code>.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>

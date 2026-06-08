@@ -298,7 +298,7 @@
 
 
 <div class="viewcode-block" id="Episode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Episode">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Episode</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Records the agent&#39;s interaction with the environment for a single episode.</span>
 
@@ -338,7 +338,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span>
 
 <div class="viewcode-block" id="Episode.append">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode.append">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Episode.append">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">act</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminal</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postprocess_fn</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
@@ -348,7 +348,7 @@
 
 
 <div class="viewcode-block" id="Episode.terminate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Episode.terminate">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Episode.terminate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">postprocess_fn</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
@@ -360,7 +360,7 @@
 
 
 <div class="viewcode-block" id="Memory">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Memory</span><span class="p">(</span><span class="n">deque</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Episode-based replay memory for PlaNet/RSSM training.</span>
 
@@ -414,7 +414,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;can only append &lt;Episode&gt; or list of &lt;Episode&gt;&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Memory.append">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory.append">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory.append">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">episodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Episode</span><span class="p">]):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">episodes</span><span class="p">,</span> <span class="n">Episode</span><span class="p">):</span>
             <span class="n">episodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">episodes</span><span class="p">]</span>
@@ -426,7 +426,7 @@
 
 
 <div class="viewcode-block" id="Memory.sample">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.memory.planet_memory.Memory.sample">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Memory.sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">tracelen</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_first</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample random sub-sequences from stored episodes.</span>
 

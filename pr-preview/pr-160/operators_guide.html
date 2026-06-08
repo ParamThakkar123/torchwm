@@ -58,7 +58,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Training Guide" href="training_guide.html" />
-    <link rel="prev" title="Installation" href="installation.html" />
+    <link rel="prev" title="Public API Quick Reference" href="public_api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -260,12 +260,13 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="public_api.html">Public API Quick Reference</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Using Operators for Inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
-<li class="toctree-l1"><a class="reference internal" href="brax_env.html">Brax Environments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 </ul>
@@ -359,7 +360,7 @@
 <section id="base-operator-class">
 <h2>Base Operator Class<a class="headerlink" href="#base-operator-class" title="Link to this heading">#</a></h2>
 <p>All operators inherit from <code class="docutils literal notranslate"><span class="pre">OperatorABC</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyOperator</span><span class="p">(</span><span class="n">OperatorABC</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
@@ -370,12 +371,13 @@
 </section>
 <section id="dreamer-operator">
 <h2>Dreamer Operator<a class="headerlink" href="#dreamer-operator" title="Link to this heading">#</a></h2>
-<p>For Dreamer model’s image and action processing:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerOperator</span>
+<p>For Dreamer model’s image and action processing, use the top-level operator
+factory in application code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
-<span class="n">op</span> <span class="o">=</span> <span class="n">DreamerOperator</span><span class="p">(</span><span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span><span class="s2">&quot;dreamer&quot;</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 
 <span class="c1"># Process single image and action</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;obs.png&#39;</span><span class="p">)</span>
@@ -394,7 +396,7 @@
 <section id="jepa-operator">
 <h2>JEPA Operator<a class="headerlink" href="#jepa-operator" title="Link to this heading">#</a></h2>
 <p>For JEPA’s self-supervised image processing with masking:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAOperator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAOperator</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">JEPAOperator</span><span class="p">(</span><span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
 
@@ -414,7 +416,7 @@
 <section id="iris-operator">
 <h2>IRIS Operator<a class="headerlink" href="#iris-operator" title="Link to this heading">#</a></h2>
 <p>For IRIS’s sequence processing:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">IrisOperator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">IrisOperator</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">IrisOperator</span><span class="p">(</span><span class="n">seq_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">vocab_size</span><span class="o">=</span><span class="mi">32000</span><span class="p">)</span>
 
@@ -434,7 +436,7 @@
 <section id="planet-operator">
 <h2>PlaNet Operator<a class="headerlink" href="#planet-operator" title="Link to this heading">#</a></h2>
 <p>For PlaNet’s environment state processing:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlaNetOperator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlaNetOperator</span>
 
 <span class="n">op</span> <span class="o">=</span> <span class="n">PlaNetOperator</span><span class="p">(</span><span class="n">state_dim</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">action_dim</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
@@ -456,48 +458,45 @@
 </section>
 <section id="configuration-integration">
 <h2>Configuration Integration<a class="headerlink" href="#configuration-integration" title="Link to this heading">#</a></h2>
-<p>Operators work seamlessly with config classes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span><span class="p">,</span> <span class="n">JEPAConfig</span><span class="p">,</span> <span class="n">IRISConfig</span>
+<p>Operators work seamlessly with config classes and the friendly <code class="docutils literal notranslate"><span class="pre">torchwm</span></code>
+factories:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
 <span class="c1"># Dreamer</span>
-<span class="n">dreamer_cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">dreamer_op</span> <span class="o">=</span> <span class="n">DreamerOperator</span><span class="p">(</span>
+<span class="n">dreamer_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;dreamer&quot;</span><span class="p">)</span>
+<span class="n">dreamer_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
+    <span class="s2">&quot;dreamer&quot;</span><span class="p">,</span>
     <span class="n">image_size</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">operator_image_size</span><span class="p">,</span>
-    <span class="n">action_dim</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">operator_action_dim</span>
+    <span class="n">action_dim</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">operator_action_dim</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># JEPA</span>
-<span class="n">jepa_cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-<span class="n">jepa_op</span> <span class="o">=</span> <span class="n">JEPAOperator</span><span class="p">(</span>
+<span class="n">jepa_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;jepa&quot;</span><span class="p">)</span>
+<span class="n">jepa_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
+    <span class="s2">&quot;jepa&quot;</span><span class="p">,</span>
     <span class="n">image_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_image_size</span><span class="p">,</span>
     <span class="n">patch_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_patch_size</span><span class="p">,</span>
-    <span class="n">mask_ratio</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_mask_ratio</span>
+    <span class="n">mask_ratio</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_mask_ratio</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># IRIS</span>
-<span class="n">iris_cfg</span> <span class="o">=</span> <span class="n">IRISConfig</span><span class="p">()</span>
-<span class="n">iris_op</span> <span class="o">=</span> <span class="n">IrisOperator</span><span class="p">(</span>
+<span class="n">iris_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
+<span class="n">iris_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
+    <span class="s2">&quot;iris&quot;</span><span class="p">,</span>
     <span class="n">seq_length</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">operator_seq_length</span><span class="p">,</span>
-    <span class="n">vocab_size</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">operator_vocab_size</span>
+    <span class="n">vocab_size</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">operator_vocab_size</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="utilities">
 <h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">#</a></h2>
-<p>Common preprocessing functions in <code class="docutils literal notranslate"><span class="pre">world_models.inference.operators.utils</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.inference.operators.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">normalize_image</span><span class="p">,</span>
-    <span class="n">tokenize_text</span><span class="p">,</span>
-    <span class="n">resize_image</span>
-<span class="p">)</span>
+<p>For most applications, prefer the operator factory instead of importing
+preprocessing utilities directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="c1"># Image processing</span>
-<span class="n">normalized</span> <span class="o">=</span> <span class="n">normalize_image</span><span class="p">(</span><span class="n">pil_image</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">))</span>
-<span class="n">resized</span> <span class="o">=</span> <span class="n">resize_image</span><span class="p">(</span><span class="n">tensor_image</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
-
-<span class="c1"># Text processing</span>
-<span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize_text</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span><span class="s2">&quot;jepa&quot;</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span> <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">)</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">process</span><span class="p">({</span><span class="s2">&quot;images&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">pil_image</span><span class="p">]})</span>
 </pre></div>
 </div>
 </section>
@@ -538,12 +537,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="installation.html"
+       href="public_api.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Installation</p>
+        <p class="prev-next-title">Public API Quick Reference</p>
       </div>
     </a>
     <a class="right-next"

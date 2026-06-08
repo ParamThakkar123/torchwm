@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
+import sys
 from typing import Any
 
 import gymnasium as gym
 import numpy as np
 from numpy.typing import NDArray
 from PIL import Image
+
+_PROCGEN_PACKAGE = "procgen"
 
 PROCGEN_ENVS = [
     "bigfish",
@@ -28,6 +32,44 @@ PROCGEN_ENVS = [
     "plunder",
     "starpilot",
 ]
+
+
+def _require_procgen_env_class():
+    """Return ``procgen.ProcgenEnv`` with a helpful optional-dependency error."""
+    try:
+        package_spec = importlib.util.find_spec(_PROCGEN_PACKAGE)
+    except ValueError:
+        package_spec = None
+    if package_spec is None and _PROCGEN_PACKAGE not in sys.modules:
+        raise ImportError(
+            "Procgen support requires the optional 'procgen' package. "
+            "Install it with `pip install torchwm[procgen]` or "
+            "`pip install procgen`."
+        )
+
+    if _PROCGEN_PACKAGE in sys.modules:
+        module = sys.modules[_PROCGEN_PACKAGE]
+    else:
+        module = importlib.import_module(_PROCGEN_PACKAGE)
+    return getattr(module, "ProcgenEnv")
+
+
+def _unbatch_procgen_info(info: Any) -> dict[str, Any]:
+    """Normalize Procgen vector info to a single-environment info dict."""
+    if isinstance(info, (list, tuple)):
+        return dict(info[0]) if info else {}
+    if not isinstance(info, dict):
+        return {}
+
+    unbatched: dict[str, Any] = {}
+    for key, value in info.items():
+        if isinstance(value, np.ndarray) and value.shape[:1] == (1,):
+            unbatched[key] = value[0]
+        elif isinstance(value, (list, tuple)) and len(value) == 1:
+            unbatched[key] = value[0]
+        else:
+            unbatched[key] = value
+    return unbatched
 
 
 def list_procgen_envs() -> list[str]:
@@ -105,13 +147,7 @@ class ProcgenImageEnv:
         action_n: int = 15,
         **procgen_kwargs: Any,
     ):
-        if importlib.util.find_spec("procgen") is None:
-            raise ImportError(
-                "Procgen support requires the optional 'procgen' package. "
-                "Install it with `pip install torchwm[procgen]` or "
-                "`pip install procgen`."
-            )
-        from procgen import ProcgenEnv
+        ProcgenEnv = _require_procgen_env_class()
 
         self.env_name = normalize_procgen_env_name(env)
         self._size = (int(size[0]), int(size[1]))
@@ -232,12 +268,7 @@ class ProcgenImageEnv:
         obs, reward, done, info = self._env.step(action_batch)
         done_value = bool(np.asarray(done).reshape(-1)[0])
         reward_value = float(np.asarray(reward).reshape(-1)[0])
-        if isinstance(info, (list, tuple)):
-            info_value = dict(info[0]) if info else {}
-        elif isinstance(info, dict):
-            info_value = dict(info)
-        else:
-            info_value = {}
+        info_value = _unbatch_procgen_info(info)
         if "discount" not in info_value:
             discount = 0.0 if done_value else 1.0
             info_value["discount"] = np.array(discount, dtype=np.float32)

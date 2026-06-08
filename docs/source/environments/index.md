@@ -36,7 +36,7 @@ Most TorchWM training code expects image observations as a dictionary entry name
 
 DIAMOND-style Atari support is documented on the Atari page as a preprocessing helper for Atari rollouts. It is not a separate environment backend.
 
-Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, Procgen, or Unity environments:
+Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen, Brax, or Unity environments:
 
 1. `ActionRepeat` repeats each selected action for `cfg.action_repeat` environment steps.
 2. `NormalizeActions` exposes finite continuous action bounds as normalized `[-1, 1]` policy outputs.

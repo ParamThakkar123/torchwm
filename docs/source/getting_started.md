@@ -158,6 +158,7 @@ Dreamer supports multiple backends through `DreamerConfig.env_backend`:
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
 - `mujoco`: Gymnasium MuJoCo task ids or native MJCF/MJB models
 - `robotics`: any id registered by the installed Gymnasium Robotics package
+- `procgen`: Procgen benchmark games such as `coinrun` and `heist`
 - `brax`: JAX/Brax continuous-control environments
 - `unity_mlagents`: Unity ML-Agents executable environments
 

@@ -332,7 +332,7 @@ Environment adapters
 ~~~~~~~~~~~~~~~~~~~~
 
 The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DeepMind Lab, Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.
@@ -343,6 +343,11 @@ family.
    :show-inheritance:
 
 .. automodule:: world_models.envs.dmc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.dmlab
    :members:
    :undoc-members:
    :show-inheritance:

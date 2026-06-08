@@ -7,6 +7,7 @@ TorchWM supports several environment backends for training, evaluation, and data
 
 Environment backend overview <environments/index>
 DeepMind Control Suite <environments/dmc>
+DeepMind Lab <environments/dmlab>
 Gym and Gymnasium <environments/gym>
 Brax <brax_env>
 Atari <environments/atari>
@@ -19,13 +20,13 @@ Wrappers <environments/wrappers>
 
 ## Quick start
 
-Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
+Use `DreamerConfig.env_backend` for Dreamer-compatible DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity environments. Choose the backend that matches your installed optional dependencies and task source.
 
 ```python :class: thebe
 from world_models.configs import DreamerConfig
 
 cfg = DreamerConfig()
-# env_backend may be one of: "dmc", "gym", "mujoco", "robotics", "brax", or "unity_mlagents"
+# env_backend may be one of: "dmc", "dmlab", "gym", "mujoco", "robotics", "brax", or "unity_mlagents"
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 cfg.image_size = 64
@@ -40,11 +41,13 @@ from world_models.envs import (
     DeepMindControlEnv,
     make_atari_env,
     make_brax_env,
+    make_dmlab_env,
     make_gym_env,
     make_robotics_env,
 )
 
 dmc_env = DeepMindControlEnv("cheetah-run", seed=0, size=(64, 64))
+dmlab_env = make_dmlab_env("rooms_collect_good_objects_train", seed=0, size=(64, 64))
 gym_env = make_gym_env("Pendulum-v1", seed=0, size=(64, 64))
 brax_env = make_brax_env("ant", seed=0, image_size=(64, 64))
 atari_env = make_atari_env("ALE/Pong-v5", obs_type="rgb", frameskip=4)
@@ -56,6 +59,7 @@ robotics_env = make_robotics_env("HalfCheetah-v2", seed=0, size=(64, 64))
 | Backend | Page | Use when |
 | --- | --- | --- |
 | DeepMind Control Suite | [DMC](environments/dmc.md) | You want Dreamer-style continuous-control tasks with rendered images and native DMC state observations. |
+| DeepMind Lab | [DMLab](environments/dmlab.md) | You want 3D navigation and puzzle tasks from DeepMind Lab with image observations and compact discrete actions. |
 | Gym/Gymnasium | [Gym](environments/gym.md) | You want classic control, Box2D, custom Gym environments, or generic rendered tasks converted to TorchWM image observations. |
 | Brax | [Brax](brax_env.md) | You want JAX/Brax continuous-control tasks wrapped in a Gym-like image adapter for TorchWM training loops. |
 | Atari | [Atari](environments/atari.md) | You want Atari environments through Gymnasium/ALE, native ALE vectorization, or Atari-specific DIAMOND-style preprocessing. |
@@ -68,7 +72,7 @@ robotics_env = make_robotics_env("HalfCheetah-v2", seed=0, size=(64, 64))
 ## Shared TorchWM environment conventions
 
 - Image-based training code generally expects an observation dictionary with an `image` entry.
-- DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, and Unity adapters return channel-first images shaped `(3, H, W)` with dtype `uint8`.
+- DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, and Unity adapters return channel-first images shaped `(3, H, W)` with dtype `uint8`.
 - Atari can expose raw ALE observations, native vectorized observations, or DIAMOND-style preprocessed frames; check the Atari page before feeding observations directly to a model.
 - Dreamer environment creation applies `ActionRepeat`, `NormalizeActions`, and `TimeLimit` after constructing the selected backend. The lightweight catalog exposes Gymnasium Robotics ids to online world-model families except I-JEPA/JEPA, which uses image datasets rather than online Gymnasium environments.
 - Use `torchwm envs list` to inspect the lightweight backend catalog available to the CLI.

@@ -12,8 +12,6 @@ import yaml
 
 import numpy as np
 import torch
-import wandb
-
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator
 from world_models.utils.utils import apply_masks
 from world_models.utils.jepa_utils import init_distributed, AllReduce
@@ -451,6 +449,8 @@ def main(args, resume_preempt=False):
 
 def sweep_train():
     """Function for WandB sweep agent."""
+    import wandb
+
     with wandb.init() as run:
         cfg = JEPAConfig()
         # Update config with sweep parameters
@@ -464,6 +464,8 @@ if __name__ == "__main__":
     cfg = JEPAConfig()
     # TODO: Load config from file if needed
     if cfg.enable_sweep:
+        import wandb
+
         sweep_id = wandb.sweep(
             cfg.sweep_config, project=cfg.wandb_project, entity=cfg.wandb_entity
         )

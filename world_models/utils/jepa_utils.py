@@ -5,16 +5,14 @@ import os
 import torch.distributed as dist
 
 from types import ModuleType
-from typing import Optional
 
-# Optional WandB import; keep typed for static checkers.
-wandb: Optional[ModuleType] = None
-try:
-    import wandb as _wandb
 
-    wandb = _wandb
-except ImportError:
-    wandb = None
+def _get_wandb() -> ModuleType:
+    try:
+        import wandb
+    except ImportError as exc:
+        raise ImportError("wandb is not installed") from exc
+    return wandb
 
 logger = getLogger()
 
@@ -187,8 +185,7 @@ class CSVLogger(object):
         if self.enable_wandb:
             if not wandb_api_key:
                 raise ValueError("WandB API key is required when enable_wandb is True")
-            if wandb is None:
-                raise ImportError("wandb is not installed")
+            wandb = _get_wandb()
             os.environ["WANDB_API_KEY"] = wandb_api_key
             self._wandb_run = wandb.init(
                 project=wandb_project,

@@ -1,6 +1,15 @@
 import os
-import cv2
-import gym
+
+try:
+    import cv2
+except ImportError:  # optional image/video helper dependency
+    cv2 = None
+
+try:
+    import gym
+except ImportError:  # optional environment helper dependency
+    gym = None
+
 import torch
 import pickle
 import pathlib
@@ -11,8 +20,6 @@ if not hasattr(np, "bool8"):
     # Some NumPy builds don't expose `bool8` as an attribute; set it safely
     setattr(np, "bool8", np.bool_)
 
-import plotly
-from plotly.graph_objs import Scatter, Line
 
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
@@ -26,10 +33,28 @@ import yaml  # type: ignore[import]
 import collections
 import collections.abc
 
-from sklearn.manifold import TSNE
-import umap
-
 HAS_VIZ = True
+
+
+def _require_cv2():
+    if cv2 is None:
+        raise ImportError("opencv-python is required for image/video utilities")
+    return cv2
+
+
+def _require_gym():
+    if gym is None:
+        raise ImportError("gym is required for TorchImageEnvWrapper")
+    return gym
+
+
+def _require_plotly():
+    try:
+        import plotly
+        from plotly.graph_objs import Line, Scatter
+    except ImportError as exc:
+        raise ImportError("plotly is required for plotting utilities") from exc
+    return plotly, Scatter, Line
 
 
 class AttrDict(dict):
@@ -70,7 +95,8 @@ def to_tensor_obs(image):
     """
     Converts the input np img to channel first 64x64 dim torch img.
     """
-    image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
+    cv2_mod = _require_cv2()
+    image = cv2_mod.resize(image, (64, 64), interpolation=cv2_mod.INTER_LINEAR)
     image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
     return image
 
@@ -498,6 +524,8 @@ def lineplot(xs, ys, title, path="", xaxis="episode"):
 
     Supports uncertainty-band plotting when `ys` is a 2D array.
     """
+    plotly, Scatter, Line = _require_plotly()
+
     MAX_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     MIN_LINE = Line(color="rgb(0, 132, 180)", dash="dash")
     NO_LINE = Line(color="rgba(0, 0, 0, 0)")
@@ -554,7 +582,8 @@ class TorchImageEnvWrapper:
     def __init__(self, env, bit_depth, observation_shape=None, act_rep=2):
         if isinstance(env, str):
             try:
-                self.env = gym.make(env, render_mode="rgb_array")
+                gym_mod = _require_gym()
+                self.env = gym_mod.make(env, render_mode="rgb_array")
                 self._render_mode_supported = True
             except ImportError as exc:
                 from world_models.envs.robotics_env import (
@@ -567,7 +596,8 @@ class TorchImageEnvWrapper:
                 self.env = make_robotics_env(env, render_mode="rgb_array")
                 self._render_mode_supported = True
             except TypeError:
-                self.env = gym.make(env)
+                gym_mod = _require_gym()
+                self.env = gym_mod.make(env)
                 self._render_mode_supported = False
         else:
             self.env = env
@@ -825,6 +855,13 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
 
+    try:
+        from sklearn.manifold import TSNE
+    except ImportError as exc:
+        raise ImportError("scikit-learn is required for t-SNE visualization") from exc
+
+    plotly, Scatter, _ = _require_plotly()
+
     tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
     latents_2d = tsne.fit_transform(latents)
 
@@ -873,6 +910,13 @@ def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
     """
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
+
+    try:
+        import umap
+    except ImportError as exc:
+        raise ImportError("umap-learn is required for UMAP visualization") from exc
+
+    plotly, Scatter, _ = _require_plotly()
 
     reducer = umap.UMAP(n_neighbors=n_neighbors, random_state=42)
     latents_2d = reducer.fit_transform(latents)

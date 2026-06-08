@@ -1,6 +1,10 @@
+import pytest
+
 import torch
 
 from world_models.models.diffusion.actor_critic import ActorCriticNetwork
+
+pytestmark = [pytest.mark.integration]
 
 
 def test_policy_hidden_state_updates_over_imagined_steps():

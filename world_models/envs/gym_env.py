@@ -54,6 +54,7 @@ class GymImageEnv:
         self._seed = seed
         self._render_mode = render_mode
         self._seed_applied = False
+        self._rng = np.random.default_rng(seed)
 
         if isinstance(env, str):
             self._env = self._make_env_from_id(env, render_mode)
@@ -78,6 +79,8 @@ class GymImageEnv:
                 low=-1.0, high=1.0, shape=(self._discrete_n,), dtype=np.float32
             )
             self._action_space.sample = self._sample_discrete_action
+
+        self._seed_spaces(seed)
 
         self._observation_space = gym.spaces.Dict(
             {
@@ -140,8 +143,22 @@ class GymImageEnv:
             return int(self._env.spec.max_episode_steps)
         return 1000
 
+    def _seed_spaces(self, seed):
+        if seed is None:
+            return
+        for space in (
+            self._action_space,
+            getattr(self._env, "action_space", None),
+            getattr(self._env, "observation_space", None),
+        ):
+            if hasattr(space, "seed"):
+                try:
+                    space.seed(seed)
+                except Exception:
+                    pass
+
     def _sample_discrete_action(self):
-        idx = np.random.randint(0, self._discrete_n)
+        idx = int(self._rng.integers(0, self._discrete_n))
         action = -np.ones((self._discrete_n,), dtype=np.float32)
         action[idx] = 1.0
         return action

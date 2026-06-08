@@ -21,6 +21,101 @@ except ImportError:
     wandb = None
 
 
+def symlog(x: torch.Tensor) -> torch.Tensor:
+    """Symmetric log transform used by Dreamer V2 for reward/value targets.
+
+    Defined as ``sign(x) * log(1 + |x|)``. This compresses large positive or
+    negative values into a range that is easier to predict with a categorical
+    distribution over a bounded set of buckets.
+    """
+    return torch.sign(x) * torch.log1p(torch.abs(x))
+
+
+def symexp(x: torch.Tensor) -> torch.Tensor:
+    """Inverse of :func:`symlog`.
+
+    Defined as ``sign(x) * (exp(|x|) - 1)``.
+    """
+    return torch.sign(x) * (torch.expm1(torch.abs(x)))
+
+
+class TwoHotEncoder:
+    """Two-hot encoding for symlog targets (Dreamer V2 reward/value heads).
+
+    A target value is softly assigned to the two nearest buckets on a uniform
+    grid spanning ``[-symlog_range, symlog_range]``. The categorical logits
+    produced by a network can then be decoded back into a real value by
+    computing the expected bucket center.
+
+    Args:
+        num_buckets: Number of buckets in the categorical distribution.
+        symlog_range: Maximum absolute value (in symlog space) covered by the
+            grid. Values outside the range are clipped to the boundary buckets.
+    """
+
+    def __init__(self, num_buckets: int = 255, symlog_range: float = 10.0):
+        self.num_buckets = int(num_buckets)
+        self.symlog_range = float(symlog_range)
+        self.register_buffers()
+
+    def register_buffers(self) -> None:
+        """Allocate the bucket-center buffer on CPU. Use :meth:`to` to move."""
+        self._bucket_centers = torch.linspace(
+            -self.symlog_range, self.symlog_range, self.num_buckets
+        )
+        self.bucket_centers = self._bucket_centers
+
+    def to(self, device: torch.device) -> "TwoHotEncoder":
+        self.bucket_centers = self._bucket_centers.to(device)
+        return self
+
+    def encode(self, target: torch.Tensor) -> torch.Tensor:
+        """Two-hot encode a real-valued target into soft bucket probabilities.
+
+        Args:
+            target: Tensor of arbitrary shape containing real-valued targets.
+
+        Returns:
+            Tensor with an extra final dimension of size ``num_buckets``
+            containing the soft two-hot distribution. The encoding assumes
+            the target is already in symlog space, matching Dreamer V2.
+        """
+        sym_target = torch.clamp(target, -self.symlog_range, self.symlog_range)
+        target_flat = sym_target.reshape(-1)
+        step = 2.0 * self.symlog_range / (self.num_buckets - 1)
+        offset = (sym_target + self.symlog_range) / step
+        offset_flat = offset.reshape(-1)
+        lower = torch.floor(offset_flat).long()
+        upper = torch.clamp(lower + 1, max=self.num_buckets - 1)
+        lower = torch.clamp(lower, min=0)
+        weight_upper = (offset_flat - lower.float()).unsqueeze(-1)
+        weight_lower = 1.0 - weight_upper
+        one_hot = torch.zeros(
+            target_flat.shape[0], self.num_buckets, device=target_flat.device
+        )
+        one_hot.scatter_(1, lower.unsqueeze(-1), weight_lower)
+        one_hot.scatter_add_(1, upper.unsqueeze(-1), weight_upper)
+        return one_hot.reshape(*target.shape, self.num_buckets)
+
+    def decode(self, logits: torch.Tensor) -> torch.Tensor:
+        """Decode categorical logits into the expected real-valued prediction.
+
+        The logits are first softmaxed and then combined with the bucket
+        centers. The output is passed through :func:`symexp` to invert the
+        symlog transform.
+
+        Args:
+            logits: Tensor with a final dimension of ``num_buckets``.
+
+        Returns:
+            Tensor with the same shape as ``logits`` minus the last dimension.
+        """
+        probs = torch.softmax(logits, dim=-1)
+        centers = self.bucket_centers.to(probs.device)
+        expectation = (probs * centers).sum(-1, keepdim=True)
+        return symexp(expectation)
+
+
 def get_parameters(modules: Iterable[Module]):
     """
     Given a list of torch modules, returns a list of their parameters.

@@ -1,432 +1,186 @@
+"""TorchWM public API.
+
+This package keeps imports lightweight while still exposing a friendly top-level
+surface.  Common workflows can use the small factory helpers::
+
+    import torchwm
+
+    cfg = torchwm.create_config("dreamer", env="walker-walk")
+    agent = torchwm.create_model("dreamer", cfg)
+    env = torchwm.make_env("CartPole-v1", backend="gym")
+
+Lower-level research components remain available as lazy top-level exports, for
+example ``from torchwm import DreamerAgent, ConvEncoder, ReplayBuffer``.
 """
-TorchWM - Modular PyTorch Library for World Models
 
-Public API exports for easy imports. All model components are exposed via this
-simple interface for use in building custom models.
+from __future__ import annotations
 
-Usage:
-    # Main agents
-    from world_models import DreamerAgent, DreamerConfig
-    agent = DreamerAgent(DreamerConfig())
-
-    # Building blocks for custom models
-    from world_models import ConvEncoder, ConvDecoder, RSSM, ReplayBuffer
-    encoder = ConvEncoder(input_shape=(3, 64, 64), embed_size=256, activation='relu')
-"""
+from importlib import import_module
+from typing import Any
 
 __version__ = "0.4.0"
 
+_API_EXPORTS = {
+    "EnvBackendSpec": "world_models.api",
+    "ModelSpec": "world_models.api",
+    "MODEL_SPECS": "world_models.api",
+    "ENV_BACKEND_SPECS": "world_models.api",
+    "create_config": "world_models.api",
+    "create_model": "world_models.api",
+    "get_env_backend_spec": "world_models.api",
+    "get_model_spec": "world_models.api",
+    "list_env_backends": "world_models.api",
+    "list_envs": "world_models.api",
+    "list_models": "world_models.api",
+    "make_env": "world_models.api",
+}
 
-def __getattr__(name):
-    """Lazy import to avoid loading unused modules and their dependencies."""
+_LAZY_EXPORTS: dict[str, str] = {
+    # Agents and high-level models.
+    "Dreamer": "world_models.models",
+    "DreamerAgent": "world_models.models",
+    "Planet": "world_models.models",
+    "JEPAAgent": "world_models.models",
+    "IRISAgent": "world_models.models",
+    "compute_lambda_return": "world_models.models",
+    "VisionTransformer": "world_models.models",
+    "ModularRSSM": "world_models.models",
+    "create_modular_rssm": "world_models.models",
+    "Genie": "world_models.models",
+    "LatentActionModel": "world_models.models",
+    "DynamicsModel": "world_models.models",
+    "create_genie": "world_models.models",
+    "create_genie_small": "world_models.models",
+    "create_genie_large": "world_models.models",
+    "create_latent_action_model": "world_models.models",
+    "create_dynamics_model": "world_models.models",
+    # State-space models.
+    "RSSM": "world_models.models",
+    "RecurrentStateSpaceModel": "world_models.models",
+    "DreamerRSSM": "world_models.models.dreamer_rssm",
+    # Vision components.
+    "ConvEncoder": "world_models.vision",
+    "CNNEncoder": "world_models.vision",
+    "ConvDecoder": "world_models.vision",
+    "CNNDecoder": "world_models.vision",
+    "DenseDecoder": "world_models.vision",
+    "ActionDecoder": "world_models.vision",
+    "TanhBijector": "world_models.vision",
+    "SampleDist": "world_models.vision",
+    "IRISEncoder": "world_models.vision",
+    "IRISDecoder": "world_models.vision",
+    "VideoTokenizer": "world_models.vision",
+    "create_video_tokenizer": "world_models.vision",
+    "VectorQuantizer": "world_models.vision",
+    "VectorQuantizerEMA": "world_models.vision",
+    # Memory.
+    "ReplayBuffer": "world_models.memory",
+    "Memory": "world_models.memory",
+    "Episode": "world_models.memory",
+    "IRISReplayBuffer": "world_models.memory",
+    "IRISOnPolicyBuffer": "world_models.memory",
+    # Diffusion models.
+    "DiT": "world_models.models.diffusion",
+    "PatchEmbed": "world_models.models.diffusion",
+    "PatchUnEmbed": "world_models.models.diffusion",
+    "DDPM": "world_models.models.diffusion",
+    "ActorCriticNetwork": "world_models.models.diffusion",
+    "RewardTerminationModel": "world_models.models.diffusion",
+    "sinusoidal_time_embedding": "world_models.models.diffusion",
+    # Transformer blocks and layers.
+    "STTransformer": "world_models.blocks",
+    "MultiHeadSelfAttention": "world_models.blocks",
+    "MultiHeadAttention": "world_models.blocks",
+    "AdaLNNormalization": "world_models.blocks",
+    "RMSNorm": "world_models.blocks",
+    # Controllers and policies.
+    "RSSMPolicy": "world_models.controller",
+    "RolloutGenerator": "world_models.controller",
+    "IRISActor": "world_models.controller",
+    "IRISCritic": "world_models.controller",
+    "IRISPolicy": "world_models.controller",
+    "CNNFeatureExtractor": "world_models.controller",
+    # Configs.
+    "DreamerConfig": "world_models.configs",
+    "JEPAConfig": "world_models.configs",
+    "DiTConfig": "world_models.configs",
+    "get_dit_config": "world_models.configs",
+    "DiamondConfig": "world_models.configs",
+    "IRISConfig": "world_models.configs",
+    "GenieConfig": "world_models.configs",
+    "GenieSmallConfig": "world_models.configs",
+    "STTransformerConfig": "world_models.configs",
+    "VideoTokenizerConfig": "world_models.configs",
+    "LatentActionModelConfig": "world_models.configs",
+    "DynamicsModelConfig": "world_models.configs",
+    "ATARI_100K_GAMES": "world_models.configs",
+    "HUMAN_SCORES": "world_models.configs",
+    "RANDOM_SCORES": "world_models.configs",
+    # Environments and wrappers.
+    "make_atari_env": "world_models.envs",
+    "list_available_atari_envs": "world_models.envs",
+    "make_atari_vector_env": "world_models.envs",
+    "make_diamond_atari_env": "world_models.envs.diamond_atari",
+    "MuJoCoImageEnv": "world_models.envs",
+    "make_mujoco_env": "world_models.envs",
+    "make_mujoco_env_from_config": "world_models.envs",
+    "list_gymnasium_robotics_envs": "world_models.envs",
+    "make_robotics_env": "world_models.envs",
+    "register_gymnasium_robotics_envs": "world_models.envs",
+    "GymImageEnv": "world_models.envs",
+    "make_gym_env": "world_models.envs",
+    "BraxImageEnv": "world_models.envs",
+    "make_brax_env": "world_models.envs",
+    "DeepMindControlEnv": "world_models.envs",
+    "UnityMLAgentsEnv": "world_models.envs",
+    "make_unity_mlagents_env": "world_models.envs",
+    "MujocoEnv": "world_models.envs",
+    "TimeLimit": "world_models.envs",
+    "ActionRepeat": "world_models.envs",
+    "NormalizeActions": "world_models.envs",
+    "ObsDict": "world_models.envs",
+    "OneHotAction": "world_models.envs",
+    "RewardObs": "world_models.envs",
+    "ResizeImage": "world_models.envs",
+    "RenderImage": "world_models.envs",
+    "SelectAction": "world_models.envs",
+    # Inference operators.
+    "OperatorABC": "world_models.inference.operators",
+    "DreamerOperator": "world_models.inference.operators",
+    "JEPAOperator": "world_models.inference.operators",
+    "IrisOperator": "world_models.inference.operators",
+    "PlaNetOperator": "world_models.inference.operators",
+    "get_operator": "world_models.inference.operators",
+    # Reward/value models.
+    "RewardModel": "world_models.reward",
+    "ValueModel": "world_models.reward",
+    "DreamerRewardModel": "world_models.reward",
+    "DreamerValueModel": "world_models.reward",
+    # Utilities.
+    "Logger": "world_models.utils",
+    "FreezeParameters": "world_models.utils",
+    "compute_return": "world_models.utils",
+    "preprocess_obs": "world_models.utils",
+}
 
-    # =====================================================================
-    # AGENTS & HIGH-LEVEL MODELS
-    # =====================================================================
-    if name in (
-        "Dreamer",
-        "DreamerAgent",
-        "Planet",
-        "JEPAAgent",
-        "VisionTransformer",
-        "ModularRSSM",
-        "create_modular_rssm",
-        # Genie world model components
-        "Genie",
-        "LatentActionModel",
-        "DynamicsModel",
-        "create_genie",
-        "create_genie_small",
-        "create_genie_large",
-        "create_latent_action_model",
-        "create_dynamics_model",
-    ):
-        from world_models import models as _models
-
-        return getattr(_models, name)
-
-    # =====================================================================
-    # RSSM & STATE SPACE MODELS
-    # =====================================================================
-    if name in (
-        "RSSM",
-        "RecurrentStateSpaceModel",
-    ):
-        from world_models import models as _models
-
-        return getattr(_models, name)
-
-    # =====================================================================
-    # VISION: ENCODERS & DECODERS
-    # =====================================================================
-    if name in (
-        "ConvEncoder",
-        "CNNEncoder",
-        "ConvDecoder",
-        "CNNDecoder",
-        "DenseDecoder",
-        "ActionDecoder",
-        "TanhBijector",
-        "SampleDist",
-        "IRISEncoder",
-        "IRISDecoder",
-    ):
-        from world_models import vision as _vision
-
-        return getattr(_vision, name)
-
-    # =====================================================================
-    # VISION: VIDEO TOKENIZER & VQ
-    # =====================================================================
-    if name in (
-        "VideoTokenizer",
-        "create_video_tokenizer",
-        "VectorQuantizer",
-        "VectorQuantizerEMA",
-    ):
-        from world_models import vision as _vision
-
-        return getattr(_vision, name)
-
-    # =====================================================================
-    # MEMORY & REPLAY BUFFERS
-    # =====================================================================
-    if name in (
-        "ReplayBuffer",
-        "Memory",
-        "Episode",
-        "IRISReplayBuffer",
-        "IRISOnPolicyBuffer",
-    ):
-        from world_models import memory as _memory
-
-        return getattr(_memory, name)
-
-    # =====================================================================
-    # DIFFUSION MODELS
-    # =====================================================================
-    if name in (
-        "DiT",
-        "PatchEmbed",
-        "PatchUnEmbed",
-        "DDPM",
-        "ActorCriticNetwork",
-        "RewardTerminationModel",
-        "sinusoidal_time_embedding",
-    ):
-        from world_models.models import diffusion as _diffusion
-
-        return getattr(_diffusion, name)
-
-    # =====================================================================
-    # TRANSFORMER BLOCKS & LAYERS
-    # =====================================================================
-    if name in (
-        "STTransformer",
-        "MultiHeadSelfAttention",
-        "MultiHeadAttention",
-        "AdaLNNormalization",
-        "RMSNorm",
-    ):
-        from world_models import blocks as _blocks
-
-        return getattr(_blocks, name)
-
-    # =====================================================================
-    # CONTROLLERS & POLICIES
-    # =====================================================================
-    if name in (
-        "RSSMPolicy",
-        "RolloutGenerator",
-        "IRISActor",
-        "IRISCritic",
-        "IRISPolicy",
-        "CNNFeatureExtractor",
-    ):
-        from world_models import controller as _controller
-
-        return getattr(_controller, name)
-
-    # =====================================================================
-    # CONFIGS
-    # =====================================================================
-    if name in (
-        "DreamerConfig",
-        "JEPAConfig",
-        "DiTConfig",
-        "get_dit_config",
-        "DiamondConfig",
-        "IRISConfig",
-        "GenieConfig",
-        "GenieSmallConfig",
-        "STTransformerConfig",
-        "VideoTokenizerConfig",
-        "LatentActionModelConfig",
-        "DynamicsModelConfig",
-        "ATARI_100K_GAMES",
-        "HUMAN_SCORES",
-        "RANDOM_SCORES",
-        # Genie configs
-        "GenieConfig",
-        "GenieSmallConfig",
-        "STTransformerConfig",
-        "VideoTokenizerConfig",
-        "LatentActionModelConfig",
-        "DynamicsModelConfig",
-    ):
-        from world_models import configs as _configs
-
-        return getattr(_configs, name)
-
-    # =====================================================================
-    # ENVIRONMENTS
-    # =====================================================================
-    if name in (
-        "make_atari_env",
-        "list_available_atari_envs",
-        "make_atari_vector_env",
-        "MuJoCoImageEnv",
-        "make_mujoco_env",
-        "make_mujoco_env_from_config",
-        "list_gymnasium_robotics_envs",
-        "make_robotics_env",
-        "register_gymnasium_robotics_envs",
-        "GymImageEnv",
-        "make_gym_env",
-        "DeepMindControlEnv",
-        "UnityMLAgentsEnv",
-        "make_unity_mlagents_env",
-        "MujocoEnv",
-        "TimeLimit",
-        "ActionRepeat",
-        "NormalizeActions",
-        "ObsDict",
-        "OneHotAction",
-        "RewardObs",
-        "ResizeImage",
-        "RenderImage",
-        "SelectAction",
-    ):
-        from world_models import envs as _envs
-
-        return getattr(_envs, name)
-
-    # =====================================================================
-    # INFERENCE OPERATORS
-    # =====================================================================
-    if name in (
-        "OperatorABC",
-        "DreamerOperator",
-        "JEPAOperator",
-        "IrisOperator",
-        "PlaNetOperator",
-        "get_operator",
-    ):
-        from world_models.inference import operators as _ops
-
-        return getattr(_ops, name)
-
-    # =====================================================================
-    # REWARD & VALUE MODELS
-    # =====================================================================
-    if name in (
-        "RewardModel",
-        "ValueModel",
-        "DreamerRewardModel",
-        "DreamerValueModel",
-    ):
-        from world_models import reward as _reward
-
-        return getattr(_reward, name)
-
-    # =====================================================================
-    # LATENT ACTION & DYNAMICS MODELS (Genie sub-components)
-    # =====================================================================
-    if name in (
-        "LatentActionModel",
-        "DynamicsModel",
-        "create_latent_action_model",
-        "create_dynamics_model",
-    ):
-        from world_models import models as _models
-
-        return getattr(_models, name)
-
-    # =====================================================================
-    # UTILITIES
-    # =====================================================================
-    if name in (
-        "Logger",
-        "FreezeParameters",
-        "compute_return",
-        "preprocess_obs",
-    ):
-        from world_models import utils as _utils
-
-        return getattr(_utils, name)
-
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+_EXPORTS = {**_API_EXPORTS, **_LAZY_EXPORTS}
 
 
-# =====================================================================
-# PUBLIC API - All exports with descriptions
-# =====================================================================
-__all__ = [
-    # ---------------------------------------------------------------------
-    # VERSION
-    # ---------------------------------------------------------------------
-    "__version__",
-    # ---------------------------------------------------------------------
-    # AGENTS (High-level training wrappers)
-    # ---------------------------------------------------------------------
-    "DreamerAgent",  # High-level Dreamer training API
-    "JEPAAgent",  # JEPA agent for self-supervised learning
-    "Planet",  # PlaNet planning agent
-    "VisionTransformer",  # Vision Transformer (ViT) for image encoding
-    "ModularRSSM",  # Modular RSSM with swappable components
-    "create_modular_rssm",  # Factory for ModularRSSM
-    # ---------------------------------------------------------------------
-    # CORE WORLD MODELS
-    # ---------------------------------------------------------------------
-    "Dreamer",  # Core Dreamer implementation with RSSM, actor, critic
-    "Genie",  # Generative Interactive Environment model
-    "create_genie",  # Factory function for Genie
-    "create_genie_small",  # Small variant of Genie
-    "create_genie_large",  # Large variant of Genie
-    # ---------------------------------------------------------------------
-    # STATE SPACE MODELS
-    # ---------------------------------------------------------------------
-    "RSSM",  # Recurrent State-Space Model (Dreamer-style)
-    "RecurrentStateSpaceModel",  # Alternative name for RSSM
-    "DreamerRSSM",  # Dreamer-specific RSSM implementation
-    # ---------------------------------------------------------------------
-    # VISION COMPONENTS
-    # ---------------------------------------------------------------------
-    "ConvEncoder",  # Convolutional encoder (Dreamer)
-    "CNNEncoder",  # CNN encoder (PlaNet)
-    "ConvDecoder",  # Convolutional decoder (Dreamer)
-    "CNNDecoder",  # CNN decoder (PlaNet)
-    "DenseDecoder",  # MLP decoder for rewards/values
-    "ActionDecoder",  # Dreamer policy head
-    "TanhBijector",  # Action squashing transformation
-    "SampleDist",  # Distribution wrapper for sampling
-    "IRISEncoder",  # IRIS-specific encoder
-    "IRISDecoder",  # IRIS-specific decoder
-    # ---------------------------------------------------------------------
-    # VIDEO TOKENIZER
-    # ---------------------------------------------------------------------
-    "VideoTokenizer",  # VQ-VAE video tokenizer for Genie
-    "create_video_tokenizer",  # Factory for VideoTokenizer
-    "VectorQuantizer",  # Basic vector quantization
-    "VectorQuantizerEMA",  # EMA-based vector quantization
-    # ---------------------------------------------------------------------
-    # MEMORY SYSTEMS
-    # ---------------------------------------------------------------------
-    "ReplayBuffer",  # Experience replay buffer (Dreamer)
-    "Memory",  # Base memory class (deque-based)
-    "Episode",  # Episode memory storage
-    "IRISReplayBuffer",  # IRIS replay buffer
-    "IRISOnPolicyBuffer",  # IRIS on-policy buffer
-    # ---------------------------------------------------------------------
-    # DIFFUSION MODELS
-    # ---------------------------------------------------------------------
-    "DiT",  # Diffusion Transformer
-    "PatchEmbed",  # Image patch embedding for DiT
-    "PatchUnEmbed",  # Patch unembedding (decode tokens to image)
-    "DDPM",  # Denoising Diffusion Probabilistic Model
-    "ActorCriticNetwork",  # Diffusion-based actor-critic
-    "RewardTerminationModel",  # Reward/termination prediction head
-    "sinusoidal_time_embedding",  # Time embedding for diffusion
-    # ---------------------------------------------------------------------
-    # TRANSFORMER BLOCKS
-    # ---------------------------------------------------------------------
-    "STTransformer",  # Spatiotemporal Transformer
-    "MultiHeadSelfAttention",  # Self-attention module
-    "MultiHeadAttention",  # Multi-head attention (alias)
-    "AdaLNNormalization",  # Adaptive Layer Normalization
-    "RMSNorm",  # Root Mean Square Normalization
-    # ---------------------------------------------------------------------
-    # CONTROLLERS & POLICIES
-    # ---------------------------------------------------------------------
-    "RSSMPolicy",  # RSSM-based policy
-    "RolloutGenerator",  # Trajectory rollout generator
-    "IRISActor",  # IRIS actor network
-    "IRISCritic",  # IRIS critic network
-    "IRISPolicy",  # IRIS planning policy
-    "CNNFeatureExtractor",  # CNN feature extractor for IRIS
-    # ---------------------------------------------------------------------
-    # GENIE SUB-COMPONENTS
-    # ---------------------------------------------------------------------
-    "LatentActionModel",  # Latent action learning model
-    "DynamicsModel",  # Future frame prediction model
-    "create_latent_action_model",  # Factory for LatentActionModel
-    "create_dynamics_model",  # Factory for DynamicsModel
-    # ---------------------------------------------------------------------
-    # CONFIGS
-    # ---------------------------------------------------------------------
-    "DreamerConfig",
-    "JEPAConfig",
-    "DiTConfig",
-    "get_dit_config",
-    "DiamondConfig",
-    "IRISConfig",
-    "GenieConfig",
-    "GenieSmallConfig",
-    "STTransformerConfig",
-    "VideoTokenizerConfig",
-    "LatentActionModelConfig",
-    "DynamicsModelConfig",
-    "ATARI_100K_GAMES",
-    "HUMAN_SCORES",
-    "RANDOM_SCORES",
-    # ---------------------------------------------------------------------
-    # ENVIRONMENTS
-    # ---------------------------------------------------------------------
-    "make_atari_env",
-    "list_available_atari_envs",
-    "make_atari_vector_env",
-    "MuJoCoImageEnv",
-    "make_mujoco_env",
-    "make_mujoco_env_from_config",
-    "list_gymnasium_robotics_envs",
-    "make_robotics_env",
-    "register_gymnasium_robotics_envs",
-    "make_gym_env",
-    "GymImageEnv",
-    "DeepMindControlEnv",
-    "UnityMLAgentsEnv",
-    "make_unity_mlagents_env",
-    "MujocoEnv",
-    "TimeLimit",
-    "ActionRepeat",
-    "NormalizeActions",
-    "ObsDict",
-    "OneHotAction",
-    "RewardObs",
-    "ResizeImage",
-    "RenderImage",
-    "SelectAction",
-    # ---------------------------------------------------------------------
-    # INFERENCE OPERATORS
-    # ---------------------------------------------------------------------
-    "OperatorABC",
-    "DreamerOperator",
-    "JEPAOperator",
-    "IrisOperator",
-    "PlaNetOperator",
-    "get_operator",
-    # ---------------------------------------------------------------------
-    # REWARD & VALUE MODELS
-    # ---------------------------------------------------------------------
-    "RewardModel",
-    "ValueModel",
-    "DreamerRewardModel",
-    "DreamerValueModel",
-    # ---------------------------------------------------------------------
-    # UTILITIES
-    # ---------------------------------------------------------------------
-    "Logger",
-    "FreezeParameters",
-    "compute_return",
-    "preprocess_obs",
-]
+def __getattr__(name: str) -> Any:
+    """Lazily import public symbols on first access."""
+
+    try:
+        module_name = _EXPORTS[name]
+    except KeyError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
+    module = import_module(module_name)
+    value = getattr(module, name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__all__))
+
+
+__all__ = ["__version__", *_EXPORTS]

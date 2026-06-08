@@ -7,7 +7,7 @@ TorchWM provides two vectorization paths: ALE's native Atari vector environment 
 Use `make_atari_vector_env()` for high-throughput Atari simulation backed by `ale_py.vector_env.AtariVectorEnv`:
 
 ```python
-from world_models.envs.ale_atari_vector_env import make_atari_vector_env
+from torchwm import make_atari_vector_env
 
 vec_env = make_atari_vector_env(
     game="pong",
@@ -27,19 +27,17 @@ This path is specific to Atari and returns ALE's vector environment object direc
 `TorchVectorizedEnv` runs multiple environment instances across worker processes. It is useful for rollout collection in RL harnesses and algorithms that expect batched observations, rewards, done flags, and info dictionaries.
 
 ```python
-from world_models.envs.gym_env import make_gym_env
-from world_models.envs.vector_env import TorchVectorizedEnv
+from torchwm import make_env
+
+# For arbitrary Gym-like factories, create each environment through torchwm.
+# Pass this factory to your vectorization utility of choice.
 
 def env_factory():
-    return make_gym_env("CartPole-v1", size=(64, 64))
+    return make_env("CartPole-v1", backend="gym", size=(64, 64))
 
-vec_env = TorchVectorizedEnv(
-    env_factory=env_factory,
-    num_workers=2,
-    envs_per_worker=4,
-    seed=42,
-)
-obs = vec_env.reset()
+# Example: hand `env_factory` to your multiprocessing/vector rollout code.
+env = env_factory()
+obs = env.reset()
 ```
 
 The total number of environments is `num_workers * envs_per_worker`.

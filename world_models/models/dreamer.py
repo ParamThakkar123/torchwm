@@ -23,7 +23,14 @@ from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
 from world_models.vision.dreamer_encoder import ConvEncoder
-from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
+from world_models.utils.dreamer_utils import (
+    Logger,
+    FreezeParameters,
+    compute_return,
+    symlog as _symlog,
+    symexp as _symexp,
+    TwoHotEncoder,
+)
 from world_models.configs.dreamer_config import DreamerConfig
 
 # Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
@@ -252,6 +259,14 @@ class Dreamer:
             output_shape=self.obs_shape,
             activation=self.args.cnn_activation_function,
         ).to(self.device)
+        head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
+        head_kwargs = {}
+        if head_dist == "symlog_twohot":
+            head_kwargs = {
+                "num_buckets": getattr(self.args, "num_buckets", 255),
+                "symlog_range": getattr(self.args, "symlog_range", 10.0),
+            }
+
         self.reward_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
             deter_size=self.args.deter_size,
@@ -259,7 +274,8 @@ class Dreamer:
             n_layers=2,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         self.value_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
@@ -268,7 +284,8 @@ class Dreamer:
             n_layers=3,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         if self.args.use_disc_model:
             self.discount_model = DenseDecoder(
@@ -338,6 +355,7 @@ class Dreamer:
         features = torch.cat([self.posterior["stoch"], self.posterior["deter"]], dim=-1)
         rew_dist = self.reward_model(features)
         obs_dist = self.obs_decoder(features)
+        disc_dist = None
         if self.args.use_disc_model:
             disc_dist = self.discount_model(features)
 
@@ -378,20 +396,18 @@ class Dreamer:
                 kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
             )
 
-        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
-        rew_loss = -torch.mean(rew_dist.log_prob(rews[:-1]))
-        if self.args.use_disc_model:
-            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
-
-        if self.args.use_disc_model:
-            model_loss = (
-                self.args.kl_loss_coeff * kl_loss
-                + obs_loss
-                + rew_loss
-                + self.args.disc_loss_coeff * disc_loss
-            )
+        if self.args.algo == "Dreamerv2":
+            target_rew = _symlog(rews[:-1])
         else:
-            model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+            target_rew = rews[:-1]
+
+        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
+        rew_loss = -torch.mean(rew_dist.log_prob(target_rew))
+
+        model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+        if self.args.use_disc_model and disc_dist is not None:
+            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
+            model_loss = model_loss + self.args.disc_loss_coeff * disc_loss
 
         return model_loss
 
@@ -428,7 +444,13 @@ class Dreamer:
 
         discounts = torch.cat([torch.ones_like(discounts[:1]), discounts[1:-1]], 0)
         self.discounts = torch.cumprod(discounts, 0).detach()
-        actor_loss = -torch.mean(self.discounts * self.returns)
+
+        if self.args.algo == "Dreamerv2":
+            weight = self.discounts.detach()
+            target = _symlog(self.returns.detach())
+            actor_loss = -torch.mean(weight * target)
+        else:
+            actor_loss = -torch.mean(self.discounts * self.returns)
         return actor_loss
 
     def value_loss(self):
@@ -437,10 +459,12 @@ class Dreamer:
             value_targ = self.returns.detach()
 
         value_dist = self.value_model(value_feat)
-        value_loss = -torch.mean(
-            self.discounts * value_dist.log_prob(value_targ).unsqueeze(-1)
-        )
-
+        if self.args.algo == "Dreamerv2":
+            target = _symlog(value_targ)
+            log_prob = value_dist.log_prob(target)
+        else:
+            log_prob = value_dist.log_prob(value_targ).unsqueeze(-1)
+        value_loss = -torch.mean(self.discounts * log_prob)
         return value_loss
 
     def train_one_batch(self):

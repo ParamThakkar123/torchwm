@@ -300,6 +300,13 @@
     <span class="n">make_mujoco_env_from_config</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PROCGEN_ENVS</span><span class="p">,</span>
+    <span class="n">ProcgenImageEnv</span><span class="p">,</span>
+    <span class="n">list_procgen_envs</span><span class="p">,</span>
+    <span class="n">make_procgen_env</span><span class="p">,</span>
+    <span class="n">normalize_procgen_env_name</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.brax_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BraxImageEnv</span><span class="p">,</span> <span class="n">make_brax_env</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSuiteImageEnv</span><span class="p">,</span> <span class="n">make_bsuite_env</span><span class="p">,</span> <span class="n">list_available_bsuite_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span><span class="p">,</span> <span class="n">make_unity_mlagents_env</span>
@@ -333,6 +340,8 @@
         <span class="k">return</span> <span class="n">make_bsuite_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;robotics&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">}:</span>
         <span class="k">return</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;procgen&quot;</span><span class="p">,</span> <span class="s2">&quot;coinrun&quot;</span><span class="p">}:</span>
+        <span class="k">return</span> <span class="n">make_procgen_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># Prefer a package-local factory if present.</span>
     <span class="k">try</span><span class="p">:</span>
@@ -347,6 +356,11 @@
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">make_atari_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">make_procgen_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">pass</span>
 
@@ -377,6 +391,11 @@
     <span class="s2">&quot;register_gymnasium_robotics_envs&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GymImageEnv&quot;</span><span class="p">,</span>
     <span class="s2">&quot;make_gym_env&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PROCGEN_ENVS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ProcgenImageEnv&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;list_procgen_envs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_procgen_env&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;normalize_procgen_env_name&quot;</span><span class="p">,</span>
     <span class="s2">&quot;UnityMLAgentsEnv&quot;</span><span class="p">,</span>
     <span class="s2">&quot;make_unity_mlagents_env&quot;</span><span class="p">,</span>
     <span class="s2">&quot;DeepMindControlEnv&quot;</span><span class="p">,</span>

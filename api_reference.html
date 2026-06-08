@@ -10877,7 +10877,8 @@ compatibility helper.</p></li>
 <dt class="sig sig-object py" id="world_models.models.dreamer.make_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer.</span></span><span class="sig-name descname"><span class="pre">make_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer.html#make_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer.make_env" title="Link to this definition">#</a></dt>
 <dd><p>Construct a Dreamer-compatible environment from <cite>DreamerConfig</cite> options.</p>
-<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, BSuite, and Unity ML-Agents backends
+<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+Brax, BSuite, and Unity ML-Agents backends
 and applies the standard wrapper stack: action repeat, action normalization,
 and time limit.</p>
 </dd></dl>
@@ -20000,7 +20001,7 @@ and returns and episode instance.</p>
 <section id="environment-adapters">
 <h3>Environment adapters<a class="headerlink" href="#environment-adapters" title="Link to this heading">#</a></h3>
 <p>The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.</p>
@@ -20330,6 +20331,114 @@ gym environment instance.</p></li>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.GymImageEnv" title="world_models.envs.GymImageEnv">GymImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">ProcgenImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'easy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">procgen_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adapt Procgen’s vector API to TorchWM’s single-env image interface.</p>
+<p>The upstream <code class="docutils literal notranslate"><span class="pre">procgen.ProcgenEnv</span></code> API is vectorized, so this wrapper builds
+a one-environment vector and unwraps the leading batch dimension. Actions are
+exposed as a continuous one-hot-like <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> with one element per
+discrete Procgen action, matching TorchWM’s other discrete image adapters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>distribution_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>num_levels</strong> (<em>int</em>)</p></li>
+<li><p><strong>start_level</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>action_n</strong> (<em>int</em>)</p></li>
+<li><p><strong>procgen_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.list_procgen_envs">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">list_procgen_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#list_procgen_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.list_procgen_envs" title="Link to this definition">#</a></dt>
+<dd><p>Return the Procgen game names understood by <a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_procgen_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_procgen_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#make_procgen_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_procgen_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a single-environment Procgen adapter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>) – Procgen game name or Gym-style id.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Options forwarded to <a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TorchWM-compatible image wrapper exposing
+<code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span> <span class="pre">uint8}</span></code> observations and one-hot-like actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv">ProcgenImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.normalize_procgen_env_name">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">normalize_procgen_env_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#normalize_procgen_env_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.normalize_procgen_env_name" title="Link to this definition">#</a></dt>
+<dd><p>Normalize Procgen Gym ids and shorthand names to Procgen game names.</p>
+<p>Accepted forms include <code class="docutils literal notranslate"><span class="pre">&quot;coinrun&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;procgen-coinrun-v0&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&quot;procgen:procgen-coinrun-v0&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>env</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -21192,6 +21301,115 @@ gym environment instance.</p></li>
 <dd class="field-odd"><p>AtariVectorEnv</p>
 </dd>
 </dl>
+</dd></dl>
+
+<p id="module-world_models.envs.procgen_env">Procgen environment adapter for TorchWM image-based agents.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.list_procgen_envs">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">list_procgen_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#list_procgen_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.list_procgen_envs" title="Link to this definition">#</a></dt>
+<dd><p>Return the Procgen game names understood by <a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.normalize_procgen_env_name">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">normalize_procgen_env_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#normalize_procgen_env_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.normalize_procgen_env_name" title="Link to this definition">#</a></dt>
+<dd><p>Normalize Procgen Gym ids and shorthand names to Procgen game names.</p>
+<p>Accepted forms include <code class="docutils literal notranslate"><span class="pre">&quot;coinrun&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;procgen-coinrun-v0&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&quot;procgen:procgen-coinrun-v0&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>env</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.make_procgen_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">make_procgen_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#make_procgen_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.make_procgen_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a single-environment Procgen adapter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>) – Procgen game name or Gym-style id.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Options forwarded to <a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TorchWM-compatible image wrapper exposing
+<code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span> <span class="pre">uint8}</span></code> observations and one-hot-like actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv">ProcgenImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">ProcgenImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'easy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">procgen_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adapt Procgen’s vector API to TorchWM’s single-env image interface.</p>
+<p>The upstream <code class="docutils literal notranslate"><span class="pre">procgen.ProcgenEnv</span></code> API is vectorized, so this wrapper builds
+a one-environment vector and unwraps the leading batch dimension. Actions are
+exposed as a continuous one-hot-like <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> with one element per
+discrete Procgen action, matching TorchWM’s other discrete image adapters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>distribution_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>num_levels</strong> (<em>int</em>)</p></li>
+<li><p><strong>start_level</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>action_n</strong> (<em>int</em>)</p></li>
+<li><p><strong>procgen_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py function" id="module-world_models.envs.mujoco_env">
@@ -26598,6 +26816,19 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.step"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.render"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.close"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_procgen_envs"><code class="docutils literal notranslate"><span class="pre">list_procgen_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_procgen_env"><code class="docutils literal notranslate"><span class="pre">make_procgen_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.normalize_procgen_env_name"><code class="docutils literal notranslate"><span class="pre">normalize_procgen_env_name()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.action_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
@@ -26722,6 +26953,19 @@ along the batch dimension.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.list_available_atari_envs"><code class="docutils literal notranslate"><span class="pre">list_available_atari_envs()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_vector_env.make_atari_vector_env"><code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.list_procgen_envs"><code class="docutils literal notranslate"><span class="pre">list_procgen_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.normalize_procgen_env_name"><code class="docutils literal notranslate"><span class="pre">normalize_procgen_env_name()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.make_procgen_env"><code class="docutils literal notranslate"><span class="pre">make_procgen_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.step"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.render"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.close"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.close()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>

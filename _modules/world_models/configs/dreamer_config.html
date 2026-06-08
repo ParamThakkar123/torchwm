@@ -303,6 +303,7 @@
         <span class="c1"># gym: generic Gym/Gymnasium env IDs or prebuilt env instances</span>
         <span class="c1"># mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB</span>
         <span class="c1"># robotics: Gymnasium Robotics env IDs (including legacy MuJoCo v2/v3)</span>
+        <span class="c1"># procgen: Procgen procedurally generated benchmark games</span>
         <span class="c1"># unity_mlagents: Unity ML-Agents executable</span>
         <span class="c1"># brax: JAX/Brax continuous-control environments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
@@ -310,6 +311,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">env_instance</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gym_render_mode</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
+
+        <span class="c1"># Procgen options. Use env values like &quot;coinrun&quot; or &quot;procgen-coinrun-v0&quot;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_distribution_mode</span> <span class="o">=</span> <span class="s2">&quot;easy&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_num_levels</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procgen_start_level</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether</span>
         <span class="c1"># `env` is a Gymnasium task ID or a native MJCF/MJB source.</span>

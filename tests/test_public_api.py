@@ -63,3 +63,55 @@ def test_create_model_for_factory_only_spec_filters_through_signature(monkeypatc
         "required": 3,
         "optional": 5,
     }
+
+
+def test_diamond_and_dit_are_registered_in_public_api():
+    assert "diamond" in torchwm.list_models()
+    assert "dit" in torchwm.list_models()
+
+    diamond_cfg = torchwm.create_config("diamond", game="Pong-v5", seed=11)
+    dit_cfg = torchwm.create_config("diffusion-transformer", IMG_SIZE=8, PATCH=4)
+
+    assert diamond_cfg.game == "Pong-v5"
+    assert diamond_cfg.seed == 11
+    assert dit_cfg.IMG_SIZE == 8
+    assert dit_cfg.PATCH == 4
+    assert torchwm.get_model_spec("diamond_agent").name == "diamond"
+    assert torchwm.get_model_spec("diffusion_transformer").name == "dit"
+
+
+def test_create_model_uses_dit_config_adapter():
+    model = torchwm.create_model(
+        "dit",
+        IMG_SIZE=8,
+        PATCH=4,
+        CHANNELS=3,
+        WIDTH=16,
+        DEPTH=1,
+        HEADS=4,
+        DROP=0.0,
+    )
+
+    assert model.patchify.proj.in_channels == 3
+    assert len(model.transformer_blocks) == 1
+
+
+def test_create_model_dispatches_diamond_agent_with_config(monkeypatch):
+    captured = {}
+
+    class FakeDiamondAgent:
+        def __init__(self, config):
+            captured["config"] = config
+
+    original_loader = api._load_object
+
+    def fake_loader(import_path):
+        if import_path == "world_models.training.train_diamond:DiamondAgent":
+            return FakeDiamondAgent
+        return original_loader(import_path)
+
+    monkeypatch.setattr(api, "_load_object", fake_loader)
+    agent = api.create_model("diamond", game="Pong-v5")
+
+    assert isinstance(agent, FakeDiamondAgent)
+    assert captured["config"].game == "Pong-v5"

@@ -1,86 +1,101 @@
-import pytest
+from types import ModuleType, SimpleNamespace
+
+import numpy as np
 
 from world_models.envs.dmc import DeepMindControlEnv
 
-pytestmark = [pytest.mark.integration, pytest.mark.slow]
+
+class _FakePhysics:
+    def render(self, height, width, camera_id=0):
+        assert camera_id in (0, 2)
+        return np.zeros((height, width, 3), dtype=np.uint8)
 
 
-@pytest.mark.skip(reason="Requires MuJoCo/EGL which is not available")
-class TestDeepMindControlEnv:
-    def test_env_creation(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        assert env.observation_space is not None
-        assert env.action_space is not None
+class _FakeTimeStep:
+    def __init__(self, observation, reward=1.0, discount=0.99, last=False):
+        self.observation = observation
+        self.reward = reward
+        self.discount = discount
+        self._last = last
 
-    def test_env_step_and_reset(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        obs = env.reset()
-        assert "image" in obs
-        action = env.action_space.sample()
-        next_obs, reward, done, info = env.step(action)
-        assert "image" in next_obs
-        assert isinstance(reward, float)
-        assert isinstance(done, bool)
-        assert "discount" in info
-
-    def test_env_render(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        env.reset()
-        frame = env.render()
-        assert frame.shape == (64, 64, 3)
-        env.close()
-
-    def test_env_seed_reproducibility(self):
-        env1 = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        env2 = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        obs1 = env1.reset()
-        obs2 = env2.reset()
-        assert (obs1["image"] == obs2["image"]).all()
-        action = env1.action_space.sample()
-        next_obs1, _, _, _ = env1.step(action)
-        next_obs2, _, _, _ = env2.step(action)
-        assert (next_obs1["image"] == next_obs2["image"]).all()
-
-    def test_invalid_env_name(self):
-        try:
-            DeepMindControlEnv(name="invalid-env", seed=42, size=(64, 64))
-        except Exception as e:
-            assert isinstance(e, ValueError)
-
-    def test_different_image_sizes(self):
-        sizes = [(32, 32), (64, 64), (128, 128)]
-        for size in sizes:
-            env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=size)
-            obs = env.reset()
-            assert obs["image"].shape == (size[0], size[1], 3)
-
-    def test_multiple_resets(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        for _ in range(5):
-            obs = env.reset()
-            assert "image" in obs
-
-    def test_step_after_done(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        obs = env.reset()
-        done = False
-        while not done:
-            action = env.action_space.sample()
-            obs, reward, done, info = env.step(action)
-        try:
-            env.step(env.action_space.sample())
-        except Exception as e:
-            assert isinstance(e, RuntimeError)
-
-    def test_close_env(self):
-        env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(64, 64))
-        env.reset()
-        env.close()
-        try:
-            env.step(env.action_space.sample())
-        except Exception as e:
-            assert isinstance(e, RuntimeError)
+    def last(self):
+        return self._last
 
 
-class TestMujocoEnv:
-    pass
+class _FakeDMCEnv:
+    def __init__(self):
+        self.physics = _FakePhysics()
+        self.step_calls = 0
+
+    def observation_spec(self):
+        return {"position": SimpleNamespace(shape=(2,))}
+
+    def action_spec(self):
+        return SimpleNamespace(
+            minimum=np.array([-1.0, -1.0], dtype=np.float32),
+            maximum=np.array([1.0, 1.0], dtype=np.float32),
+        )
+
+    def reset(self):
+        return _FakeTimeStep({"position": np.array([0.0, 0.5], dtype=np.float32)})
+
+    def step(self, action):
+        self.step_calls += 1
+        return _FakeTimeStep(
+            {"position": np.asarray(action, dtype=np.float32)},
+            reward=None,
+            discount=1.0,
+            last=self.step_calls >= 2,
+        )
+
+
+def _install_fake_dm_control(monkeypatch):
+    fake_env = _FakeDMCEnv()
+    suite = SimpleNamespace(load=lambda domain, task, task_kwargs: fake_env)
+    dm_control = ModuleType("dm_control")
+    dm_control.suite = suite
+    monkeypatch.setitem(__import__("sys").modules, "dm_control", dm_control)
+    return fake_env
+
+
+def test_deepmind_control_env_smoke_with_fake_suite(monkeypatch):
+    fake_env = _install_fake_dm_control(monkeypatch)
+
+    env = DeepMindControlEnv(name="cartpole-swingup", seed=42, size=(16, 24))
+
+    assert env.observation_space["image"].shape == (3, 16, 24)
+    assert env.action_space.shape == (2,)
+
+    obs = env.reset()
+    assert obs["image"].shape == (3, 16, 24)
+    assert obs["position"].shape == (2,)
+
+    next_obs, reward, done, info = env.step(np.array([0.25, -0.25], dtype=np.float32))
+    assert next_obs["image"].shape == (3, 16, 24)
+    assert reward == 0
+    assert done is False
+    assert info["discount"].dtype == np.float32
+    assert fake_env.step_calls == 1
+
+
+def test_deepmind_control_env_domain_alias_and_render_validation(monkeypatch):
+    calls = []
+    fake_env = _FakeDMCEnv()
+
+    def load(domain, task, task_kwargs):
+        calls.append((domain, task, task_kwargs))
+        return fake_env
+
+    dm_control = ModuleType("dm_control")
+    dm_control.suite = SimpleNamespace(load=load)
+    monkeypatch.setitem(__import__("sys").modules, "dm_control", dm_control)
+
+    env = DeepMindControlEnv(name="cup-catch", seed=7, size=(8, 8))
+    assert calls == [("ball_in_cup", "catch", {"random": 7})]
+
+    try:
+        env.render(mode="human")
+    except ValueError as exc:
+        assert "rgb_array" in str(exc)
+    else:
+        raise AssertionError("DeepMindControlEnv.render should reject non-RGB modes")

@@ -80,6 +80,20 @@ MODEL_SPECS: dict[str, ModelSpec] = {
         description="Large Genie variant.",
         aliases=("genie_large",),
     ),
+    "diamond": ModelSpec(
+        name="diamond",
+        import_path="world_models.training.train_diamond:DiamondAgent",
+        config_path="world_models.configs.diamond_config:DiamondConfig",
+        description="DIAMOND diffusion world model agent for Atari-style control.",
+        aliases=("diamond_agent",),
+    ),
+    "dit": ModelSpec(
+        name="dit",
+        import_path="world_models.models.diffusion.DiT:create_dit",
+        config_path="world_models.configs.dit_config:DiTConfig",
+        description="Diffusion Transformer (DiT) image denoising model.",
+        aliases=("diffusion-transformer", "diffusion_transformer"),
+    ),
     "modular-rssm": ModelSpec(
         name="modular-rssm",
         import_path="world_models.models.modular_rssm:create_modular_rssm",

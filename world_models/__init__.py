@@ -81,6 +81,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "IRISOnPolicyBuffer": "world_models.memory",
     # Diffusion models.
     "DiT": "world_models.models.diffusion",
+    "create_dit": "world_models.models.diffusion",
     "PatchEmbed": "world_models.models.diffusion",
     "PatchUnEmbed": "world_models.models.diffusion",
     "DDPM": "world_models.models.diffusion",

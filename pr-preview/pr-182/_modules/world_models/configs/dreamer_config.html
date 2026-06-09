@@ -292,7 +292,7 @@
 <span></span><span class="k">class</span><span class="w"> </span><span class="nc">DreamerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration container for Dreamer training, evaluation, and environment setup.</span>
 
-<span class="sd">    This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),</span>
+<span class="sd">    This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),</span>
 <span class="sd">    model dimensions, replay and optimization settings, logging cadence, and</span>
 <span class="sd">    checkpoint options consumed by `DreamerAgent`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -300,6 +300,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Environment selection.</span>
         <span class="c1"># dmc: DeepMind Control Suite</span>
+        <span class="c1"># dmlab: DeepMind Lab 3D navigation tasks</span>
         <span class="c1"># gym: generic Gym/Gymnasium env IDs or prebuilt env instances</span>
         <span class="c1"># mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB</span>
         <span class="c1"># robotics: Gymnasium Robotics env IDs (including legacy MuJoCo v2/v3)</span>
@@ -311,6 +312,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">env_instance</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gym_render_mode</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
+
+        <span class="c1"># DeepMind Lab options. dmlab_action_repeat is native DMLab frame</span>
+        <span class="c1"># repeat; Dreamer action_repeat is still applied by the shared wrapper</span>
+        <span class="c1"># stack outside the backend adapter.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_action_repeat</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_action_set</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_observations</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_config</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dmlab_renderer</span> <span class="o">=</span> <span class="s2">&quot;hardware&quot;</span>
 
         <span class="c1"># Procgen options. Use env values like &quot;coinrun&quot; or &quot;procgen-coinrun-v0&quot;.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">procgen_distribution_mode</span> <span class="o">=</span> <span class="s2">&quot;easy&quot;</span>

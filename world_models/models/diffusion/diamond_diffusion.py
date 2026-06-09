@@ -141,7 +141,7 @@ class DownBlock(nn.Module):
 
 
 class UpBlock(nn.Module):
-    """Upsampling block for U-Net decoder."""
+    """Upsampling block for U-Net decoder with skip connections."""
 
     def __init__(
         self,
@@ -153,18 +153,25 @@ class UpBlock(nn.Module):
     ):
         super().__init__()
         self.res_blocks = nn.ModuleList()
-        for _ in range(num_res_blocks):
-            self.res_blocks.append(ResBlock(in_channels, out_channels, cond_dim))
-            in_channels = out_channels
+        # First res block takes concatenated input (in_channels + skip_channels)
+        # where skip_channels == in_channels at the same resolution level
+        self.res_blocks.append(ResBlock(in_channels * 2, out_channels, cond_dim))
+        in_ch = out_channels
+        for _ in range(num_res_blocks - 1):
+            self.res_blocks.append(ResBlock(in_ch, out_channels, cond_dim))
+            in_ch = out_channels
 
-        # attn can be AttentionBlock or None
         self.attn: Optional[AttentionBlock]
         if attention:
             self.attn = AttentionBlock(out_channels, cond_dim)
         else:
             self.attn = None
 
-    def forward(self, x: torch.Tensor, cond: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, cond: torch.Tensor, skip: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        if skip is not None:
+            x = torch.cat([x, skip], dim=1)
         for res_block in self.res_blocks:
             x = res_block(x, cond)
         if self.attn is not None:
@@ -199,6 +206,7 @@ class DiffusionUNet(nn.Module):
         self.time_embed = TimestepEmbedding(cond_dim)
 
         self.action_embed = nn.Embedding(action_dim, cond_dim)
+        self.action_proj = nn.Linear(cond_dim * num_conditioning_frames, cond_dim)
 
         self.down_blocks = nn.ModuleList()
         in_ch = base_channels
@@ -310,7 +318,9 @@ class DiffusionUNet(nn.Module):
 
         t_emb = self.time_embed(t)
         action_emb = self.action_embed(actions.long())
-        cond = t_emb + action_emb.sum(dim=1)
+        B_a, L_a, D_a = action_emb.shape
+        action_emb = self.action_proj(action_emb.reshape(B_a, L_a * D_a))
+        cond = t_emb + action_emb
 
         skip_connections = []
         for down_block in self.down_blocks:
@@ -324,9 +334,9 @@ class DiffusionUNet(nn.Module):
             else:
                 h = block(h, cond)
 
-        for up_block in self.up_blocks:
+        for up_block, skip in zip(self.up_blocks, reversed(skip_connections)):
             h = F.interpolate(h, scale_factor=2, mode="nearest")
-            h = up_block(h, cond)
+            h = up_block(h, cond, skip)
 
         return self.output_conv(h)
 
@@ -412,13 +422,16 @@ class EulerSampler:
         self.rho = rho
         self.num_steps = num_steps
 
-        self.step_indices = torch.arange(num_steps)
-        t_steps = (
-            sigma_max ** (1 / rho)
-            + self.step_indices
-            / (num_steps - 1)
-            * (sigma_min ** (1 / rho) - sigma_max ** (1 / rho))
-        ) ** rho
+        if num_steps > 1:
+            step_indices = torch.arange(num_steps)
+            t_steps = (
+                sigma_max ** (1 / rho)
+                + step_indices
+                / (num_steps - 1)
+                * (sigma_min ** (1 / rho) - sigma_max ** (1 / rho))
+            ) ** rho
+        else:
+            t_steps = torch.tensor([sigma_max])
         self.t_steps = torch.flip(t_steps, dims=(0,))
         self.t_next = torch.cat([self.t_steps[1:], torch.tensor([0.0])])
         # attach EDM preconditioner instance (use provided or default)
@@ -483,7 +496,7 @@ class EulerSampler:
             )
 
             # Euler step for the probability-flow ODE (deterministic sampler)
-            d_cur = (denoised - x) / sigma_cur
-            x = denoised + (t_nxt.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
+            d_cur = (x - denoised) / sigma_cur
+            x = x + (t_nxt.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
 
         return x.clamp(0, 1)

@@ -97,6 +97,8 @@ class DiamondAgent:
         # last LSTM hidden states (saved for reproducible imagined rollouts)
         self.last_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
         self.last_reward_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+        # policy hidden state maintained across collection steps for temporal consistency
+        self.collect_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
 
     def _build_models(self):
         """Initialize all DIAMOND models."""
@@ -226,6 +228,7 @@ class DiamondAgent:
 
         self.diffusion_opt.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.diffusion_model.parameters(), max_norm=1.0)
         self.diffusion_opt.step()
 
         return loss.item()
@@ -263,6 +266,7 @@ class DiamondAgent:
 
         self.reward_opt.zero_grad()
         total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.reward_model.parameters(), max_norm=1.0)
         self.reward_opt.step()
 
         return total_loss.item()
@@ -414,6 +418,7 @@ class DiamondAgent:
 
         self.actor_opt.zero_grad()
         total_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), max_norm=1.0)
         self.actor_opt.step()
 
         return policy_loss.item(), value_loss.item()
@@ -436,10 +441,15 @@ class DiamondAgent:
             obs_np = obs_np.transpose(0, 3, 1, 2)
             obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
-            # pass a batched single observation [1, C, H, W]
-            action, _ = self.actor_critic.get_action(
+            # maintain LSTM hidden state across collection steps
+            if self.collect_policy_hidden is None:
+                self.collect_policy_hidden = self.actor_critic.init_hidden(
+                    1, self.device
+                )
+
+            action, self.collect_policy_hidden = self.actor_critic.get_action(
                 obs_tensor[:, -1],
-                None,
+                self.collect_policy_hidden,
                 deterministic=False,
             )
 
@@ -474,6 +484,7 @@ class DiamondAgent:
                 self.obs_history = [norm_obs] * self.config.num_conditioning_frames
                 self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
                 self.action_history = []
+                self.collect_policy_hidden = None
 
         return rewards
 
@@ -923,7 +934,13 @@ def train_diamond(
     agent.train()
 
 
-if __name__ == "__main__":
+def main(args: Optional[list[str]] = None) -> None:
+    """Entrypoint for ``torchwm train diamond --inproc``.
+
+    Args:
+        args: Command-line argument list (e.g. ``["--game", "Breakout-v5"]``).
+            If ``None``, ``sys.argv`` is read.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--game", type=str, default="Breakout-v5")
     parser.add_argument("--seed", type=int, default=0)
@@ -933,6 +950,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
     )
-    args = parser.parse_args()
+    parsed = parser.parse_args(args)
+    train_diamond(parsed.game, parsed.seed, parsed.preset, parsed.device)
 
-    train_diamond(args.game, args.seed, args.preset, args.device)
+
+if __name__ == "__main__":
+    main()

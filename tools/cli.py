@@ -28,6 +28,15 @@ TRAINING_MODULES = {
     "jepa": "world_models.training.train_jepa",
     "rssm": "world_models.training.train_rssm",
     "genie": "world_models.training.train_genie",
+    "diamond": "world_models.training.train_diamond",
+}
+
+EVAL_MODULES = {
+    "diamond": "scripts.eval_diamond",
+}
+
+PLAY_MODULES = {
+    "diamond": "scripts.play_diamond",
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
@@ -546,6 +555,132 @@ def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
         dones=numpy.array(dones),
     )
     click.echo("Saved.")
+
+
+@app.command("eval")
+@click.option(
+    "--model",
+    "-m",
+    required=True,
+    type=click.Choice(list(EVAL_MODULES), case_sensitive=False),
+    help="Model type to evaluate",
+)
+@click.option(
+    "--checkpoint", "-c", required=True, help="Path to model checkpoint (.pt file)"
+)
+@click.option("--game", "-g", default="Breakout-v5", help="Environment/game name")
+@click.option(
+    "--num-videos", default=256, type=int, help="Number of trajectories to compare"
+)
+@click.option("--trajectory-length", default=20, type=int, help="Frames per trajectory")
+@click.option("--batch-size", default=16, type=int, help="Batch size for generation")
+@click.option(
+    "--device", default=None, help="Device to run on (default: cuda if available)"
+)
+@click.option(
+    "--output",
+    "-o",
+    default=None,
+    type=click.Path(path_type=Path),
+    help="Path to save results JSON",
+)
+@click.option("--seed", default=42, type=int, help="Random seed")
+@click.option(
+    "--metrics",
+    default="fid,fvd,lpips",
+    help="Comma-separated metrics to compute (fid,fvd,lpips)",
+)
+@click.option(
+    "--record",
+    default=None,
+    type=click.Path(path_type=Path),
+    help="Save real + generated videos (e.g. eval.mp4)",
+)
+def eval_command(
+    model: str,
+    checkpoint: str,
+    game: str,
+    num_videos: int,
+    trajectory_length: int,
+    batch_size: int,
+    device: str | None,
+    output: Path | None,
+    seed: int,
+    metrics: str,
+    record: Path | None,
+) -> None:
+    """Evaluate a trained world model with FID/FVD/LPIPS metrics."""
+    module_path = EVAL_MODULES[model.lower()]
+    mod = importlib.import_module(module_path)
+
+    metrics_list = [m.strip() for m in metrics.split(",") if m.strip()]
+    mod.run_eval(
+        checkpoint=checkpoint,
+        game=game,
+        num_videos=num_videos,
+        trajectory_length=trajectory_length,
+        batch_size=batch_size,
+        device=device,
+        output=str(output) if output else None,
+        seed=seed,
+        metrics=metrics_list,
+        record=str(record) if record else None,
+    )
+
+
+PLAY_MODEL_NAMES = tuple(sorted(PLAY_MODULES))
+
+
+@app.command("play")
+@click.option(
+    "--model",
+    "-m",
+    required=True,
+    type=click.Choice(PLAY_MODEL_NAMES, case_sensitive=False),
+    help="Model type to play",
+)
+@click.option(
+    "--checkpoint", "-c", required=True, help="Path to model checkpoint (.pt file)"
+)
+@click.option("--game", "-g", default="Breakout-v5", help="Environment/game name")
+@click.option(
+    "--device", default=None, help="Device to run on (default: cuda if available)"
+)
+@click.option("--seed", default=42, type=int, help="Random seed")
+@click.option(
+    "--deterministic/--stochastic",
+    default=True,
+    help="Use deterministic policy actions",
+)
+@click.option(
+    "--record",
+    default=None,
+    type=click.Path(path_type=Path),
+    help="Save gameplay video (e.g. gameplay.mp4)",
+)
+@click.option("--record-fps", default=20, type=int, help="FPS for recorded video")
+def play_command(
+    model: str,
+    checkpoint: str,
+    game: str,
+    device: str | None,
+    seed: int,
+    deterministic: bool,
+    record: Path | None,
+    record_fps: int,
+) -> None:
+    """Interactively play inside a trained world model (real env + dream mode)."""
+    module_path = PLAY_MODULES[model.lower()]
+    mod = importlib.import_module(module_path)
+    mod.run_play(
+        checkpoint=checkpoint,
+        game=game,
+        device=device,
+        seed=seed,
+        deterministic=deterministic,
+        record=str(record) if record else None,
+        record_fps=record_fps,
+    )
 
 
 @app.command(

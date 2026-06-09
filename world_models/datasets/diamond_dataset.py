@@ -254,16 +254,3 @@ class SequenceDataset(torch.utils.data.Dataset):
             "dones": dones,
             "next_obs": next_obs,
         }
-
-
-def collate_fn(batch: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
-    """Collate function for the dataloader."""
-    obs_seq = torch.stack([item["obs_seq"] for item in batch])
-    action_seq = torch.stack([item["action_seq"] for item in batch])
-    next_obs = torch.stack([item["next_obs"] for item in batch])
-
-    return {
-        "obs_seq": obs_seq,
-        "action_seq": action_seq,
-        "next_obs": next_obs,
-    }

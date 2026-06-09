@@ -17,12 +17,13 @@ from typing import Sequence, Optional
 class VGGFeatureExtractor(nn.Module):
     """VGG16 truncated to output features from multiple intermediate layers."""
 
-    # Layer indices (0-based) and their output channel counts in VGG16
+    # Layer indices (0-based) and their output channel counts in VGG16-BN.
+    # Indices account for extra BatchNorm layers vs plain VGG16.
     LAYER_CONFIG: list[tuple[int, int, str]] = [
-        (4, 64, "relu1_2"),
-        (9, 128, "relu2_2"),
-        (16, 256, "relu3_3"),
-        (23, 512, "relu4_3"),
+        (5, 64, "relu1_2"),
+        (12, 128, "relu2_2"),
+        (22, 256, "relu3_3"),
+        (32, 512, "relu4_3"),
     ]
 
     def __init__(self, device: torch.device = torch.device("cpu")):

@@ -4084,7 +4084,7 @@ repeated 4 times, followed by a linear projection to output_size.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -5480,6 +5480,7 @@ imagined rollout return estimation.</p>
 
 </dd></dl>
 
+<p><strong>Primary modules:</strong> <code class="docutils literal notranslate"><span class="pre">world_models</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.configs</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.catalog</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>, and <code class="docutils literal notranslate"><span class="pre">world_models.inference</span></code>.</p>
 <p id="module-world_models">TorchWM public API.</p>
 <p>This package keeps imports lightweight while still exposing a friendly top-level
 surface.  Common workflows can use the small factory helpers:</p>
@@ -9211,7 +9212,7 @@ repeated 4 times, followed by a linear projection to output_size.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -10861,6 +10862,10 @@ compatibility helper.</p></li>
 </dl>
 </dd>
 </dl>
+<p id="module-world_models.catalog">Small, import-safe catalog of available environments and backends.</p>
+<p>This module replaces the previous <cite>world_models.ui.catalog</cite> and is safe to
+import from lightweight CLI tools and tests without pulling in any UI
+dependencies.</p>
 </section>
 <section id="model-catalog">
 <h2>Model catalog<a class="headerlink" href="#model-catalog" title="Link to this heading">#</a></h2>
@@ -10877,7 +10882,7 @@ compatibility helper.</p></li>
 <dt class="sig sig-object py" id="world_models.models.dreamer.make_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer.</span></span><span class="sig-name descname"><span class="pre">make_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer.html#make_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer.make_env" title="Link to this definition">#</a></dt>
 <dd><p>Construct a Dreamer-compatible environment from <cite>DreamerConfig</cite> options.</p>
-<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+<p>Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
 Brax, BSuite, and Unity ML-Agents backends
 and applies the standard wrapper stack: action repeat, action normalization,
 and time limit.</p>
@@ -15271,7 +15276,7 @@ initializer avoids importing every config eagerly.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -16478,7 +16483,7 @@ Implements discrete autoencoder + autoregressive Transformer for sample-efficien
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.dreamer_config.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.dreamer_config.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -20001,7 +20006,7 @@ and returns and episode instance.</p>
 <section id="environment-adapters">
 <h3>Environment adapters<a class="headerlink" href="#environment-adapters" title="Link to this heading">#</a></h3>
 <p>The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DeepMind Lab, Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.</p>
@@ -20742,6 +20747,90 @@ observations and exposes continuous actions in the Brax <code class="docutils li
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">DMLabEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hardware'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">lab_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-style adapter for DeepMind Lab 3D environments.</p>
+<p>The native <code class="docutils literal notranslate"><span class="pre">deepmind_lab</span></code> API exposes RGB observations as HWC arrays and
+expects a seven-element integer action vector. This adapter presents a
+TorchWM-friendly image observation dict and a Box action space containing a
+one-hot vector in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> so it composes with Dreamer’s normalization
+wrappers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>action_repeat</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_set</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>] </em><em>| </em><em>np.ndarray</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Sequence</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>renderer</strong> (<em>str</em>)</p></li>
+<li><p><strong>lab_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_dmlab_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_dmlab_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#make_dmlab_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_dmlab_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a DeepMind Lab environment adapter for TorchWM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>) – DeepMind Lab level name, for example
+<code class="docutils literal notranslate"><span class="pre">&quot;rooms_collect_good_objects_train&quot;</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to <a class="reference internal" href="#world_models.envs.DMLabEnv" title="world_models.envs.DMLabEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-like wrapper returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> uint8
+observations and normalized one-hot discrete actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.DMLabEnv" title="world_models.envs.DMLabEnv">DMLabEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">BSuiteImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bsuite_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -21122,6 +21211,90 @@ domains, 2 for quadruped.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="world_models.envs.dmc.DeepMindControlEnv.render">
 <span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmc.html#DeepMindControlEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmc.DeepMindControlEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-world_models.envs.dmlab">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.make_dmlab_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.dmlab.</span></span><span class="sig-name descname"><span class="pre">make_dmlab_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#make_dmlab_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.make_dmlab_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a DeepMind Lab environment adapter for TorchWM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>) – DeepMind Lab level name, for example
+<code class="docutils literal notranslate"><span class="pre">&quot;rooms_collect_good_objects_train&quot;</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to <a class="reference internal" href="#world_models.envs.dmlab.DMLabEnv" title="world_models.envs.dmlab.DMLabEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-like wrapper returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> uint8
+observations and normalized one-hot discrete actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.dmlab.DMLabEnv" title="world_models.envs.dmlab.DMLabEnv">DMLabEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.dmlab.</span></span><span class="sig-name descname"><span class="pre">DMLabEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hardware'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">lab_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-style adapter for DeepMind Lab 3D environments.</p>
+<p>The native <code class="docutils literal notranslate"><span class="pre">deepmind_lab</span></code> API exposes RGB observations as HWC arrays and
+expects a seven-element integer action vector. This adapter presents a
+TorchWM-friendly image observation dict and a Box action space containing a
+one-hot vector in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> so it composes with Dreamer’s normalization
+wrappers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>action_repeat</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_set</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>] </em><em>| </em><em>np.ndarray</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Sequence</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>renderer</strong> (<em>str</em>)</p></li>
+<li><p><strong>lab_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.close" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -26864,6 +27037,17 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_brax_env"><code class="docutils literal notranslate"><span class="pre">make_brax_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv"><code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.reset"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.step"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.render"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.close"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_dmlab_env"><code class="docutils literal notranslate"><span class="pre">make_dmlab_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.observation_space</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.action_space</span></code></a></li>
@@ -26934,6 +27118,17 @@ along the batch dimension.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.step"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.step()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.reset"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.reset()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.make_dmlab_env"><code class="docutils literal notranslate"><span class="pre">make_dmlab_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv"><code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.reset"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.step"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.render"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.close"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.close()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>

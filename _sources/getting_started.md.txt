@@ -187,6 +187,7 @@ top-level `torchwm.make_env()` helper uses the same backend names for standalone
 environment creation:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
+- `dmlab`: DeepMind Lab 3D navigation tasks (for example `rooms_collect_good_objects_train`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
 - `mujoco`: Gymnasium MuJoCo task ids or native MJCF/MJB models
 - `robotics`: any id registered by the installed Gymnasium Robotics package

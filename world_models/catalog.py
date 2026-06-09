@@ -133,6 +133,15 @@ def _list_available_atari_envs() -> list[str]:
 ATARI_ENVS: list[str] = _list_available_atari_envs()
 
 
+def _list_available_dmlab_levels() -> list[str]:
+    try:
+        from world_models.envs.dmlab import DMLAB_LEVELS
+
+        return list(DMLAB_LEVELS)
+    except Exception:
+        return []
+
+
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
     "dm_control": {
         "label": "DM Control",
@@ -191,15 +200,6 @@ def _dedupe_envs(*groups: list[str]) -> list[str]:
                 combined.append(env_id)
                 seen.add(env_id)
     return combined
-
-
-def _list_available_dmlab_levels() -> list[str]:
-    try:
-        from world_models.envs.dmlab import DMLAB_LEVELS
-
-        return list(DMLAB_LEVELS)
-    except Exception:
-        return []
 
 
 def _build_env_catalog() -> dict[str, list[str]]:

@@ -36,10 +36,38 @@ Commands
 
 - `train <model> [extra args...] [--inproc]` - Launch an existing training
   entrypoint. The CLI maps simple model names to modules in
-  `world_models.training` (e.g. `iris`, `planet`, `jepa`, `rssm`, `genie`). By
-  default `train` spawns a subprocess running `python -m world_models.training.<name>`
-  and forwards any extra args. Use `--inproc` to attempt running the training
-  entrypoint in-process (calls the module's `main()` if available).
+  `world_models.training` (e.g. `iris`, `planet`, `jepa`, `rssm`, `genie`,
+  `diamond`). By default `train` spawns a subprocess running
+  `python -m world_models.training.<name>` and forwards any extra args. Use
+  `--inproc` to attempt running the training entrypoint in-process (calls the
+  module's `main()` if available).
+
+- `eval --model <NAME> --checkpoint <PATH> [options]` - Evaluate a trained world
+  model with FID, FVD, and LPIPS metrics. Metrics compare real trajectories
+  (collected from the environment) against generated trajectories (from the
+  model). See {doc}`evaluation_guide` for details and interpretation.
+
+  Key options:
+  - `--model`, `-m` — model type (currently `diamond`)
+  - `--checkpoint`, `-c` — path to checkpoint
+  - `--game`, `-g` — environment name
+  - `--num-videos` — number of trajectories (default 256)
+  - `--metrics` — comma-separated metrics, e.g. `fid,fvd,lpips`
+  - `--record PATH` — save real and generated videos
+  - `--output`, `-o` — save results JSON
+
+- `play --model <NAME> --checkpoint <PATH> [options]` - Interactively play
+  inside a trained world model. Two modes toggled by `TAB`: **REAL** (env
+  stepping) and **DREAM** (model imagination). Press arrow keys / WASD to
+  override the agent's actions.
+
+  Key options:
+  - `--model`, `-m` — model type (currently `diamond`)
+  - `--checkpoint`, `-c` — path to checkpoint
+  - `--game`, `-g` — environment name
+  - `--deterministic` / `--stochastic` — action selection (default deterministic)
+  - `--record PATH` — save gameplay video
+  - `--record-fps` — video framerate (default 20)
 
 - `models list` - Print the known training entrypoints and (when available)
   exported model names from `world_models.models`.
@@ -92,6 +120,18 @@ torchwm collect --env ALE/Pong-v5 --steps 1000 --out pong.npz
 
 ```bash
 torchwm train iris -- --config configs/iris.yaml
+```
+
+- Example: evaluate a DIAMOND checkpoint
+
+```bash
+torchwm eval --model diamond --checkpoint checkpoints/diamond/checkpoint.pt --game Breakout-v5
+```
+
+- Example: interactively play inside a DIAMOND world model
+
+```bash
+torchwm play --model diamond --checkpoint checkpoints/diamond/checkpoint.pt --game Breakout-v5 --record gameplay.mp4
 ```
 
 Maintaining this page

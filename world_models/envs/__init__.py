@@ -19,6 +19,7 @@ from .procgen_env import (
     normalize_procgen_env_name,
 )
 from .brax_env import BraxImageEnv, make_brax_env
+from .dmlab import DMLabEnv, make_dmlab_env, DMLAB_LEVELS
 from .bsuite_env import BSuiteImageEnv, make_bsuite_env, list_available_bsuite_ids
 from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
 from .wrappers import (
@@ -49,6 +50,8 @@ def make_env(env_id: str, **kwargs):
         return make_bsuite_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
+    if backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        return make_dmlab_env(env_id, **kwargs)
     if backend in {"procgen", "coinrun"}:
         return make_procgen_env(env_id, **kwargs)
 
@@ -109,6 +112,9 @@ __all__ = [
     "DeepMindControlEnv",
     "BraxImageEnv",
     "make_brax_env",
+    "DMLabEnv",
+    "make_dmlab_env",
+    "DMLAB_LEVELS",
     "BSuiteImageEnv",
     "make_bsuite_env",
     "list_available_bsuite_ids",

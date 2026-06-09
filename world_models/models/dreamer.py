@@ -18,6 +18,7 @@ from world_models.envs.mujoco_env import make_mujoco_env_from_config
 from world_models.envs.procgen_env import ProcgenImageEnv
 from world_models.envs.robotics_env import make_robotics_env
 from world_models.envs.brax_env import BraxImageEnv
+from world_models.envs.dmlab import DMLabEnv
 from world_models.envs.bsuite_env import BSuiteImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
@@ -95,7 +96,7 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+    Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
     Brax, BSuite, and Unity ML-Agents backends
     and applies the standard wrapper stack: action repeat, action normalization,
     and time limit.
@@ -113,6 +114,17 @@ def make_env(args):
         )
     elif backend == "dmc":
         env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        env = DMLabEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            action_repeat=int(getattr(args, "dmlab_action_repeat", 4)),
+            action_set=getattr(args, "dmlab_action_set", None),
+            observations=getattr(args, "dmlab_observations", None),
+            config=getattr(args, "dmlab_config", None),
+            renderer=getattr(args, "dmlab_renderer", "hardware"),
+        )
     elif backend in {"gym", "gymnasium", "generic"}:
         env = GymImageEnv(
             args.env,
@@ -178,7 +190,7 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, "
+            f"Unknown env_backend='{backend}'. Use one of: dmc, dmlab, gym, mujoco, "
             "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 

@@ -158,6 +158,10 @@ cfg = DreamerConfig()
 cfg.env_backend = "dmc"      # DeepMind Control Suite
 cfg.env = "walker-walk"
 
+cfg.env_backend = "dmlab"   # DeepMind Lab
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
+
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 

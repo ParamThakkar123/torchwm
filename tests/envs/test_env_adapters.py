@@ -685,6 +685,93 @@ def test_make_env_robotics_backend(
     )
 
 
+class _FakeDeepMindLabInstance:
+    def __init__(self, level, observations, config=None, renderer="hardware", **kwargs):
+        self.level = level
+        self.observations_requested = observations
+        self.config = config
+        self.renderer = renderer
+        self.kwargs = kwargs
+        self.running = False
+        self.last_action = None
+        self.last_num_steps = None
+        self.seed = None
+
+    def reset(self, seed=None):
+        self.running = True
+        self.seed = seed
+
+    def observations(self):
+        return {
+            "RGB_INTERLEAVED": np.full((16, 16, 3), 64, dtype=np.uint8),
+            "VEL.TRANS": np.array([1.0, 0.0, -1.0], dtype=np.float64),
+        }
+
+    def step(self, action, num_steps=1):
+        self.last_action = np.asarray(action)
+        self.last_num_steps = num_steps
+        self.running = False
+        return 2.5
+
+    def is_running(self):
+        return self.running
+
+    def close(self):
+        self.closed = True
+
+
+class _FakeDeepMindLabModule:
+    instances = []
+
+    @staticmethod
+    def Lab(*args, **kwargs):
+        instance = _FakeDeepMindLabInstance(*args, **kwargs)
+        _FakeDeepMindLabModule.instances.append(instance)
+        return instance
+
+
+def test_dmlab_env_adapts_deepmind_lab_api(monkeypatch):
+    import sys
+
+    from world_models.envs.dmlab import DMLabEnv
+
+    _FakeDeepMindLabModule.instances = []
+    monkeypatch.setitem(sys.modules, "deepmind_lab", _FakeDeepMindLabModule)
+
+    env = DMLabEnv(
+        "rooms_collect_good_objects_train",
+        seed=7,
+        size=(32, 32),
+        action_repeat=3,
+        observations=["VEL.TRANS"],
+        config={"fps": 30, "episode_length_seconds": 10},
+    )
+    obs = env.reset()
+
+    assert obs["image"].shape == (3, 32, 32)
+    assert obs["VEL.TRANS"].shape == (3,)
+    assert env.max_episode_steps == 100
+    assert env.action_space.shape == (9,)
+
+    action = -np.ones(env.action_space.shape, dtype=np.float32)
+    action[3] = 1.0
+    obs, reward, done, info = env.step(action)
+
+    lab = _FakeDeepMindLabModule.instances[-1]
+    assert lab.level == "rooms_collect_good_objects_train"
+    assert lab.observations_requested == ["RGB_INTERLEAVED", "VEL.TRANS"]
+    assert lab.config["width"] == "32"
+    assert lab.config["height"] == "32"
+    assert lab.seed == 7
+    assert lab.last_num_steps == 3
+    assert np.array_equal(lab.last_action, np.array([0, 0, 0, 1, 0, 0, 0]))
+    assert obs["image"].shape == (3, 32, 32)
+    assert reward == 2.5
+    assert done is True
+    assert info["action"].shape == env.action_space.shape
+    assert info["discount"] == np.array(0.0, dtype=np.float32)
+
+
 def test_procgen_env_name_normalization_and_list():
     from world_models.envs.procgen_env import (
         list_procgen_envs,
@@ -766,6 +853,46 @@ def test_procgen_image_env_wraps_single_vector_env(monkeypatch):
     assert frame.shape == (32, 32, 3)
     env.close()
     assert env._env.closed is True
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.DMLabEnv")
+def test_make_env_dmlab_backend(
+    mock_dmlab,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "dmlab"
+    cfg.env = "rooms_collect_good_objects_train"
+    cfg.image_size = (64, 64)
+    cfg.dmlab_action_repeat = 5
+    cfg.dmlab_observations = ["VEL.TRANS"]
+    cfg.dmlab_config = {"fps": 30}
+    cfg.dmlab_renderer = "software"
+
+    env = Mock()
+    mock_dmlab.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_dmlab.assert_called_once_with(
+        cfg.env,
+        seed=cfg.seed,
+        size=cfg.image_size,
+        action_repeat=cfg.dmlab_action_repeat,
+        action_set=cfg.dmlab_action_set,
+        observations=cfg.dmlab_observations,
+        config=cfg.dmlab_config,
+        renderer=cfg.dmlab_renderer,
+    )
 
 
 @patch("world_models.models.dreamer.env_wrapper.TimeLimit")

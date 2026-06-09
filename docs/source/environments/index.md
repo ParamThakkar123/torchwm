@@ -6,6 +6,7 @@ TorchWM ships environment adapters for pixel-based world-model training, model-b
 :maxdepth: 1
 
 DeepMind Control Suite <dmc>
+DeepMind Lab <dmlab>
 Gym and Gymnasium <gym>
 Brax <brax>
 Atari <atari>
@@ -22,6 +23,7 @@ Wrappers <wrappers>
 | Backend | Best for | Primary APIs | Typical observations | Typical actions |
 | --- | --- | --- | --- | --- |
 | [DeepMind Control Suite](dmc.md) | Dreamer-style continuous-control tasks with state and rendered image observations | `DeepMindControlEnv`, `env_backend="dmc"` | Dict with DMC state keys plus `image` | Continuous `Box` from the DMC action spec |
+| [DeepMind Lab](dmlab.md) | 3D navigation and puzzle tasks from DeepMind Lab | `DMLabEnv`, `make_dmlab_env`, `env_backend="dmlab"` | Dict with `image` plus requested Lab observations | Normalized one-hot `Box[-1, 1]` over native Lab actions |
 | [Gym and Gymnasium](gym.md) | Classic control, Box2D, custom Gym environments, and generic rendered tasks | `GymImageEnv`, `make_gym_env`, `env_backend="gym"` | Dict with `image` only | Original continuous `Box` or one-hot vector for discrete actions |
 | DeepMind BSuite | Small diagnostic RL benchmark tasks such as `catch/0` and `deep_sea/0` | `BSuiteImageEnv`, `make_bsuite_env`, `env_backend="bsuite"` | Dict with synthetic `image` only | One-hot vector for discrete actions |
 | [Brax](brax.md) | JAX/Brax continuous-control tasks through a Gym-like image adapter | `BraxImageEnv`, `make_brax_env`, `env_backend="brax"` | Dict with synthesized `image`; raw vector in `info["vector_observation"]` | Continuous `Box[-1, 1]` matching `env.action_size` |
@@ -39,7 +41,7 @@ Most TorchWM training code expects image observations as a dictionary entry name
 
 DIAMOND-style Atari support is documented on the Atari page as a preprocessing helper for Atari rollouts. It is not a separate environment backend.
 
-Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen, BSuite, Brax, or Unity environments:
+Dreamer environment construction applies a standard wrapper stack after creating DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen, BSuite, Brax, or Unity environments:
 
 1. `ActionRepeat` repeats each selected action for `cfg.action_repeat` environment steps.
 2. `NormalizeActions` exposes finite continuous action bounds as normalized `[-1, 1]` policy outputs.

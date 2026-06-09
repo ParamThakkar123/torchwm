@@ -129,3 +129,22 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
 
 def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
+
+
+def test_dmlab_registered_in_backend_specs():
+    from world_models.api import ENV_BACKEND_SPECS, EnvBackendSpec
+    from world_models.catalog import ENV_BACKENDS
+
+    dmlab_spec = ENV_BACKEND_SPECS["dmlab"]
+
+    assert isinstance(dmlab_spec, EnvBackendSpec)
+    assert dmlab_spec.name == "dmlab"
+    assert "deepmind_lab" in dmlab_spec.aliases
+    assert "dmlab" in ENV_BACKENDS
+
+
+def test_dmlab_backend_specs_are_public_api():
+    import world_models
+
+    assert world_models.EnvBackendSpec is not None
+    assert "dmlab" in world_models.ENV_BACKEND_SPECS

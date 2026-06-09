@@ -80,6 +80,7 @@ copybutton_only_copy_prompt_lines = False
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",
+    "deepmind_lab",
     "mlagents_envs",
     "mujoco",
     "moviepy",

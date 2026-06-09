@@ -125,6 +125,12 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="Procedurally generated benchmark environments.",
         aliases=("coinrun",),
     ),
+    "dmlab": EnvBackendSpec(
+        name="dmlab",
+        factory_path="world_models.envs:make_dmlab_env",
+        description="DeepMind Lab 3D navigation and puzzle tasks.",
+        aliases=("deepmind_lab", "deepmindlab"),
+    ),
     "brax": EnvBackendSpec(
         name="brax",
         factory_path="world_models.envs:make_brax_env",

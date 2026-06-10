@@ -158,6 +158,10 @@ cfg = DreamerConfig()
 cfg.env_backend = "dmc"      # DeepMind Control Suite
 cfg.env = "walker-walk"
 
+cfg.env_backend = "dmlab"   # DeepMind Lab
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
+
 cfg.env_backend = "gym"      # Gym/Gymnasium
 cfg.env = "Pendulum-v1"
 
@@ -170,6 +174,12 @@ cfg.mujoco_frame_skip = 4    # native MJCF/MJB only
 # Gymnasium Robotics example (all ids registered by installed package):
 cfg.env_backend = "robotics"
 cfg.env = "HalfCheetah-v2"
+
+# Procgen example:
+cfg.env_backend = "procgen"
+cfg.env = "coinrun"
+cfg.procgen_distribution_mode = "easy"
+cfg.procgen_num_levels = 0
 
 # Brax example:
 cfg.env_backend = "brax"     # JAX/Brax
@@ -185,7 +195,7 @@ For MuJoCo tasks, Dreamer delegates adapter construction to
 selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
 Gymnasium task ids such as `Humanoid-v4` for standard benchmark rewards, or use
 native MJCF/MJB sources plus `MuJoCoImageEnv` callbacks for custom rewards and
-termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use `env_backend="robotics"`; TorchWM lists those ids dynamically from the installed `gymnasium-robotics` package.
+termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use `env_backend="robotics"`; TorchWM lists those ids dynamically from the installed `gymnasium-robotics` package. Procgen games use `env_backend="procgen"` with shorthand names such as `coinrun` or Gym-style ids such as `procgen-coinrun-v0`.
 
 ## References
 

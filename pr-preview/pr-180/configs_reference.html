@@ -359,6 +359,13 @@
     <span class="n">image_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
     <span class="n">gym_render_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
 
+    <span class="c1"># DeepMind Lab (optional)</span>
+    <span class="n">dmlab_action_repeat</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">dmlab_action_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">dmlab_observations</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">dmlab_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">dmlab_renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;hardware&quot;</span>
+
     <span class="c1"># MuJoCo (optional)</span>
     <span class="n">mujoco_xml_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">mujoco_xml_string</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -712,6 +719,11 @@
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 
+<span class="c1"># DeepMind Lab</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmlab&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;rooms_collect_good_objects_train&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">dmlab_action_repeat</span> <span class="o">=</span> <span class="mi">4</span>
+
 <span class="c1"># Gym</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
@@ -766,6 +778,32 @@
 </pre></div>
 </div>
 </section>
+</section>
+<section id="experiment-yaml-and-omegaconf-overrides">
+<h2>Experiment YAML and OmegaConf overrides<a class="headerlink" href="#experiment-yaml-and-omegaconf-overrides" title="Link to this heading">#</a></h2>
+<p>TorchWM provides a shared experiment configuration layer in
+<code class="docutils literal notranslate"><span class="pre">world_models.experiments</span></code>. Training entrypoints can compose their Python
+configuration defaults with a YAML file and Hydra/OmegaConf-style dot-list
+overrides, while still receiving plain Python dictionaries or config objects at
+runtime.</p>
+<p>Built-in YAML starters live under <code class="docutils literal notranslate"><span class="pre">world_models/configs/experiments/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diamond.yaml</span></code> for DIAMOND Atari experiments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iris.yaml</span></code> for IRIS Atari experiments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">jepa.yaml</span></code> for JEPA image pretraining experiments.</p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>diamond<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/diamond.yaml<span class="w"> </span><span class="nv">preset</span><span class="o">=</span>small<span class="w"> </span><span class="nv">seed</span><span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>iris<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/iris.yaml<span class="w"> </span><span class="nv">total_epochs</span><span class="o">=</span><span class="m">100</span><span class="w"> </span><span class="nv">env</span><span class="o">=</span>ALE/Breakout-v5
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>jepa<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/jepa.yaml<span class="w"> </span>optimization.epochs<span class="o">=</span><span class="m">50</span><span class="w"> </span>data.batch_size<span class="o">=</span><span class="m">128</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--print-config</span></code> with these entrypoints to inspect the fully composed config
+without launching a run.</p>
 </section>
 </section>
 
@@ -827,6 +865,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-configs">Advanced Configs</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#experiment-yaml-and-omegaconf-overrides">Experiment YAML and OmegaConf overrides</a></li>
 </ul>
   </nav></div>
 

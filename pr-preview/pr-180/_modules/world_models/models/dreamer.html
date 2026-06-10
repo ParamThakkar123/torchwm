@@ -304,8 +304,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env_from_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcgenImageEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_robotics_env</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.brax_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BraxImageEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.dmlab</span><span class="w"> </span><span class="kn">import</span> <span class="n">DMLabEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSuiteImageEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory.dreamer_memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReplayBuffer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.dreamer_rssm</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSSM</span>
@@ -388,7 +391,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">make_env</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a Dreamer-compatible environment from `DreamerConfig` options.</span>
 
-<span class="sd">    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends</span>
+<span class="sd">    Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,</span>
+<span class="sd">    Brax, BSuite, and Unity ML-Agents backends</span>
 <span class="sd">    and applies the standard wrapper stack: action repeat, action normalization,</span>
 <span class="sd">    and time limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -405,6 +409,17 @@
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;dmc&quot;</span><span class="p">:</span>
         <span class="n">env</span> <span class="o">=</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;dmlab&quot;</span><span class="p">,</span> <span class="s2">&quot;deepmind_lab&quot;</span><span class="p">,</span> <span class="s2">&quot;deepmindlab&quot;</span><span class="p">}:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">DMLabEnv</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">action_repeat</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;dmlab_action_repeat&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)),</span>
+            <span class="n">action_set</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;dmlab_action_set&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">observations</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;dmlab_observations&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">config</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;dmlab_config&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">renderer</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;dmlab_renderer&quot;</span><span class="p">,</span> <span class="s2">&quot;hardware&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;gym&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium&quot;</span><span class="p">,</span> <span class="s2">&quot;generic&quot;</span><span class="p">}:</span>
         <span class="n">env</span> <span class="o">=</span> <span class="n">GymImageEnv</span><span class="p">(</span>
             <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
@@ -414,12 +429,28 @@
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mujoco&quot;</span><span class="p">,</span> <span class="s2">&quot;mjcf&quot;</span><span class="p">,</span> <span class="s2">&quot;native_mujoco&quot;</span><span class="p">}:</span>
         <span class="n">env</span> <span class="o">=</span> <span class="n">make_mujoco_env_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;procgen&quot;</span><span class="p">,</span> <span class="s2">&quot;coinrun&quot;</span><span class="p">}:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">ProcgenImageEnv</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">distribution_mode</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;procgen_distribution_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;easy&quot;</span><span class="p">),</span>
+            <span class="n">num_levels</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;procgen_num_levels&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+            <span class="n">start_level</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;procgen_start_level&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">max_episode_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;time_limit&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)),</span>
+        <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;robotics&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">}:</span>
         <span class="n">env</span> <span class="o">=</span> <span class="n">make_robotics_env</span><span class="p">(</span>
             <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
             <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
             <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
             <span class="n">render_mode</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;gym_render_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;bsuite&quot;</span><span class="p">,</span> <span class="s2">&quot;behavior_suite&quot;</span><span class="p">,</span> <span class="s2">&quot;behaviour_suite&quot;</span><span class="p">}:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">BSuiteImageEnv</span><span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;brax&quot;</span><span class="p">,</span> <span class="s2">&quot;jax_brax&quot;</span><span class="p">}:</span>
         <span class="n">env</span> <span class="o">=</span> <span class="n">BraxImageEnv</span><span class="p">(</span>
@@ -454,7 +485,8 @@
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Unknown env_backend=&#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;. Use one of: dmc, gym, mujoco, robotics, brax, unity_mlagents.&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown env_backend=&#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;. Use one of: dmc, dmlab, gym, mujoco, &quot;</span>
+            <span class="s2">&quot;robotics, procgen, bsuite, brax, unity_mlagents.&quot;</span>
         <span class="p">)</span>
 
     <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>

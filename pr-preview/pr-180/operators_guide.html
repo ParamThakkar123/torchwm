@@ -359,11 +359,11 @@
 </section>
 <section id="base-operator-class">
 <h2>Base Operator Class<a class="headerlink" href="#base-operator-class" title="Link to this heading">#</a></h2>
-<p>All operators inherit from <code class="docutils literal notranslate"><span class="pre">OperatorABC</span></code>:</p>
+<p>All operators inherit from <code class="docutils literal notranslate"><span class="pre">OperatorABC</span></code>, which provides a <code class="docutils literal notranslate"><span class="pre">process()</span></code> pipeline composed of <code class="docutils literal notranslate"><span class="pre">preprocess()</span></code>, <code class="docutils literal notranslate"><span class="pre">forward()</span></code>, and <code class="docutils literal notranslate"><span class="pre">postprocess()</span></code>, plus <code class="docutils literal notranslate"><span class="pre">batch()</span></code>, <code class="docutils literal notranslate"><span class="pre">to(device)</span></code>, <code class="docutils literal notranslate"><span class="pre">train()</span></code>, <code class="docutils literal notranslate"><span class="pre">eval()</span></code>, and optional tensor shape/dtype validation via <code class="docutils literal notranslate"><span class="pre">TensorSpec</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyOperator</span><span class="p">(</span><span class="n">OperatorABC</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="c1"># Your preprocessing logic</span>
         <span class="k">return</span> <span class="n">processed_tensors</span>
 </pre></div>

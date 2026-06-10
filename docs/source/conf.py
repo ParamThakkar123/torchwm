@@ -24,10 +24,12 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinxext.opengraph",
+    "nbsphinx",
 ]
 
 templates_path = ["_templates"]
 exclude_patterns = []
+nbsphinx_execute = "never"
 
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"

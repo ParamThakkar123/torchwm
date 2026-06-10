@@ -26,6 +26,8 @@ ResetFn = Callable[..., Any]
 RewardFn = Callable[..., Any]
 TerminalFn = Callable[..., Any]
 RenderFn = Callable[..., Any]
+ActionTransformFn = Callable[..., Any]
+_MISSING = object()
 
 
 class WorldModelEnv(gym.Env):
@@ -58,7 +60,11 @@ class WorldModelEnv(gym.Env):
         terminal_fn: Optional callable used when the transition output omits a
             termination flag.
         render_fn: Optional callable used by ``render``.
+        action_transform_fn: Optional callable that converts library actions into
+            the format expected by the world model.
         max_episode_steps: Optional time limit. Reaching it sets ``truncated``.
+        render_mode: Optional Gymnasium render mode. ``rgb_array`` is supported
+            by default when observations contain image-like data.
         device: Device used for tensor actions when ``torch_actions=True``.
         torch_actions: Convert actions to ``torch.Tensor`` before model calls.
         seed: Optional RNG seed for observation/action spaces and NumPy.
@@ -79,7 +85,9 @@ class WorldModelEnv(gym.Env):
         reward_fn: RewardFn | None = None,
         terminal_fn: TerminalFn | None = None,
         render_fn: RenderFn | None = None,
+        action_transform_fn: ActionTransformFn | None = None,
         max_episode_steps: int | None = None,
+        render_mode: str | None = None,
         device: Any | None = None,
         torch_actions: bool = True,
         seed: int | None = None,
@@ -94,8 +102,15 @@ class WorldModelEnv(gym.Env):
         self.transition_fn = transition_fn
         self.reward_fn = reward_fn
         self.terminal_fn = terminal_fn
+        if not isinstance(observation_space, gym.Space):
+            raise TypeError("observation_space must be a gymnasium.Space instance.")
+        if not isinstance(action_space, gym.Space):
+            raise TypeError("action_space must be a gymnasium.Space instance.")
+
         self.render_fn = render_fn
+        self.action_transform_fn = action_transform_fn
         self.max_episode_steps = max_episode_steps
+        self.render_mode = render_mode
         self.device = (
             torch.device(device) if torch is not None and device is not None else device
         )
@@ -138,6 +153,9 @@ class WorldModelEnv(gym.Env):
 
     def step(self, action: Any) -> tuple[Any, float, bool, bool, dict[str, Any]]:
         """Roll the learned model forward for one simulated environment step."""
+
+        if self._last_observation is None and self._state is None:
+            raise RuntimeError("Call reset() before step().")
 
         model_action = self._prepare_action(action)
         result = self._call_transition(model_action)
@@ -198,7 +216,9 @@ class WorldModelEnv(gym.Env):
 
     def _call_transition(self, action: Any) -> Any:
         if self.transition_fn is not None:
-            return self._call_user_fn(self.transition_fn, self.world_model, self._state, action)
+            return self._call_user_fn(
+                self.transition_fn, self.world_model, self._state, action
+            )
 
         for name in (
             "env_step",
@@ -215,7 +235,8 @@ class WorldModelEnv(gym.Env):
         if callable(self.world_model):
             return self._call_model_transition(self.world_model, action)
         raise TypeError(
-            "World model must define a transition_fn or a callable step/predict/transition method."
+            "World model must define a transition_fn or a callable "
+            "step/predict/transition method."
         )
 
     def _parse_reset_result(self, result: Any) -> tuple[Any, Any, dict[str, Any]]:
@@ -227,7 +248,7 @@ class WorldModelEnv(gym.Env):
             if len(result) == 3:
                 state, obs, info = result
                 info = dict(info or {})
-            elif len(result) == 2 and isinstance(result[1], Mapping):
+            elif len(result) == 2 and self._looks_like_reset_info(result):
                 state = self.initial_state
                 obs, info = result
                 info = dict(info or {})
@@ -254,37 +275,37 @@ class WorldModelEnv(gym.Env):
             next_state = result.get("state", result.get("next_state", self._state))
             obs = self._extract_observation(result, default=next_state)
             reward = result.get("reward", None)
-            terminated = result.get("terminated", result.get("done", False))
+            terminated = result.get("terminated", result.get("done", _MISSING))
             truncated = result.get("truncated", False)
             info = dict(result.get("info", {}))
         elif isinstance(result, tuple):
             if len(result) == 5:
                 obs, reward, terminated, truncated, info = result
-                next_state = obs
+                info = dict(info or {})
+                next_state = info.get("model_state", obs)
             elif len(result) == 4:
                 obs, reward, done, info = result
+                info = dict(info or {})
                 terminated, truncated = done, False
-                next_state = obs
+                next_state = info.get("model_state", obs)
             elif len(result) == 6:
                 next_state, obs, reward, terminated, truncated, info = result
             elif len(result) == 3:
                 next_state, obs, reward = result
-                terminated, truncated, info = False, False, {}
+                terminated, truncated, info = _MISSING, False, {}
             else:
                 next_state = result[0] if result else self._state
                 obs = next_state
-                reward, terminated, truncated, info = None, False, False, {}
+                reward, terminated, truncated, info = None, _MISSING, False, {}
         else:
             next_state = result
             obs = result
-            reward, terminated, truncated, info = None, False, False, {}
+            reward, terminated, truncated, info = None, _MISSING, False, {}
 
         if reward is None:
             reward = self._predict_reward(next_state, obs, action)
-        if self.terminal_fn is not None and not bool(terminated):
-            terminated = self._call_user_fn(
-                self.terminal_fn, self.world_model, next_state, obs, action
-            )
+        if terminated is _MISSING:
+            terminated = self._predict_terminal(next_state, obs, action)
         return (
             self._to_numpy(obs),
             float(self._scalar(reward)),
@@ -297,25 +318,58 @@ class WorldModelEnv(gym.Env):
     def _predict_reward(self, state: Any, obs: Any, action: Any) -> float:
         if self.reward_fn is None:
             return 0.0
-        return self._scalar(self._call_user_fn(self.reward_fn, self.world_model, state, obs, action))
+        return self._scalar(
+            self._call_user_fn(self.reward_fn, self.world_model, state, obs, action)
+        )
+
+    def _predict_terminal(self, state: Any, obs: Any, action: Any) -> bool:
+        if self.terminal_fn is None:
+            return False
+        return bool(
+            self._call_user_fn(self.terminal_fn, self.world_model, state, obs, action)
+        )
 
     def _prepare_action(self, action: Any) -> Any:
+        if self.action_transform_fn is not None:
+            return self._call_user_fn(
+                self.action_transform_fn, self.world_model, action
+            )
         if not self.torch_actions:
             return action
         if torch is None:
             return action
         if torch.is_tensor(action):
-            tensor = action.detach().to(self.device) if self.device is not None else action.detach()
+            tensor = (
+                action.detach().to(self.device)
+                if self.device is not None
+                else action.detach()
+            )
         else:
             tensor = torch.as_tensor(action, dtype=torch.float32, device=self.device)
         return tensor
 
     @staticmethod
     def _extract_observation(result: Mapping[str, Any], *, default: Any) -> Any:
-        for key in ("observation", "obs", "image", "pixels", "next_observation", "next_obs"):
+        for key in (
+            "observation",
+            "obs",
+            "image",
+            "pixels",
+            "next_observation",
+            "next_obs",
+        ):
             if key in result:
                 return result[key]
         return default
+
+    def _looks_like_reset_info(self, result: tuple[Any, ...]) -> bool:
+        obs, info = result
+        if not isinstance(info, Mapping):
+            return False
+        try:
+            return bool(self.observation_space.contains(self._to_numpy(obs)))
+        except Exception:
+            return True
 
     @classmethod
     def _to_numpy(cls, value: Any) -> Any:

@@ -24,6 +24,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    cli
    package_overview
    world_models_guide
+   tutorials/world_model_env_rl_libraries
 
 .. toctree::
    :maxdepth: 1

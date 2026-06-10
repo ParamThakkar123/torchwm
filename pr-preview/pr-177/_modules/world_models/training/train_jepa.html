@@ -297,7 +297,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>  <span class="c1"># type: ignore[import-untyped]</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -318,6 +318,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.helpers.jepa_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_checkpoint</span><span class="p">,</span> <span class="n">init_model</span><span class="p">,</span> <span class="n">init_opt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.transforms.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_transforms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.jepa_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.experiments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">dump_config</span><span class="p">,</span>
+    <span class="n">load_experiment_config</span><span class="p">,</span>
+    <span class="n">parse_experiment_args</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">log_timings</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">log_freq</span> <span class="o">=</span> <span class="mi">10</span>
@@ -334,12 +339,14 @@
 
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_jepa.main">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">resume_preempt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run JEPA training using a nested config dict or `JEPAConfig` instance.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">resume_preempt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run JEPA training using a CLI argv, nested dict, or `JEPAConfig` instance.</span>
 
 <span class="sd">    This entrypoint initializes distributed context, data pipeline, masking,</span>
 <span class="sd">    models, optimizers/schedulers, checkpointing, and the full epoch loop.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">main_from_cli</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">JEPAConfig</span><span class="p">):</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
@@ -755,16 +762,34 @@
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-    <span class="c1"># TODO: Load config from file if needed</span>
-    <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">enable_sweep</span><span class="p">:</span>
+<div class="viewcode-block" id="main_from_cli">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_jepa.main_from_cli">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_from_cli</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose JEPA config from YAML/dot-list overrides and launch training.&quot;&quot;&quot;</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">parse_experiment_args</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train JEPA&quot;</span><span class="p">)</span>
+    <span class="n">cfg_dict</span> <span class="o">=</span> <span class="n">load_experiment_config</span><span class="p">(</span>
+        <span class="n">JEPAConfig</span><span class="p">()</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">parsed</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">parsed</span><span class="o">.</span><span class="n">overrides</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">print_config</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dump_config</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cfg_dict</span>
+
+    <span class="n">logging_cfg</span> <span class="o">=</span> <span class="n">cfg_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logging&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">logging_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enable_sweep&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
         <span class="n">sweep_id</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">sweep</span><span class="p">(</span>
-            <span class="n">cfg</span><span class="o">.</span><span class="n">sweep_config</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">wandb_project</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">wandb_entity</span>
+            <span class="n">logging_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sweep_config&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">project</span><span class="o">=</span><span class="n">logging_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wandb_project&quot;</span><span class="p">,</span> <span class="s2">&quot;torchwm&quot;</span><span class="p">),</span>
+            <span class="n">entity</span><span class="o">=</span><span class="n">logging_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wandb_entity&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">wandb</span><span class="o">.</span><span class="n">agent</span><span class="p">(</span><span class="n">sweep_id</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">sweep_train</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">main</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+        <span class="n">main</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cfg_dict</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main_from_cli</span><span class="p">()</span>
 </pre></div>
 
                 </article>

@@ -323,6 +323,14 @@
     <span class="n">TwoHotEncoder</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dreamer_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.utils.logging_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">assert_finite</span><span class="p">,</span>
+    <span class="n">collect_system_stats</span><span class="p">,</span>
+    <span class="n">get_package_logger</span><span class="p">,</span>
+    <span class="n">setup_logging</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_package_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Only set MUJOCO_GL for non-Windows platforms. On Windows the &#39;egl&#39; value</span>
 <span class="c1"># causes mujoco to raise a RuntimeError during import. Respect an existing</span>
@@ -541,8 +549,10 @@
         <span class="n">adaptive_buffer_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">,</span> <span class="n">max_buffer_size</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">adaptive_buffer_size</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Reducing buffer size from </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">adaptive_buffer_size</span><span class="si">}</span><span class="s2"> due to memory constraints.&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Reducing buffer size from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2"> due to memory constraints.&quot;</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">buffer_size</span><span class="p">,</span>
+                <span class="n">adaptive_buffer_size</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span> <span class="o">=</span> <span class="n">ReplayBuffer</span><span class="p">(</span>
@@ -672,6 +682,7 @@
 
 <div class="viewcode-block" id="Dreamer.world_model_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.world_model_loss">[docs]</a>
+    <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">world_model_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">):</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
@@ -741,6 +752,7 @@
 
 <div class="viewcode-block" id="Dreamer.actor_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.actor_loss">[docs]</a>
+    <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">))</span>
@@ -786,6 +798,7 @@
 
 <div class="viewcode-block" id="Dreamer.value_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.value_loss">[docs]</a>
+    <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">value_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">value_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imag_feat</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
@@ -1082,6 +1095,15 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">)</span>
 
+        <span class="n">setup_logging</span><span class="p">(</span>
+            <span class="s2">&quot;world_models&quot;</span><span class="p">,</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;log_level&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">),</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;detect_anomaly&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">set_detect_anomaly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;torch.autograd anomaly detection is enabled&quot;</span><span class="p">)</span>
+
         <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
@@ -1102,12 +1124,16 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">enable_wandb</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_api_key</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_project</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_entity</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_format</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_fps</span><span class="p">,</span>
+            <span class="n">enable_wandb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">enable_wandb</span><span class="p">,</span>
+            <span class="n">wandb_api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_api_key</span><span class="p">,</span>
+            <span class="n">wandb_project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_project</span><span class="p">,</span>
+            <span class="n">wandb_entity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_entity</span><span class="p">,</span>
+            <span class="n">video_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_format</span><span class="p">,</span>
+            <span class="n">video_fps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_fps</span><span class="p">,</span>
+            <span class="n">enable_tensorboard</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;enable_tensorboard&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="n">enable_console</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;enable_console_metrics&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">enable_jsonl</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;enable_jsonl&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">jsonl_filename</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;jsonl_filename&quot;</span><span class="p">,</span> <span class="s2">&quot;metrics.jsonl&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="DreamerAgent.train">
@@ -1138,17 +1164,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
         <span class="k">while</span> <span class="n">global_step</span> <span class="o">&lt;=</span> <span class="n">total_steps</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;##################################&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;At global step </span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;At global step </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
 
             <span class="n">logs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">video_images</span> <span class="o">=</span> <span class="p">[]</span>
 
+            <span class="n">update_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_steps</span><span class="p">):</span>
                 <span class="n">model_loss</span><span class="p">,</span> <span class="n">actor_loss</span><span class="p">,</span> <span class="n">value_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">train_one_batch</span><span class="p">()</span>
+            <span class="n">update_elapsed</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">update_start</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
 
+            <span class="n">collect_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">collect_steps</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span>
+            <span class="n">collect_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
             <span class="n">train_rews</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">act_and_collect_data</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">train_env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">collect_steps</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">train_env</span><span class="p">,</span> <span class="n">collect_count</span>
             <span class="p">)</span>
+            <span class="n">collect_elapsed</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">collect_start</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
 
             <span class="n">logs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
                 <span class="p">{</span>
@@ -1159,8 +1190,25 @@
                     <span class="s2">&quot;train_max_reward&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">train_rews</span><span class="p">),</span>
                     <span class="s2">&quot;train_min_reward&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">train_rews</span><span class="p">),</span>
                     <span class="s2">&quot;train_std_reward&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">train_rews</span><span class="p">),</span>
+                    <span class="s2">&quot;throughput/env_steps_per_sec&quot;</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">collect_count</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span>
+                    <span class="p">)</span>
+                    <span class="o">/</span> <span class="n">collect_elapsed</span><span class="p">,</span>
+                    <span class="s2">&quot;throughput/grad_steps_per_sec&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">update_steps</span>
+                    <span class="o">/</span> <span class="n">update_elapsed</span><span class="p">,</span>
+                    <span class="s2">&quot;replay/fill_ratio&quot;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span>
+                        <span class="mf">1.0</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">steps</span>
+                        <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+                    <span class="p">),</span>
+                    <span class="s2">&quot;replay/steps&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">steps</span><span class="p">,</span>
+                    <span class="s2">&quot;replay/episodes&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">episodes</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
+
+            <span class="n">stats_freq</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;log_system_stats_freq&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">stats_freq</span> <span class="ow">and</span> <span class="n">global_step</span> <span class="o">%</span> <span class="n">stats_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">collect_system_stats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">test_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span><span class="p">,</span> <span class="n">latents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
@@ -1183,9 +1231,10 @@
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">global_step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">log_video_freq</span> <span class="o">==</span> <span class="mi">0</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">log_video_freq</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">video_images</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
                 <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">video_images</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span>
             <span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log_video</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log_videos</span><span class="p">(</span>
                     <span class="n">video_images</span><span class="p">,</span> <span class="n">global_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">max_videos_to_save</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">global_step</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>

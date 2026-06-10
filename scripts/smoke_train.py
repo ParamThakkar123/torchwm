@@ -1,18 +1,16 @@
-import argparse
 import torch
+from omegaconf import OmegaConf
 
 from world_models.configs.diamond_config import DiamondConfig
 from world_models.training.train_diamond import DiamondAgent
 
 
 def main(game: str, device: str):
-    # pick device automatically if user passes 'auto'
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     cfg = DiamondConfig(game=game, preset="small", device=device)
 
-    # Short smoke-test overrides (fast, not for real training)
     cfg.num_epochs = 3
     cfg.environment_steps_per_epoch = 20
     cfg.training_steps_per_epoch = 10
@@ -28,11 +26,8 @@ def main(game: str, device: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--game", type=str, default="Breakout-v5")
-    parser.add_argument(
-        "--device", type=str, default="auto", help="'auto', 'cpu', or 'cuda'"
-    )
-    args = parser.parse_args()
+    cli_cfg = OmegaConf.from_cli()
+    game = cli_cfg.get("game", "Breakout-v5")
+    device = cli_cfg.get("device", "auto")
 
-    main(args.game, args.device)
+    main(game, device)

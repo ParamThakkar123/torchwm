@@ -23,6 +23,7 @@ logger = logging.getLogger("torchwm.cli")
 # Keep this mapping cheap to import so ``torchwm models list`` and validation do
 # not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
+    "diamond": "world_models.training.train_diamond",
     "iris": "world_models.training.train_iris",
     "planet": "world_models.training.train_planet",
     "jepa": "world_models.training.train_jepa",
@@ -560,7 +561,12 @@ def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
     help="Run training in-process instead of spawning subprocess.",
 )
 def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
-    """Launch an existing ``world_models.training`` entrypoint."""
+    """Launch a training entrypoint with optional YAML/OmegaConf overrides.
+
+    Examples:
+        torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100
+        torchwm train jepa optimization.epochs=50 data.batch_size=128
+    """
     key = model.strip().lower()
     if key not in TRAINING_MODULES:
         _echo_error(

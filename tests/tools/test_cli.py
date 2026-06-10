@@ -131,6 +131,10 @@ def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
 
 
+def test_train_lists_diamond_entrypoint():
+    assert cli.TRAINING_MODULES["diamond"] == "world_models.training.train_diamond"
+
+
 def test_dmlab_registered_in_backend_specs():
     from world_models.api import ENV_BACKEND_SPECS, EnvBackendSpec
     from world_models.catalog import ENV_BACKENDS

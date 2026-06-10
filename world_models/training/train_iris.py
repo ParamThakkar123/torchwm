@@ -6,7 +6,7 @@ from tqdm import tqdm
 import random
 from typing import Optional, cast
 from gym.spaces import Discrete, Box
-import argparse
+from omegaconf import OmegaConf
 
 from types import ModuleType
 from typing import Optional as _Optional
@@ -21,6 +21,11 @@ except Exception:
     cv2 = None
 
 from world_models.configs.iris_config import IRISConfig
+from world_models.experiments import (
+    dump_config,
+    load_experiment_config,
+    update_config_object,
+)
 from world_models.models.iris_agent import IRISAgent
 from world_models.memory.iris_memory import IRISReplayBuffer
 from world_models.envs.ale_atari_env import make_atari_env
@@ -439,30 +444,44 @@ class IRISTrainer:
         return self.metrics
 
 
-def main():
-    """Run IRIS training on a single Atari game."""
-    parser = argparse.ArgumentParser(description="Train IRIS on Atari")
-    parser.add_argument("--game", type=str, default="ALE/Pong-v5", help="Atari game")
-    parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
-    parser.add_argument("--epochs", type=int, default=600, help="Total epochs")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument(
-        "--save_dir", type=str, default="checkpoints/iris", help="Save directory"
-    )
+def main(argv: list[str] | None = None):
+    """Run IRIS training with YAML config files and Hydra dot-list overrides."""
+    from world_models.experiments import parse_experiment_args
 
-    args = parser.parse_args()
+    args = parse_experiment_args(argv, description="Train IRIS on Atari")
+
+    config = IRISConfig()
+    values = load_experiment_config(config, args.config, args.overrides)
+    config = update_config_object(config, values)
+
+    game = config.env if hasattr(config, "env") else "ALE/Pong-v5"
+    device = "cuda"
+    seed = config.seed if hasattr(config, "seed") else 42
+    total_epochs = config.total_epochs if hasattr(config, "total_epochs") else None
+    save_dir = config.save_dir if hasattr(config, "save_dir") else "checkpoints/iris"
+
+    # Allow command-line overrides for training-specific options
+    if argv:
+        cli_overrides = OmegaConf.from_cli(argv)
+        game = cli_overrides.get("game", game)
+        device = cli_overrides.get("device", device)
+        seed = cli_overrides.get("seed", seed)
+        total_epochs = cli_overrides.get("epochs", total_epochs)
+        save_dir = cli_overrides.get("save_dir", save_dir)
+
+    if args.print_config:
+        print(dump_config(values))
+        return config
 
     trainer = IRISTrainer(
-        game=args.game,
-        device=args.device,
-        seed=args.seed,
+        game=game,
+        device=device,
+        seed=seed,
+        config=config,
     )
 
     trainer.train(
-        total_epochs=args.epochs,
-        save_dir=args.save_dir,
+        total_epochs=total_epochs,
+        save_dir=save_dir,
     )
-
-
-if __name__ == "__main__":
-    main()
+    return config

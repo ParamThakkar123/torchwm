@@ -5,6 +5,7 @@ in world models. The MDRNN predicts future latent states using a Gaussian
 Mixture Model (GMM) based on current latent states and actions.
 """
 
+from typing import Any
 import os
 from os.path import join, exists
 from functools import partial
@@ -59,10 +60,10 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
     rollout_files = glob_lib.glob(join(mdrnn_config.data_dir, "*.npz"))
     print(f"Encoding {len(rollout_files)} rollout files...")
 
-    all_latents = []
-    all_rewards = []
-    all_actions = []
-    all_terminals = []
+    all_latents: Any = []
+    all_rewards: Any = []
+    all_actions: Any = []
+    all_terminals: Any = []
 
     with torch.no_grad():
         for fpath in tqdm(rollout_files):
@@ -73,7 +74,7 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
             terminals = data["terminals"]
 
             batch_size = 64
-            latents = []
+            latents: Any = []
             for i in range(0, len(observations), batch_size):
                 obs_batch = observations[i : i + batch_size]
                 obs_tensor = torch.tensor(obs_batch).float() / 255.0
@@ -474,7 +475,7 @@ def train_mdn_rnn(
         earlystopping.load_state_dict(rnn_state.get("earlystopping", {}))
 
     if use_precomputed_latents and exists(latent_file):
-        train_dataset = LatentSequenceDataset(
+        train_dataset: LatentSequenceDataset | SequenceDataset = LatentSequenceDataset(
             latents_arr=latents,
             actions=all_actions,
             rewards=all_rewards,
@@ -528,7 +529,7 @@ def train_mdn_rnn(
             num_workers=0,
             pin_memory=False,
         )
-        test_dataset = SequenceDataset(
+        test_dataset: LatentSequenceDataset | SequenceDataset = SequenceDataset(
             root=mdrnn_config.data_dir,
             transform=transform,
             train=False,

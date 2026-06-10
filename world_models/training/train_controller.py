@@ -207,9 +207,9 @@ def train_controller(config: WMControllerConfig) -> None:
     if not exists(ctrl_dir):
         mkdir(ctrl_dir)
 
-    p_queue = Queue()
-    r_queue = Queue()
-    e_queue = Queue()
+    p_queue: Queue = Queue()
+    r_queue: Queue = Queue()
+    e_queue: Queue = Queue()
 
     for p_index in range(num_workers):
         Process(

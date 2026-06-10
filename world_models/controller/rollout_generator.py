@@ -44,7 +44,7 @@ class RolloutGenerator:
         env,
         device: str,
         policy=None,
-        max_episode_steps: int = None,
+        max_episode_steps: int | None = None,
         episode_gen=None,
         name=None,
         enable_streaming_video=False,

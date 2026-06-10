@@ -6,7 +6,7 @@ for world model learning.
 
 import os
 from os.path import join, exists
-from typing import Optional
+from typing import Optional, cast
 
 import torch
 import torch.utils.data
@@ -104,6 +104,7 @@ def train_epoch(
         optimizer.zero_grad()
 
         if use_amp:
+            assert scaler is not None
             with torch.cuda.amp.autocast():
                 reconst, mu, logvar = model(data)
                 loss = loss_fn(reconst, data, mu, logvar)
@@ -170,7 +171,7 @@ def train_convae(config: WMVAEConfig) -> None:
 
     if hasattr(torch, "compile") and device.type == "cuda":
         print("Compiling model with torch.compile for faster training...")
-        model = torch.compile(model, mode="reduce-overhead")
+        model = cast(ConvVAE, torch.compile(model, mode="reduce-overhead"))
 
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
     scheduler = ReduceLROnPlateau(

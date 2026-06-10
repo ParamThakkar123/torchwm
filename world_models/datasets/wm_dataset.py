@@ -135,7 +135,7 @@ class RolloutDataset(Dataset):
         """
         if self.buffer is None:
             self.buffer = [None] * len(self.files)
-            self.buffer_fnames = [None] * len(self.files)
+        self.buffer_fnames: list[str | None] = [None] * len(self.files)
 
         start_idx = self.buffer_idx
         end_idx = min(start_idx + self.buffer_size, len(self.files))

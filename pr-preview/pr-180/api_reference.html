@@ -25055,7 +25055,7 @@ through certain components should be blocked for speed and correctness.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.utils.dreamer_utils.Logger">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_wandb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'torchwm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gif'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">Logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_wandb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'torchwm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gif'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_tensorboard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_console</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_jsonl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jsonl_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'metrics.jsonl'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#Logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.Logger" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Experiment logger for scalars and GIF rollouts using WandB.</p>
 <p>Provides helpers to write scalar metrics, dump pickle snapshots, and save
@@ -25334,22 +25334,159 @@ video previews during Dreamer training/evaluation.</p>
 <dd><p>Set PyTorch for memory-efficient operations.</p>
 </dd></dl>
 
-<dl class="py function" id="module-world_models.utils.logging_utils">
+<p id="module-world_models.utils.logging_utils">Logging, metrics, and numerical-safety helpers for torchwm.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.get_package_logger">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">get_package_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#get_package_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.get_package_logger" title="Link to this definition">#</a></dt>
+<dd><p>Return a logger under the <code class="docutils literal notranslate"><span class="pre">world_models</span></code> package namespace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em><em> | </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Logger</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="world_models.utils.logging_utils.setup_logging">
-<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#setup_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.setup_logging" title="Link to this definition">#</a></dt>
-<dd><p>Set up consistent logging for torchwm modules.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">setup_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'world_models'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'%(asctime)s</span> <span class="pre">-</span> <span class="pre">%(name)s</span> <span class="pre">-</span> <span class="pre">%(levelname)s</span> <span class="pre">-</span> <span class="pre">%(message)s'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#setup_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.setup_logging" title="Link to this definition">#</a></dt>
+<dd><p>Set up structured package logging with optional file output.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>)</p></li>
-<li><p><strong>level</strong> (<em>str</em>)</p></li>
-<li><p><strong>log_file</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Logger name to configure. Defaults to the package logger.</p></li>
+<li><p><strong>level</strong> (<em>str</em><em> | </em><em>int</em>) – Logging level name or numeric value.</p></li>
+<li><p><strong>log_file</strong> (<em>str</em><em> | </em><em>None</em>) – Optional file path for a file handler.</p></li>
+<li><p><strong>fmt</strong> (<em>str</em>) – <code class="docutils literal notranslate"><span class="pre">logging.Formatter</span></code> format string.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><em>Logger</em></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.MetricsLogger">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">MetricsLogger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_console</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_jsonl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jsonl_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'metrics.jsonl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_tensorboard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_wandb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_project</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'torchwm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wandb_entity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#MetricsLogger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.MetricsLogger" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Fan-out metric logger for console, JSONL, TensorBoard, and W&amp;B.</p>
+<p>JSONL output is enabled by default because it is dependency-free and easy to
+reload for offline plots. TensorBoard and W&amp;B are optional and activated only
+when requested and available/configured.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>log_dir</strong> (<em>str</em>)</p></li>
+<li><p><strong>logger</strong> (<em>logging.Logger</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>enable_console</strong> (<em>bool</em>)</p></li>
+<li><p><strong>enable_jsonl</strong> (<em>bool</em>)</p></li>
+<li><p><strong>jsonl_filename</strong> (<em>str</em>)</p></li>
+<li><p><strong>enable_tensorboard</strong> (<em>bool</em>)</p></li>
+<li><p><strong>enable_wandb</strong> (<em>bool</em>)</p></li>
+<li><p><strong>wandb_api_key</strong> (<em>str</em>)</p></li>
+<li><p><strong>wandb_project</strong> (<em>str</em>)</p></li>
+<li><p><strong>wandb_entity</strong> (<em>str</em>)</p></li>
+<li><p><strong>run_name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.MetricsLogger.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#MetricsLogger.log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.MetricsLogger.log" title="Link to this definition">#</a></dt>
+<dd><p>Log scalar metrics to every enabled sink.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metrics</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>step</strong> (<em>int</em>)</p></li>
+<li><p><strong>prefix</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, <em>Any</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.MetricsLogger.log_video">
+<span class="sig-name descname"><span class="pre">log_video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">video</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#MetricsLogger.log_video"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.MetricsLogger.log_video" title="Link to this definition">#</a></dt>
+<dd><p>Log a video to TensorBoard and W&amp;B when enabled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>video</strong> (<em>Any</em>)</p></li>
+<li><p><strong>step</strong> (<em>int</em>)</p></li>
+<li><p><strong>fps</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.MetricsLogger.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#MetricsLogger.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.MetricsLogger.flush" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.MetricsLogger.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#MetricsLogger.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.MetricsLogger.close" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.collect_system_stats">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">collect_system_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#collect_system_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.collect_system_stats" title="Link to this definition">#</a></dt>
+<dd><p>Collect CPU/GPU memory and CUDA utilization counters when available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>device</em><em> | </em><em>str</em><em> | </em><em>None</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.assert_finite_values">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">assert_finite_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'value'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#assert_finite_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.assert_finite_values" title="Link to this definition">#</a></dt>
+<dd><p>Raise <code class="docutils literal notranslate"><span class="pre">FloatingPointError</span></code> if any tensor contains NaN or Inf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>Any</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Any</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.logging_utils.assert_finite">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.logging_utils.</span></span><span class="sig-name descname"><span class="pre">assert_finite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/logging_utils.html#assert_finite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.logging_utils.assert_finite" title="Link to this definition">#</a></dt>
+<dd><p>Decorator that validates tensor outputs from loss functions are finite.</p>
 </dd></dl>
 
 <dl class="py class" id="module-world_models.utils.utils">
@@ -28530,7 +28667,18 @@ along the batch dimension.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.memory_utils.apply_gradient_checkpointing"><code class="docutils literal notranslate"><span class="pre">apply_gradient_checkpointing()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.memory_utils.enable_mixed_precision"><code class="docutils literal notranslate"><span class="pre">enable_mixed_precision()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.memory_utils.optimize_memory_efficient_ops"><code class="docutils literal notranslate"><span class="pre">optimize_memory_efficient_ops()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.get_package_logger"><code class="docutils literal notranslate"><span class="pre">get_package_logger()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.setup_logging"><code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.MetricsLogger"><code class="docutils literal notranslate"><span class="pre">MetricsLogger</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.MetricsLogger.log"><code class="docutils literal notranslate"><span class="pre">MetricsLogger.log()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.MetricsLogger.log_video"><code class="docutils literal notranslate"><span class="pre">MetricsLogger.log_video()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.MetricsLogger.flush"><code class="docutils literal notranslate"><span class="pre">MetricsLogger.flush()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.MetricsLogger.close"><code class="docutils literal notranslate"><span class="pre">MetricsLogger.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.collect_system_stats"><code class="docutils literal notranslate"><span class="pre">collect_system_stats()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.assert_finite_values"><code class="docutils literal notranslate"><span class="pre">assert_finite_values()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.logging_utils.assert_finite"><code class="docutils literal notranslate"><span class="pre">assert_finite()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.AttrDict"><code class="docutils literal notranslate"><span class="pre">AttrDict</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.load_yml_config"><code class="docutils literal notranslate"><span class="pre">load_yml_config()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.utils.to_tensor_obs"><code class="docutils literal notranslate"><span class="pre">to_tensor_obs()</span></code></a></li>

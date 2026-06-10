@@ -1,4 +1,5 @@
 import pytest
+
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -6,6 +7,8 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import time
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow, pytest.mark.selenium]
 
 
 BASE_URL = "http://localhost:5173"

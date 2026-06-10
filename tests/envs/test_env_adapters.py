@@ -743,3 +743,336 @@ def test_environment_catalog_uses_runtime_gymnasium_envs(monkeypatch):
     assert "DynamicEnv-v9" not in envs_by_model["iris"]
     assert "ALE/Pong-v5" in envs_by_model["iris"]
     assert "FetchReach-v4" in envs_by_model["diamond"]
+
+
+class _FakeDeepMindLabInstance:
+    def __init__(self, level, observations, config=None, renderer="hardware", **kwargs):
+        self.level = level
+        self.observations_requested = observations
+        self.config = config
+        self.renderer = renderer
+        self.kwargs = kwargs
+        self.running = False
+        self.last_action = None
+        self.last_num_steps = None
+        self.seed = None
+
+    def reset(self, seed=None):
+        self.running = True
+        self.seed = seed
+
+    def observations(self):
+        return {
+            "RGB_INTERLEAVED": np.full((16, 16, 3), 64, dtype=np.uint8),
+            "VEL.TRANS": np.array([1.0, 0.0, -1.0], dtype=np.float64),
+        }
+
+    def step(self, action, num_steps=1):
+        self.last_action = np.asarray(action)
+        self.last_num_steps = num_steps
+        self.running = False
+        return 2.5
+
+    def is_running(self):
+        return self.running
+
+    def close(self):
+        self.closed = True
+
+
+class _FakeDeepMindLabModule:
+    instances = []
+
+    @staticmethod
+    def Lab(*args, **kwargs):
+        instance = _FakeDeepMindLabInstance(*args, **kwargs)
+        _FakeDeepMindLabModule.instances.append(instance)
+        return instance
+
+
+def test_dmlab_env_adapts_deepmind_lab_api(monkeypatch):
+    import sys
+
+    from world_models.envs.dmlab import DMLabEnv
+
+    _FakeDeepMindLabModule.instances = []
+    monkeypatch.setitem(sys.modules, "deepmind_lab", _FakeDeepMindLabModule)
+
+    env = DMLabEnv(
+        "rooms_collect_good_objects_train",
+        seed=7,
+        size=(32, 32),
+        action_repeat=3,
+        observations=["VEL.TRANS"],
+        config={"fps": 30, "episode_length_seconds": 10},
+    )
+    obs = env.reset()
+
+    assert obs["image"].shape == (3, 32, 32)
+    assert obs["VEL.TRANS"].shape == (3,)
+    assert env.max_episode_steps == 100
+    assert env.action_space.shape == (9,)
+
+    action = -np.ones(env.action_space.shape, dtype=np.float32)
+    action[3] = 1.0
+    obs, reward, done, info = env.step(action)
+
+    lab = _FakeDeepMindLabModule.instances[-1]
+    assert lab.level == "rooms_collect_good_objects_train"
+    assert lab.observations_requested == ["RGB_INTERLEAVED", "VEL.TRANS"]
+    assert lab.config["width"] == "32"
+    assert lab.config["height"] == "32"
+    assert lab.seed == 7
+    assert lab.last_num_steps == 3
+    assert np.array_equal(lab.last_action, np.array([0, 0, 0, 1, 0, 0, 0]))
+    assert obs["image"].shape == (3, 32, 32)
+    assert reward == 2.5
+    assert done is True
+    assert info["action"].shape == env.action_space.shape
+    assert info["discount"] == np.array(0.0, dtype=np.float32)
+
+
+def test_procgen_env_name_normalization_and_list():
+    from world_models.envs.procgen_env import (
+        list_procgen_envs,
+        normalize_procgen_env_name,
+    )
+
+    assert "coinrun" in list_procgen_envs()
+    assert normalize_procgen_env_name("coinrun") == "coinrun"
+    assert normalize_procgen_env_name("procgen-coinrun-v0") == "coinrun"
+    assert normalize_procgen_env_name("procgen:procgen-coinrun-v0") == "coinrun"
+
+
+def test_procgen_image_env_wraps_single_vector_env(monkeypatch):
+    import sys
+    import types
+
+    from world_models.envs import procgen_env
+    from world_models.envs.procgen_env import ProcgenImageEnv
+
+    class _FakeProcgenEnv:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.action_space = gym.spaces.Discrete(4)
+            self.last_action = None
+            self.closed = False
+
+        def reset(self):
+            return {"rgb": np.zeros((1, 64, 64, 3), dtype=np.uint8)}
+
+        def step(self, action):
+            self.last_action = action
+            obs = {"rgb": np.ones((1, 64, 64, 3), dtype=np.uint8) * 127}
+            return obs, np.array([1.5], dtype=np.float32), np.array([False]), [{}]
+
+        def close(self):
+            self.closed = True
+
+    monkeypatch.setattr(
+        procgen_env.importlib.util,
+        "find_spec",
+        lambda name: object() if name == "procgen" else None,
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "procgen",
+        types.SimpleNamespace(ProcgenEnv=_FakeProcgenEnv),
+    )
+
+    env = ProcgenImageEnv(
+        "procgen:procgen-coinrun-v0",
+        seed=7,
+        size=(32, 32),
+        distribution_mode="hard",
+        num_levels=100,
+        max_episode_steps=123,
+    )
+
+    assert env.env_name == "coinrun"
+    assert env.max_episode_steps == 123
+    assert env.action_space.shape == (4,)
+    assert env._env.kwargs["start_level"] == 7
+    assert env._env.kwargs["distribution_mode"] == "hard"
+    assert env._env.kwargs["num_levels"] == 100
+
+    obs = env.reset()
+    assert obs["image"].shape == (3, 32, 32)
+    assert obs["image"].dtype == np.uint8
+
+    next_obs, reward, done, info = env.step(np.array([-1.0, -0.5, 0.9, 0.1]))
+    assert env._env.last_action.tolist() == [2]
+    assert next_obs["image"].shape == (3, 32, 32)
+    assert reward == 1.5
+    assert done is False
+    expected_action = np.array([-1.0, -1.0, 1.0, -1.0], dtype=np.float32)
+    assert np.array_equal(info["action"], expected_action)
+    assert np.asarray(info["discount"]).item() == 1.0
+
+    frame = env.render()
+    assert frame.shape == (32, 32, 3)
+    env.close()
+    assert env._env.closed is True
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.DMLabEnv")
+def test_make_env_dmlab_backend(
+    mock_dmlab,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "dmlab"
+    cfg.env = "rooms_collect_good_objects_train"
+    cfg.image_size = (64, 64)
+    cfg.dmlab_action_repeat = 5
+    cfg.dmlab_observations = ["VEL.TRANS"]
+    cfg.dmlab_config = {"fps": 30}
+    cfg.dmlab_renderer = "software"
+
+    env = Mock()
+    mock_dmlab.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_dmlab.assert_called_once_with(
+        cfg.env,
+        seed=cfg.seed,
+        size=cfg.image_size,
+        action_repeat=cfg.dmlab_action_repeat,
+        action_set=cfg.dmlab_action_set,
+        observations=cfg.dmlab_observations,
+        config=cfg.dmlab_config,
+        renderer=cfg.dmlab_renderer,
+    )
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.ProcgenImageEnv")
+def test_make_env_procgen_backend(
+    mock_procgen_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "procgen"
+    cfg.env = "coinrun"
+    cfg.image_size = (64, 64)
+    cfg.procgen_distribution_mode = "hard"
+    cfg.procgen_num_levels = 200
+    cfg.procgen_start_level = 5
+
+    env = Mock()
+    mock_procgen_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_procgen_env.assert_called_once_with(
+        cfg.env,
+        seed=cfg.seed,
+        size=cfg.image_size,
+        distribution_mode=cfg.procgen_distribution_mode,
+        num_levels=cfg.procgen_num_levels,
+        start_level=cfg.procgen_start_level,
+        max_episode_steps=cfg.time_limit,
+    )
+
+
+@patch("world_models.models.dreamer.env_wrapper.TimeLimit")
+@patch("world_models.models.dreamer.env_wrapper.NormalizeActions")
+@patch("world_models.models.dreamer.env_wrapper.ActionRepeat")
+@patch("world_models.models.dreamer.BSuiteImageEnv")
+def test_make_env_bsuite_backend(
+    mock_bsuite_env,
+    mock_repeat,
+    mock_normalize,
+    mock_time_limit,
+):
+    cfg = DreamerConfig()
+    cfg.env_backend = "bsuite"
+    cfg.env = "catch/0"
+    cfg.image_size = (64, 64)
+
+    env = Mock()
+    mock_bsuite_env.return_value = env
+    mock_repeat.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_normalize.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+    mock_time_limit.side_effect = lambda wrapped_env, *args, **kwargs: wrapped_env
+
+    out_env = make_env(cfg)
+
+    assert out_env is env
+    mock_bsuite_env.assert_called_once_with(cfg.env, seed=cfg.seed, size=cfg.image_size)
+
+
+class _FakeActionSpec:
+    num_values = 3
+
+
+class _FakeTimeStep:
+    def __init__(self, observation, reward=0.0, discount=1.0, last=False):
+        self.observation = observation
+        self.reward = reward
+        self.discount = discount
+        self._last = last
+
+    def last(self):
+        return self._last
+
+
+class _FakeBSuiteEnv:
+    bsuite_num_episodes = 2
+
+    def __init__(self):
+        self.last_action = None
+
+    def action_spec(self):
+        return _FakeActionSpec()
+
+    def reset(self):
+        return _FakeTimeStep({"state": np.array([0.0, 1.0], dtype=np.float32)})
+
+    def step(self, action):
+        self.last_action = action
+        return _FakeTimeStep(
+            np.array([1.0, 0.0], dtype=np.float32), reward=1.5, last=True
+        )
+
+    def close(self):
+        self.closed = True
+
+
+def test_bsuite_image_env_wraps_dm_env_discrete_task():
+    from world_models.envs.bsuite_env import BSuiteImageEnv
+
+    base_env = _FakeBSuiteEnv()
+    env = BSuiteImageEnv("catch/0", seed=7, size=(16, 16), env=base_env)
+
+    obs = env.reset()
+    assert obs["image"].shape == (3, 16, 16)
+    assert env.action_space.shape == (3,)
+
+    next_obs, reward, done, info = env.step(
+        np.array([-1.0, 1.0, -1.0], dtype=np.float32)
+    )
+    assert next_obs["image"].shape == (3, 16, 16)
+    assert reward == 1.5
+    assert done is True
+    assert base_env.last_action == 1
+    assert info["bsuite_id"] == "catch/0"
+    assert np.array_equal(info["action"], np.array([-1.0, 1.0, -1.0], dtype=np.float32))

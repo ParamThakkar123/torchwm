@@ -34,7 +34,7 @@ agent = DreamerAgent(cfg)
 | **Friendly factories** | `create_config`, `create_model`, `make_env`, `list_models`, `list_env_backends`, `list_envs` |
 | **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `IRISAgent`, `Genie`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
 | **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig`, `GenieConfig`, `GenieSmallConfig` |
-| **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `GymImageEnv`, wrappers, etc. |
+| **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `make_procgen_env`, `GymImageEnv`, `ProcgenImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, wrappers, etc. |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
 | **Reward** | `RewardModel`, `ValueModel` |
 | **Utilities** | `__version__` |

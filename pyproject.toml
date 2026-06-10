@@ -3,6 +3,9 @@ name = "torchwm"
 version = "0.4.2"
 description = "A Modular Pytorch Based library for training world models"
 readme = "README.md"
+authors = [
+    { name = "Param Thakkar" },
+]
 requires-python = ">=3.11"
 license = "MIT"
 keywords = ["world-models", "pytorch", "mbrl"]
@@ -12,9 +15,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "torch>=1.13.0",
-    "torchvision>=0.14.0",
-    "torchaudio>=2.10.0",
+    "torch>=2.1.0",
+    "torchvision>=0.16.0",
+    "torchaudio>=2.1.0",
     "einops>=0.8.2",
     "pyyaml>=6.0.3",
     "tqdm>=4.67.1",
@@ -32,8 +35,13 @@ dependencies = [
     "umap-learn>=0.5.11",
     "huggingface-hub>=1.14.0",
     "playwright>=1.60.0",
-    "jax>=0.10.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/paramthakkar123/torchwm"
+Documentation = "https://paramthakkar123.github.io/torchwm/"
+Issues = "https://github.com/paramthakkar123/torchwm/issues"
+Changelog = "https://github.com/paramthakkar123/torchwm/releases"
 
 [project.scripts]
 torchwm = "tools.cli:run"
@@ -55,6 +63,13 @@ robotics = [
 ]
 brax = [
     "brax>=0.13.0",
+    "jax>=0.10.1",
+]
+procgen = [
+    "procgen>=0.10.7",
+]
+bsuite = [
+    "bsuite>=0.3.5",
 ]
 viz = [
     "fastapi[standard]>=0.116.0",
@@ -74,7 +89,7 @@ dev = [
     "mypy>=1.19.1",
 ]
 all = [
-    "torchwm[gym,viz,ml,ml-agents,mujoco,robotics,brax,dev,docs]",
+    "torchwm[gym,viz,ml,ml-agents,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
 ]
 docs = [
     "sphinx>=8.0.0,<9.0.0",
@@ -89,15 +104,16 @@ docs = [
     "nbsphinx>=0.9.8",
 ]
 
-[tool.uv]
-index-url = "https://download.pytorch.org/whl/cu121"
-extra-index-url = ["https://pypi.org/simple"]
-index-strategy = "unsafe-best-match"
-
-[[tool.uv.index]]
-url = "https://download.pytorch.org/whl/cu121"
-default = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: tests that are expensive enough to skip in the default fast subset",
+    "gpu: tests that require a CUDA-capable GPU",
+    "integration: tests that exercise external services, optional backends, or cross-package workflows",
+    "selenium: tests that require Selenium WebDriver and a running web stack",
+]

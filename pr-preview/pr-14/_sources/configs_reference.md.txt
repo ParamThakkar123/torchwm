@@ -16,6 +16,26 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
+    # DeepMind Lab (optional)
+    dmlab_action_repeat: int = 4
+    dmlab_action_set: Optional[object] = None
+    dmlab_observations: Optional[list[str]] = None
+    dmlab_config: Optional[dict] = None
+    dmlab_renderer: str = "hardware"
+
+    # MuJoCo (optional)
+    mujoco_xml_path: Optional[str] = None
+    mujoco_xml_string: Optional[str] = None
+    mujoco_binary_path: Optional[str] = None
+    mujoco_camera: Optional[Union[str, int]] = None
+    mujoco_frame_skip: int = 1
+    mujoco_reset_noise_scale: float = 0.0
+
+    # Brax (optional)
+    brax_backend: str = "generalized"
+    brax_jit: bool = True
+    brax_auto_reset: bool = False
+
     # Unity ML-Agents
     unity_file_name: Optional[str] = None
     unity_behavior_name: Optional[str] = None
@@ -345,7 +365,7 @@ class DiamondConfig:
 ### Basic Configuration
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"
@@ -359,9 +379,25 @@ cfg.total_steps = 1_000_000
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 
+# DeepMind Lab
+cfg.env_backend = "dmlab"
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
+
 # Gym
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
+
+# MuJoCo example:
+cfg.env_backend = "mujoco"
+cfg.env = "Humanoid-v4"  # or "models/cartpole.xml"
+cfg.mujoco_camera = None  # native MJCF/MJB only
+cfg.mujoco_frame_skip = 4  # native MJCF/MJB only
+
+# Brax example:
+cfg.env_backend = "brax"
+cfg.env = "ant"
+cfg.brax_backend = "generalized"
 
 # Unity
 cfg.env_backend = "unity_mlagents"
@@ -400,3 +436,34 @@ cfg.expl_decay = 0.0001
 cfg.kl_scale = 0.1
 cfg.free_nats = 1.0
 ```
+
+## Experiment YAML and OmegaConf overrides
+
+TorchWM provides a shared experiment configuration layer in
+`world_models.experiments`. Training entrypoints can compose their Python
+configuration defaults with a YAML file and Hydra/OmegaConf-style dot-list
+overrides, while still receiving plain Python dictionaries or config objects at
+runtime.
+
+Built-in YAML starters live under `world_models/configs/experiments/`:
+
+- `diamond.yaml` for DIAMOND Atari experiments.
+- `iris.yaml` for IRIS Atari experiments.
+- `jepa.yaml` for JEPA image pretraining experiments.
+
+Examples:
+
+```bash
+torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=1
+```
+
+```bash
+torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100 env=ALE/Breakout-v5
+```
+
+```bash
+torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimization.epochs=50 data.batch_size=128
+```
+
+Use `--print-config` with these entrypoints to inspect the fully composed config
+without launching a run.

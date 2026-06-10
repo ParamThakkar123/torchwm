@@ -5,11 +5,13 @@ This guide covers how to use trained TorchWM models for inference and deployment
 ## Overview
 
 TorchWM provides standardized inference through operators and future pipelines.
+For application code, prefer the top-level `torchwm.get_operator()` factory; it
+keeps examples short and avoids deep imports.
 
 ## Loading Trained Models
 
 ```python :class: thebe
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 # Load from checkpoint
 agent = DreamerAgent.from_pretrained("path/to/checkpoint")
@@ -26,9 +28,10 @@ See {doc}`operators_guide` for detailed operator usage.
 
 ```python :class: thebe
 import torch
-from world_models.inference.operators import DreamerOperator
+import torchwm
+from torchwm import DreamerAgent
 
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
 # Single step prediction
@@ -43,10 +46,11 @@ with torch.no_grad():
 ### JEPA
 
 ```python :class: thebe
-from world_models.models import JEPAAgent
-from world_models.inference.operators import JEPAOperator
+import torch
+import torchwm
+from torchwm import JEPAAgent
 
-op = JEPAOperator()
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
 agent = JEPAAgent.from_pretrained("jepa_checkpoint")
 
 # Representation learning
@@ -63,7 +67,7 @@ Generate imagined trajectories:
 
 ```python :class: thebe
 # Dreamer imagination
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent
 
 agent = DreamerAgent.from_pretrained("dreamer_checkpoint")
 
@@ -108,10 +112,14 @@ with torch.no_grad():
 For interactive applications:
 
 ```python :class: thebe
+import torch
+import torchwm
+from torchwm import DreamerAgent
+
 class InferenceServer:
     def __init__(self):
         self.agent = DreamerAgent.from_pretrained("checkpoint").eval()
-        self.op = DreamerOperator()
+        self.op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 
     def predict(self, obs, action):
         processed = self.op({'image': obs, 'action': action})
@@ -126,31 +134,87 @@ server = InferenceServer()
 ### JIT Compilation
 
 ```python :class: thebe
-from world_models.utils.jit_utils import jit_compile_module
+import torch
 
-agent = jit_compile_module(agent)
+agent = torch.jit.script(agent)
 ```
 
 ### Memory Efficient Inference
 
 ```python :class: thebe
-from world_models.utils.memory_utils import optimize_memory_efficient_ops
+import torch
 
-optimize_memory_efficient_ops()
+with torch.inference_mode():
+    output = agent.predict(processed)
 ```
 
 ## Exporting Models
 
-Export to ONNX or TorchScript:
+TorchWM installs a deployment-oriented `export()` method once on `torch.nn.Module`, so every model class in the library can be exported with the same API. High-level wrapper agents such as Dreamer and PlaNet use the same exporter for their contained modules:
 
 ```python :class: thebe
-# TorchScript
-scripted = torch.jit.script(agent)
-torch.jit.save(scripted, "model.pt")
+model.export("model.onnx", format="onnx", example_inputs=example_inputs)
+agent.export("agent_actor.onnx", format="onnx")
+```
 
-# ONNX
-dummy_input = op({'image': torch.randn(1, 3, 64, 64), 'action': torch.randn(1, 6)})
-torch.onnx.export(agent, dummy_input, "model.onnx")
+The method supports three formats:
+
+- `format="onnx"` writes an ONNX graph for ONNX Runtime, TensorRT conversion, or other production runtimes.
+- `format="torchscript"` (aliases: `"jit"`, `"ts"`) writes a TorchScript `.pt` file.
+- `format="tensorrt"` (alias: `"trt"`) compiles with the optional `torch-tensorrt` package and writes a serialized TorchScript TensorRT module.
+
+Dreamer exports its deterministic actor by default. The exported Dreamer actor
+accepts concatenated latent features with shape `[batch, stoch_size + deter_size]`
+and returns actions:
+
+```python :class: thebe
+import torch
+from torchwm import DreamerAgent
+
+agent = DreamerAgent(env="cartpole_balance")
+agent.export("dreamer_actor.onnx", format="onnx")
+agent.export("dreamer_actor.pt", format="torchscript")
+
+features = torch.zeros(1, agent.args.stoch_size + agent.args.deter_size)
+agent.export(
+    "dreamer_actor_dynamic.onnx",
+    format="onnx",
+    example_inputs=features,
+    input_names=["features"],
+    output_names=["actions"],
+    dynamic_axes={"features": {0: "batch"}, "actions": {0: "batch"}},
+)
+```
+
+Export individual components by passing `target` when the agent provides more
+than one deployable module:
+
+```python :class: thebe
+agent.export("dreamer_encoder.onnx", format="onnx", target="obs_encoder")
+agent.export("dreamer_reward.pt", format="torchscript", target="reward_model")
+```
+
+For any lower-level `torch.nn.Module` model, pass `example_inputs` explicitly if TorchWM cannot infer a safe default:
+
+```python :class: thebe
+import torch
+import torchwm
+
+genie = torchwm.create_model("genie-small", image_size=32)
+video = torch.randn(1, 3, genie.num_frames, genie.image_size, genie.image_size)
+genie.export("genie_small.onnx", format="onnx", example_inputs=video)
+
+vit = torchwm.VisionTransformer(img_size=[224])
+images = torch.randn(1, 3, 224, 224)
+vit.export("vit.onnx", format="onnx", example_inputs=images)
+```
+
+Agents that contain multiple deployable modules accept either short target names such as `"obs_encoder"` or fully qualified paths such as `"dreamer.obs_encoder"`. JEPA exports a ViT encoder target by default, while lower-level JEPA `VisionTransformer` modules can be exported directly like any other `torch.nn.Module`.
+
+TensorRT export requires `torch-tensorrt` in the deployment environment:
+
+```python :class: thebe
+agent.export("dreamer_actor_trt.pt", format="tensorrt")
 ```
 
 ## Integration Examples
@@ -158,11 +222,12 @@ torch.onnx.export(agent, dummy_input, "model.onnx")
 ### With Gym Environments
 
 ```python :class: thebe
-import gymnasium as gym
+import torchwm
+from torchwm import DreamerAgent
 
-env = gym.make("Pendulum-v1")
+env = torchwm.make_env("Pendulum-v1", backend="gym")
 agent = DreamerAgent.from_pretrained("pendulum_checkpoint")
-op = DreamerOperator()
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=env.action_space.shape[0])
 
 obs, _ = env.reset()
 done = False

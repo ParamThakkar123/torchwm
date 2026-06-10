@@ -7,8 +7,35 @@ TorchWM supports multiple installation methods depending on your use case.
 For stable releases:
 
 ```bash
+# Core dependencies (torch, torchvision, torchaudio, gym, gymnasium, etc.)
 pip install torchwm
+
+# With specific extras
+pip install torchwm[gym]       # Additional gym environments (huggingface-hub, pygame, autorom)
+pip install torchwm[ml-agents] # Unity ML-Agents support
+pip install torchwm[ml]        # TensorBoard, Weights & Biases, logging tools
+pip install torchwm[viz]       # FastAPI, Uvicorn, documentation tools
+pip install torchwm[docs]      # Sphinx and documentation tools
+pip install torchwm[dev]       # Testing and development tools (pytest, mypy, pre-commit)
+
+# Install multiple extras
+pip install torchwm[gym,ml-agents,dev]
 ```
+
+### Available Extras
+
+| Extra | Description |
+|-------|-------------|
+| `gym` | Additional Gym environment dependencies (huggingface-hub, pygame, autorom) |
+| `ml-agents` | Unity ML-Agents support |
+| `ml` | TensorBoard, Weights & Biases, and logging tools |
+| `viz` | FastAPI, Uvicorn for visualization server |
+| `docs` | Sphinx and documentation building tools |
+| `dev` | pytest, mypy, pre-commit for development |
+
+### Core Dependencies
+
+The minimal installation includes: torch, torchvision, torchaudio, einops, pyyaml, tqdm, opencv-python, requests, gym, gymnasium, moviepy, h5py, plotly, ale-py, selenium, scikit-learn, umap-learn.
 
 ## From Source
 
@@ -17,48 +44,25 @@ For the latest development version:
 ```bash
 git clone https://github.com/ParamThakkar123/torchwm.git
 cd torchwm
+
+# Core dependencies
 pip install -e .
+
+# With extras
+pip install -e ".[gym,ml-agents,ml,viz,dev,docs]"
 ```
 
-## Development Installation
+## PyTorch Build Selection
 
-For development, testing, and documentation:
-
-```bash
-pip install -e ".[dev]"
-```
-
-This installs additional dependencies for:
-- Testing (`pytest`, `pytest-cov`)
-- Documentation (`sphinx`, `myst-parser`)
-- Development tools (`pre-commit`, `ruff`, `mypy`)
-
-## CUDA Support
-
-For GPU acceleration, install PyTorch with CUDA:
+TorchWM does not pin a single PyTorch wheel index. Install the PyTorch build that matches your platform (CPU, macOS, CUDA, ROCm, etc.) using the index recommended by the [PyTorch installation selector](https://pytorch.org/get-started/locally/).
 
 ```bash
-# Using uv (recommended)
-uv add torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Example: CUDA 12.1 wheels. Replace the index for CPU, ROCm, or other CUDA versions.
+uv add torch torchvision torchaudio --index https://download.pytorch.org/whl/cu121
 
-# Or using pip
+# Or using pip.
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
-
-## Requirements
-
-### Core Dependencies
-- Python >= 3.8
-- PyTorch >= 2.0
-- NumPy
-- Pillow
-
-### Optional Dependencies
-- `gymnasium`: For Gym environments
-- `dm-control`: For DeepMind Control Suite
-- `wandb`: For experiment logging
-- `opencv-python`: For video processing
-- `selenium`: For UI testing
 
 ## Docker
 
@@ -78,7 +82,7 @@ Verify your installation:
 
 ```python :class: thebe
 import torch
-import world_models
+import torchwm
 
 print(f"PyTorch: {torch.__version__}")
 print(f"CUDA available: {torch.cuda.is_available()}")

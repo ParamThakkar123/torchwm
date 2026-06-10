@@ -1,133 +1,184 @@
 # Benchmarking World Models
 
-This page documents the lightweight benchmarking harness included in the repository.
+TorchWM includes a lightweight benchmark harness for running standardized
+evaluations of trained world-model agents and exporting results that can be used
+in experiment logs, reports, and papers.
 
-Quick Overview
---------------
-- Code lives under `world_models/benchmarks/`.
-- Entrypoints:
-  - CLI: `python -m world_models.benchmarks.cli` (see examples below)
-  - Python API: `world_models.benchmarks.runner.BenchmarkRunner`
+## Quick Overview
 
-Supported adapters (out of the box)
-----------------------------------
-- `diamond` - DIAMOND diffusion world-model agent (`world_models.training.train_diamond.DiamondAgent`)
-- `iris` - IRIS transformer-based agent (`world_models.training.train_iris.IRISTrainer`)
-- `dreamerv1` / `dreamerv2` - Dreamer family (`world_models.models.dreamer.DreamerAgent`)
+- Preferred CLI entrypoint: `torchwm benchmark`.
+- Benchmark adapters live in the TorchWM source tree under `world_models/benchmarks/`.
 
-CLI Examples
-------------
+## Supported adapters
 
-- Run IRIS on Pong for 3 episodes using seed 0 (writes results to `results/bench` by default):
+The benchmark CLI currently registers these adapters out of the box:
 
-```
-python -m world_models.benchmarks.cli --agent iris --game ALE/Pong-v5 --seeds 1 --episodes 3
-```
+- `diamond` - DIAMOND diffusion world-model agent
+- `iris` - IRIS transformer-based agent
+- `dreamerv1` / `dreamerv2` - Dreamer family
 
-- Run DIAMOND on Breakout with two explicit seeds and 5 episodes per seed:
+Benchmarks are intended for trained models. For single-agent runs, pass a
+checkpoint with `--checkpoint`. For multi-agent runs, pass one or more
+`--checkpoint-map AGENT=PATH` values, or use `--train-epochs` when you
+intentionally want the CLI to train before evaluating.
 
-```
-python -m world_models.benchmarks.cli --agent diamond --game Breakout-v5 --seeds 0,1 --episodes 5
-```
+## TorchWM CLI examples
 
-- Run DreamerV2 on a Gym env (example):
+Run IRIS on Pong for 3 episodes using seed 0 and write the standard result files
+to `results/bench`:
 
-```
-python -m world_models.benchmarks.cli --agent dreamerv2 --game Pong-v5 --seeds 1 --episodes 10
-```
-
-- Run all agents on Pong for 3 episodes using seed 0:
-
-```
-python -m world_models.benchmarks.cli --all-agents --game ALE/Pong-v5 --seeds 1 --episodes 3
+```bash
+torchwm benchmark \
+  --agent iris \
+  --game ALE/Pong-v5 \
+  --checkpoint checkpoints/iris/pong.pt \
+  --seeds 1 \
+  --episodes 3
 ```
 
-Python API Example
-------------------
+Run DIAMOND on Breakout with two explicit seeds and 5 episodes per seed:
 
-Use the `BenchmarkRunner` when you need programmatic control:
+```bash
+torchwm benchmark \
+  --agent diamond \
+  --game Breakout-v5 \
+  --checkpoint checkpoints/diamond/breakout.pt \
+  --seeds 0,1 \
+  --episodes 5 \
+  --out-dir results/diamond_breakout
+```
+
+Run DreamerV2 on a Gym environment:
+
+```bash
+torchwm benchmark \
+  --agent dreamerv2 \
+  --game Pong-v5 \
+  --checkpoint checkpoints/dreamerv2/pong.pt \
+  --seeds 1 \
+  --episodes 10 \
+  --device cpu
+```
+
+
+Run DreamerV1 on a DeepMind BSuite diagnostic task:
+
+```bash
+torchwm benchmark \
+  --agent dreamerv1 \
+  --game catch/0 \
+  --env-backend bsuite \
+  --checkpoint checkpoints/dreamerv1/bsuite_catch.pt \
+  --seeds 0,1 \
+  --episodes 10 \
+  --device cpu
+```
+
+The BSuite backend is optional. Install it with `pip install torchwm[bsuite]` or
+`pip install bsuite` before running BSuite tasks. TorchWM wraps BSuite's compact
+`dm_env` observations as synthetic RGB images so the existing pixel-based
+Dreamer benchmark path can evaluate trained world-model agents.
+
+Run all registered adapters on the same game with per-agent checkpoints:
+
+```bash
+torchwm benchmark \
+  --all-agents \
+  --game ALE/Pong-v5 \
+  --checkpoint-map iris=checkpoints/iris/pong.pt \
+  --checkpoint-map diamond=checkpoints/diamond/pong.pt \
+  --checkpoint-map dreamerv1=checkpoints/dreamerv1/pong.pt \
+  --checkpoint-map dreamerv2=checkpoints/dreamerv2/pong.pt \
+  --seeds 0,1 \
+  --episodes 5 \
+  --out-dir results/pong_comparison
+```
+
+## CLI options
+
+Common `torchwm benchmark` options:
+
+- `--agent AGENT` / `-a AGENT`: run one adapter (`iris`, `diamond`, `dreamerv1`, or `dreamerv2`).
+- `--all-agents`: run every registered adapter on the same environment.
+- `--game GAME` / `-g GAME`: environment id, such as `ALE/Pong-v5` or a BSuite id like `catch/0`.
+- `--checkpoint PATH` / `-c PATH`: checkpoint path for single-agent benchmarks.
+- `--checkpoint-map AGENT=PATH`: repeatable per-agent checkpoint mapping for `--all-agents`.
+- `--env-backend BACKEND`: optional backend hint forwarded to adapters. Use `bsuite` for DeepMind BSuite ids such as `catch/0`.
+- `--seeds SEEDS`: either `N` for seeds `0..N-1`, or a comma-separated list such as `0,1,2`.
+- `--episodes N` / `-n N`: number of evaluation episodes per seed.
+- `--out-dir DIR`: output directory for report artifacts. The legacy alias `--out_dir` is also accepted.
+- `--device DEVICE`: device forwarded to adapters. Defaults to CUDA when available, otherwise CPU.
+- `--preset PRESET`: optional adapter/model preset.
+- `--train-epochs N`: for `--all-agents`, train first when checkpoint maps are not supplied.
+
+You can also run `torchwm benchmark --help` to see the installed CLI help.
+
+## Python usage
+
+For benchmark runs, prefer the main TorchWM CLI so commands are consistent with
+the rest of the package:
+
+```bash
+torchwm benchmark --agent iris --game ALE/Pong-v5 --checkpoint checkpoints/iris/pong.pt
+```
+
+The command writes benchmark JSON reports under the configured output
+directory. Load those reports with standard Python tools when you need custom
+analysis:
 
 ```py
-from world_models.benchmarks.runner import BenchmarkRunner
-from world_models.benchmarks import adapters
-
-runner = BenchmarkRunner(adapter_cls=adapters.IRISAdapter, out_dir="results/bench")
-res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0,1], num_episodes=5)
-print(res)
-```
-Python API Example
-------------------
-
-Use the `BenchmarkRunner` when you need programmatic control:
-
-```py
-from world_models.benchmarks.runner import BenchmarkRunner
-from world_models.benchmarks import adapters
-
-runner = BenchmarkRunner(adapter_cls=adapters.IRISAdapter, out_dir="results/bench")
-res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0,1], num_episodes=5)
-print(res)
-```
-
-Running the Atari 100k Benchmark
----------------------------------
-
-To run the full Atari 100k benchmark on all 26 games using IRIS:
-
-```
-python benchmarks/atari_100k.py
-```
-
-This will train IRIS on each game for 100k environment steps with 5 random seeds per game, compute human-normalized scores, and compare to baselines.
-
-Outputs
--------
-- The runner saves results into the `out_dir` (default `results/bench`):
-  - `benchmark_results.json` (raw structured results)
-  - `benchmark_results.csv` (seed rows)
-  - `benchmark_results.md` (human readable markdown table)
-  - `benchmark_results.tex` (LaTeX table ready for papers)
-Outputs
--------
-- The runner saves results into the `out_dir` (default `results/bench`):
-  - `benchmark_results.json` (raw structured results)
-  - `benchmark_results.csv` (seed rows)
-  - `benchmark_results.md` (human readable markdown table)
-  - `benchmark_results.tex` (LaTeX table ready for papers)
-
-Computing IQM and bootstrap CIs
--------------------------------
-
-The runner stores per-seed means in the JSON under `aggregate.per_seed_means`. Use
-the provided metrics helpers to compute IQM and bootstrap confidence intervals:
-
-```py
-from world_models.benchmarks import metrics, reporting
 import json
 
-res = json.load(open('results/bench/benchmark_results.json'))
-per_seed = res['aggregate']['per_seed_means']
-iqm = metrics.iqm_of_array(per_seed)
-lower, upper = metrics.bootstrap_iqm_ci(per_seed, num_samples=2000, alpha=0.05)
-print(f"IQM={iqm:.3f} (95% CI {lower:.3f} - {upper:.3f})")
-
-# export LaTeX table from results
-reporting.export_latex(res, 'results/bench/benchmark_results.tex')
+res = json.load(open("results/bench/benchmark_results.json"))
+per_seed = res["aggregate"]["per_seed_means"]
+print(per_seed)
 ```
 
-Extending the harness
----------------------
+## Running the Atari 100k benchmark
+
+To run the full Atari 100k benchmark on all configured games with the
+centralized benchmark module:
+
+```bash
+python -m world_models.benchmarks.atari_100k --benchmark
+```
+
+This runs the Atari 100k evaluator from `world_models/benchmarks`, computes
+human-normalized scores, and reports aggregate metrics across games and seeds.
+
+## Outputs
+
+The runner saves these files into the selected `out_dir` (default
+`results/bench`):
+
+- `benchmark_results.json` - raw structured results.
+- `benchmark_results.csv` - per-seed rows.
+- `benchmark_results.md` - human-readable markdown table.
+- `benchmark_results.tex` - LaTeX table ready for papers.
+
+Multi-agent runs also write combined reports such as
+`combined_benchmark_results.json` and `combined_benchmark_results.csv` in the
+root output directory, with per-agent details under subdirectories.
+
+## Computing IQM and bootstrap CIs
+
+The runner stores per-seed means in the JSON under
+`aggregate.per_seed_means`. Use your preferred statistics package to compute
+IQM and confidence intervals from that array.
+
+## Extending the harness
+
 - Create an adapter in `world_models/benchmarks/adapters.py` that implements:
-  - `load_checkpoint(path: str)` and
-  - `evaluate(num_episodes: int, render: bool = False)` returning `{"episode_returns": List[float]}`.
-- Register your adapter in `world_models/benchmarks/cli.py` to expose it via the CLI.
+  - `load_checkpoint(path: str)`
+  - `evaluate(num_episodes: int, render: bool = False)` returning `{"episode_returns": list[float]}`
+- Register your adapter in `world_models/benchmarks/cli.py` to expose it through `torchwm benchmark`.
 
-Tests and CI
------------
+## Tests and CI
+
 - Place smoke tests under `world_models/benchmarks/tests/` so CI can run them quickly.
-- The repo contains a `mocking_classes.py` helper for building fake agents/environments for fast unit tests.
+- The repo contains a `mocking_classes.py` helper for building fake agents and environments for fast unit tests.
 
-Where to start
---------------
-- Run the examples in `examples/benchmark_iris.py` or use the CLI directly.
-- If you need help wiring specific agent configs (device, preset, checkpoint paths), use the CLI `--device` and `--preset` flags or call the runner programmatically and pass `extra_kwargs`.
+## Where to start
+
+- Run the examples in `examples/benchmark_iris.py` or use `torchwm benchmark` directly.
+- If you need help wiring specific agent configs, use `--device`, `--preset`, and checkpoint options, or call the runner programmatically and pass `extra_kwargs`.

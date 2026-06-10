@@ -473,9 +473,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update diffusion world model.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 
-        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span>
-        <span class="n">action_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;action_seq&quot;</span><span class="p">]</span>
-        <span class="n">next_obs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;next_obs&quot;</span><span class="p">]</span>
+        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">action_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;action_seq&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">next_obs</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;next_obs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">obs_seq</span><span class="o">.</span><span class="n">shape</span>
 
@@ -528,10 +528,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update reward/termination model.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 
-        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span>
-        <span class="n">action_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;action_seq&quot;</span><span class="p">]</span>
-        <span class="n">rewards</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;rewards&quot;</span><span class="p">]</span>
-        <span class="n">dones</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;dones&quot;</span><span class="p">]</span>
+        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">action_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;action_seq&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">rewards</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;rewards&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">dones</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;dones&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">obs_seq</span><span class="o">.</span><span class="n">shape</span>
 
@@ -573,8 +573,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 
-        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span>
+        <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">action_seq</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action_seq&quot;</span><span class="p">,</span> <span class="n">batch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;actions&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">action_seq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">action_seq</span> <span class="o">=</span> <span class="n">action_seq</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">B</span><span class="p">,</span> <span class="n">seq_T</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">obs_seq</span><span class="o">.</span><span class="n">shape</span>
 
@@ -725,7 +727,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">obs_history</span> <span class="o">=</span> <span class="p">[</span><span class="n">norm_obs</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">obs_history_raw</span> <span class="o">=</span> <span class="p">[</span><span class="n">raw_obs</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span>
 
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_steps</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_steps</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Collecting experience&quot;</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="c1"># build tensor [1, L, C, H, W] with channels-first</span>
             <span class="n">obs_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_history</span><span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span> <span class="p">:])</span>
             <span class="c1"># obs_np: [L, H, W, C] -&gt; transpose to [L, C, H, W]</span>
@@ -907,14 +909,26 @@
             <span class="n">policy_losses</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">value_losses</span> <span class="o">=</span> <span class="p">[]</span>
 
+            <span class="c1"># move batch to GPU once (dataset returns CPU tensors)</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">to_device</span><span class="p">(</span><span class="n">batch</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">}</span>
+
             <span class="c1"># iterate over the dataloader properly; avoid recreating iterator each step</span>
             <span class="n">data_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">training_steps_per_epoch</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+                <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">training_steps_per_epoch</span><span class="p">),</span>
+                <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Training&quot;</span><span class="p">,</span>
+                <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data_iter</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
                     <span class="n">data_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
                     <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data_iter</span><span class="p">)</span>
+
+                <span class="n">batch</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
 
                 <span class="n">diffusion_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_diffusion_model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
                 <span class="n">diffusion_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diffusion_loss</span><span class="p">)</span>

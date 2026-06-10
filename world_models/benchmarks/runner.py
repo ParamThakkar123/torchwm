@@ -130,7 +130,7 @@ class MultiAgentBenchmarkRunner:
 
     def __init__(
         self,
-        adapters: List[Callable[..., adapters.BaseAdapter]],
+        adapters: List[type[adapters.BaseAdapter]],
         out_dir: str = "results",
     ):
         self.adapters = adapters

@@ -779,6 +779,32 @@
 </div>
 </section>
 </section>
+<section id="experiment-yaml-and-omegaconf-overrides">
+<h2>Experiment YAML and OmegaConf overrides<a class="headerlink" href="#experiment-yaml-and-omegaconf-overrides" title="Link to this heading">#</a></h2>
+<p>TorchWM provides a shared experiment configuration layer in
+<code class="docutils literal notranslate"><span class="pre">world_models.experiments</span></code>. Training entrypoints can compose their Python
+configuration defaults with a YAML file and Hydra/OmegaConf-style dot-list
+overrides, while still receiving plain Python dictionaries or config objects at
+runtime.</p>
+<p>Built-in YAML starters live under <code class="docutils literal notranslate"><span class="pre">world_models/configs/experiments/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diamond.yaml</span></code> for DIAMOND Atari experiments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">iris.yaml</span></code> for IRIS Atari experiments.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">jepa.yaml</span></code> for JEPA image pretraining experiments.</p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>diamond<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/diamond.yaml<span class="w"> </span><span class="nv">preset</span><span class="o">=</span>small<span class="w"> </span><span class="nv">seed</span><span class="o">=</span><span class="m">1</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>iris<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/iris.yaml<span class="w"> </span><span class="nv">total_epochs</span><span class="o">=</span><span class="m">100</span><span class="w"> </span><span class="nv">env</span><span class="o">=</span>ALE/Breakout-v5
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>jepa<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/jepa.yaml<span class="w"> </span>optimization.epochs<span class="o">=</span><span class="m">50</span><span class="w"> </span>data.batch_size<span class="o">=</span><span class="m">128</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--print-config</span></code> with these entrypoints to inspect the fully composed config
+without launching a run.</p>
+</section>
 </section>
 
 
@@ -839,6 +865,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-configs">Advanced Configs</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#experiment-yaml-and-omegaconf-overrides">Experiment YAML and OmegaConf overrides</a></li>
 </ul>
   </nav></div>
 

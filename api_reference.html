@@ -17782,8 +17782,8 @@ training entrypoints.</p>
 <span id="training-entry-points"></span><h2>Training entry points<a class="headerlink" href="#module-world_models.training.train_jepa" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.training.train_jepa.main">
-<span class="sig-prename descclassname"><span class="pre">world_models.training.train_jepa.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume_preempt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_jepa.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_jepa.main" title="Link to this definition">#</a></dt>
-<dd><p>Run JEPA training using a nested config dict or <cite>JEPAConfig</cite> instance.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_jepa.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume_preempt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_jepa.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_jepa.main" title="Link to this definition">#</a></dt>
+<dd><p>Run JEPA training using a CLI argv, nested dict, or <cite>JEPAConfig</cite> instance.</p>
 <p>This entrypoint initializes distributed context, data pipeline, masking,
 models, optimizers/schedulers, checkpointing, and the full epoch loop.</p>
 </dd></dl>
@@ -17792,6 +17792,17 @@ models, optimizers/schedulers, checkpointing, and the full epoch loop.</p>
 <dt class="sig sig-object py" id="world_models.training.train_jepa.sweep_train">
 <span class="sig-prename descclassname"><span class="pre">world_models.training.train_jepa.</span></span><span class="sig-name descname"><span class="pre">sweep_train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_jepa.html#sweep_train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_jepa.sweep_train" title="Link to this definition">#</a></dt>
 <dd><p>Function for WandB sweep agent.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.training.train_jepa.main_from_cli">
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_jepa.</span></span><span class="sig-name descname"><span class="pre">main_from_cli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_jepa.html#main_from_cli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_jepa.main_from_cli" title="Link to this definition">#</a></dt>
+<dd><p>Compose JEPA config from YAML/dot-list overrides and launch training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class" id="module-world_models.training.train_iris">
@@ -17914,8 +17925,13 @@ If render is True: tuple (episode_returns_array, videos_list, latents_array)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.training.train_iris.main">
-<span class="sig-prename descclassname"><span class="pre">world_models.training.train_iris.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.main" title="Link to this definition">#</a></dt>
-<dd><p>Run IRIS training on a single Atari game.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_iris.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.main" title="Link to this definition">#</a></dt>
+<dd><p>Run IRIS training with YAML config files and Hydra dot-list overrides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class" id="module-world_models.training.train_genie">
@@ -18325,16 +18341,28 @@ directly.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.training.train_diamond.train_diamond">
-<span class="sig-prename descclassname"><span class="pre">world_models.training.train_diamond.</span></span><span class="sig-name descname"><span class="pre">train_diamond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_diamond.html#train_diamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_diamond.train_diamond" title="Link to this definition">#</a></dt>
-<dd><p>Train DIAMOND on a specific game.</p>
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_diamond.</span></span><span class="sig-name descname"><span class="pre">train_diamond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_diamond.html#train_diamond"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_diamond.train_diamond" title="Link to this definition">#</a></dt>
+<dd><p>Train DIAMOND on a specific game or a composed experiment config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>game</strong> (<em>str</em>)</p></li>
-<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>game</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
 <li><p><strong>preset</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>device</strong> (<em>str</em>)</p></li>
+<li><p><strong>device</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#world_models.configs.diamond_config.DiamondConfig" title="world_models.configs.diamond_config.DiamondConfig"><em>DiamondConfig</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.training.train_diamond.main">
+<span class="sig-prename descclassname"><span class="pre">world_models.training.train_diamond.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_diamond.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_diamond.main" title="Link to this definition">#</a></dt>
+<dd><p>Compose DIAMOND config from YAML/dot-list overrides and launch training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -23390,7 +23418,7 @@ results = runner.run(games=[“Breakout-v5”], seeds=[0,1], episodes=5)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.benchmarks.MultiAgentBenchmarkRunner">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.benchmarks.</span></span><span class="sig-name descname"><span class="pre">MultiAgentBenchmarkRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/benchmarks/runner.html#MultiAgentBenchmarkRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.benchmarks.MultiAgentBenchmarkRunner" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.benchmarks.</span></span><span class="sig-name descname"><span class="pre">MultiAgentBenchmarkRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapter_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/benchmarks/runner.html#MultiAgentBenchmarkRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.benchmarks.MultiAgentBenchmarkRunner" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Run evaluations for multiple adapters on the same environment.</p>
 <dl class="simple">
@@ -23401,7 +23429,7 @@ results = runner.run_all(game=”Breakout-v5”, seeds=[0,1], episodes=5)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>adapters</strong> (<em>List</em><em>[</em><em>Callable</em><em>[</em><em>...</em><em>, </em><a class="reference internal" href="#world_models.benchmarks.adapters.BaseAdapter" title="world_models.benchmarks.adapters.BaseAdapter"><em>adapters.BaseAdapter</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>adapter_classes</strong> (<em>List</em><em>[</em><em>type</em><em>[</em><a class="reference internal" href="#world_models.benchmarks.adapters.BaseAdapter" title="world_models.benchmarks.adapters.BaseAdapter"><em>adapters.BaseAdapter</em></a><em>]</em><em>]</em>)</p></li>
 <li><p><strong>out_dir</strong> (<em>str</em>)</p></li>
 </ul>
 </dd>
@@ -23667,7 +23695,7 @@ results = runner.run(games=[“Breakout-v5”], seeds=[0,1], episodes=5)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.benchmarks.runner.MultiAgentBenchmarkRunner">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.benchmarks.runner.</span></span><span class="sig-name descname"><span class="pre">MultiAgentBenchmarkRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/benchmarks/runner.html#MultiAgentBenchmarkRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.benchmarks.runner.MultiAgentBenchmarkRunner" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.benchmarks.runner.</span></span><span class="sig-name descname"><span class="pre">MultiAgentBenchmarkRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapter_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/benchmarks/runner.html#MultiAgentBenchmarkRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.benchmarks.runner.MultiAgentBenchmarkRunner" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Run evaluations for multiple adapters on the same environment.</p>
 <dl class="simple">
@@ -23678,7 +23706,7 @@ results = runner.run_all(game=”Breakout-v5”, seeds=[0,1], episodes=5)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>adapters</strong> (<em>List</em><em>[</em><em>Callable</em><em>[</em><em>...</em><em>, </em><a class="reference internal" href="#world_models.benchmarks.adapters.BaseAdapter" title="world_models.benchmarks.adapters.BaseAdapter"><em>adapters.BaseAdapter</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>adapter_classes</strong> (<em>List</em><em>[</em><em>type</em><em>[</em><a class="reference internal" href="#world_models.benchmarks.adapters.BaseAdapter" title="world_models.benchmarks.adapters.BaseAdapter"><em>adapters.BaseAdapter</em></a><em>]</em><em>]</em>)</p></li>
 <li><p><strong>out_dir</strong> (<em>str</em>)</p></li>
 </ul>
 </dd>
@@ -26780,6 +26808,7 @@ along the batch dimension.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.training.train_jepa">Training entry points</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_jepa.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_jepa.sweep_train"><code class="docutils literal notranslate"><span class="pre">sweep_train()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_jepa.main_from_cli"><code class="docutils literal notranslate"><span class="pre">main_from_cli()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer"><code class="docutils literal notranslate"><span class="pre">IRISTrainer</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.preprocess_frame"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.preprocess_frame()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_iris.IRISTrainer.collect_experience"><code class="docutils literal notranslate"><span class="pre">IRISTrainer.collect_experience()</span></code></a></li>
@@ -26843,6 +26872,7 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_diamond.train_diamond"><code class="docutils literal notranslate"><span class="pre">train_diamond()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.train_diamond.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.rl_harness.ActorCritic"><code class="docutils literal notranslate"><span class="pre">ActorCritic</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.rl_harness.ActorCritic.forward"><code class="docutils literal notranslate"><span class="pre">ActorCritic.forward()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.training.rl_harness.ActorCritic.get_action"><code class="docutils literal notranslate"><span class="pre">ActorCritic.get_action()</span></code></a></li>

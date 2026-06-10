@@ -295,7 +295,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gym.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">Discrete</span><span class="p">,</span> <span class="n">Box</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">omegaconf</span><span class="w"> </span><span class="kn">import</span> <span class="n">OmegaConf</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span> <span class="k">as</span> <span class="n">_Optional</span>
@@ -310,6 +310,11 @@
     <span class="n">cv2</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.iris_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.experiments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">dump_config</span><span class="p">,</span>
+    <span class="n">load_experiment_config</span><span class="p">,</span>
+    <span class="n">update_config_object</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.iris_agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISAgent</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory.iris_memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">IRISReplayBuffer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span>
@@ -751,34 +756,48 @@
 
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_iris.main">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run IRIS training on a single Atari game.&quot;&quot;&quot;</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train IRIS on Atari&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--game&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;ALE/Pong-v5&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Atari game&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Device (cuda/cpu)&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--epochs&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Total epochs&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--seed&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Random seed&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--save_dir&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;checkpoints/iris&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Save directory&quot;</span>
-    <span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run IRIS training with YAML config files and Hydra dot-list overrides.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.experiments</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_experiment_args</span>
 
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_experiment_args</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train IRIS on Atari&quot;</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">IRISConfig</span><span class="p">()</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">load_experiment_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">update_config_object</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">env</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;env&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;ALE/Pong-v5&quot;</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="n">seed</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">seed</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;seed&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">42</span>
+    <span class="n">total_epochs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">total_epochs</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;total_epochs&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">save_dir</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">save_dir</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;save_dir&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;checkpoints/iris&quot;</span>
+
+    <span class="c1"># Allow command-line overrides for training-specific options</span>
+    <span class="k">if</span> <span class="n">argv</span><span class="p">:</span>
+        <span class="n">cli_overrides</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">from_cli</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+        <span class="n">game</span> <span class="o">=</span> <span class="n">cli_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;game&quot;</span><span class="p">,</span> <span class="n">game</span><span class="p">)</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">cli_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">cli_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+        <span class="n">total_epochs</span> <span class="o">=</span> <span class="n">cli_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;epochs&quot;</span><span class="p">,</span> <span class="n">total_epochs</span><span class="p">)</span>
+        <span class="n">save_dir</span> <span class="o">=</span> <span class="n">cli_overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;save_dir&quot;</span><span class="p">,</span> <span class="n">save_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">print_config</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dump_config</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">config</span>
 
     <span class="n">trainer</span> <span class="o">=</span> <span class="n">IRISTrainer</span><span class="p">(</span>
-        <span class="n">game</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">game</span><span class="p">,</span>
-        <span class="n">device</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
-        <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+        <span class="n">game</span><span class="o">=</span><span class="n">game</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span>
-        <span class="n">total_epochs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span>
-        <span class="n">save_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">save_dir</span><span class="p">,</span>
-    <span class="p">)</span></div>
+        <span class="n">total_epochs</span><span class="o">=</span><span class="n">total_epochs</span><span class="p">,</span>
+        <span class="n">save_dir</span><span class="o">=</span><span class="n">save_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span></div>
 
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
                 </article>

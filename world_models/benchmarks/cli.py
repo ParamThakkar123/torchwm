@@ -51,8 +51,8 @@ def main(cfg: DictConfig):
 
     if cfg.get("all_agents", False):
         all_adapters = list(AGENTS.values())
-        runner: MultiAgentBenchmarkRunner | BenchmarkRunner = MultiAgentBenchmarkRunner(
-            adapters=all_adapters, out_dir=out_dir
+        runner = MultiAgentBenchmarkRunner(
+            adapter_classes=all_adapters, out_dir=out_dir
         )
 
         runner.run_all(

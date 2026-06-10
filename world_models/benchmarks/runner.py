@@ -130,10 +130,10 @@ class MultiAgentBenchmarkRunner:
 
     def __init__(
         self,
-        adapters: List[type[adapters.BaseAdapter]],
+        adapter_classes: List[type[adapters.BaseAdapter]],
         out_dir: str = "results",
     ):
-        self.adapters = adapters
+        self.adapter_classes = adapter_classes
         self.out_dir = out_dir
         os.makedirs(self.out_dir, exist_ok=True)
 
@@ -167,7 +167,7 @@ class MultiAgentBenchmarkRunner:
 
         all_results: Dict[str, Any] = {}
 
-        for adapter_cls in self.adapters:
+        for adapter_cls in self.adapter_classes:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Running benchmark for {adapter_name}...")
 
@@ -214,7 +214,7 @@ class MultiAgentBenchmarkRunner:
         )
         preset = extra_kwargs.get("preset", None)
 
-        for adapter_cls in self.adapters:
+        for adapter_cls in self.adapter_classes:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Training {adapter_name}...")
 

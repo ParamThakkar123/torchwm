@@ -375,6 +375,20 @@
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Large Genie variant.&quot;</span><span class="p">,</span>
         <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;genie_large&quot;</span><span class="p">,),</span>
     <span class="p">),</span>
+    <span class="s2">&quot;diamond&quot;</span><span class="p">:</span> <span class="n">ModelSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;diamond&quot;</span><span class="p">,</span>
+        <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;world_models.training.train_diamond:DiamondAgent&quot;</span><span class="p">,</span>
+        <span class="n">config_path</span><span class="o">=</span><span class="s2">&quot;world_models.configs.diamond_config:DiamondConfig&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;DIAMOND diffusion world model agent for Atari-style control.&quot;</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;diamond_agent&quot;</span><span class="p">,),</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;dit&quot;</span><span class="p">:</span> <span class="n">ModelSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dit&quot;</span><span class="p">,</span>
+        <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;world_models.models.diffusion.DiT:create_dit&quot;</span><span class="p">,</span>
+        <span class="n">config_path</span><span class="o">=</span><span class="s2">&quot;world_models.configs.dit_config:DiTConfig&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Diffusion Transformer (DiT) image denoising model.&quot;</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;diffusion-transformer&quot;</span><span class="p">,</span> <span class="s2">&quot;diffusion_transformer&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
     <span class="s2">&quot;modular-rssm&quot;</span><span class="p">:</span> <span class="n">ModelSpec</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;modular-rssm&quot;</span><span class="p">,</span>
         <span class="n">import_path</span><span class="o">=</span><span class="s2">&quot;world_models.models.modular_rssm:create_modular_rssm&quot;</span><span class="p">,</span>
@@ -414,11 +428,29 @@
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Gymnasium Robotics environments.&quot;</span><span class="p">,</span>
         <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">,),</span>
     <span class="p">),</span>
+    <span class="s2">&quot;procgen&quot;</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;procgen&quot;</span><span class="p">,</span>
+        <span class="n">factory_path</span><span class="o">=</span><span class="s2">&quot;world_models.envs:make_procgen_env&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Procedurally generated benchmark environments.&quot;</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;coinrun&quot;</span><span class="p">,),</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;dmlab&quot;</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dmlab&quot;</span><span class="p">,</span>
+        <span class="n">factory_path</span><span class="o">=</span><span class="s2">&quot;world_models.envs:make_dmlab_env&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;DeepMind Lab 3D navigation and puzzle tasks.&quot;</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;deepmind_lab&quot;</span><span class="p">,</span> <span class="s2">&quot;deepmindlab&quot;</span><span class="p">),</span>
+    <span class="p">),</span>
     <span class="s2">&quot;brax&quot;</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;brax&quot;</span><span class="p">,</span>
         <span class="n">factory_path</span><span class="o">=</span><span class="s2">&quot;world_models.envs:make_brax_env&quot;</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;JAX/Brax continuous-control environments.&quot;</span><span class="p">,</span>
         <span class="n">aliases</span><span class="o">=</span><span class="p">(),</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;bsuite&quot;</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bsuite&quot;</span><span class="p">,</span>
+        <span class="n">factory_path</span><span class="o">=</span><span class="s2">&quot;world_models.envs:make_bsuite_env&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Behaviour Suite for Reinforcement Learning (BSuite) environments.&quot;</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;behavior_suite&quot;</span><span class="p">,</span> <span class="s2">&quot;behaviour_suite&quot;</span><span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">&quot;unity&quot;</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unity&quot;</span><span class="p">,</span>
@@ -433,7 +465,9 @@
     <span class="k">return</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_alias_map</span><span class="p">(</span><span class="n">specs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ModelSpec</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EnvBackendSpec</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_alias_map</span><span class="p">(</span>
+    <span class="n">specs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ModelSpec</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">EnvBackendSpec</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
     <span class="n">aliases</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">canonical</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">aliases</span><span class="p">[</span><span class="n">_normalize</span><span class="p">(</span><span class="n">canonical</span><span class="p">)]</span> <span class="o">=</span> <span class="n">canonical</span>
@@ -448,7 +482,9 @@
         <span class="k">return</span> <span class="n">aliases</span><span class="p">[</span><span class="n">_normalize</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
     <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">available</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_models</span><span class="p">())</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown model </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available models: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown model </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available models: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_backend_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -457,7 +493,9 @@
         <span class="k">return</span> <span class="n">aliases</span><span class="p">[</span><span class="n">_normalize</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
     <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">available</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_env_backends</span><span class="p">())</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown environment backend </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown environment backend </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_load_object</span><span class="p">(</span><span class="n">import_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -494,7 +532,9 @@
     <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">overrides</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="n">config_keys</span> <span class="o">=</span> <span class="n">_config_fields</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-    <span class="n">config_overrides</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_keys</span><span class="p">}</span>
+    <span class="n">config_overrides</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_keys</span>
+    <span class="p">}</span>
     <span class="n">constructor_overrides</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config_keys</span>
     <span class="p">}</span>
@@ -521,7 +561,9 @@
     <span class="k">return</span> <span class="n">config</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_supported_kwargs</span><span class="p">(</span><span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_supported_kwargs</span><span class="p">(</span>
+    <span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
@@ -529,7 +571,9 @@
     <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">supported</span><span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_call_with_supported_kwargs</span><span class="p">(</span><span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_with_supported_kwargs</span><span class="p">(</span>
+    <span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
     <span class="n">accepts_kwargs</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">accepts_kwargs</span><span class="p">:</span>
@@ -624,8 +668,8 @@
     <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">config_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">create_config</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">config_overrides</span><span class="p">,</span> <span class="n">constructor_overrides</span> <span class="o">=</span> <span class="n">_split_config_and_constructor_overrides</span><span class="p">(</span>
-            <span class="n">config</span><span class="p">,</span> <span class="n">overrides</span>
+        <span class="n">config_overrides</span><span class="p">,</span> <span class="n">constructor_overrides</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_split_config_and_constructor_overrides</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">overrides</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">_apply_overrides</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">config_overrides</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;genie&quot;</span><span class="p">,</span> <span class="s2">&quot;genie-small&quot;</span><span class="p">,</span> <span class="s2">&quot;genie-large&quot;</span><span class="p">}:</span>
@@ -674,7 +718,9 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ENVIRONMENTS_BY_MODEL</span><span class="p">[</span><span class="n">canonical</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">available</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ENVIRONMENTS_BY_MODEL</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown model environment catalog </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span></div>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown model environment catalog </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span></div>
 
 
 

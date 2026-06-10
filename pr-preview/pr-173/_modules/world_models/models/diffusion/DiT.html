@@ -692,6 +692,49 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated samples saved to </span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/generated_samples.png&quot;</span><span class="p">)</span></div>
 </div>
 
+
+
+<div class="viewcode-block" id="create_dit">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.create_dit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_dit</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.</span>
+
+<span class="sd">    The public factory API works with config objects, while ``DiT`` itself has a</span>
+<span class="sd">    compact constructor. This adapter keeps the lower-level model constructor</span>
+<span class="sd">    unchanged and maps the public config fields onto the expected arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+
+    <span class="n">config_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;__dataclass_fields__&quot;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">config_overrides</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_fields</span>
+    <span class="p">}</span>
+    <span class="n">constructor_overrides</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config_fields</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">config_overrides</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">config_overrides</span><span class="p">)</span>
+
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;img_size&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">IMG_SIZE</span><span class="p">,</span>
+        <span class="s2">&quot;patch_size&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">PATCH</span><span class="p">,</span>
+        <span class="s2">&quot;in_channels&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">CHANNELS</span><span class="p">,</span>
+        <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">WIDTH</span><span class="p">,</span>
+        <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">DEPTH</span><span class="p">,</span>
+        <span class="s2">&quot;heads&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">HEADS</span><span class="p">,</span>
+        <span class="s2">&quot;drop&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">DROP</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">supported</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">|</span> <span class="p">{</span><span class="s2">&quot;t_dim&quot;</span><span class="p">}</span>
+    <span class="n">invalid</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">constructor_overrides</span><span class="p">)</span> <span class="o">-</span> <span class="n">supported</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported DiT argument(s): </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">invalid</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">constructor_overrides</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DiT</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 </pre></div>
 
                 </article>

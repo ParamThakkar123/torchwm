@@ -246,9 +246,7 @@ def _build_env_catalog() -> dict[str, list[str]]:
     dreamer_envs = _dedupe_envs(
         DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs, dmlab_envs
     )
-    planet_envs = _dedupe_envs(
-        PLANET_BASE_ENVS, atari_envs[:80], robotics_envs, PROCGEN_ENVS
-    )
+    planet_envs = _dedupe_envs(gym_envs, atari_envs[:80], robotics_envs, PROCGEN_ENVS)
     return {
         "dreamer": dreamer_envs,
         "dreamerv1": dreamer_envs,

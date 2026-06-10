@@ -77,6 +77,48 @@ ROBOTICS_ENVS: list[str] = _list_available_robotics_envs()
 
 UNITY_ENVS: list[str] = []
 
+PROCGEN_ENVS = [
+    "bigfish",
+    "bossfight",
+    "caveflyer",
+    "chaser",
+    "climber",
+    "coinrun",
+    "dodgeball",
+    "fruitbot",
+    "heist",
+    "jumper",
+    "leaper",
+    "maze",
+    "miner",
+    "ninja",
+    "plunder",
+    "starpilot",
+]
+
+
+def _list_available_bsuite_ids() -> list[str]:
+    """Return BSuite sweep ids or examples without making catalog imports heavy."""
+    try:
+        from world_models.envs import list_available_bsuite_ids
+
+        return list_available_bsuite_ids()
+    except Exception:
+        return [
+            "bandit/0",
+            "cartpole/0",
+            "catch/0",
+            "deep_sea/0",
+            "discounting_chain/0",
+            "memory_len/0",
+            "mnist/0",
+            "mountain_car/0",
+            "umbrella_chain/0",
+        ]
+
+
+BSUITE_ENVS: list[str] = _list_available_bsuite_ids()
+
 
 def _list_available_atari_envs() -> list[str]:
     """Return registered Atari ids without making catalog imports heavy."""
@@ -89,6 +131,15 @@ def _list_available_atari_envs() -> list[str]:
 
 
 ATARI_ENVS: list[str] = _list_available_atari_envs()
+
+
+def _list_available_dmlab_levels() -> list[str]:
+    try:
+        from world_models.envs.dmlab import DMLAB_LEVELS
+
+        return list(DMLAB_LEVELS)
+    except Exception:
+        return []
 
 
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
@@ -122,6 +173,21 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "Atari 2600 environments via ALE",
         "environments": ATARI_ENVS,
     },
+    "procgen": {
+        "label": "Procgen",
+        "description": "Procedurally generated benchmark games",
+        "environments": PROCGEN_ENVS,
+    },
+    "bsuite": {
+        "label": "BSuite",
+        "description": "DeepMind Behaviour Suite diagnostic RL tasks",
+        "environments": BSUITE_ENVS,
+    },
+    "dmlab": {
+        "label": "DeepMind Lab",
+        "description": "DeepMind Lab 3D navigation and puzzle tasks",
+        "environments": _list_available_dmlab_levels(),
+    },
 }
 
 
@@ -141,8 +207,14 @@ def _build_env_catalog() -> dict[str, list[str]]:
     robotics_envs = _list_available_robotics_envs()
     general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
-    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs)
-    planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
+    bsuite_envs = _list_available_bsuite_ids()
+    dmlab_envs = _list_available_dmlab_levels()
+    dreamer_envs = _dedupe_envs(
+        DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs, dmlab_envs
+    )
+    planet_envs = _dedupe_envs(
+        PLANET_BASE_ENVS, atari_envs[:80], robotics_envs, PROCGEN_ENVS
+    )
     return {
         "dreamer": dreamer_envs,
         "dreamerv1": dreamer_envs,

@@ -1,18 +1,18 @@
-"""Experiment configuration helpers backed by OmegaConf when available.
+"""Experiment configuration helpers backed by OmegaConf and Hydra.
 
-The functions in this module provide a small, dependency-light integration point
-for training entrypoints: compose library defaults, YAML files, and Hydra-style
+The functions in this module compose library defaults, YAML files, and Hydra
 ``key=value`` dot-list overrides into plain Python containers or existing config
-objects.  If OmegaConf is not installed the same public API falls back to the
-PyYAML parser that TorchWM already depends on, so importing training modules stays
-cheap while the project dependency advertises first-class OmegaConf support.
+objects.  OmegaConf and Hydra are used throughout for parsing and composition.
+If OmegaConf is not installed the same public API falls back to the PyYAML
+parser that TorchWM already depends on, so importing training modules stays
+cheap.
 """
 
 from __future__ import annotations
 
-import argparse
 import dataclasses
 import importlib.util
+import sys
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, TypeVar, cast
@@ -112,9 +112,7 @@ def instantiate_dataclass(
     unknown = sorted(set(values).difference(field_names))
     if unknown:
         joined = ", ".join(unknown)
-        raise ExperimentConfigError(
-            f"Unknown {config_cls.__name__} field(s): {joined}"
-        )
+        raise ExperimentConfigError(f"Unknown {config_cls.__name__} field(s): {joined}")
     return config_cls(**values)
 
 
@@ -136,26 +134,37 @@ def parse_experiment_args(
     *,
     description: str | None = None,
 ) -> ExperimentArgs:
-    """Parse shared ``--config``/``--print-config`` plus dot-list overrides."""
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument(
-        "--config",
-        type=str,
-        default=None,
-        help="YAML config path to merge over library defaults.",
+    """Parse shared ``--config``/``--print-config`` plus Hydra dot-list overrides.
+
+    Uses OmegaConf-style ``key=value`` syntax for overrides (no ``--`` prefix).
+    """
+    raw = list(argv) if argv is not None else sys.argv[1:]
+
+    config_path: str | None = None
+    print_config = False
+    overrides: list[str] = []
+
+    i = 0
+    while i < len(raw):
+        arg = raw[i]
+        if arg in ("--config", "-c") and i + 1 < len(raw):
+            config_path = raw[i + 1]
+            i += 2
+        elif arg == "--print-config":
+            print_config = True
+            i += 1
+        elif arg.startswith("--config="):
+            config_path = arg.split("=", 1)[1]
+            i += 1
+        else:
+            overrides.append(arg)
+            i += 1
+
+    return ExperimentArgs(
+        config=config_path,
+        overrides=tuple(overrides),
+        print_config=print_config,
     )
-    parser.add_argument(
-        "--print-config",
-        action="store_true",
-        help="Print the composed config and exit before training.",
-    )
-    parser.add_argument(
-        "overrides",
-        nargs="*",
-        help="OmegaConf dot-list overrides such as training.lr=3e-4 or seed=1.",
-    )
-    ns = parser.parse_args(argv)
-    return ExperimentArgs(ns.config, tuple(ns.overrides), ns.print_config)
 
 
 def dump_config(config: Mapping[str, Any]) -> str:

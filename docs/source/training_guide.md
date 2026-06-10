@@ -8,24 +8,53 @@ TorchWM supports training multiple world model algorithms with a unified interfa
 
 ## Basic Training Flow
 
-1. Select an algorithm and create config
-2. Set environment/dataset parameters
-3. Configure training hyperparameters
-4. Initialize agent and call train()
+1. Select an algorithm
+2. Override environment, dataset, or optimization parameters
+3. Initialize the agent
+4. Call `train()` and monitor logs/checkpoints
+
+The simplest path is the top-level `torchwm` API:
+
+```python :class: thebe
+import torchwm
+
+agent = torchwm.create_model(
+    "dreamer",
+    env_backend="dmc",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
+agent.train()
+```
+
+For research code, the lower-level config and agent classes remain available.
 
 ## Dreamer Training
 
-```python :class: thebe
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+Preferred application API:
 
-# Configure
+```python :class: thebe
+import torchwm
+
+agent = torchwm.create_model(
+    "dreamer",
+    env_backend="dmc",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
+agent.train()
+```
+
+Equivalent direct API:
+
+```python :class: thebe
+from torchwm import DreamerAgent, DreamerConfig
+
 cfg = DreamerConfig()
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 cfg.total_steps = 1_000_000
 
-# Train
 agent = DreamerAgent(cfg)
 agent.train()
 ```
@@ -33,30 +62,33 @@ agent.train()
 ## JEPA Training
 
 ```python :class: thebe
-from world_models.models import JEPAAgent
-from world_models.configs import JEPAConfig
+import torchwm
 
-cfg = JEPAConfig()
-cfg.dataset = "imagenet"
-cfg.batch_size = 64
-cfg.epochs = 100
-
-agent = JEPAAgent(cfg)
+agent = torchwm.create_model(
+    "jepa",
+    dataset="imagenet",
+    batch_size=64,
+    epochs=100,
+)
 agent.train()
 ```
 
 ## IRIS Training
 
+`IRISAgent` needs constructor arguments such as `action_size` and `device` in
+addition to its config, so pass those as constructor overrides:
+
 ```python :class: thebe
-from world_models.models import IRISAgent
-from world_models.configs import IRISConfig
+import torch
+import torchwm
 
-cfg = IRISConfig()
-cfg.env_name = "Pong-v5"
-cfg.total_epochs = 100
-
-agent = IRISAgent(cfg)
-agent.train()
+agent = torchwm.create_model(
+    "iris",
+    env_name="Pong-v5",
+    total_epochs=100,
+    action_size=4,
+    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+)
 ```
 
 ## Custom Training Loop
@@ -64,11 +96,16 @@ agent.train()
 For advanced users, implement custom training:
 
 ```python :class: thebe
-from world_models.memory import DreamerMemory
-from world_models.models import DreamerAgent
+from torchwm import DreamerAgent, ReplayBuffer
 
 agent = DreamerAgent(cfg)
-memory = DreamerMemory(cfg)
+memory = ReplayBuffer(
+    size=100_000,
+    obs_shape=(3, 64, 64),
+    action_size=6,
+    seq_len=50,
+    batch_size=50,
+)
 
 for step in range(cfg.total_steps):
     # Collect experience
@@ -108,6 +145,13 @@ All training is controlled via config objects:
 ```python :class: thebe
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
+```
+
+### DeepMind Lab
+```python :class: thebe
+cfg.env_backend = "dmlab"
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
 ```
 
 ### Gym

@@ -29,6 +29,7 @@ setup(
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
         "omegaconf>=2.3.0",
+        "hydra>=1.3.2",
         "tqdm>=4.67.1",
         "click>=8.0.0",
     ],
@@ -49,6 +50,12 @@ setup(
         ],
         "brax": [
             "brax>=0.13.0",
+        ],
+        "procgen": [
+            "procgen>=0.10.7",
+        ],
+        "bsuite": [
+            "bsuite>=0.3.5",
         ],
         "viz": [
             "fastapi[standard]>=0.116.0",
@@ -84,7 +91,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,robotics,brax,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
         ],
     },
     classifiers=[

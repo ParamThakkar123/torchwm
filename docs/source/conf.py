@@ -11,10 +11,10 @@ project = "TorchWM"
 copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
 
-# Auto-read version from world_models package
+# Auto-read version from the public torchwm package
 
-import world_models
-release = world_models.__version__
+import torchwm
+release = torchwm.__version__
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -80,6 +80,7 @@ copybutton_only_copy_prompt_lines = False
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",
+    "deepmind_lab",
     "mlagents_envs",
     "mujoco",
     "moviepy",

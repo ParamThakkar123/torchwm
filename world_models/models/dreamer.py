@@ -15,14 +15,24 @@ import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
 from world_models.envs.mujoco_env import make_mujoco_env_from_config
+from world_models.envs.procgen_env import ProcgenImageEnv
 from world_models.envs.robotics_env import make_robotics_env
 from world_models.envs.brax_env import BraxImageEnv
+from world_models.envs.dmlab import DMLabEnv
+from world_models.envs.bsuite_env import BSuiteImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
 from world_models.vision.dreamer_encoder import ConvEncoder
-from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
+from world_models.utils.dreamer_utils import (
+    Logger,
+    FreezeParameters,
+    compute_return,
+    symlog as _symlog,
+    symexp as _symexp,
+    TwoHotEncoder,
+)
 from world_models.configs.dreamer_config import DreamerConfig
 
 # Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
@@ -86,7 +96,8 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends
+    Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+    Brax, BSuite, and Unity ML-Agents backends
     and applies the standard wrapper stack: action repeat, action normalization,
     and time limit.
     """
@@ -103,6 +114,17 @@ def make_env(args):
         )
     elif backend == "dmc":
         env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        env = DMLabEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            action_repeat=int(getattr(args, "dmlab_action_repeat", 4)),
+            action_set=getattr(args, "dmlab_action_set", None),
+            observations=getattr(args, "dmlab_observations", None),
+            config=getattr(args, "dmlab_config", None),
+            renderer=getattr(args, "dmlab_renderer", "hardware"),
+        )
     elif backend in {"gym", "gymnasium", "generic"}:
         env = GymImageEnv(
             args.env,
@@ -112,12 +134,28 @@ def make_env(args):
         )
     elif backend in {"mujoco", "mjcf", "native_mujoco"}:
         env = make_mujoco_env_from_config(args, size)
+    elif backend in {"procgen", "coinrun"}:
+        env = ProcgenImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            distribution_mode=getattr(args, "procgen_distribution_mode", "easy"),
+            num_levels=int(getattr(args, "procgen_num_levels", 0)),
+            start_level=getattr(args, "procgen_start_level", None),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
     elif backend in {"robotics", "gymnasium_robotics"}:
         env = make_robotics_env(
             args.env,
             seed=args.seed,
             size=size,
             render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"bsuite", "behavior_suite", "behaviour_suite"}:
+        env = BSuiteImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
         )
     elif backend in {"brax", "jax_brax"}:
         env = BraxImageEnv(
@@ -152,7 +190,8 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, robotics, brax, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, dmlab, gym, mujoco, "
+            "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
@@ -245,6 +284,14 @@ class Dreamer:
             output_shape=self.obs_shape,
             activation=self.args.cnn_activation_function,
         ).to(self.device)
+        head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
+        head_kwargs = {}
+        if head_dist == "symlog_twohot":
+            head_kwargs = {
+                "num_buckets": getattr(self.args, "num_buckets", 255),
+                "symlog_range": getattr(self.args, "symlog_range", 10.0),
+            }
+
         self.reward_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
             deter_size=self.args.deter_size,
@@ -252,7 +299,8 @@ class Dreamer:
             n_layers=2,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         self.value_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
@@ -261,7 +309,8 @@ class Dreamer:
             n_layers=3,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         if self.args.use_disc_model:
             self.discount_model = DenseDecoder(
@@ -331,6 +380,7 @@ class Dreamer:
         features = torch.cat([self.posterior["stoch"], self.posterior["deter"]], dim=-1)
         rew_dist = self.reward_model(features)
         obs_dist = self.obs_decoder(features)
+        disc_dist = None
         if self.args.use_disc_model:
             disc_dist = self.discount_model(features)
 
@@ -371,20 +421,18 @@ class Dreamer:
                 kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
             )
 
-        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
-        rew_loss = -torch.mean(rew_dist.log_prob(rews[:-1]))
-        if self.args.use_disc_model:
-            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
-
-        if self.args.use_disc_model:
-            model_loss = (
-                self.args.kl_loss_coeff * kl_loss
-                + obs_loss
-                + rew_loss
-                + self.args.disc_loss_coeff * disc_loss
-            )
+        if self.args.algo == "Dreamerv2":
+            target_rew = _symlog(rews[:-1])
         else:
-            model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+            target_rew = rews[:-1]
+
+        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
+        rew_loss = -torch.mean(rew_dist.log_prob(target_rew))
+
+        model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+        if self.args.use_disc_model and disc_dist is not None:
+            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
+            model_loss = model_loss + self.args.disc_loss_coeff * disc_loss
 
         return model_loss
 
@@ -421,7 +469,13 @@ class Dreamer:
 
         discounts = torch.cat([torch.ones_like(discounts[:1]), discounts[1:-1]], 0)
         self.discounts = torch.cumprod(discounts, 0).detach()
-        actor_loss = -torch.mean(self.discounts * self.returns)
+
+        if self.args.algo == "Dreamerv2":
+            weight = self.discounts.detach()
+            target = _symlog(self.returns.detach())
+            actor_loss = -torch.mean(weight * target)
+        else:
+            actor_loss = -torch.mean(self.discounts * self.returns)
         return actor_loss
 
     def value_loss(self):
@@ -430,10 +484,12 @@ class Dreamer:
             value_targ = self.returns.detach()
 
         value_dist = self.value_model(value_feat)
-        value_loss = -torch.mean(
-            self.discounts * value_dist.log_prob(value_targ).unsqueeze(-1)
-        )
-
+        if self.args.algo == "Dreamerv2":
+            target = _symlog(value_targ)
+            log_prob = value_dist.log_prob(target)
+        else:
+            log_prob = value_dist.log_prob(value_targ).unsqueeze(-1)
+        value_loss = -torch.mean(self.discounts * log_prob)
         return value_loss
 
     def train_one_batch(self):

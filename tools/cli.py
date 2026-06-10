@@ -32,6 +32,16 @@ TRAINING_MODULES = {
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
+BENCHMARK_ENV_BACKENDS = (
+    "gym",
+    "gymnasium",
+    "dmc",
+    "mujoco",
+    "robotics",
+    "bsuite",
+    "brax",
+    "unity_mlagents",
+)
 
 
 def _echo_error(message: str) -> None:
@@ -291,7 +301,12 @@ def models_list() -> None:
     "game",
     "-g",
     required=True,
-    help="Gym/ALE environment id to benchmark, such as ALE/Pong-v5.",
+    help="Environment id to benchmark, such as ALE/Pong-v5 or the BSuite id catch/0.",
+)
+@click.option(
+    "--env-backend",
+    type=click.Choice(BENCHMARK_ENV_BACKENDS, case_sensitive=False),
+    help="Environment backend for Dreamer-compatible adapters, for example gym or bsuite.",
 )
 @click.option(
     "--seeds",
@@ -352,6 +367,7 @@ def benchmark(
     agent: str | None,
     all_agents: bool,
     game: str,
+    env_backend: str | None,
     seeds: str,
     episodes: int,
     checkpoint: Path | None,
@@ -405,6 +421,8 @@ def benchmark(
         device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         extra_kwargs = {"device": device, "preset": preset}
         env_spec = {"game": game}
+        if env_backend:
+            env_spec["env_backend"] = env_backend.lower()
 
         if all_agents:
             runner = multi_runner_cls(

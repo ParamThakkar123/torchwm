@@ -16,6 +16,13 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
+    # DeepMind Lab (optional)
+    dmlab_action_repeat: int = 4
+    dmlab_action_set: Optional[object] = None
+    dmlab_observations: Optional[list[str]] = None
+    dmlab_config: Optional[dict] = None
+    dmlab_renderer: str = "hardware"
+
     # MuJoCo (optional)
     mujoco_xml_path: Optional[str] = None
     mujoco_xml_string: Optional[str] = None
@@ -358,7 +365,7 @@ class DiamondConfig:
 ### Basic Configuration
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"
@@ -371,6 +378,11 @@ cfg.total_steps = 1_000_000
 # DMC
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
+
+# DeepMind Lab
+cfg.env_backend = "dmlab"
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
 
 # Gym
 cfg.env_backend = "gym"

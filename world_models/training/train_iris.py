@@ -6,7 +6,7 @@ from tqdm import tqdm
 import random
 from typing import Optional, cast
 from gym.spaces import Discrete, Box
-import argparse
+from omegaconf import OmegaConf
 
 from types import ModuleType
 from typing import Optional as _Optional
@@ -445,36 +445,29 @@ class IRISTrainer:
 
 
 def main(argv: list[str] | None = None):
-    """Run IRIS training with YAML config files and dot-list overrides."""
-    parser = argparse.ArgumentParser(description="Train IRIS on Atari")
-    parser.add_argument("--config", type=str, default=None, help="YAML config path")
-    parser.add_argument(
-        "--print-config",
-        action="store_true",
-        help="Print the composed IRIS config and exit before training.",
-    )
-    parser.add_argument("--game", type=str, default=None, help="Atari game")
-    parser.add_argument("--device", type=str, default=None, help="Device (cuda/cpu)")
-    parser.add_argument("--epochs", type=int, default=None, help="Total epochs")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed")
-    parser.add_argument(
-        "--save_dir", type=str, default="checkpoints/iris", help="Save directory"
-    )
-    parser.add_argument(
-        "overrides",
-        nargs="*",
-        help="OmegaConf dot-list overrides such as total_epochs=100 seed=7.",
-    )
-    args = parser.parse_args(argv)
+    """Run IRIS training with YAML config files and Hydra dot-list overrides."""
+    from world_models.experiments import parse_experiment_args
+
+    args = parse_experiment_args(argv, description="Train IRIS on Atari")
 
     config = IRISConfig()
     values = load_experiment_config(config, args.config, args.overrides)
     config = update_config_object(config, values)
 
-    game = args.game if args.game is not None else config.env
-    device = args.device if args.device is not None else "cuda"
-    seed = args.seed if args.seed is not None else 42
-    total_epochs = args.epochs if args.epochs is not None else config.total_epochs
+    game = config.env if hasattr(config, "env") else "ALE/Pong-v5"
+    device = "cuda"
+    seed = config.seed if hasattr(config, "seed") else 42
+    total_epochs = config.total_epochs if hasattr(config, "total_epochs") else None
+    save_dir = config.save_dir if hasattr(config, "save_dir") else "checkpoints/iris"
+
+    # Allow command-line overrides for training-specific options
+    if argv:
+        cli_overrides = OmegaConf.from_cli(argv)
+        game = cli_overrides.get("game", game)
+        device = cli_overrides.get("device", device)
+        seed = cli_overrides.get("seed", seed)
+        total_epochs = cli_overrides.get("epochs", total_epochs)
+        save_dir = cli_overrides.get("save_dir", save_dir)
 
     if args.print_config:
         print(dump_config(values))
@@ -489,10 +482,6 @@ def main(argv: list[str] | None = None):
 
     trainer.train(
         total_epochs=total_epochs,
-        save_dir=args.save_dir,
+        save_dir=save_dir,
     )
     return config
-
-
-if __name__ == "__main__":
-    main()

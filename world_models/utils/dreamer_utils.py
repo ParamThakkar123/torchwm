@@ -11,14 +11,10 @@ from torch.nn import Module
 from types import ModuleType
 from typing import Optional
 
-# Optional WandB import; keep typed for static checkers.
-wandb: Optional[ModuleType] = None
-try:
-    import wandb as _wandb
+from world_models.utils.logging_utils import MetricsLogger, get_package_logger
 
-    wandb = _wandb
-except ImportError:
-    wandb = None
+# Optional WandB availability is handled lazily by MetricsLogger.
+wandb: Optional[ModuleType] = None
 
 
 def symlog(x: torch.Tensor) -> torch.Tensor:
@@ -174,38 +170,37 @@ class Logger:
         wandb_entity="",
         video_format="gif",
         video_fps=20,
+        enable_tensorboard=False,
+        enable_console=True,
+        enable_jsonl=True,
+        jsonl_filename="metrics.jsonl",
     ):
         self._log_dir = log_dir
-        print("########################")
-        print("logging outputs to ", log_dir)
-        print("########################")
+        self._logger = get_package_logger("dreamer")
+        self._logger.info("logging outputs to %s", log_dir)
         self._n_logged_samples = 10
         self.enable_wandb = enable_wandb
         self.video_format = video_format
         self.video_fps = video_fps
-        self._wandb_run = None
-
-        if self.enable_wandb:
-            if not wandb_api_key:
-                raise ValueError("WandB API key is required when enable_wandb is True")
-            if wandb is None:
-                raise ImportError("wandb is not installed")
-            os.environ["WANDB_API_KEY"] = wandb_api_key
-            self._wandb_run = wandb.init(
-                project=wandb_project,
-                entity=wandb_entity,
-                dir=log_dir,
-                name=os.path.basename(log_dir),
-            )
+        self.metrics = MetricsLogger(
+            log_dir,
+            logger=self._logger,
+            enable_console=enable_console,
+            enable_jsonl=enable_jsonl,
+            jsonl_filename=jsonl_filename,
+            enable_tensorboard=enable_tensorboard,
+            enable_wandb=enable_wandb,
+            wandb_api_key=wandb_api_key,
+            wandb_project=wandb_project,
+            wandb_entity=wandb_entity,
+        )
+        self._wandb_run = self.metrics._wandb_run
 
     def log_scalar(self, scalar, name, step_):
-        if self.enable_wandb and self._wandb_run:
-            self._wandb_run.log({name: scalar}, step=step_)
+        self.metrics.log({name: scalar}, step_)
 
     def log_scalars(self, scalar_dict, step):
-        for key, value in scalar_dict.items():
-            print("{} : {}".format(key, value))
-            self.log_scalar(value, key, step)
+        self.metrics.log(scalar_dict, step)
         self.dump_scalars_to_pickle(scalar_dict, step)
 
     def log_videos(
@@ -250,12 +245,8 @@ class Logger:
 
             # Log to WandB
             if self.enable_wandb and self._wandb_run:
-                # Convert to numpy array for WandB
-                video_array = np.array(videos[i])  # Shape: (T, H, W, C)
-                # WandB expects (T, H, W, C) for Video
-                self._wandb_run.log(
-                    {f"{video_title}_{i}": wandb.Video(video_array, fps=fps)}, step=step
-                )
+                video_array = np.array(videos[i])
+                self.metrics.log_video(f"{video_title}_{i}", video_array, step, fps=fps)
 
     def dump_scalars_to_pickle(self, metrics, step, log_title=None):
         log_path = os.path.join(
@@ -265,7 +256,7 @@ class Logger:
             pickle.dump({"step": step, **dict(metrics)}, f)
 
     def flush(self):
-        pass
+        self.metrics.flush()
 
 
 def compute_return(rewards, values, discounts, td_lam, last_value):

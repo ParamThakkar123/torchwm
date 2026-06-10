@@ -29,7 +29,7 @@ setup(
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
         "omegaconf>=2.3.0",
-        "hydra>=1.3.2",
+        "hydra-core>=1.3.2",
         "tqdm>=4.67.1",
         "click>=8.0.0",
     ],

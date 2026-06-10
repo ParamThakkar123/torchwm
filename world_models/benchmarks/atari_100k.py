@@ -147,21 +147,20 @@ def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, Any]):
 
 
 if __name__ == "__main__":
-    import argparse
+    from omegaconf import OmegaConf
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--game", type=str, default=None)
-    parser.add_argument("--benchmark", action="store_true")
-    parser.add_argument("--num_seeds", type=int, default=5)
-    args = parser.parse_args()
+    cli_cfg = OmegaConf.from_cli()
+    game = cli_cfg.get("game", None)
+    run_benchmark = cli_cfg.get("benchmark", False)
+    num_seeds = int(cli_cfg.get("num_seeds", 5))
 
-    if args.game:
-        results = evaluate_atari_100k(args.game, num_seeds=args.num_seeds)
-        print(f"\nResults for {args.game}:")
+    if game:
+        results = evaluate_atari_100k(game, num_seeds=num_seeds)
+        print(f"\nResults for {game}:")
         print(f"  Mean Score: {results['mean_score']:.1f} ± {results['std_score']:.1f}")
         print(f"  Mean HNS: {results['mean_hns']:.3f} ± {results['std_hns']:.3f}")
 
-    elif args.benchmark:
-        results = run_atari_100k_benchmark(num_seeds=args.num_seeds)
+    elif run_benchmark:
+        results = run_atari_100k_benchmark(num_seeds=num_seeds)
         aggregate = compute_aggregate_metrics(results)
         print_results_table(results, aggregate)

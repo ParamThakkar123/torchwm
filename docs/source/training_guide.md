@@ -147,6 +147,13 @@ cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 ```
 
+### DeepMind Lab
+```python :class: thebe
+cfg.env_backend = "dmlab"
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
+```
+
 ### Gym
 ```python :class: thebe
 cfg.env_backend = "gym"

@@ -8,10 +8,11 @@ class IrisOperator(OperatorABC):
     """Operator for Iris transformer model: formats sequences and embeddings."""
 
     def __init__(self, seq_length: int = 512, vocab_size: int = 32000):
+        super().__init__()
         self.seq_length = seq_length
         self.vocab_size = vocab_size
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def preprocess(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Process Iris inputs: token sequences and optional embeddings.
 

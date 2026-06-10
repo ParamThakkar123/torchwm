@@ -23,6 +23,7 @@ logger = logging.getLogger("torchwm.cli")
 # Keep this mapping cheap to import so ``torchwm models list`` and validation do
 # not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
+    "diamond": "world_models.training.train_diamond",
     "iris": "world_models.training.train_iris",
     "planet": "world_models.training.train_planet",
     "jepa": "world_models.training.train_jepa",
@@ -31,6 +32,16 @@ TRAINING_MODULES = {
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")
+BENCHMARK_ENV_BACKENDS = (
+    "gym",
+    "gymnasium",
+    "dmc",
+    "mujoco",
+    "robotics",
+    "bsuite",
+    "brax",
+    "unity_mlagents",
+)
 
 
 def _echo_error(message: str) -> None:
@@ -290,7 +301,12 @@ def models_list() -> None:
     "game",
     "-g",
     required=True,
-    help="Gym/ALE environment id to benchmark, such as ALE/Pong-v5.",
+    help="Environment id to benchmark, such as ALE/Pong-v5 or the BSuite id catch/0.",
+)
+@click.option(
+    "--env-backend",
+    type=click.Choice(BENCHMARK_ENV_BACKENDS, case_sensitive=False),
+    help="Environment backend for Dreamer-compatible adapters, for example gym or bsuite.",
 )
 @click.option(
     "--seeds",
@@ -351,6 +367,7 @@ def benchmark(
     agent: str | None,
     all_agents: bool,
     game: str,
+    env_backend: str | None,
     seeds: str,
     episodes: int,
     checkpoint: Path | None,
@@ -404,6 +421,8 @@ def benchmark(
         device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         extra_kwargs = {"device": device, "preset": preset}
         env_spec = {"game": game}
+        if env_backend:
+            env_spec["env_backend"] = env_backend.lower()
 
         if all_agents:
             runner = multi_runner_cls(
@@ -542,7 +561,12 @@ def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
     help="Run training in-process instead of spawning subprocess.",
 )
 def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
-    """Launch an existing ``world_models.training`` entrypoint."""
+    """Launch a training entrypoint with optional YAML/OmegaConf overrides.
+
+    Examples:
+        torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100
+        torchwm train jepa optimization.epochs=50 data.batch_size=128
+    """
     key = model.strip().lower()
     if key not in TRAINING_MODULES:
         _echo_error(

@@ -11,6 +11,7 @@ Usage:
 
 from .operators import (
     OperatorABC,
+    TensorSpec,
     DreamerOperator,
     JEPAOperator,
     IrisOperator,
@@ -20,6 +21,7 @@ from .operators import (
 
 __all__ = [
     "OperatorABC",
+    "TensorSpec",
     "DreamerOperator",
     "JEPAOperator",
     "IrisOperator",

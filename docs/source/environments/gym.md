@@ -71,12 +71,7 @@ For discrete action spaces, `GymImageEnv.action_space` is a continuous `Box` of 
 
 ## Example environments
 
-The lightweight catalog lists common IDs such as:
-
-- Classic control: `CartPole-v1`, `Pendulum-v1`, `Acrobot-v1`, `MountainCarContinuous-v0`
-- MuJoCo-style IDs: `HalfCheetah-v4`, `Humanoid-v4`, `Hopper-v4`, `Walker2d-v4`, `Ant-v4`
-- Box2D: `LunarLander-v3`, `LunarLanderContinuous-v3`, `BipedalWalker-v3`, `CarRacing-v3`
-- Toy text: `Blackjack-v1`, `FrozenLake-v1`, `Taxi-v3`
+The lightweight catalog now queries the installed Gymnasium registry at runtime instead of maintaining a hardcoded list of versioned environment IDs. Use Gymnasium's environment docs and `torchwm envs list` to inspect the IDs available in your local installation and optional extras.
 
 ## CLI collection
 

@@ -13,6 +13,7 @@ Exported Components:
 
 __all__ = [
     "DiT",
+    "create_dit",
     "PatchEmbed",
     "PatchUnEmbed",
     "DDPM",
@@ -27,6 +28,10 @@ def __getattr__(name):
         from .DiT import DiT
 
         return DiT
+    if name == "create_dit":
+        from .DiT import create_dit
+
+        return create_dit
     if name == "PatchEmbed":
         from .DiT import PatchEmbed
 

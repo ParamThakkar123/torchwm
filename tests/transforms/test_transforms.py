@@ -3,7 +3,7 @@ import torch
 from PIL import Image
 import numpy as np
 
-from world_models.transforms.transforms import make_transforms, GaussianBlur
+from world_models.transforms.image import make_transforms, GaussianBlur
 
 
 class TestMakeTransforms:
@@ -54,3 +54,11 @@ class TestGaussianBlur:
         result = blur(img)
         # Since p=0, should return original
         assert result is img
+
+
+def test_transform_package_exports_image_helpers():
+    from world_models.transforms import GaussianBlur as ExportedGaussianBlur
+    from world_models.transforms import make_transforms as exported_make_transforms
+
+    assert exported_make_transforms is make_transforms
+    assert ExportedGaussianBlur is GaussianBlur

@@ -1,110 +1,54 @@
 """Run DreamerV1 on a Brax environment (small example).
 
-This lightweight script demonstrates how to run the DreamerAgent from
-torchwm (world_models) against a Brax environment. It is intentionally
-minimal so you can adapt it for experiments or quick smoke tests.
-
 Usage examples:
-  python examples/run_dreamer_brax.py --env ant --total-steps 2000
-  python examples/run_dreamer_brax.py --env walker --evaluate
+  python examples/run_dreamer_brax.py env=ant total_steps=2000
+  python examples/run_dreamer_brax.py env=walker evaluate=true
 """
 
-import argparse
 import logging
+from omegaconf import OmegaConf
 
 from world_models.models.dreamer import DreamerAgent
 from world_models.configs.dreamer_config import DreamerConfig
 
 
-def make_config(args) -> DreamerConfig:
+def make_config(cli_cfg) -> DreamerConfig:
     cfg = DreamerConfig()
     cfg.env_backend = "brax"
-    cfg.env = args.env
-    cfg.total_steps = args.total_steps
-    cfg.seed = args.seed
-    cfg.no_gpu = args.device == "cpu"
-    cfg.brax_jit = args.brax_jit
-    cfg.brax_auto_reset = args.brax_auto_reset
-    # Use Dreamer v1 explicitly
+    cfg.env = cli_cfg.env
+    cfg.total_steps = int(cli_cfg.get("total_steps", 5000))
+    cfg.seed = int(cli_cfg.get("seed", 1))
+    cfg.no_gpu = cli_cfg.get("device", "auto") == "cpu"
+    cfg.brax_jit = cli_cfg.get("brax_jit", False)
+    cfg.brax_auto_reset = cli_cfg.get("brax_auto_reset", False)
     cfg.algo = "Dreamerv1"
-    # Shorter defaults for example runs
-    cfg.seed_steps = args.seed_steps
-    cfg.collect_steps = args.collect_steps
-    cfg.update_steps = args.update_steps
-    cfg.batch_size = args.batch_size
+    cfg.seed_steps = int(cli_cfg.get("seed_steps", 500))
+    cfg.collect_steps = int(cli_cfg.get("collect_steps", 200))
+    cfg.update_steps = int(cli_cfg.get("update_steps", 10))
+    cfg.batch_size = int(cli_cfg.get("batch_size", 16))
     cfg.image_size = (64, 64)
-    # Disable heavy logging/video by default for quick runs
     cfg.log_video_freq = -1
-    cfg.test_interval = max(1, args.test_interval)
-    cfg.test_episodes = args.test_episodes
+    cfg.test_interval = max(1, int(cli_cfg.get("test_interval", 1000)))
+    cfg.test_episodes = int(cli_cfg.get("test_episodes", 5))
     return cfg
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run DreamerV1 on Brax")
-    parser.add_argument(
-        "--env", default="ant", help="Brax env name (e.g. ant, walker, cheetah)"
-    )
-    parser.add_argument(
-        "--total-steps", type=int, default=5000, help="Total training steps"
-    )
-    parser.add_argument("--seed", type=int, default=1, help="Random seed")
-    parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
-    parser.add_argument(
-        "--brax-jit",
-        action="store_true",
-        help="Enable JAX jit for Brax (default: False)",
-    )
-    parser.add_argument(
-        "--brax-auto-reset",
-        action="store_true",
-        help="Enable Brax auto_reset (default: False)",
-    )
-    parser.add_argument(
-        "--evaluate", action="store_true", help="Run evaluation instead of training"
-    )
-    parser.add_argument("--logdir", type=str, default=None, help="Optional logdir")
-    parser.add_argument(
-        "--seed-steps",
-        type=int,
-        default=500,
-        help="Random seed steps to populate buffer",
-    )
-    parser.add_argument(
-        "--collect-steps", type=int, default=200, help="Steps to collect per iteration"
-    )
-    parser.add_argument(
-        "--update-steps", type=int, default=10, help="Gradient update batches per loop"
-    )
-    parser.add_argument(
-        "--batch-size", type=int, default=16, help="Training batch size"
-    )
-    parser.add_argument(
-        "--test-interval", type=int, default=1000, help="Evaluation interval (steps)"
-    )
-    parser.add_argument(
-        "--test-episodes",
-        type=int,
-        default=5,
-        help="Number of eval episodes when testing",
-    )
-
-    args = parser.parse_args()
-
+    cli_cfg = OmegaConf.from_cli()
     logging.basicConfig(level=logging.INFO)
     logging.getLogger("world_models").setLevel(logging.INFO)
 
-    cfg = make_config(args)
+    cfg = make_config(cli_cfg)
     logging.info(f"Running DreamerV1 on brax env='{cfg.env}' (jit={cfg.brax_jit})")
 
-    agent = DreamerAgent(cfg, logdir=args.logdir)
+    agent = DreamerAgent(cfg, logdir=cli_cfg.get("logdir", None))
 
-    if args.evaluate:
+    if cli_cfg.get("evaluate", False):
         logging.info("Starting evaluation...")
         agent.evaluate()
     else:
         logging.info("Starting training...")
-        agent.train(total_steps=args.total_steps)
+        agent.train(total_steps=cfg.total_steps)
 
 
 if __name__ == "__main__":

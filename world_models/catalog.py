@@ -20,47 +20,89 @@ DREAMER_ENVS = [
     "quadruped-walk",
 ]
 
-PLANET_BASE_ENVS = [
+DEFAULT_GYM_ENV_PREFERENCES = (
     "CartPole-v1",
     "Pendulum-v1",
     "MountainCarContinuous-v0",
     "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
-]
+)
 
-GYM_ENVS = [
-    "CartPole-v1",
-    "Pendulum-v1",
-    "MountainCarContinuous-v0",
-    "Acrobot-v1",
-    "HalfCheetah-v4",
-    "Humanoid-v4",
-    "Hopper-v4",
-    "Swimmer-v4",
-    "Walker2d-v4",
-    "Ant-v4",
-    "Reacher-v4",
-    "Pusher-v4",
-    "Manipulator-v4",
-    "LunarLander-v3",
-    "LunarLanderContinuous-v3",
-    "BipedalWalker-v3",
-    "BipedalWalkerHardcore-v3",
-    "CarRacing-v3",
-    "Blackjack-v1",
-    "FrozenLake-v1",
-    "FrozenLake8x8-v1",
-    "Taxi-v3",
-    "InvertedPendulum-v4",
-    "InvertedDoublePendulum-v4",
-    "HalfCheetah-v2",
-    "Hopper-v2",
-    "Swimmer-v2",
-    "Walker2d-v2",
-    "Reacher-v2",
-    "Pusher-v2",
-]
+
+def _iter_gymnasium_registry() -> list[tuple[str, Any]]:
+    """Return Gymnasium registry entries without hardcoding API versions."""
+    try:
+        import gymnasium as gym
+    except Exception:
+        return []
+
+    registry = getattr(getattr(gym, "envs", None), "registry", {})
+    items = registry.items() if hasattr(registry, "items") else []
+    entries: list[tuple[str, Any]] = []
+    for env_id, spec in items:
+        resolved_id = getattr(spec, "id", env_id) or env_id
+        entries.append((resolved_id, spec))
+    return entries
+
+
+def _entry_point_text(spec: Any) -> str:
+    return str(getattr(spec, "entry_point", "") or "").lower()
+
+
+def _is_atari_env(env_id: str, spec: Any) -> bool:
+    lowered_id = env_id.lower()
+    entry_point = _entry_point_text(spec)
+    namespace = str(getattr(spec, "namespace", "") or "").lower()
+    return (
+        lowered_id.startswith("ale/")
+        or namespace == "ale"
+        or "ale_py" in entry_point
+        or "atari" in entry_point
+    )
+
+
+def _is_robotics_env(env_id: str, spec: Any) -> bool:
+    entry_point = _entry_point_text(spec)
+    namespace = str(getattr(spec, "namespace", "") or "").lower()
+    return "gymnasium_robotics" in entry_point or namespace in {
+        "fetch",
+        "hand",
+        "maze",
+    }
+
+
+def _list_available_gymnasium_envs() -> list[str]:
+    """Return non-Atari, non-Robotics Gymnasium ids from the installed registry."""
+    return sorted(
+        env_id
+        for env_id, spec in _iter_gymnasium_registry()
+        if not _is_atari_env(env_id, spec) and not _is_robotics_env(env_id, spec)
+    )
+
+
+def _dedupe_envs(*groups: list[str]) -> list[str]:
+    seen: set[str] = set()
+    combined: list[str] = []
+    for group in groups:
+        for env_id in group:
+            if env_id not in seen:
+                combined.append(env_id)
+                seen.add(env_id)
+    return combined
+
+
+def _preferred_available_envs(
+    env_ids: list[str], preferred: tuple[str, ...]
+) -> list[str]:
+    """Put stable starter envs first when they exist, then include the registry."""
+    available = set(env_ids)
+    preferred_available = [env_id for env_id in preferred if env_id in available]
+    return _dedupe_envs(preferred_available, env_ids)
+
+
+GYM_ENVS = _preferred_available_envs(
+    _list_available_gymnasium_envs(), DEFAULT_GYM_ENV_PREFERENCES
+)
+PLANET_BASE_ENVS = GYM_ENVS
 
 
 def _list_available_robotics_envs() -> list[str]:
@@ -77,6 +119,48 @@ ROBOTICS_ENVS: list[str] = _list_available_robotics_envs()
 
 UNITY_ENVS: list[str] = []
 
+PROCGEN_ENVS = [
+    "bigfish",
+    "bossfight",
+    "caveflyer",
+    "chaser",
+    "climber",
+    "coinrun",
+    "dodgeball",
+    "fruitbot",
+    "heist",
+    "jumper",
+    "leaper",
+    "maze",
+    "miner",
+    "ninja",
+    "plunder",
+    "starpilot",
+]
+
+
+def _list_available_bsuite_ids() -> list[str]:
+    """Return BSuite sweep ids or examples without making catalog imports heavy."""
+    try:
+        from world_models.envs import list_available_bsuite_ids
+
+        return list_available_bsuite_ids()
+    except Exception:
+        return [
+            "bandit/0",
+            "cartpole/0",
+            "catch/0",
+            "deep_sea/0",
+            "discounting_chain/0",
+            "memory_len/0",
+            "mnist/0",
+            "mountain_car/0",
+            "umbrella_chain/0",
+        ]
+
+
+BSUITE_ENVS: list[str] = _list_available_bsuite_ids()
+
 
 def _list_available_atari_envs() -> list[str]:
     """Return registered Atari ids without making catalog imports heavy."""
@@ -89,6 +173,15 @@ def _list_available_atari_envs() -> list[str]:
 
 
 ATARI_ENVS: list[str] = _list_available_atari_envs()
+
+
+def _list_available_dmlab_levels() -> list[str]:
+    try:
+        from world_models.envs.dmlab import DMLAB_LEVELS
+
+        return list(DMLAB_LEVELS)
+    except Exception:
+        return []
 
 
 ENV_BACKENDS: dict[str, dict[str, Any]] = {
@@ -122,27 +215,38 @@ ENV_BACKENDS: dict[str, dict[str, Any]] = {
         "description": "Atari 2600 environments via ALE",
         "environments": ATARI_ENVS,
     },
+    "procgen": {
+        "label": "Procgen",
+        "description": "Procedurally generated benchmark games",
+        "environments": PROCGEN_ENVS,
+    },
+    "bsuite": {
+        "label": "BSuite",
+        "description": "DeepMind Behaviour Suite diagnostic RL tasks",
+        "environments": BSUITE_ENVS,
+    },
+    "dmlab": {
+        "label": "DeepMind Lab",
+        "description": "DeepMind Lab 3D navigation and puzzle tasks",
+        "environments": _list_available_dmlab_levels(),
+    },
 }
-
-
-def _dedupe_envs(*groups: list[str]) -> list[str]:
-    seen: set[str] = set()
-    combined: list[str] = []
-    for group in groups:
-        for env_id in group:
-            if env_id not in seen:
-                combined.append(env_id)
-                seen.add(env_id)
-    return combined
 
 
 def _build_env_catalog() -> dict[str, list[str]]:
     atari_envs = _list_available_atari_envs()
     robotics_envs = _list_available_robotics_envs()
-    general_control_envs = _dedupe_envs(GYM_ENVS, robotics_envs)
+    gym_envs = _preferred_available_envs(
+        _list_available_gymnasium_envs(), DEFAULT_GYM_ENV_PREFERENCES
+    )
+    general_control_envs = _dedupe_envs(gym_envs, robotics_envs)
     atari_and_robotics_envs = _dedupe_envs(atari_envs[:80], robotics_envs)
-    dreamer_envs = _dedupe_envs(DREAMER_ENVS, general_control_envs)
-    planet_envs = _dedupe_envs(PLANET_BASE_ENVS, atari_envs[:80], robotics_envs)
+    bsuite_envs = _list_available_bsuite_ids()
+    dmlab_envs = _list_available_dmlab_levels()
+    dreamer_envs = _dedupe_envs(
+        DREAMER_ENVS, general_control_envs, PROCGEN_ENVS, bsuite_envs, dmlab_envs
+    )
+    planet_envs = _dedupe_envs(gym_envs, atari_envs[:80], robotics_envs, PROCGEN_ENVS)
     return {
         "dreamer": dreamer_envs,
         "dreamerv1": dreamer_envs,

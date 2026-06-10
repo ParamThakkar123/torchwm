@@ -100,6 +100,8 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
             "iris",
             "--game",
             "ALE/Pong-v5",
+            "--env-backend",
+            "bsuite",
             "--checkpoint",
             str(tmp_path / "iris.pt"),
             "--seeds",
@@ -115,7 +117,10 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
     assert res.exit_code == 0
     assert "Benchmark finished" in res.output
     assert calls["out_dir"] == str(tmp_path / "bench")
-    assert calls["run_kwargs"]["env_spec"] == {"game": "ALE/Pong-v5"}
+    assert calls["run_kwargs"]["env_spec"] == {
+        "game": "ALE/Pong-v5",
+        "env_backend": "bsuite",
+    }
     assert calls["run_kwargs"]["seeds"] == [0, 2]
     assert calls["run_kwargs"]["num_episodes"] == 3
     assert calls["run_kwargs"]["checkpoint"] == str(tmp_path / "iris.pt")
@@ -124,3 +129,26 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
 
 def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
+
+
+def test_train_lists_diamond_entrypoint():
+    assert cli.TRAINING_MODULES["diamond"] == "world_models.training.train_diamond"
+
+
+def test_dmlab_registered_in_backend_specs():
+    from world_models.api import ENV_BACKEND_SPECS, EnvBackendSpec
+    from world_models.catalog import ENV_BACKENDS
+
+    dmlab_spec = ENV_BACKEND_SPECS["dmlab"]
+
+    assert isinstance(dmlab_spec, EnvBackendSpec)
+    assert dmlab_spec.name == "dmlab"
+    assert "deepmind_lab" in dmlab_spec.aliases
+    assert "dmlab" in ENV_BACKENDS
+
+
+def test_dmlab_backend_specs_are_public_api():
+    import world_models
+
+    assert world_models.EnvBackendSpec is not None
+    assert "dmlab" in world_models.ENV_BACKEND_SPECS

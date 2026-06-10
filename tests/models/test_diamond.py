@@ -490,6 +490,7 @@ class TestRLLoss:
         assert loss.numel() == 1
 
 
+@pytest.mark.integration
 class TestIntegration:
     def test_config_human_normalized_score(self):
         human = HUMAN_SCORES["Breakout-v5"]
@@ -503,6 +504,8 @@ class TestIntegration:
         assert hns_human == 1.0
         assert hns_super == pytest.approx(2.0, abs=0.1)
 
+    @pytest.mark.slow
+    @pytest.mark.gpu
     @pytest.mark.skip(reason="Device mismatch bug in diamond_diffusion.py")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_full_forward_pass(self):

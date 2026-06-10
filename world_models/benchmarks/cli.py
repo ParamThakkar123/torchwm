@@ -51,11 +51,11 @@ def main(cfg: DictConfig):
 
     if cfg.get("all_agents", False):
         all_adapters = list(AGENTS.values())
-        runner = MultiAgentBenchmarkRunner(
+        multi_runner = MultiAgentBenchmarkRunner(
             adapter_classes=all_adapters, out_dir=out_dir
         )
 
-        runner.run_all(
+        multi_runner.run_all(
             env_spec={
                 "game": game,
                 **({"env_backend": env_backend.lower()} if env_backend else {}),

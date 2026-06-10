@@ -1583,9 +1583,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="torchwm.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1596,14 +1596,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1672,7 +1668,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1711,6 +1709,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="torchwm.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1722,8 +1725,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -1956,7 +1963,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="torchwm.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -3143,6 +3150,15 @@ and also provides a classmethod training entrypoint for common datasets.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="torchwm.create_dit">
+<span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">create_dit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#create_dit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.create_dit" title="Link to this definition">#</a></dt>
+<dd><p>Create a <a class="reference internal" href="#torchwm.DiT" title="torchwm.DiT"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiT</span></code></a> from a <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code> or keyword overrides.</p>
+<p>The public factory API works with config objects, while <code class="docutils literal notranslate"><span class="pre">DiT</span></code> itself has a
+compact constructor. This adapter keeps the lower-level model constructor
+unchanged and maps the public config fields onto the expected arguments.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="torchwm.PatchEmbed">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">PatchEmbed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchEmbed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.PatchEmbed" title="Link to this definition">#</a></dt>
@@ -4077,7 +4093,7 @@ repeated 4 times, followed by a linear projection to output_size.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">torchwm.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#torchwm.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -5473,6 +5489,7 @@ imagined rollout return estimation.</p>
 
 </dd></dl>
 
+<p><strong>Primary modules:</strong> <code class="docutils literal notranslate"><span class="pre">world_models</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.models</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.configs</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.catalog</span></code>, <code class="docutils literal notranslate"><span class="pre">world_models.envs</span></code>, and <code class="docutils literal notranslate"><span class="pre">world_models.inference</span></code>.</p>
 <p id="module-world_models">TorchWM public API.</p>
 <p>This package keeps imports lightweight while still exposing a friendly top-level
 surface.  Common workflows can use the small factory helpers:</p>
@@ -6703,9 +6720,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="world_models.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -6716,14 +6733,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6792,7 +6805,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6831,6 +6846,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="world_models.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -6842,8 +6862,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -7076,7 +7100,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -8263,6 +8287,15 @@ and also provides a classmethod training entrypoint for common datasets.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.create_dit">
+<span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">create_dit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#create_dit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.create_dit" title="Link to this definition">#</a></dt>
+<dd><p>Create a <a class="reference internal" href="#world_models.DiT" title="world_models.DiT"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiT</span></code></a> from a <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code> or keyword overrides.</p>
+<p>The public factory API works with config objects, while <code class="docutils literal notranslate"><span class="pre">DiT</span></code> itself has a
+compact constructor. This adapter keeps the lower-level model constructor
+unchanged and maps the public config fields onto the expected arguments.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.PatchEmbed">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">PatchEmbed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#PatchEmbed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.PatchEmbed" title="Link to this definition">#</a></dt>
@@ -9197,7 +9230,7 @@ repeated 4 times, followed by a linear projection to output_size.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -10847,6 +10880,10 @@ compatibility helper.</p></li>
 </dl>
 </dd>
 </dl>
+<p id="module-world_models.catalog">Small, import-safe catalog of available environments and backends.</p>
+<p>This module replaces the previous <cite>world_models.ui.catalog</cite> and is safe to
+import from lightweight CLI tools and tests without pulling in any UI
+dependencies.</p>
 </section>
 <section id="model-catalog">
 <h2>Model catalog<a class="headerlink" href="#model-catalog" title="Link to this heading">#</a></h2>
@@ -10863,7 +10900,8 @@ compatibility helper.</p></li>
 <dt class="sig sig-object py" id="world_models.models.dreamer.make_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.models.dreamer.</span></span><span class="sig-name descname"><span class="pre">make_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer.html#make_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer.make_env" title="Link to this definition">#</a></dt>
 <dd><p>Construct a Dreamer-compatible environment from <cite>DreamerConfig</cite> options.</p>
-<p>Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends
+<p>Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+Brax, BSuite, and Unity ML-Agents backends
 and applies the standard wrapper stack: action repeat, action normalization,
 and time limit.</p>
 </dd></dl>
@@ -11059,9 +11097,9 @@ Hafner et al., 2020 - <a class="reference external" href="https://arxiv.org/abs/
 <dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_step">
 <span class="sig-name descname"><span class="pre">observe_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_step" title="Link to this definition">#</a></dt>
 <dd><p>Update state using actual observation (observe mode).</p>
-<p>In observe mode, the RSSM uses the observation to compute a more accurate
-posterior distribution over the stochastic state. The prior is still
-computed, then combined with observation information.</p>
+<p>In observe mode, the RSSM first computes a transition prior from the
+previous state and action, then refines the stochastic state using the
+actual observation embedding to form the posterior.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -11072,14 +11110,10 @@ computed, then combined with observation information.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>deter: Updated deterministic state</p></li>
-<li><p>mean, std, stoch: Posterior stochastic state distribution</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionary with updated state containing</p>
+<dd class="field-even"><p>A tuple <code class="docutils literal notranslate"><span class="pre">(posterior,</span> <span class="pre">prior)</span></code> of state dictionaries. The posterior
+incorporates observation information; the prior is the transition
+prediction before observation. Both share the same deterministic
+state because the GRU is only advanced once per timestep.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -11148,7 +11182,9 @@ a more accurate state estimate.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with posterior state (observation-informed)</p>
+<dd class="field-even"><p>Dictionary with posterior state (observation-informed). Note that
+the previous-state shape <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">...)</span></code> is preserved; the batch
+dimension is not flattened.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -11187,6 +11223,11 @@ the observation/update pathway.</p>
 <dt class="sig sig-object py" id="world_models.models.dreamer_rssm.RSSM.observe_rollout">
 <span class="sig-name descname"><span class="pre">observe_rollout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonterms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/dreamer_rssm.html#RSSM.observe_rollout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.dreamer_rssm.RSSM.observe_rollout" title="Link to this definition">#</a></dt>
 <dd><p>Process a sequence of observations (observe mode rollout).</p>
+<p>At each timestep we run <code class="docutils literal notranslate"><span class="pre">observe_step</span></code> once to obtain the transition
+prior (the prediction given the previous state and action) and the
+observation-informed posterior. The posterior is then used as the
+previous state for the next step, matching the standard Dreamer
+inference pattern.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -11198,8 +11239,12 @@ the observation/update pathway.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary with prior states for each step
-posterior: Dictionary with posterior states for each step</p>
+<dd class="field-even"><p><p>Dictionary with prior states stacked along the time axis.
+posterior: Dictionary with posterior states stacked along the time</p>
+<blockquote>
+<div><p>axis.</p>
+</div></blockquote>
+</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>prior</p>
@@ -13335,6 +13380,15 @@ and also provides a classmethod training entrypoint for common datasets.</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.models.diffusion.DiT.create_dit">
+<span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.DiT.</span></span><span class="sig-name descname"><span class="pre">create_dit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">overrides</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/DiT.html#create_dit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.DiT.create_dit" title="Link to this definition">#</a></dt>
+<dd><p>Create a <a class="reference internal" href="#world_models.models.diffusion.DiT.DiT" title="world_models.models.diffusion.DiT.DiT"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiT</span></code></a> from a <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code> or keyword overrides.</p>
+<p>The public factory API works with config objects, while <code class="docutils literal notranslate"><span class="pre">DiT</span></code> itself has a
+compact constructor. This adapter keeps the lower-level model constructor
+unchanged and maps the public config fields onto the expected arguments.</p>
+</dd></dl>
+
 <dl class="py class" id="module-world_models.models.diffusion.diamond_diffusion">
 <dt class="sig sig-object py" id="world_models.models.diffusion.diamond_diffusion.AdaptiveGroupNorm">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.models.diffusion.diamond_diffusion.</span></span><span class="sig-name descname"><span class="pre">AdaptiveGroupNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_groups</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cond_dim</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/models/diffusion/diamond_diffusion.html#AdaptiveGroupNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.models.diffusion.diamond_diffusion.AdaptiveGroupNorm" title="Link to this definition">#</a></dt>
@@ -14173,7 +14227,7 @@ This encourages the RSSM to learn states that capture observation information.</
 
 <dl class="py class">
 <dt class="sig sig-object py" id="world_models.vision.dreamer_decoder.DenseDecoder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.vision.dreamer_decoder.</span></span><span class="sig-name descname"><span class="pre">DenseDecoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stoch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deter_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/vision/dreamer_decoder.html#DenseDecoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.vision.dreamer_decoder.DenseDecoder" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>MLP decoder for reward/value/discount prediction from latent features.</p>
 <p>Part of Dreamer’s world model, this decoder predicts scalar quantities
@@ -15249,7 +15303,7 @@ initializer avoids importing every config eagerly.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -16456,7 +16510,7 @@ Implements discrete autoencoder + autoregressive Transformer for sample-efficien
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.configs.dreamer_config.</span></span><span class="sig-name descname"><span class="pre">DreamerConfig</span></span><a class="reference internal" href="_modules/world_models/configs/dreamer_config.html#DreamerConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.configs.dreamer_config.DreamerConfig" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration container for Dreamer training, evaluation, and environment setup.</p>
-<p>This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+<p>This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
 model dimensions, replay and optimization settings, logging cadence, and
 checkpoint options consumed by <cite>DreamerAgent</cite>.</p>
 </dd></dl>
@@ -17872,7 +17926,7 @@ If render is True: tuple (episode_returns_array, videos_list, latents_array)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="world_models.training.train_iris.main">
 <span class="sig-prename descclassname"><span class="pre">world_models.training.train_iris.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/training/train_iris.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.training.train_iris.main" title="Link to this definition">#</a></dt>
-<dd><p>Run IRIS training with YAML config files and dot-list overrides.</p>
+<dd><p>Run IRIS training with YAML config files and Hydra dot-list overrides.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>argv</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p>
@@ -20007,7 +20061,7 @@ and returns and episode instance.</p>
 <section id="environment-adapters">
 <h3>Environment adapters<a class="headerlink" href="#environment-adapters" title="Link to this heading">#</a></h3>
 <p>The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DeepMind Lab, Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.</p>
@@ -20342,6 +20396,114 @@ gym environment instance.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">ProcgenImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'easy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">procgen_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adapt Procgen’s vector API to TorchWM’s single-env image interface.</p>
+<p>The upstream <code class="docutils literal notranslate"><span class="pre">procgen.ProcgenEnv</span></code> API is vectorized, so this wrapper builds
+a one-environment vector and unwraps the leading batch dimension. Actions are
+exposed as a continuous one-hot-like <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> with one element per
+discrete Procgen action, matching TorchWM’s other discrete image adapters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>distribution_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>num_levels</strong> (<em>int</em>)</p></li>
+<li><p><strong>start_level</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>action_n</strong> (<em>int</em>)</p></li>
+<li><p><strong>procgen_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.ProcgenImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.ProcgenImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.list_procgen_envs">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">list_procgen_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#list_procgen_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.list_procgen_envs" title="Link to this definition">#</a></dt>
+<dd><p>Return the Procgen game names understood by <a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_procgen_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_procgen_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#make_procgen_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_procgen_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a single-environment Procgen adapter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>) – Procgen game name or Gym-style id.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Options forwarded to <a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TorchWM-compatible image wrapper exposing
+<code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span> <span class="pre">uint8}</span></code> observations and one-hot-like actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.ProcgenImageEnv" title="world_models.envs.ProcgenImageEnv">ProcgenImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.normalize_procgen_env_name">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">normalize_procgen_env_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#normalize_procgen_env_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.normalize_procgen_env_name" title="Link to this definition">#</a></dt>
+<dd><p>Normalize Procgen Gym ids and shorthand names to Procgen game names.</p>
+<p>Accepted forms include <code class="docutils literal notranslate"><span class="pre">&quot;coinrun&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;procgen-coinrun-v0&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&quot;procgen:procgen-coinrun-v0&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>env</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="world_models.envs.UnityMLAgentsEnv">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">UnityMLAgentsEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">behavior_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_graphics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_episode_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/unity_env.html#UnityMLAgentsEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.UnityMLAgentsEnv" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -20640,6 +20802,188 @@ observations and exposes continuous actions in the Brax <code class="docutils li
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">DMLabEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hardware'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">lab_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-style adapter for DeepMind Lab 3D environments.</p>
+<p>The native <code class="docutils literal notranslate"><span class="pre">deepmind_lab</span></code> API exposes RGB observations as HWC arrays and
+expects a seven-element integer action vector. This adapter presents a
+TorchWM-friendly image observation dict and a Box action space containing a
+one-hot vector in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> so it composes with Dreamer’s normalization
+wrappers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>action_repeat</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_set</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>] </em><em>| </em><em>np.ndarray</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Sequence</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>renderer</strong> (<em>str</em>)</p></li>
+<li><p><strong>lab_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.DMLabEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.DMLabEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.DMLabEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_dmlab_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_dmlab_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#make_dmlab_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_dmlab_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a DeepMind Lab environment adapter for TorchWM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>) – DeepMind Lab level name, for example
+<code class="docutils literal notranslate"><span class="pre">&quot;rooms_collect_good_objects_train&quot;</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to <a class="reference internal" href="#world_models.envs.DMLabEnv" title="world_models.envs.DMLabEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-like wrapper returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> uint8
+observations and normalized one-hot discrete actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.DMLabEnv" title="world_models.envs.DMLabEnv">DMLabEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">BSuiteImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bsuite_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-like wrapper for DeepMind BSuite <code class="docutils literal notranslate"><span class="pre">dm_env</span></code> environments.</p>
+<p>BSuite tasks expose compact <code class="docutils literal notranslate"><span class="pre">dm_env</span></code> observations and mostly discrete
+actions. This adapter presents a Gym/Gymnasium-style API with image
+observations under <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> so TorchWM’s pixel-based world
+models can train and evaluate on BSuite diagnostic tasks without requiring
+the base environment to implement rendering.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bsuite_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>env</strong> (<em>Any</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.render" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>Any</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.BSuiteImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#BSuiteImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.BSuiteImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.make_bsuite_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">make_bsuite_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bsuite_id</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#make_bsuite_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.make_bsuite_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a Dreamer-compatible image wrapper around a BSuite task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bsuite_id</strong> (<em>str</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#world_models.envs.BSuiteImageEnv" title="world_models.envs.bsuite_env.BSuiteImageEnv"><em>BSuiteImageEnv</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.list_available_bsuite_ids">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">list_available_bsuite_ids</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/bsuite_env.html#list_available_bsuite_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.list_available_bsuite_ids" title="Link to this definition">#</a></dt>
+<dd><p>Return the installed BSuite sweep ids, or examples if BSuite is absent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="world_models.envs.TimeLimit">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.</span></span><span class="sig-name descname"><span class="pre">TimeLimit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/wrappers.html#TimeLimit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.TimeLimit" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -20926,6 +21270,90 @@ domains, 2 for quadruped.</p></li>
 
 </dd></dl>
 
+<dl class="py function" id="module-world_models.envs.dmlab">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.make_dmlab_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.dmlab.</span></span><span class="sig-name descname"><span class="pre">make_dmlab_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#make_dmlab_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.make_dmlab_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a DeepMind Lab environment adapter for TorchWM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>) – DeepMind Lab level name, for example
+<code class="docutils literal notranslate"><span class="pre">&quot;rooms_collect_good_objects_train&quot;</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to <a class="reference internal" href="#world_models.envs.dmlab.DMLabEnv" title="world_models.envs.dmlab.DMLabEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Gym-like wrapper returning <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">W)}</span></code> uint8
+observations and normalized one-hot discrete actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.dmlab.DMLabEnv" title="world_models.envs.dmlab.DMLabEnv">DMLabEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.dmlab.</span></span><span class="sig-name descname"><span class="pre">DMLabEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hardware'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">lab_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Gym-style adapter for DeepMind Lab 3D environments.</p>
+<p>The native <code class="docutils literal notranslate"><span class="pre">deepmind_lab</span></code> API exposes RGB observations as HWC arrays and
+expects a seven-element integer action vector. This adapter presents a
+TorchWM-friendly image observation dict and a Box action space containing a
+one-hot vector in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> so it composes with Dreamer’s normalization
+wrappers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>action_repeat</strong> (<em>int</em>)</p></li>
+<li><p><strong>action_set</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>int</em><em>]</em><em>] </em><em>| </em><em>np.ndarray</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>observations</strong> (<em>Sequence</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>renderer</strong> (<em>str</em>)</p></li>
+<li><p><strong>lab_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.dmlab.DMLabEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/dmlab.html#DMLabEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.dmlab.DMLabEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py function" id="module-world_models.envs.gym_env">
 <dt class="sig sig-object py" id="world_models.envs.gym_env.make_gym_env">
 <span class="sig-prename descclassname"><span class="pre">world_models.envs.gym_env.</span></span><span class="sig-name descname"><span class="pre">make_gym_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/gym_env.html#make_gym_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.gym_env.make_gym_env" title="Link to this definition">#</a></dt>
@@ -21101,6 +21529,115 @@ gym environment instance.</p></li>
 <dd class="field-odd"><p>AtariVectorEnv</p>
 </dd>
 </dl>
+</dd></dl>
+
+<p id="module-world_models.envs.procgen_env">Procgen environment adapter for TorchWM image-based agents.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.list_procgen_envs">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">list_procgen_envs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#list_procgen_envs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.list_procgen_envs" title="Link to this definition">#</a></dt>
+<dd><p>Return the Procgen game names understood by <a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.normalize_procgen_env_name">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">normalize_procgen_env_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#normalize_procgen_env_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.normalize_procgen_env_name" title="Link to this definition">#</a></dt>
+<dd><p>Normalize Procgen Gym ids and shorthand names to Procgen game names.</p>
+<p>Accepted forms include <code class="docutils literal notranslate"><span class="pre">&quot;coinrun&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;procgen-coinrun-v0&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&quot;procgen:procgen-coinrun-v0&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>env</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.make_procgen_env">
+<span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">make_procgen_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#make_procgen_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.make_procgen_env" title="Link to this definition">#</a></dt>
+<dd><p>Create a single-environment Procgen adapter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>) – Procgen game name or Gym-style id.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Options forwarded to <a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TorchWM-compatible image wrapper exposing
+<code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span> <span class="pre">uint8}</span></code> observations and one-hot-like actions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="world_models.envs.procgen_env.ProcgenImageEnv">ProcgenImageEnv</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.envs.procgen_env.</span></span><span class="sig-name descname"><span class="pre">ProcgenImageEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(64,</span> <span class="pre">64)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'easy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">procgen_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adapt Procgen’s vector API to TorchWM’s single-env image interface.</p>
+<p>The upstream <code class="docutils literal notranslate"><span class="pre">procgen.ProcgenEnv</span></code> API is vectorized, so this wrapper builds
+a one-environment vector and unwraps the leading batch dimension. Actions are
+exposed as a continuous one-hot-like <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> with one element per
+discrete Procgen action, matching TorchWM’s other discrete image adapters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>str</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em>)</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>distribution_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>num_levels</strong> (<em>int</em>)</p></li>
+<li><p><strong>start_level</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>action_n</strong> (<em>int</em>)</p></li>
+<li><p><strong>procgen_kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.observation_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.observation_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.action_space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">action_space</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.action_space" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">max_episode_steps</span></span><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.reset" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.step" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.render" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.envs.procgen_env.ProcgenImageEnv.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/envs/procgen_env.html#ProcgenImageEnv.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.envs.procgen_env.ProcgenImageEnv.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py function" id="module-world_models.envs.mujoco_env">
@@ -23480,6 +24017,121 @@ benchmark reporting.</p>
 <section id="module-world_models.utils.dreamer_utils">
 <span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-world_models.utils.dreamer_utils" title="Link to this heading">#</a></h2>
 <dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.symlog">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">symlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#symlog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.symlog" title="Link to this definition">#</a></dt>
+<dd><p>Symmetric log transform used by Dreamer V2 for reward/value targets.</p>
+<p>Defined as <code class="docutils literal notranslate"><span class="pre">sign(x)</span> <span class="pre">*</span> <span class="pre">log(1</span> <span class="pre">+</span> <span class="pre">|x|)</span></code>. This compresses large positive or
+negative values into a range that is easier to predict with a categorical
+distribution over a bounded set of buckets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.symexp">
+<span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">symexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#symexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.symexp" title="Link to this definition">#</a></dt>
+<dd><p>Inverse of <a class="reference internal" href="#world_models.utils.dreamer_utils.symlog" title="world_models.utils.dreamer_utils.symlog"><code class="xref py py-func docutils literal notranslate"><span class="pre">symlog()</span></code></a>.</p>
+<p>Defined as <code class="docutils literal notranslate"><span class="pre">sign(x)</span> <span class="pre">*</span> <span class="pre">(exp(|x|)</span> <span class="pre">-</span> <span class="pre">1)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">TwoHotEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_buckets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">255</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symlog_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Two-hot encoding for symlog targets (Dreamer V2 reward/value heads).</p>
+<p>A target value is softly assigned to the two nearest buckets on a uniform
+grid spanning <code class="docutils literal notranslate"><span class="pre">[-symlog_range,</span> <span class="pre">symlog_range]</span></code>. The categorical logits
+produced by a network can then be decoded back into a real value by
+computing the expected bucket center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_buckets</strong> (<em>int</em>) – Number of buckets in the categorical distribution.</p></li>
+<li><p><strong>symlog_range</strong> (<em>float</em>) – Maximum absolute value (in symlog space) covered by the
+grid. Values outside the range are clipped to the boundary buckets.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers">
+<span class="sig-name descname"><span class="pre">register_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.register_buffers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers" title="Link to this definition">#</a></dt>
+<dd><p>Allocate the bucket-center buffer on CPU. Use <a class="reference internal" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to" title="world_models.utils.dreamer_utils.TwoHotEncoder.to"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code></a> to move.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>device</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#world_models.utils.dreamer_utils.TwoHotEncoder" title="world_models.utils.dreamer_utils.TwoHotEncoder"><em>TwoHotEncoder</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.encode">
+<span class="sig-name descname"><span class="pre">encode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.encode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.encode" title="Link to this definition">#</a></dt>
+<dd><p>Two-hot encode a real-valued target into soft bucket probabilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target</strong> (<em>Tensor</em>) – Tensor of arbitrary shape containing real-valued targets.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with an extra final dimension of size <code class="docutils literal notranslate"><span class="pre">num_buckets</span></code>
+containing the soft two-hot distribution. The encoding assumes
+the target is already in symlog space, matching Dreamer V2.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="world_models.utils.dreamer_utils.TwoHotEncoder.decode">
+<span class="sig-name descname"><span class="pre">decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#TwoHotEncoder.decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.TwoHotEncoder.decode" title="Link to this definition">#</a></dt>
+<dd><p>Decode categorical logits into the expected real-valued prediction.</p>
+<p>The logits are first softmaxed and then combined with the bucket
+centers. The output is passed through <a class="reference internal" href="#world_models.utils.dreamer_utils.symexp" title="world_models.utils.dreamer_utils.symexp"><code class="xref py py-func docutils literal notranslate"><span class="pre">symexp()</span></code></a> to invert the
+symlog transform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>logits</strong> (<em>Tensor</em>) – Tensor with a final dimension of <code class="docutils literal notranslate"><span class="pre">num_buckets</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with the same shape as <code class="docutils literal notranslate"><span class="pre">logits</span></code> minus the last dimension.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tensor</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="world_models.utils.dreamer_utils.get_parameters">
 <span class="sig-prename descclassname"><span class="pre">world_models.utils.dreamer_utils.</span></span><span class="sig-name descname"><span class="pre">get_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/world_models/utils/dreamer_utils.html#get_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#world_models.utils.dreamer_utils.get_parameters" title="Link to this definition">#</a></dt>
 <dd><p>Given a list of torch modules, returns a list of their parameters.
@@ -24363,6 +25015,7 @@ along the batch dimension.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm.DiT.train"><code class="docutils literal notranslate"><span class="pre">DiT.train()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm.create_dit"><code class="docutils literal notranslate"><span class="pre">create_dit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm.PatchEmbed"><code class="docutils literal notranslate"><span class="pre">PatchEmbed</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm.PatchEmbed.forward"><code class="docutils literal notranslate"><span class="pre">PatchEmbed.forward()</span></code></a></li>
 </ul>
@@ -24914,6 +25567,7 @@ along the batch dimension.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.DiT.train"><code class="docutils literal notranslate"><span class="pre">DiT.train()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.create_dit"><code class="docutils literal notranslate"><span class="pre">create_dit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.PatchEmbed"><code class="docutils literal notranslate"><span class="pre">PatchEmbed</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.PatchEmbed.forward"><code class="docutils literal notranslate"><span class="pre">PatchEmbed.forward()</span></code></a></li>
 </ul>
@@ -25524,6 +26178,7 @@ along the batch dimension.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.diffusion.DiT.DiT.train"><code class="docutils literal notranslate"><span class="pre">DiT.train()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.diffusion.DiT.create_dit"><code class="docutils literal notranslate"><span class="pre">create_dit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.diffusion.diamond_diffusion.AdaptiveGroupNorm"><code class="docutils literal notranslate"><span class="pre">AdaptiveGroupNorm</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.models.diffusion.diamond_diffusion.AdaptiveGroupNorm.forward"><code class="docutils literal notranslate"><span class="pre">AdaptiveGroupNorm.forward()</span></code></a></li>
 </ul>
@@ -26394,6 +27049,19 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.step"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.render"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ProcgenImageEnv.close"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_procgen_envs"><code class="docutils literal notranslate"><span class="pre">list_procgen_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_procgen_env"><code class="docutils literal notranslate"><span class="pre">make_procgen_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.normalize_procgen_env_name"><code class="docutils literal notranslate"><span class="pre">normalize_procgen_env_name()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.observation_space</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.UnityMLAgentsEnv.action_space"><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv.action_space</span></code></a></li>
@@ -26429,6 +27097,29 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_brax_env"><code class="docutils literal notranslate"><span class="pre">make_brax_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv"><code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.reset"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.step"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.render"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.DMLabEnv.close"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_dmlab_env"><code class="docutils literal notranslate"><span class="pre">make_dmlab_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.step"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.render"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.BSuiteImageEnv.close"><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv.close()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.make_bsuite_env"><code class="docutils literal notranslate"><span class="pre">make_bsuite_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.list_available_bsuite_ids"><code class="docutils literal notranslate"><span class="pre">list_available_bsuite_ids()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit"><code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.step"><code class="docutils literal notranslate"><span class="pre">TimeLimit.step()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.TimeLimit.reset"><code class="docutils literal notranslate"><span class="pre">TimeLimit.reset()</span></code></a></li>
@@ -26489,6 +27180,17 @@ along the batch dimension.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmc.DeepMindControlEnv.render"><code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv.render()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.make_dmlab_env"><code class="docutils literal notranslate"><span class="pre">make_dmlab_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv"><code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.action_space"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.reset"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.step"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.render"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.dmlab.DMLabEnv.close"><code class="docutils literal notranslate"><span class="pre">DMLabEnv.close()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.make_gym_env"><code class="docutils literal notranslate"><span class="pre">make_gym_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv"><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.gym_env.GymImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">GymImageEnv.observation_space</span></code></a></li>
@@ -26506,6 +27208,19 @@ along the batch dimension.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.make_atari_env"><code class="docutils literal notranslate"><span class="pre">make_atari_env()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_env.list_available_atari_envs"><code class="docutils literal notranslate"><span class="pre">list_available_atari_envs()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.ale_atari_vector_env.make_atari_vector_env"><code class="docutils literal notranslate"><span class="pre">make_atari_vector_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.list_procgen_envs"><code class="docutils literal notranslate"><span class="pre">list_procgen_envs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.normalize_procgen_env_name"><code class="docutils literal notranslate"><span class="pre">normalize_procgen_env_name()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.make_procgen_env"><code class="docutils literal notranslate"><span class="pre">make_procgen_env()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.observation_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.action_space"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.action_space</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.max_episode_steps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.reset"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.reset()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.step"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.step()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.render"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.render()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.procgen_env.ProcgenImageEnv.close"><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv.close()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.make_mujoco_env_from_config"><code class="docutils literal notranslate"><span class="pre">make_mujoco_env_from_config()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.envs.mujoco_env.MuJoCoImageEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv.observation_space</span></code></a></li>
@@ -26787,6 +27502,15 @@ along the batch dimension.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-world_models.utils.dreamer_utils">Utilities</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.symlog"><code class="docutils literal notranslate"><span class="pre">symlog()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.symexp"><code class="docutils literal notranslate"><span class="pre">symexp()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.register_buffers()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.to"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.to()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.encode"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.encode()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.TwoHotEncoder.decode"><code class="docutils literal notranslate"><span class="pre">TwoHotEncoder.decode()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.get_parameters"><code class="docutils literal notranslate"><span class="pre">get_parameters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.FreezeParameters"><code class="docutils literal notranslate"><span class="pre">FreezeParameters</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#world_models.utils.dreamer_utils.Logger"><code class="docutils literal notranslate"><span class="pre">Logger</span></code></a><ul class="nav section-nav flex-column">

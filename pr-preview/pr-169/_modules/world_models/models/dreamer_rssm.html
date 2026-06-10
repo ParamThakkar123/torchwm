@@ -433,14 +433,28 @@
         <span class="k">return</span> <span class="n">distribution</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gru_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Project [action, stoch] into the GRU input space and apply nonterm.</span>
+
+<span class="sd">        Per the Danijar Dreamer reference, the previous stochastic state is</span>
+<span class="sd">        masked by `nonterm` before being concatenated with the action, and the</span>
+<span class="sd">        previous deterministic state is also masked by `nonterm` when fed back</span>
+<span class="sd">        to the GRU. This ensures that the state is reset (rather than</span>
+<span class="sd">        propagated) at episode boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">prev_stoch_masked</span> <span class="o">=</span> <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;stoch&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nonterm</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">prev_action</span><span class="p">,</span> <span class="n">prev_stoch_masked</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc_state_action</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">x</span>
+
 <div class="viewcode-block" id="RSSM.observe_step">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.observe_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update state using actual observation (observe mode).</span>
 
-<span class="sd">        In observe mode, the RSSM uses the observation to compute a more accurate</span>
-<span class="sd">        posterior distribution over the stochastic state. The prior is still</span>
-<span class="sd">        computed, then combined with observation information.</span>
+<span class="sd">        In observe mode, the RSSM first computes a transition prior from the</span>
+<span class="sd">        previous state and action, then refines the stochastic state using the</span>
+<span class="sd">        actual observation embedding to form the posterior.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            prev_state: Dictionary with &#39;deter&#39; (h_{t-1}) and &#39;stoch&#39; (s_{t-1})</span>
@@ -449,9 +463,10 @@
 <span class="sd">            nonterm: Termination mask (1.0 = continue, 0.0 = terminal)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dictionary with updated state containing:</span>
-<span class="sd">                - deter: Updated deterministic state</span>
-<span class="sd">                - mean, std, stoch: Posterior stochastic state distribution</span>
+<span class="sd">            A tuple ``(posterior, prior)`` of state dictionaries. The posterior</span>
+<span class="sd">            incorporates observation information; the prior is the transition</span>
+<span class="sd">            prediction before observation. Both share the same deterministic</span>
+<span class="sd">            state because the GRU is only advanced once per timestep.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imagine_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span>
         <span class="n">posterior_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span>
@@ -461,11 +476,8 @@
         <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">posterior</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">std</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">std</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.1</span>
         <span class="n">sample</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="o">*</span> <span class="n">std</span>
-        <span class="n">deter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">prev_action</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;stoch&quot;</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">nonterm</span><span class="p">,</span>
-            <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span> <span class="n">stoch</span><span class="o">=</span><span class="n">sample</span><span class="p">,</span> <span class="n">deter</span><span class="o">=</span><span class="n">deter</span><span class="p">)</span></div>
+        <span class="n">posterior_state</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span> <span class="n">stoch</span><span class="o">=</span><span class="n">sample</span><span class="p">,</span> <span class="n">deter</span><span class="o">=</span><span class="n">prior</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">posterior_state</span><span class="p">,</span> <span class="n">prior</span></div>
 
 
 <div class="viewcode-block" id="RSSM.imagine_step">
@@ -487,10 +499,8 @@
 <span class="sd">                - deter: Predicted deterministic state</span>
 <span class="sd">                - mean, std, stoch: Prior stochastic state distribution</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prior_deter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">prev_action</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;stoch&quot;</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">nonterm</span><span class="p">,</span>
-            <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gru_input</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span>
+        <span class="n">prior_deter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nonterm</span><span class="p">)</span>
         <span class="n">prior_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc_embed_prior</span><span class="p">(</span><span class="n">prior_deter</span><span class="p">))</span>
         <span class="n">prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc_state_prior</span><span class="p">(</span><span class="n">prior_embed</span><span class="p">)</span>
         <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">prior</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -533,9 +543,12 @@
 <span class="sd">            nonterm: Termination mask</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Dictionary with posterior state (observation-informed)</span>
+<span class="sd">            Dictionary with posterior state (observation-informed). Note that</span>
+<span class="sd">            the previous-state shape ``(B, ...)`` is preserved; the batch</span>
+<span class="sd">            dimension is not flattened.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span></div>
+        <span class="n">posterior</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">posterior</span></div>
 
 
 <div class="viewcode-block" id="RSSM.detach_state">
@@ -574,6 +587,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">observe_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a sequence of observations (observe mode rollout).</span>
 
+<span class="sd">        At each timestep we run ``observe_step`` once to obtain the transition</span>
+<span class="sd">        prior (the prediction given the previous state and action) and the</span>
+<span class="sd">        observation-informed posterior. The posterior is then used as the</span>
+<span class="sd">        previous state for the next step, matching the standard Dreamer</span>
+<span class="sd">        inference pattern.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            obs_embed: Observation embeddings, shape (T+1, B, obs_embed_size)</span>
 <span class="sd">            actions: Actions, shape (T, B, action_size)</span>
@@ -582,23 +601,21 @@
 <span class="sd">            seq_len: Sequence length T</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            prior: Dictionary with prior states for each step</span>
-<span class="sd">            posterior: Dictionary with posterior states for each step</span>
+<span class="sd">            prior: Dictionary with prior states stacked along the time axis.</span>
+<span class="sd">            posterior: Dictionary with posterior states stacked along the time</span>
+<span class="sd">                axis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prior_states</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">posterior_states</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">state</span> <span class="o">=</span> <span class="n">init_state</span>
 
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_len</span><span class="p">):</span>
-            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">actions</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">obs_embed</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">nonterms</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
-            <span class="n">posterior_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-
-            <span class="n">prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imagine_step</span><span class="p">(</span>
-                <span class="nb">dict</span><span class="p">(</span><span class="n">stoch</span><span class="o">=</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;stoch&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">(),</span> <span class="n">deter</span><span class="o">=</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;deter&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()),</span>
-                <span class="n">actions</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
-                <span class="n">nonterms</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
+            <span class="n">posterior</span><span class="p">,</span> <span class="n">prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span>
+                <span class="n">state</span><span class="p">,</span> <span class="n">actions</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">obs_embed</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">nonterms</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
             <span class="p">)</span>
+            <span class="n">posterior_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posterior</span><span class="p">)</span>
             <span class="n">prior_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prior</span><span class="p">)</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">posterior</span>
 
         <span class="n">to_stack</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="s2">&quot;stoch&quot;</span><span class="p">,</span> <span class="s2">&quot;deter&quot;</span><span class="p">]</span>
         <span class="n">prior</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prior_states</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">to_stack</span><span class="p">}</span>

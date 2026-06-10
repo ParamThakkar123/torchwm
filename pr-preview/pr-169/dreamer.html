@@ -526,6 +526,10 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmc&quot;</span>      <span class="c1"># DeepMind Control Suite</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;walker-walk&quot;</span>
 
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;dmlab&quot;</span>   <span class="c1"># DeepMind Lab</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;rooms_collect_good_objects_train&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">dmlab_action_repeat</span> <span class="o">=</span> <span class="mi">4</span>
+
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>      <span class="c1"># Gym/Gymnasium</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
 
@@ -538,6 +542,12 @@ from images and trains a behavior policy entirely in the latent space.</p>
 <span class="c1"># Gymnasium Robotics example (all ids registered by installed package):</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;robotics&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;HalfCheetah-v2&quot;</span>
+
+<span class="c1"># Procgen example:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;procgen&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;coinrun&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">procgen_distribution_mode</span> <span class="o">=</span> <span class="s2">&quot;easy&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">procgen_num_levels</span> <span class="o">=</span> <span class="mi">0</span>
 
 <span class="c1"># Brax example:</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;brax&quot;</span>     <span class="c1"># JAX/Brax</span>
@@ -553,7 +563,7 @@ from images and trains a behavior policy entirely in the latent space.</p>
 selection while the MuJoCo module owns task-id vs XML/MJB source selection. Use
 Gymnasium task ids such as <code class="docutils literal notranslate"><span class="pre">Humanoid-v4</span></code> for standard benchmark rewards, or use
 native MJCF/MJB sources plus <code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code> callbacks for custom rewards and
-termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;robotics&quot;</span></code>; TorchWM lists those ids dynamically from the installed <code class="docutils literal notranslate"><span class="pre">gymnasium-robotics</span></code> package.</p>
+termination logic. Legacy MuJoCo v2/v3 ids and other Gymnasium Robotics tasks can use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;robotics&quot;</span></code>; TorchWM lists those ids dynamically from the installed <code class="docutils literal notranslate"><span class="pre">gymnasium-robotics</span></code> package. Procgen games use <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;procgen&quot;</span></code> with shorthand names such as <code class="docutils literal notranslate"><span class="pre">coinrun</span></code> or Gym-style ids such as <code class="docutils literal notranslate"><span class="pre">procgen-coinrun-v0</span></code>.</p>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>

@@ -65,6 +65,44 @@ def test_create_model_for_factory_only_spec_filters_through_signature(monkeypatc
     }
 
 
+def test_export_model_torchscript_writes_file(tmp_path):
+    import pytest
+
+    torch = pytest.importorskip("torch")
+    import world_models.export  # noqa: F401 - installs torch.nn.Module.export
+
+    class TinyAgent(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.linear = torch.nn.Linear(2, 1)
+
+        def forward(self, x):
+            return self.linear(x)
+
+    agent = TinyAgent()
+    path = agent.export(
+        tmp_path / "tiny.pt",
+        format="torchscript",
+        example_inputs=torch.zeros(1, 2),
+    )
+
+    assert path.exists()
+    loaded = torch.jit.load(str(path))
+    assert loaded(torch.zeros(1, 2)).shape == (1, 1)
+
+
+def test_top_level_exports_export_helpers():
+    import pytest
+    import torchwm
+
+    pytest.importorskip("torch")
+    from world_models.export import ExportableAgentMixin, export_any, export_model
+
+    assert torchwm.export_any is export_any
+    assert torchwm.export_model is export_model
+    assert torchwm.ExportableAgentMixin is ExportableAgentMixin
+
+
 def test_layer_and_helper_packages_are_importable():
     import world_models.helpers as helpers
     from world_models.layers import AdaLNNormalization, RMSNorm

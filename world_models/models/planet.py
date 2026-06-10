@@ -15,9 +15,10 @@ from world_models.utils.utils import (
 )
 from world_models.memory.planet_memory import Memory, Episode
 from world_models.training.train_planet import train as planet_train
+from world_models.export import ExportableAgentMixin
 
 
-class Planet:
+class Planet(ExportableAgentMixin):
     """
     High-level Planet wrapper.
 

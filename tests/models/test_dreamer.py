@@ -80,3 +80,41 @@ class TestDreamerAgent:
 
         with pytest.raises(ValueError, match="Invalid argument: invalid_arg"):
             DreamerAgent(config, invalid_arg="test")
+
+    @patch("world_models.models.dreamer.make_env")
+    @patch("world_models.models.dreamer.Logger")
+    def test_export_uses_dreamer_actor_default(
+        self, mock_logger, mock_make_env, config, monkeypatch, tmp_path
+    ):
+        import world_models.export as export_utils
+
+        mock_env = Mock()
+        mock_obs_space = Mock()
+        mock_obs_space.shape = (3, 64, 64)
+        mock_env.observation_space = {"image": mock_obs_space}
+        mock_action_space = Mock()
+        mock_action_space.shape = (2,)
+        mock_env.action_space = mock_action_space
+        mock_make_env.return_value = mock_env
+
+        calls = {}
+
+        def fake_export_model(module, path, **kwargs):
+            calls["module"] = module
+            calls["path"] = path
+            calls["kwargs"] = kwargs
+            return path
+
+        monkeypatch.setattr(export_utils, "export_model", fake_export_model)
+        agent = DreamerAgent(config)
+        out_path = tmp_path / "dreamer.onnx"
+
+        returned = agent.export(out_path, format="onnx")
+
+        assert returned == out_path
+        assert calls["kwargs"]["format"] == "onnx"
+        assert calls["kwargs"]["example_inputs"].shape == (
+            1,
+            config.stoch_size + config.deter_size,
+        )
+        assert calls["module"](calls["kwargs"]["example_inputs"]).shape == (1, 2)

@@ -34,6 +34,7 @@ from world_models.utils.dreamer_utils import (
     TwoHotEncoder,
 )
 from world_models.configs.dreamer_config import DreamerConfig
+from world_models.export import ExportableAgentMixin
 from world_models.utils.logging_utils import (
     assert_finite,
     collect_system_stats,
@@ -703,7 +704,7 @@ class Dreamer:
         self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
 
-class DreamerAgent:
+class DreamerAgent(ExportableAgentMixin):
     """High-level user API for running Dreamer experiments end to end.
 
     It builds environments from config, initializes seeds and logging,

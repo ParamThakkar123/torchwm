@@ -24,12 +24,12 @@ logger = logging.getLogger("torchwm.cli")
 # not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
     "diamond": "world_models.training.train_diamond",
-    "dreamer": "world_models.training.train_dreamer",
     "iris": "world_models.training.train_iris",
     "planet": "world_models.training.train_planet",
     "jepa": "world_models.training.train_jepa",
     "rssm": "world_models.training.train_rssm",
     "genie": "world_models.training.train_genie",
+    "world-model": "world_models.training.train_world_model",
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")

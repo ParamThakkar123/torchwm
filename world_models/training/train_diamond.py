@@ -182,9 +182,9 @@ class DiamondAgent:
         """Update diffusion world model."""
         self.diffusion_model.train()
 
-        obs_seq = batch["obs_seq"]
-        action_seq = batch["action_seq"]
-        next_obs = batch["next_obs"]
+        obs_seq = batch["obs_seq"].to(self.device)
+        action_seq = batch["action_seq"].to(self.device)
+        next_obs = batch["next_obs"].to(self.device)
 
         B, T, C, H, W = obs_seq.shape
 
@@ -237,10 +237,10 @@ class DiamondAgent:
         """Update reward/termination model."""
         self.reward_model.train()
 
-        obs_seq = batch["obs_seq"]
-        action_seq = batch["action_seq"]
-        rewards = batch["rewards"]
-        dones = batch["dones"]
+        obs_seq = batch["obs_seq"].to(self.device)
+        action_seq = batch["action_seq"].to(self.device)
+        rewards = batch["rewards"].to(self.device)
+        dones = batch["dones"].to(self.device)
 
         B, T, C, H, W = obs_seq.shape
 
@@ -282,8 +282,10 @@ class DiamondAgent:
         """
         self.actor_critic.train()
 
-        obs_seq = batch["obs_seq"]
+        obs_seq = batch["obs_seq"].to(self.device)
         action_seq = batch.get("action_seq", batch.get("actions"))
+        if action_seq is not None:
+            action_seq = action_seq.to(self.device)
 
         B, seq_T, C, H, W = obs_seq.shape
 
@@ -434,7 +436,7 @@ class DiamondAgent:
             self.obs_history = [norm_obs] * self.config.num_conditioning_frames
             self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
 
-        for _ in range(num_steps):
+        for _ in tqdm(range(num_steps), desc="Collecting experience", leave=False):
             # build tensor [1, L, C, H, W] with channels-first
             obs_np = np.stack(self.obs_history[-self.config.num_conditioning_frames :])
             # obs_np: [L, H, W, C] -> transpose to [L, C, H, W]
@@ -614,14 +616,26 @@ class DiamondAgent:
             policy_losses = []
             value_losses = []
 
+            # move batch to GPU once (dataset returns CPU tensors)
+            def to_device(batch):
+                return {
+                    k: v.to(self.device, non_blocking=True) for k, v in batch.items()
+                }
+
             # iterate over the dataloader properly; avoid recreating iterator each step
             data_iter = iter(dataloader)
-            for _ in range(self.config.training_steps_per_epoch):
+            for _ in tqdm(
+                range(self.config.training_steps_per_epoch),
+                desc="Training",
+                leave=False,
+            ):
                 try:
                     batch = next(data_iter)
                 except StopIteration:
                     data_iter = iter(dataloader)
                     batch = next(data_iter)
+
+                batch = to_device(batch)
 
                 diffusion_loss = self._update_diffusion_model(batch)
                 diffusion_losses.append(diffusion_loss)

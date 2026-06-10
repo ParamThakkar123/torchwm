@@ -62,14 +62,14 @@ class ActorCriticNetwork(nn.Module):
         """
         B, T, C, H, W = obs.shape
 
-        obs_flat = obs.view(B * T, C, H, W)
+        obs_flat = obs.reshape(B * T, C, H, W)
 
         h = obs_flat
         for conv_block in self.conv_blocks:
             h = conv_block(h)
 
         h = h.mean(dim=[2, 3])
-        h = h.view(B, T, -1)
+        h = h.reshape(B, T, -1)
 
         if hidden_state is None:
             lstm_out, hidden_state = self.lstm(h)

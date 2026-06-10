@@ -34,6 +34,11 @@ Use ``torchwm`` for common workflows::
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.export
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.models
    :members:
    :undoc-members:

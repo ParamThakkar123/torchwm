@@ -27,7 +27,7 @@ from world_models.utils.jepa_utils import repeat_interleave_batch
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.helpers.jepa_helper import load_checkpoint, init_model, init_opt
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 from world_models.configs.jepa_config import JEPAConfig
 from world_models.experiments import (
     dump_config,

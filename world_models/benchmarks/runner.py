@@ -2,12 +2,19 @@ from __future__ import annotations
 
 import json
 import os
+import csv
 from typing import Any, Callable, Dict, List, Optional
 import torch
 
 import numpy as np
 
 from world_models.benchmarks import adapters, metrics, reporting
+from world_models.benchmarks.adapters import IRISAdapter
+from world_models.training.train_iris import IRISTrainer
+from world_models.training.train_diamond import DiamondAgent
+from world_models.configs.diamond_config import DiamondConfig
+from world_models.models.dreamer import DreamerAgent
+from world_models.configs.dreamer_config import DreamerConfig
 
 
 class BenchmarkRunner:
@@ -123,10 +130,10 @@ class MultiAgentBenchmarkRunner:
 
     def __init__(
         self,
-        adapters: List[Callable[..., adapters.BaseAdapter]],
+        adapter_classes: List[type[adapters.BaseAdapter]],
         out_dir: str = "results",
     ):
-        self.adapters = adapters
+        self.adapter_classes = adapter_classes
         self.out_dir = out_dir
         os.makedirs(self.out_dir, exist_ok=True)
 
@@ -160,17 +167,7 @@ class MultiAgentBenchmarkRunner:
 
         all_results: Dict[str, Any] = {}
 
-        for adapter_cls in self.adapters:
-            adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
-            if adapter_name not in checkpoints:
-                raise ValueError(
-                    f"Checkpoint path required for {adapter_name}. Only trained models should be benchmarked."
-                )
-            checkpoint = checkpoints[adapter_name]
-
-        all_results: Dict[str, Any] = {}
-
-        for adapter_cls in self.adapters:
+        for adapter_cls in self.adapter_classes:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Running benchmark for {adapter_name}...")
 
@@ -178,7 +175,7 @@ class MultiAgentBenchmarkRunner:
                 adapter_cls=adapter_cls,
                 out_dir=os.path.join(self.out_dir, adapter_name),
             )
-            checkpoint = checkpoints.get(adapter_name)
+            checkpoint: Optional[str] = checkpoints.get(adapter_name)
 
             result = runner.run(
                 env_spec=env_spec,
@@ -210,7 +207,6 @@ class MultiAgentBenchmarkRunner:
     ) -> Dict[str, str]:
         """Train all agents and return checkpoint paths."""
         assert train_epochs is not None
-        import os
 
         checkpoints = {}
         device = extra_kwargs.get(
@@ -218,21 +214,22 @@ class MultiAgentBenchmarkRunner:
         )
         preset = extra_kwargs.get("preset", None)
 
-        for adapter_cls in self.adapters:
+        for adapter_cls in self.adapter_classes:
             adapter_name = adapter_cls.__name__.replace("Adapter", "").lower()
             print(f"Training {adapter_name}...")
 
-            if adapter_name == "iris":
-                from world_models.training.train_iris import IRISTrainer
+            # Use dynamic typing for per-adapter config/agent to avoid type
+            # narrowing across branches (different adapters use different
+            # config/agent classes).
+            config: Any = None
+            agent: Any = None
 
+            if adapter_name == "iris":
                 trainer = IRISTrainer(game=env_spec["game"], device=device)
                 save_dir = f"checkpoints/{adapter_name}"
                 trainer.train(total_epochs=train_epochs, save_dir=save_dir)
                 checkpoint_path = f"{save_dir}/checkpoint_{train_epochs - 1}.pt"
             elif adapter_name == "diamond":
-                from world_models.training.train_diamond import DiamondAgent
-                from world_models.configs.diamond_config import DiamondConfig
-
                 config = DiamondConfig(
                     game=env_spec["game"], preset=preset, device=device
                 )
@@ -243,9 +240,6 @@ class MultiAgentBenchmarkRunner:
                     f"checkpoints/{adapter_name}/checkpoint_{train_epochs}.pt"
                 )
             elif adapter_name in ["dreamerv1", "dreamerv2"]:
-                from world_models.models.dreamer import DreamerAgent
-                from world_models.configs.dreamer_config import DreamerConfig
-
                 config = DreamerConfig()
                 config.env = env_spec["game"]
                 config.env_backend = "gym"
@@ -267,8 +261,6 @@ class MultiAgentBenchmarkRunner:
 
     def _export_combined_csv(self, results: Dict[str, Any], filepath: str):
         """Export combined results to CSV."""
-        import csv
-
         with open(filepath, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(["Agent", "Seed", "Mean Return", "Std Return"])
@@ -287,8 +279,6 @@ class MultiAgentBenchmarkRunner:
 
 if __name__ == "__main__":
     # example quick-run with mocks (user should use CLI)
-    from world_models.benchmarks.adapters import IRISAdapter
-
     runner = BenchmarkRunner(adapter_cls=IRISAdapter, out_dir="results/bench")
     res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0], num_episodes=2)
     print(res)

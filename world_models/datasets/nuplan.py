@@ -191,7 +191,7 @@ def collate_nuplan_batch(batch: List[Dict]) -> Dict:
     # TODO: Implement proper batch collation
     # Handle variable number of agents, pad sequences, etc.
 
-    collated = {}
+    collated: Dict[str, object] = {}
     for key in batch[0].keys():
         if key == "agent_trajectories":
             # Special handling for variable-length agent lists
@@ -199,6 +199,7 @@ def collate_nuplan_batch(batch: List[Dict]) -> Dict:
         elif isinstance(batch[0][key], torch.Tensor):
             collated[key] = torch.stack([sample[key] for sample in batch])
         elif isinstance(batch[0][key], dict):
+            # Dict of tensors -> stack per subkey
             collated[key] = {
                 subkey: torch.stack([sample[key][subkey] for sample in batch])
                 for subkey in batch[0][key].keys()

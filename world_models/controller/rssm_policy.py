@@ -14,11 +14,24 @@ from torch.distributions import Normal
 
 
 class RSSMPolicy:
-    """Model-predictive controller that plans actions with the RSSM latent model.
+    """Model-predictive controller using Cross-Entropy Method (CEM) with RSSM.
+
+    Plans actions by optimizing a sequence of future actions in the RSSM's
+    latent space. Uses Cross-Entropy Method to refine action sequences based
+    on predicted returns.
 
     The policy uses a Cross-Entropy Method style loop: it samples candidate
     action sequences, rolls them forward in latent space, scores predicted
     returns, and refits a Gaussian proposal to top-performing candidates.
+
+    Algorithm:
+        1. Initialize Gaussian distribution over action sequences
+        2. Sample N candidate action sequences
+        3. Rollout each sequence in RSSM latent space
+        4. Score by predicted cumulative rewards
+        5. Keep top K candidates, fit Gaussian to them
+        6. Repeat for T iterations
+        7. Execute first action from best sequence
 
     Attributes:
         rssm: The RSSM world model.

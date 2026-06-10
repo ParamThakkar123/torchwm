@@ -15,34 +15,24 @@ from os import mkdir, unlink, listdir, getpid
 from time import sleep
 from torch.multiprocessing import Process, Queue
 import torch
+import torch.nn.functional as F
 import cma
 import numpy as np
 from tqdm import tqdm
+import gymnasium as gym
 
 from world_models.models.controller import Controller
+from world_models.models.mdrnn import MDRNN, MDRNNCell
+from world_models.vision.VAE.ConvVAE import ConvVAE
 from world_models.configs.wm_config import WMControllerConfig
-from world_models.controller.rollout_generator import RolloutGenerator
+from world_models.envs.gym_env import GymImageEnv
 
 
 def flatten_parameters(parameters):
-    """Flatten model parameters into a single vector.
-
-    Args:
-        parameters: Iterator of model parameters.
-
-    Returns:
-        Flattened parameter vector as numpy array.
-    """
     return np.concatenate([p.data.cpu().numpy().flatten() for p in parameters])
 
 
 def load_parameters(params, controller):
-    """Load flattened parameters into controller model.
-
-    Args:
-        params: Flattened parameter vector as numpy array.
-        controller: Controller model to load parameters into.
-    """
     pointer = 0
     for param in controller.parameters():
         param_shape = param.shape
@@ -55,50 +45,124 @@ def load_parameters(params, controller):
         pointer += size
 
 
-def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
-    """Worker thread routine for parallel rollout evaluation.
+def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device):
+    """Run a single rollout with given controller parameters.
 
-    Threads interact with p_queue (parameters), r_queue (results), and e_queue (end signal).
-    They pull parameters from p_queue, execute rollouts, then place results in r_queue.
+    Args:
+        ctrl_params: Flattened controller parameters as numpy array.
+        logdir: Directory containing trained VAE and MDRNN checkpoints.
+        env_name: Gym environment name.
+        action_size: Dimensionality of action space.
+        time_limit: Maximum steps per episode.
+        device: torch device.
+
+    Returns:
+        float: Total cumulative reward.
+    """
+    vae_file = join(logdir, "vae", "best.tar")
+    rnn_file = join(logdir, "mdrnn", "best.tar")
+
+    vae_state = torch.load(vae_file, map_location=device)
+    rnn_state = torch.load(rnn_file, map_location=device)
+    latent_size = 32
+
+    vae = ConvVAE(img_channels=3, latent_size=latent_size).to(device)
+    vae.load_state_dict(vae_state["state_dict"])
+    vae.eval()
+
+    batch_rnn = MDRNN(
+        latents=latent_size, actions=action_size, hiddens=256, gaussians=5
+    )
+    batch_rnn.load_state_dict(rnn_state["state_dict"])
+    batch_rnn.eval()
+
+    cell_rnn = MDRNNCell(
+        latents=latent_size, actions=action_size, hiddens=256, gaussians=5
+    ).to(device)
+    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)
+    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)
+    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)
+    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)
+    cell_rnn.gmm_linear.load_state_dict(batch_rnn.gmm_linear.state_dict())
+    cell_rnn.eval()
+    del batch_rnn
+
+    ctrl = Controller(latent_size, 256, action_size).to(device)
+    load_parameters(ctrl_params, ctrl)
+    ctrl.eval()
+
+    try:
+        env = gym.make(env_name, continuous=True)
+    except Exception:
+        env = gym.make(env_name)
+    env = GymImageEnv(env=env, size=(64, 64))
+
+    obs, _ = env.reset()
+    h, c = cell_rnn.get_init_hidden(1)
+    h, c = h.to(device), c.to(device)
+
+    total_reward = 0.0
+    with torch.no_grad():
+        for _ in range(time_limit):
+            obs_tensor = torch.tensor(obs["image"]).float().unsqueeze(0).to(device)
+            obs_tensor = F.interpolate(
+                obs_tensor, size=64, mode="bilinear", align_corners=True
+            )
+            obs_tensor = obs_tensor / 255.0
+
+            mu, logsigma = vae.encoder(obs_tensor)
+            z = mu + logsigma.exp() * torch.randn_like(logsigma)
+
+            action = ctrl(h, z).cpu().numpy().flatten()
+
+            action_t = torch.tensor(action).float().to(device)
+            _, _, _, _, _, (h, c) = cell_rnn(action_t, z, (h, c))
+
+            next_obs, reward, done, _ = env.step(action)
+            total_reward += reward
+            obs = next_obs
+            if done:
+                break
+
+    env.close()
+    return total_reward
+
+
+def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
+    """Worker process routine for parallel rollout evaluation.
 
     Args:
         p_queue: Queue containing (s_id, parameters) to evaluate.
         r_queue: Queue where to place results (s_id, reward).
-        e_queue: End queue - when non-empty, thread terminates.
+        e_queue: End queue - when non-empty, process terminates.
         p_index: Process index for GPU assignment.
-        config: Controller configuration.
+        config: Controller configuration (must include env_name and action_size).
         time_limit: Maximum steps per episode.
     """
-    gpu = p_index % torch.cuda.device_count()
+    gpu = p_index % max(torch.cuda.device_count(), 1)
     device = torch.device(f"cuda:{gpu}" if torch.cuda.is_available() else "cpu")
 
     sys.stdout = open(join(config.logdir, "tmp", str(getpid()) + ".out"), "a")
     sys.stderr = open(join(config.logdir, "tmp", str(getpid()) + ".err"), "a")
 
-    with torch.no_grad():
-        r_gen = RolloutGenerator(config.logdir, device, time_limit=time_limit)
-
-        while e_queue.empty():
-            if p_queue.empty():
-                sleep(0.1)
-            else:
-                s_id, params = p_queue.get()
-                r_queue.put((s_id, r_gen.rollout(params)))
+    while e_queue.empty():
+        if p_queue.empty():
+            sleep(0.1)
+        else:
+            s_id, params = p_queue.get()
+            reward = _run_rollout(
+                params,
+                config.logdir,
+                config.env_name,
+                config.action_size,
+                time_limit,
+                device,
+            )
+            r_queue.put((s_id, reward))
 
 
 def evaluate(solutions, results, rollouts, p_queue, r_queue):
-    """Evaluate current controller.
-
-    Evaluation is minus the cumulated reward averaged over rollout runs.
-
-    Args:
-        solutions: CMA set of solutions.
-        results: Corresponding results.
-        rollouts: Number of rollouts for evaluation.
-
-    Returns:
-        Tuple of (best_params, mean_reward, std_reward).
-    """
+    """Evaluate current controller."""
     index_min = np.argmin(results)
     best_guess = solutions[index_min]
     restimates = []
@@ -118,27 +182,14 @@ def evaluate(solutions, results, rollouts, p_queue, r_queue):
 def train_controller(config: WMControllerConfig) -> None:
     """Train a linear controller using CMA-ES.
 
-    This function trains a controller that maps latent and hidden states to actions.
-    It uses parallel workers to evaluate candidate controllers and CMA-ES for optimization.
-
     Args:
-        config: WMControllerConfig containing training hyperparameters.
+        config: WMControllerConfig containing training hyperparameters,
+                including env_name and action_size.
 
     The training process includes:
-        - Setting up parallel evaluation workers
-        - Running CMA-ES optimization
-        - Evaluating and saving best controller
-
-    Example:
-        >>> config = WMControllerConfig({
-        ...     'latent_size': 32,
-        ...     'hidden_size': 200,
-        ...     'action_size': 3,
-        ...     'logdir': 'results',
-        ...     'pop_size': 10,
-        ...     'n_samples': 4,
-        ... })
-        >>> train_controller(config)
+        - Setting up parallel evaluation workers (each loads VAE + MDRNN)
+        - Running CMA-ES optimization with parallel rollout evaluation
+        - Evaluating and saving best controller checkpoint
     """
     n_samples = config.n_samples
     pop_size = config.pop_size

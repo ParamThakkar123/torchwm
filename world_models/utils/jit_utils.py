@@ -1,5 +1,5 @@
 import torch
-from typing import Any, Callable
+from typing import Callable
 
 
 def jit_compile_function(func: Callable) -> Callable:

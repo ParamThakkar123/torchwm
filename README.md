@@ -1,56 +1,62 @@
 # TorchWM
 
 <div align="center">
-  <img src="docs/images/torchwm-logo.svg" alt="TorchWM Logo" height="80">
-  <p><strong>Modular PyTorch Library for World Models</strong></p>
+  <p>
+    <a href="https://pypi.org/project/torchwm/"><img alt="PyPI version" src="https://badge.fury.io/py/torchwm.svg"></a>
+    <a href="https://pypi.org/project/torchwm/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/torchwm.svg"></a>
+    <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+    <a href="https://paramthakkar123.github.io/torchwm/"><img alt="Documentation" src="https://img.shields.io/badge/docs-link-blue.svg"></a>
+  </p>
+  <p><strong>Modular PyTorch library for world models, latent dynamics, and representation learning.</strong></p>
 </div>
 
----
+TorchWM provides reusable PyTorch components and training utilities for Dreamer-style agents, JEPA representations, IRIS, DiT, and related world-model workflows.
 
 ## Quick Start
 
-TorchWM provides a unified interface for training and deploying world models.
+```bash
+# Install the core package from PyPI.
+pip install torchwm
 
-### Installation
+# With extras
+pip install torchwm[gym]       # Additional gym environments
+pip install torchwm[procgen]   # Procgen benchmark environments
+pip install torchwm[ml-agents] # Unity ML-Agents
+pip install torchwm[ml]        # TensorBoard, W&B logging
+pip install torchwm[viz]       # FastAPI visualization
+pip install torchwm[dev]       # Testing and linting
+
+# Or add it to a uv-managed project.
+uv add torchwm
+```
+
+TorchWM depends on PyTorch but does not force a single PyTorch wheel index. If you need a specific PyTorch build, install or add the PyTorch packages with the index recommended for your platform by the [PyTorch installation selector](https://pytorch.org/get-started/locally/):
 
 ```bash
-pip install torchwm
-# or with uv
-uv add torch torchvision torchaudio
+# Example: CUDA 12.1 wheels. Choose a different index for CPU, ROCm, CUDA 11.x, CUDA 12.4+, or macOS.
+uv add torch torchvision torchaudio --index https://download.pytorch.org/whl/cu121
 ```
 
-### Training a Dreamer Agent
+Use the friendly top-level API for the common path:
 
 ```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-cfg.total_steps = 1_000_000
-
-agent = DreamerAgent(cfg)
+agent = torchwm.create_model(
+    "dreamer",
+    env="walker-walk",
+    total_steps=1_000_000,
+)
 agent.train()
-```
-
-### Using Inference Operators
-
-```python
-from world_models.inference.operators import DreamerOperator
-
-op = DreamerOperator(image_size=64, action_dim=6)
-processed = op.process({'image': image, 'action': action})
-# Returns standardized tensors for inference
 ```
 
 ## Features
 
-- 🎯 **Unified Interface**: Consistent API across all world model algorithms
-- 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
-- 🚀 **High Performance**: Optimized for both training and inference
-- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
-- 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
-- 🧠 **Research Ready**: Easy experimentation with different architectures
+- Unified interfaces across world-model algorithms
+- Modular encoders, decoders, dynamics models, and backbones
+- Training and inference utilities for model-based reinforcement learning
+- Environment integrations for Gym/Gymnasium, Unity ML-Agents, MuJoCo, Brax, and robotics extras
+- Optional logging, visualization, development, and documentation extras
 
 ## Supported Algorithms
 
@@ -59,229 +65,19 @@ processed = op.process({'image': image, 'action': action})
 | **Dreamer** | Model-based RL with latent dynamics | Imagination, actor-critic |
 | **JEPA** | Self-supervised visual representations | Masked prediction, ViT |
 | **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
-| **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
+| **DiT** | Diffusion Transformer workflows | Patch embeddings, diffusion backbones |
 
 ## Documentation
 
-📖 [Full Documentation](https://paramthakkar123.github.io/torchwm/)
-
-### Get Started
-- [Installation](https://paramthakkar123.github.io/torchwm/getting_started.html)
+- [Full Documentation](https://paramthakkar123.github.io/torchwm/)
+- [Installation Guide](https://paramthakkar123.github.io/torchwm/installation.html)
 - [Training Guide](https://paramthakkar123.github.io/torchwm/training_guide.html)
-- [Inference Guide](https://paramthakkar123.github.io/torchwm/inference_guide.html)
-
-### User Guides
-- [Operators Guide](https://paramthakkar123.github.io/torchwm/operators_guide.html)
-- [Environments Guide](https://paramthakkar123.github.io/torchwm/environments_guide.html)
-- [Package Overview](https://paramthakkar123.github.io/torchwm/package_overview.html)
-
-### Algorithms
-- [Dreamer](https://paramthakkar123.github.io/torchwm/dreamer.html)
-- [JEPA](https://paramthakkar123.github.io/torchwm/jepa.html)
-- [IRIS](https://paramthakkar123.github.io/torchwm/iris.html)
-- [DiT](https://paramthakkar123.github.io/torchwm/dit.html)
+- [API Reference](https://paramthakkar123.github.io/torchwm/api_reference.html)
 
 ## Community
 
-- 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
-- 💬 [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
-- 📧 [PyPI](https://pypi.org/project/torchwm/)
+- [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
+- [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
+- [PyPI](https://pypi.org/project/torchwm/)
 
----
-
-```{important}
-TorchWM is under active development. APIs may change between versions.
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Get Started
-
-getting_started
-installation
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: User Guides
-
-operators_guide
-training_guide
-inference_guide
-environments_guide
-package_overview
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Algorithms
-
-dreamer
-jepa
-iris
-dit
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Reference
-
-api_reference
-configs_reference
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Development
-
-contributing
-benchmarks
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: User Guides
-
-operators_guide
-training_guide
-inference_guide
-environments_guide
-package_overview
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Algorithms
-
-dreamer
-jepa
-iris
-dit
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Reference
-
-api_reference
-configs_reference
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Development
-
-contributing
-benchmarks
-```
-
----
-
-## Quick Start
-
-TorchWM provides a unified interface for training and deploying world models.
-
-### Installation
-
-```bash
-pip install torchwm
-# or with uv
-uv add torch torchvision torchaudio
-```
-
-## Training Scripts
-
-TorchWM includes several training scripts for different world model components. These can be run directly from the command line.
-
-### Train World Model Pipeline
-
-Train a complete world model (VAE + MDNRNN + Controller) on any Gym environment:
-
-```bash
-# Train on CarRacing
-python -m world_models.training.train_world_model --env CarRacing-v2
-
-# Train on Pendulum
-python -m world_models.training.train_world_model --env Pendulum-v1
-
-# Custom data/log directories
-python -m world_models.training.train_world_model --env YourEnv-v0 --data_dir ./my_data --logdir ./my_logs
-
-# Specify action size manually if env loading fails
-python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
-
-# Test trained model
-python -m world_models.training.train_world_model --env CarRacing-v2 --test
-```
-
-### Other Training Scripts
-
-- **ConvVAE**: `python -m world_models.training.train_convvae`
-- **MDNRNN**: `python -m world_models.training.train_mdn_rnn`
-- **Controller**: `python -m world_models.training.train_controller`
-- **Planet**: `python -m world_models.training.train_planet`
-- **RSSM**: `python -m world_models.training.train_rssm`
-- **JEPA**: `python -m world_models.training.train_jepa`
-
-### Training a Dreamer Agent
-
-```python
-from world_models.models import DreamerAgent
-from world_models.configs import DreamerConfig
-
-cfg = DreamerConfig()
-cfg.env = "walker-walk"
-cfg.total_steps = 1_000_000
-
-agent = DreamerAgent(cfg)
-agent.train()
-```
-
-### Using Inference Operators
-
-```python
-from world_models.inference.operators import DreamerOperator
-
-op = DreamerOperator(image_size=64, action_dim=6)
-processed = op.process({'image': image, 'action': action})
-```
-
-## Features
-
-- 🎯 **Unified Interface**: Consistent API across all world model algorithms
-- 🔧 **Modular Components**: Swappable encoders, decoders, and backbones
-- 🚀 **High Performance**: Optimized for both training and inference
-- 🌍 **Multi-Environment**: Support for DMC, Gym, Unity, and custom environments
-- 📊 **Rich Monitoring**: Integrated logging with Weights & Biases and TensorBoard
-- 🧠 **Research Ready**: Easy experimentation with different architectures
-
-## Supported Algorithms
-
-| Algorithm | Description | Key Features |
-|-----------|-------------|--------------|
-| **Dreamer** | Model-based RL with latent dynamics | Imagination, actor-critic |
-| **JEPA** | Self-supervised visual representations | Masked prediction, ViT |
-| **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
-| **Diamond** | Diffusion + RL for continuous control | EDM sampling, value functions |
-
-## Community
-
-- 📖 [Documentation](https://paramthakkar123.github.io/torchwm/)
-- 🐛 [Issue Tracker](https://github.com/paramthakkar123/torchwm/issues)
-- 💬 [Discussions](https://github.com/paramthakkar123/torchwm/discussions)
-- 📧 [PyPI](https://pypi.org/project/torchwm/)
-
----
-
-```{important}
-TorchWM is under active development. APIs may change between versions.
-```
+> TorchWM is under active development. APIs may change between versions.

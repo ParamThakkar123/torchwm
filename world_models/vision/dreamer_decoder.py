@@ -21,10 +21,30 @@ _str_to_activation = {
 
 
 class TanhBijector(distributions.Transform):
-    """Bijective `tanh` transform used to squash Gaussian actions to `[-1, 1]`.
+    """Bijective tanh transform for squashing Gaussian distributions to [-1, 1].
 
-    Provides stable inverse and log-determinant Jacobian computations for
-    transformed-action distributions.
+    This transformation is essential for Dreamer's action policy. Raw neural network
+    outputs are Gaussian distributions over R^n, but actions in continuous control
+    environments are typically bounded in [-1, 1]. The tanh bijector provides:
+
+    1. **Bijective mapping**: tanh is invertible (with atanh as inverse)
+    2. **Stable log-det Jacobian**: Computable for gradient-based training
+    3. **Clipped actions**: During inference, actions are naturally bounded
+
+    Math:
+        Forward: y = tanh(x)
+        Inverse: x = atanh(y) = 0.5 * log((1+y)/(1-y))
+        Log-det: log|dy/dx| = 2*(log(2) - x - softplus(-2x))
+
+    Usage with Dreamer ActionDecoder:
+        dist = TransformedDistribution(
+            Normal(mean, std),
+            TanhBijector()
+        )
+        action = dist.sample()  # Bounded to [-1, 1]
+
+    Reference:
+        Building a Scalable Deep RL Library by Learning from Mistakes, Haarnoja et al.
     """
 
     def __init__(self):
@@ -55,14 +75,40 @@ class TanhBijector(distributions.Transform):
 
 
 class ConvDecoder(nn.Module):
-    """Convolutional Dreamer decoder from latent features to image distributions.
+    """Convolutional decoder for reconstructing observations from latent states.
 
-    Maps concatenated stochastic/deterministic states into transposed-conv
-    outputs and returns a factorized Normal distribution over pixels.
+    Part of Dreamer's world model, this decoder reconstructs image observations
+    from the combined stochastic (s) and deterministic (h) RSSM states.
+
+    Architecture:
+        Input: Concatenated [stoch_state, deter_state], shape (B, stoch+deter)
+        Process: Dense projection + 4 transposed convolutions (upsampling 2x each)
+        Output: Independent Normal distribution over observation pixels
+
+    The decoder mirrors the ConvEncoder's structure but in reverse (transposed convs
+    instead of regular convs). This creates a symmetric autoencoder where the encoder
+    and decoder can be trained jointly to learn compressed representations.
+
+    Output Distribution:
+        Returns torch.distributions.Independent(Normal(mean, std), len(shape))
+        This allows computing log_prob(observation) for reconstruction loss.
+
+    Usage in Dreamer world model:
+        decoder = ConvDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(3, 64, 64),  # RGB images
+            activation='relu'
+        )
+        obs_dist = decoder(latent_features)  # Returns distribution
+        log_prob = obs_dist.log_prob(target_observation)
+
+    Training:
+        The reconstruction loss is: -log_prob(observation)
+        This encourages the RSSM to learn states that capture observation information.
     """
 
     def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
-
         super().__init__()
 
         self.output_shape = output_shape
@@ -102,16 +148,99 @@ class ConvDecoder(nn.Module):
         return out_dist
 
 
+class _TwoHotDistribution:
+    """Categorical distribution over symlog-spaced buckets (Dreamer V2).
+
+    Stores raw logits and provides ``log_prob`` and ``mode`` / ``mean`` for
+    use in the world model and actor-critic losses. Decoding goes through
+    :func:`dreamer_utils.symexp` to invert the symlog transform.
+    """
+
+    def __init__(self, logits, num_buckets, symlog_range):
+        self.logits = logits
+        self.num_buckets = int(num_buckets)
+        self.symlog_range = float(symlog_range)
+        centers = torch.linspace(
+            -self.symlog_range, self.symlog_range, self.num_buckets
+        )
+        self._centers = centers.to(logits.device)
+
+    def log_prob(self, target):
+        if target.shape[-1] != self.num_buckets:
+            return self._log_prob_symlog(target)
+        return torch.log_softmax(self.logits, dim=-1) * target
+
+    def _log_prob_symlog(self, target):
+        from world_models.utils.dreamer_utils import TwoHotEncoder
+
+        encoder = TwoHotEncoder(
+            num_buckets=self.num_buckets, symlog_range=self.symlog_range
+        ).to(target.device)
+        encoded = encoder.encode(target)
+        return (torch.log_softmax(self.logits, dim=-1) * encoded).sum(-1)
+
+    def mean(self):
+        from world_models.utils.dreamer_utils import symexp
+
+        probs = torch.softmax(self.logits, dim=-1)
+        centers = self._centers.to(probs.device)
+        expectation = (probs * centers).sum(-1, keepdim=True)
+        return symexp(expectation)
+
+
 class DenseDecoder(nn.Module):
     """MLP decoder for reward/value/discount prediction from latent features.
 
-    The output distribution type is configurable (`normal`, `binary`, or raw tensor).
+    Part of Dreamer's world model, this decoder predicts scalar quantities
+    (rewards, values, discount factors) from RSSM latent states.
+
+    Architecture:
+        Input: [stoch_state, deter_state] concatenated, shape (B, stoch+deter)
+        Process: MLP with configurable layers and hidden units
+        Output: Predicted quantity with distribution (normal, binary, or raw)
+
+    Supports three output types:
+        - 'normal': Gaussian distribution for regression (rewards, values)
+        - 'binary': Bernoulli distribution for binary classification (discount)
+        - 'none': Raw tensor for non-probabilistic outputs
+
+    Usage:
+        reward_decoder = DenseDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(1,),
+            n_layers=2,
+            units=400,
+            activation='elu',
+            dist='normal'
+        )
+        reward_dist = reward_decoder(latent_features)
+        reward_loss = -reward_dist.log_prob(target_reward)
+
+    For discount prediction (binary):
+        discount_decoder = DenseDecoder(
+            stoch_size=30,
+            deter_size=200,
+            output_shape=(1,),
+            n_layers=2,
+            units=400,
+            activation='elu',
+            dist='binary'  # Bernoulli for P(continue)
+        )
     """
 
     def __init__(
-        self, stoch_size, deter_size, output_shape, n_layers, units, activation, dist
+        self,
+        stoch_size,
+        deter_size,
+        output_shape,
+        n_layers,
+        units,
+        activation,
+        dist,
+        num_buckets=255,
+        symlog_range=10.0,
     ):
-
         super().__init__()
 
         self.input_size = stoch_size + deter_size
@@ -120,6 +249,8 @@ class DenseDecoder(nn.Module):
         self.units = units
         self.act_fn = _str_to_activation[activation]
         self.dist = dist
+        self.num_buckets = int(num_buckets)
+        self.symlog_range = float(symlog_range)
 
         layers = []
 
@@ -129,12 +260,16 @@ class DenseDecoder(nn.Module):
             layers.append(nn.Linear(in_ch, out_ch))
             layers.append(self.act_fn)
 
-        layers.append(nn.Linear(self.units, int(np.prod(self.output_shape))))
+        if self.dist == "symlog_twohot":
+            out_dim = int(np.prod(self.output_shape)) * self.num_buckets
+        else:
+            out_dim = int(np.prod(self.output_shape))
+
+        layers.append(nn.Linear(self.units, out_dim))
 
         self.model = nn.Sequential(*layers)
 
     def forward(self, features):
-
         out = self.model(features)
 
         if self.dist == "normal":
@@ -143,6 +278,12 @@ class DenseDecoder(nn.Module):
             return Independent(Bernoulli(logits=out), len(self.output_shape))
         if self.dist == "none":
             return out
+        if self.dist == "symlog_twohot":
+            logits = out.reshape(
+                *out.shape[:-1], int(np.prod(self.output_shape)), self.num_buckets
+            )
+            return _TwoHotDistribution(logits, self.num_buckets, self.symlog_range)
+        raise NotImplementedError(self.dist)
 
         raise NotImplementedError(self.dist)
 
@@ -211,7 +352,6 @@ class ActionDecoder(nn.Module):
         init_std=5,
         mean_scale=5,
     ):
-
         super().__init__()
 
         self.action_size = action_size
@@ -236,7 +376,6 @@ class ActionDecoder(nn.Module):
         self.action_model = nn.Sequential(*layers)
 
     def forward(self, features, deter=False):
-
         out = self.action_model(features)
         mean, std = torch.chunk(out, 2, dim=-1)
 
@@ -255,5 +394,4 @@ class ActionDecoder(nn.Module):
             return dist.rsample()
 
     def add_exploration(self, action, action_noise=0.3):
-
         return torch.clamp(Normal(action, action_noise).rsample(), -1, 1)

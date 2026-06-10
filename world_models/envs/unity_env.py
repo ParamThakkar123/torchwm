@@ -1,23 +1,73 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import gymnasium as gym
 import numpy as np
 from PIL import Image
 
 
-def make_unity_mlagents_env(**kwargs):
-    """Factory helper for Unity ML-Agents environments."""
+def make_unity_mlagents_env(env_id: "Optional[str]" = None, **kwargs):
+    """Create a Unity ML-Agents environment wrapper.
+
+    Factory function that instantiates a UnityMLAgentsEnv with the provided
+    keyword arguments. Suitable for integrating Unity-based environments
+    with Dreamer-style world model pipelines.
+
+    Args:
+        **kwargs: Keyword arguments passed to UnityMLAgentsEnv, including:
+            - file_name (str): Path to the Unity environment binary.
+            - behavior_name (str, optional): Name of the behavior to use.
+            - seed (int): Random seed (default: 0).
+            - size (tuple): Image size as (height, width) (default: (64, 64)).
+            - worker_id (int): Worker ID for multi-environment setup (default: 0).
+            - base_port (int): Base port for communication (default: 5005).
+            - no_graphics (bool): Disable graphics rendering (default: True).
+            - time_scale (float): Simulation time scale (default: 20.0).
+            - quality_level (int): Graphics quality level (default: 1).
+            - max_episode_steps (int): Max steps per episode (default: 1000).
+
+    Returns:
+        UnityMLAgentsEnv: A Gym-compatible wrapper for Unity environments.
+    """
+    # `env_id` is accepted for API compatibility with generic factory
+    # callers that forward an env id as the first positional argument.
     return UnityMLAgentsEnv(**kwargs)
 
 
 class UnityMLAgentsEnv:
-    """
-    Gym-like wrapper for a Unity ML-Agents environment.
+    """Gym-like wrapper for Unity ML-Agents environments.
 
-    Notes:
-    - Supports single-agent control.
-    - Supports continuous action spaces.
-    - Returns channel-first uint8 images in obs["image"] for Dreamer-style pipelines.
+    Provides a unified interface for Unity-based environments, converting
+    observations to image format compatible with pixel-based world models.
+
+    Features:
+        - Supports single-agent control with continuous action spaces.
+        - Returns observations as {"image": (C, H, W)} with uint8 values.
+        - Normalizes actions to [-1, 1] range.
+        - Includes rendered frames in observations for visual policies.
+
+    Args:
+        file_name (str): Path to the Unity environment binary.
+        behavior_name (str, optional): Name of the behavior to use. If None,
+            uses the first available behavior.
+        seed (int): Random seed for environment (default: 0).
+        size (tuple): Target image size as (height, width) (default: (64, 64)).
+        worker_id (int): Worker ID for multi-environment setup (default: 0).
+        base_port (int): Base port for Unity environment communication (default: 5005).
+        no_graphics (bool): Disable graphics rendering for faster simulation (default: True).
+        time_scale (float): Simulation time scale multiplier (default: 20.0).
+        quality_level (int): Graphics quality level 0-5 (default: 1).
+        max_episode_steps (int): Maximum steps per episode (default: 1000).
+
+    Attributes:
+        observation_space: Dict space with "image" key containing (3, H, W) Box.
+        action_space: Box space with actions in [-1, 1] range.
+        max_episode_steps: Maximum steps per episode.
+
+    Raises:
+        ValueError: If no behaviors found or action space is not continuous.
+        RuntimeError: If no agents available after reset.
     """
 
     def __init__(

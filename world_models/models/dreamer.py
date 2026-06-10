@@ -14,13 +14,35 @@ from collections import OrderedDict
 import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
+from world_models.envs.mujoco_env import make_mujoco_env_from_config
+from world_models.envs.procgen_env import ProcgenImageEnv
+from world_models.envs.robotics_env import make_robotics_env
+from world_models.envs.brax_env import BraxImageEnv
+from world_models.envs.dmlab import DMLabEnv
+from world_models.envs.bsuite_env import BSuiteImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
 from world_models.vision.dreamer_decoder import ConvDecoder, DenseDecoder, ActionDecoder
 from world_models.vision.dreamer_encoder import ConvEncoder
-from world_models.utils.dreamer_utils import Logger, FreezeParameters, compute_return
+from world_models.utils.dreamer_utils import (
+    Logger,
+    FreezeParameters,
+    compute_return,
+    symlog as _symlog,
+    symexp as _symexp,
+    TwoHotEncoder,
+)
 from world_models.configs.dreamer_config import DreamerConfig
+from world_models.export import ExportableAgentMixin
+from world_models.utils.logging_utils import (
+    assert_finite,
+    collect_system_stats,
+    get_package_logger,
+    setup_logging,
+)
+
+logger = get_package_logger(__name__)
 
 # Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
 # causes mujoco to raise a RuntimeError during import. Respect an existing
@@ -83,8 +105,10 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, and Unity ML-Agents backends and applies the
-    standard wrapper stack: action repeat, action normalization, and time limit.
+    Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+    Brax, BSuite, and Unity ML-Agents backends
+    and applies the standard wrapper stack: action repeat, action normalization,
+    and time limit.
     """
     size = _resolve_image_size(args)
     backend = str(getattr(args, "env_backend", "dmc")).lower()
@@ -99,12 +123,61 @@ def make_env(args):
         )
     elif backend == "dmc":
         env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        env = DMLabEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            action_repeat=int(getattr(args, "dmlab_action_repeat", 4)),
+            action_set=getattr(args, "dmlab_action_set", None),
+            observations=getattr(args, "dmlab_observations", None),
+            config=getattr(args, "dmlab_config", None),
+            renderer=getattr(args, "dmlab_renderer", "hardware"),
+        )
     elif backend in {"gym", "gymnasium", "generic"}:
         env = GymImageEnv(
             args.env,
             seed=args.seed,
             size=size,
             render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"mujoco", "mjcf", "native_mujoco"}:
+        env = make_mujoco_env_from_config(args, size)
+    elif backend in {"procgen", "coinrun"}:
+        env = ProcgenImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            distribution_mode=getattr(args, "procgen_distribution_mode", "easy"),
+            num_levels=int(getattr(args, "procgen_num_levels", 0)),
+            start_level=getattr(args, "procgen_start_level", None),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
+    elif backend in {"robotics", "gymnasium_robotics"}:
+        env = make_robotics_env(
+            args.env,
+            seed=args.seed,
+            size=size,
+            render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"bsuite", "behavior_suite", "behaviour_suite"}:
+        env = BSuiteImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+        )
+    elif backend in {"brax", "jax_brax"}:
+        env = BraxImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            backend=getattr(args, "brax_backend", "generalized"),
+            episode_length=int(getattr(args, "time_limit", 1000)),
+            auto_reset=bool(getattr(args, "brax_auto_reset", False)),
+            jit=bool(getattr(args, "brax_jit", True)),
+            suppress_warp_warnings=bool(
+                getattr(args, "brax_suppress_warp_warnings", True)
+            ),
         )
     elif backend in {"unity", "unity_mlagents", "mlagents"}:
         unity_file_name = getattr(args, "unity_file_name", None)
@@ -126,7 +199,8 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, dmlab, gym, mujoco, "
+            "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
@@ -176,8 +250,10 @@ class Dreamer:
         adaptive_buffer_size = min(args.buffer_size, max_buffer_size)
 
         if adaptive_buffer_size < args.buffer_size:
-            print(
-                f"Reducing buffer size from {args.buffer_size} to {adaptive_buffer_size} due to memory constraints."
+            logger.warning(
+                "Reducing buffer size from %s to %s due to memory constraints.",
+                args.buffer_size,
+                adaptive_buffer_size,
             )
 
         self.data_buffer = ReplayBuffer(
@@ -219,6 +295,14 @@ class Dreamer:
             output_shape=self.obs_shape,
             activation=self.args.cnn_activation_function,
         ).to(self.device)
+        head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
+        head_kwargs = {}
+        if head_dist == "symlog_twohot":
+            head_kwargs = {
+                "num_buckets": getattr(self.args, "num_buckets", 255),
+                "symlog_range": getattr(self.args, "symlog_range", 10.0),
+            }
+
         self.reward_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
             deter_size=self.args.deter_size,
@@ -226,7 +310,8 @@ class Dreamer:
             n_layers=2,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         self.value_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
@@ -235,7 +320,8 @@ class Dreamer:
             n_layers=3,
             units=self.args.num_units,
             activation=self.args.dense_activation_function,
-            dist="normal",
+            dist=head_dist,
+            **head_kwargs,
         ).to(self.device)
         if self.args.use_disc_model:
             self.discount_model = DenseDecoder(
@@ -295,6 +381,7 @@ class Dreamer:
         if restore:
             self.restore_checkpoint(self.restore_path)
 
+    @assert_finite
     def world_model_loss(self, obs, acs, rews, nonterms):
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
@@ -305,6 +392,7 @@ class Dreamer:
         features = torch.cat([self.posterior["stoch"], self.posterior["deter"]], dim=-1)
         rew_dist = self.reward_model(features)
         obs_dist = self.obs_decoder(features)
+        disc_dist = None
         if self.args.use_disc_model:
             disc_dist = self.discount_model(features)
 
@@ -345,23 +433,22 @@ class Dreamer:
                 kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
             )
 
-        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
-        rew_loss = -torch.mean(rew_dist.log_prob(rews[:-1]))
-        if self.args.use_disc_model:
-            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
-
-        if self.args.use_disc_model:
-            model_loss = (
-                self.args.kl_loss_coeff * kl_loss
-                + obs_loss
-                + rew_loss
-                + self.args.disc_loss_coeff * disc_loss
-            )
+        if self.args.algo == "Dreamerv2":
+            target_rew = _symlog(rews[:-1])
         else:
-            model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+            target_rew = rews[:-1]
+
+        obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
+        rew_loss = -torch.mean(rew_dist.log_prob(target_rew))
+
+        model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
+        if self.args.use_disc_model and disc_dist is not None:
+            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
+            model_loss = model_loss + self.args.disc_loss_coeff * disc_loss
 
         return model_loss
 
+    @assert_finite
     def actor_loss(self):
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
@@ -395,19 +482,28 @@ class Dreamer:
 
         discounts = torch.cat([torch.ones_like(discounts[:1]), discounts[1:-1]], 0)
         self.discounts = torch.cumprod(discounts, 0).detach()
-        actor_loss = -torch.mean(self.discounts * self.returns)
+
+        if self.args.algo == "Dreamerv2":
+            weight = self.discounts.detach()
+            target = _symlog(self.returns.detach())
+            actor_loss = -torch.mean(weight * target)
+        else:
+            actor_loss = -torch.mean(self.discounts * self.returns)
         return actor_loss
 
+    @assert_finite
     def value_loss(self):
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
             value_targ = self.returns.detach()
 
         value_dist = self.value_model(value_feat)
-        value_loss = -torch.mean(
-            self.discounts * value_dist.log_prob(value_targ).unsqueeze(-1)
-        )
-
+        if self.args.algo == "Dreamerv2":
+            target = _symlog(value_targ)
+            log_prob = value_dist.log_prob(target)
+        else:
+            log_prob = value_dist.log_prob(value_targ).unsqueeze(-1)
+        value_loss = -torch.mean(self.discounts * log_prob)
         return value_loss
 
     def train_one_batch(self):
@@ -608,7 +704,7 @@ class Dreamer:
         self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
 
-class DreamerAgent:
+class DreamerAgent(ExportableAgentMixin):
     """High-level user API for running Dreamer experiments end to end.
 
     It builds environments from config, initializes seeds and logging,
@@ -667,6 +763,15 @@ class DreamerAgent:
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
 
+        setup_logging(
+            "world_models",
+            getattr(self.args, "log_level", "INFO"),
+            getattr(self.args, "log_file", None),
+        )
+        if getattr(self.args, "detect_anomaly", False):
+            torch.autograd.set_detect_anomaly(True)
+            logger.warning("torch.autograd anomaly detection is enabled")
+
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
         torch.manual_seed(self.args.seed)
@@ -688,12 +793,16 @@ class DreamerAgent:
 
         self.logger = Logger(
             self.logdir,
-            self.args.enable_wandb,
-            self.args.wandb_api_key,
-            self.args.wandb_project,
-            self.args.wandb_entity,
-            self.args.video_format,
-            self.args.video_fps,
+            enable_wandb=self.args.enable_wandb,
+            wandb_api_key=self.args.wandb_api_key,
+            wandb_project=self.args.wandb_project,
+            wandb_entity=self.args.wandb_entity,
+            video_format=self.args.video_format,
+            video_fps=self.args.video_fps,
+            enable_tensorboard=getattr(self.args, "enable_tensorboard", False),
+            enable_console=getattr(self.args, "enable_console_metrics", True),
+            enable_jsonl=getattr(self.args, "enable_jsonl", True),
+            jsonl_filename=getattr(self.args, "jsonl_filename", "metrics.jsonl"),
         )
 
     def train(self, total_steps=None):
@@ -722,17 +831,22 @@ class DreamerAgent:
         self.logger.flush()
 
         while global_step <= total_steps:
-            print("##################################")
-            print(f"At global step {global_step}")
+            logger.info("At global step %s", global_step)
 
             logs = OrderedDict()
+            video_images = []
 
+            update_start = time.perf_counter()
             for _ in range(self.args.update_steps):
                 model_loss, actor_loss, value_loss = self.dreamer.train_one_batch()
+            update_elapsed = max(time.perf_counter() - update_start, 1e-9)
 
+            collect_count = self.args.collect_steps // self.args.action_repeat
+            collect_start = time.perf_counter()
             train_rews = self.dreamer.act_and_collect_data(
-                self.train_env, self.args.collect_steps // self.args.action_repeat
+                self.train_env, collect_count
             )
+            collect_elapsed = max(time.perf_counter() - collect_start, 1e-9)
 
             logs.update(
                 {
@@ -743,8 +857,25 @@ class DreamerAgent:
                     "train_max_reward": np.max(train_rews),
                     "train_min_reward": np.min(train_rews),
                     "train_std_reward": np.std(train_rews),
+                    "throughput/env_steps_per_sec": (
+                        collect_count * self.args.action_repeat
+                    )
+                    / collect_elapsed,
+                    "throughput/grad_steps_per_sec": self.args.update_steps
+                    / update_elapsed,
+                    "replay/fill_ratio": min(
+                        1.0,
+                        self.dreamer.data_buffer.steps
+                        / max(1, self.dreamer.data_buffer.size),
+                    ),
+                    "replay/steps": self.dreamer.data_buffer.steps,
+                    "replay/episodes": self.dreamer.data_buffer.episodes,
                 }
             )
+
+            stats_freq = getattr(self.args, "log_system_stats_freq", 0)
+            if stats_freq and global_step % stats_freq == 0:
+                logs.update(collect_system_stats(self.dreamer.device))
 
             if global_step % self.args.test_interval == 0:
                 episode_rews, video_images, latents = self.dreamer.evaluate(
@@ -767,9 +898,10 @@ class DreamerAgent:
             if (
                 global_step % self.args.log_video_freq == 0
                 and self.args.log_video_freq != -1
+                and len(video_images) > 0
                 and len(video_images[0]) != 0
             ):
-                self.logger.log_video(
+                self.logger.log_videos(
                     video_images, global_step, self.args.max_videos_to_save
                 )
             if global_step % self.args.checkpoint_interval == 0:

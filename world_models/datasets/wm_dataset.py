@@ -4,63 +4,12 @@ This module provides utilities for generating rollout data from environments
 and PyTorch dataset classes for loading observation sequences.
 """
 
-import os
-import gymnasium as gym
 import numpy as np
 from torch.utils.data import Dataset
 from albumentations.core.composition import Compose
 import glob
 import torch
 from bisect import bisect
-
-
-def rollout(data):
-    """Generate a rollout by running random actions in the environment.
-
-    This function creates a single rollout by executing random actions in
-    the CarRacing environment and saves the trajectory data to disk.
-
-    Args:
-        data: Tuple of (data_dir, seq_len, rollouts) containing:
-            - data_dir: Directory to save rollout files
-            - seq_len: Maximum length of each rollout
-            - rollouts: Number of rollouts to generate
-
-    Note:
-        This function is designed to be used with multiprocessing.Pool
-        for parallel data generation.
-    """
-    data_dir, seq_len, rollouts = data
-    os.makedirs(data_dir)
-    env = gym.make("CarRacing-v2", continuous=False)
-
-    for i in range(rollouts):
-        env.reset()
-        actions_rollout = [env.action_space.sample() for _ in range(seq_len)]
-        observations_rollout = []
-        rewards_rollout = []
-        dones_rollout = []
-
-        t = 0
-        while True:
-            action = actions_rollout[t]
-            t += 1
-
-            obs, reward, done, truncated, _ = env.step(action)
-            observations_rollout += [obs]
-            rewards_rollout += [reward]
-            dones_rollout += [done]
-
-            if done or truncated:
-                print(f"{data_dir.split('/')[-1]} | End of rollout {i} | {t} frames")
-                np.savez(
-                    os.path.join(data_dir, f"rollout_{i}"),
-                    observations=np.array(observations_rollout),
-                    rewards=np.array(rewards_rollout),
-                    actions=np.array(actions_rollout),
-                    terminals=np.array(dones_rollout),
-                )
-                break
 
 
 class RolloutDataset(Dataset):
@@ -109,15 +58,13 @@ class RolloutDataset(Dataset):
         self.root = root
         self.transform = transform
         self.files = glob.glob(self.root + "/**/*.npz", recursive=True)
-        if len(self.files) > num_test_files:
+        if len(self.files) > num_test_files and num_test_files > 0:
             if train:
                 self.files = self.files[:-num_test_files]
             else:
                 self.files = self.files[-num_test_files:]
-        else:
-            # If not enough files, use all for training, none for test
-            if not train:
-                self.files = []
+        elif not train:
+            self.files = []
 
         self.cum_size = [0]
         for f in self.files:
@@ -310,7 +257,6 @@ class LatentSequenceDataset(Dataset):
 
     def __init__(
         self,
-        latents: int,
         latents_arr: np.ndarray,
         actions: np.ndarray,
         rewards: np.ndarray,
@@ -327,11 +273,12 @@ class LatentSequenceDataset(Dataset):
         self.terminals = terminals
 
         total_samples = len(actions)
+        test_count = num_test_files * seq_len
         if train:
             self.start_idx = 0
-            self.end_idx = total_samples - num_test_files * 100
+            self.end_idx = max(0, total_samples - test_count)
         else:
-            self.start_idx = total_samples - num_test_files * 100
+            self.start_idx = total_samples - test_count
             self.end_idx = total_samples
 
         self.seq_len = seq_len

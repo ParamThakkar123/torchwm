@@ -12,16 +12,38 @@ _str_to_activation = {
     "identity": nn.Identity(),
 }
 
-
 class ConvEncoder(nn.Module):
     """Convolutional observation encoder used by Dreamer world models.
 
-    Encodes image observations into compact embeddings consumed by the RSSM
-    posterior update network.
+    This encoder transforms raw image observations (typically RGB frames from
+    environments like Atari or DeepMind Control) into compact latent embeddings
+    that can be processed by the RSSM (Recurrent State-Space Model).
+
+    Architecture:
+        Input: (B, C, H, W) raw images, values in [-0.5, 0.5]
+        Process: 4 convolutional layers with stride 2, halving spatial dimensions
+        Output: (B, embed_size) compact representation
+
+    The encoder uses a depth doubling pattern: 32 -> 64 -> 128 -> 256 channels.
+    After convolutions, a fully connected layer projects from 1024 features to
+    the desired embedding size.
+
+    Usage with Dreamer:
+        encoder = ConvEncoder(
+            input_shape=(3, 64, 64),  # RGB 64x64 images
+            embed_size=256,           # RSSM observation embedding size
+            activation='relu'         # Activation function
+        )
+        obs_embedding = encoder(observation)  # (B, 256)
+
+    Args:
+        input_shape: Tuple (C, H, W) for input images, typically (3, 64, 64)
+        embed_size: Output embedding dimension, typically 256 or 1024
+        activation: Activation function name ('relu', 'elu', 'tanh', etc.)
+        depth: Base channel depth for first layer (default 32)
     """
 
     def __init__(self, input_shape, embed_size, activation, depth=32):
-
         super().__init__()
 
         self.input_shape = input_shape

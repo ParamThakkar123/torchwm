@@ -121,15 +121,13 @@ class WMVAEConfig:
         Returns:
             Value of the configuration attribute.
         """
-        return getattr(self._cfg, item)
-
-    def to_dict(self):
-        """Convert configuration to dictionary.
-
-        Returns:
-            Dictionary containing all configuration parameters.
-        """
-        return self._cfg.to_dict()
+        if item == "_cfg":
+            raise AttributeError(item)
+        if hasattr(self._cfg, item):
+            return getattr(self._cfg, item)
+        if item in self._cfg.extra:
+            return self._cfg.extra[item]
+        raise AttributeError(item)
 
 
 class WMMDNRNNConfig:
@@ -255,7 +253,13 @@ class WMMDNRNNConfig:
         Returns:
             Value of the configuration attribute.
         """
-        return getattr(self._cfg, item)
+        if item == "_cfg":
+            raise AttributeError(item)
+        if hasattr(self._cfg, item):
+            return getattr(self._cfg, item)
+        if item in self._cfg.extra:
+            return self._cfg.extra[item]
+        raise AttributeError(item)
 
     def to_dict(self):
         """Convert configuration to dictionary.
@@ -292,6 +296,7 @@ class WMControllerConfig:
         latent_size: int = 32
         hidden_size: int = 200
         action_size: int = 3
+        env_name: str = "CarRacing-v2"
         logdir: str = "results"
         n_samples: int = 4
         pop_size: int = 10
@@ -323,6 +328,7 @@ class WMControllerConfig:
             "latent_size",
             "hidden_size",
             "action_size",
+            "env_name",
             "logdir",
             "n_samples",
             "pop_size",
@@ -338,7 +344,13 @@ class WMControllerConfig:
 
     def __getattr__(self, item):
         """Get configuration attribute."""
-        return getattr(self._cfg, item)
+        if item == "_cfg":
+            raise AttributeError(item)
+        if hasattr(self._cfg, item):
+            return getattr(self._cfg, item)
+        if item in self._cfg.extra:
+            return self._cfg.extra[item]
+        raise AttributeError(item)
 
     def to_dict(self):
         """Convert configuration to dictionary."""

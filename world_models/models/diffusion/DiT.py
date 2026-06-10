@@ -4,13 +4,13 @@ import torch.nn.functional as F
 import math
 from einops import rearrange
 from world_models.configs.dit_config import DiTConfig as Config
-from world_models.layers.AdaLNNorm import AdaLNNormalization
+from world_models.layers.ada_ln_norm import AdaLNNormalization
 from world_models.blocks.mhsa import MultiHeadSelfAttention
 from world_models.models.diffusion.DDPM import DDPM
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from torchvision.transforms import RandomHorizontalFlip, Compose, ToTensor
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 import time
 from torchvision.utils import save_image
 import os
@@ -21,8 +21,27 @@ cfg = Config()
 def sinusoidal_time_embedding(timesteps, dim):
     """Create sinusoidal timestep embeddings for diffusion conditioning.
 
-    Embeddings are scaled relative to configured diffusion timesteps and are
-    consumed by the DiT conditioning MLP.
+    This function generates positional-style embeddings for diffusion timesteps,
+    following the same pattern as transformer positional encodings. The embeddings
+    encode the noise level (t) and are used to condition the diffusion model.
+
+    Math:
+        embedding[t] = [sin(t/10000^(2i/d)), cos(t/10000^(2i/d))] for i in [0, d/2)
+
+    Args:
+        timesteps: Tensor of integer timesteps, shape (B,) or (B, 1)
+        dim: Embedding dimension (must be even)
+
+    Returns:
+        Tensor of shape (B, dim) with sinusoidal embeddings
+
+    Usage with DiT:
+        t = torch.tensor([0, 500, 1000])  # Timesteps
+        emb = sinusoidal_time_embedding(t, dim=256)  # (3, 256)
+
+        # Condition the model:
+        # - Add to timestep embedding to MLP input
+        # - Use AdaLN for adaptive normalization
     """
     half = dim // 2
     freqs = torch.exp(
@@ -38,8 +57,26 @@ def sinusoidal_time_embedding(timesteps, dim):
 class PatchEmbed(nn.Module):
     """Patchify an image into a sequence of learnable patch tokens.
 
-    A strided convolution performs patch extraction and projects each patch
-    to the transformer hidden dimension with additive positional embeddings.
+    Used in Vision Transformers (ViT) and DiT to convert 2D images into
+    sequences of token embeddings that can be processed by transformers.
+
+    Process:
+        1. Conv2d with kernel_size=stride=patch_size extracts non-overlapping patches
+        2. Each patch is projected to embed_dim via linear layer (Conv2d)
+        3. Learnable positional embeddings are added for spatial information
+
+    Input: (B, C, H, W) images
+    Output: (B, N, embed_dim) where N = (H/patch_size) * (W/patch_size)
+
+    Args:
+        img_size: Image size (assumes square), e.g., 32 for CIFAR
+        patch_size: Size of each patch (typically 4, 8, or 16)
+        in_channels: Number of input channels (3 for RGB)
+        embed_dim: Output dimension for each patch token
+
+    Usage with DiT:
+        patch_embed = PatchEmbed(img_size=32, patch_size=4, in_channels=3, embed_dim=256)
+        tokens = patch_embed(images)  # (B, 64, 256) for 32x32 image with patch_size=4
     """
 
     def __init__(self, img_size, patch_size, in_channels, embed_dim):
@@ -340,3 +377,43 @@ class DiT(nn.Module):
             os.makedirs(workdir, exist_ok=True)
             save_image((samples + 1) / 2, f"{workdir}/generated_samples.png", nrow=4)
             print(f"Generated samples saved to {workdir}/generated_samples.png")
+
+
+def create_dit(config=None, **overrides):
+    """Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.
+
+    The public factory API works with config objects, while ``DiT`` itself has a
+    compact constructor. This adapter keeps the lower-level model constructor
+    unchanged and maps the public config fields onto the expected arguments.
+    """
+
+    if config is None:
+        config = Config()
+
+    config_fields = set(getattr(config, "__dataclass_fields__", {}))
+    config_overrides = {
+        key: value for key, value in overrides.items() if key in config_fields
+    }
+    constructor_overrides = {
+        key: value for key, value in overrides.items() if key not in config_fields
+    }
+    if config_overrides:
+        from dataclasses import replace
+
+        config = replace(config, **config_overrides)
+
+    kwargs = {
+        "img_size": config.IMG_SIZE,
+        "patch_size": config.PATCH,
+        "in_channels": config.CHANNELS,
+        "d_model": config.WIDTH,
+        "depth": config.DEPTH,
+        "heads": config.HEADS,
+        "drop": config.DROP,
+    }
+    supported = set(kwargs) | {"t_dim"}
+    invalid = sorted(set(constructor_overrides) - supported)
+    if invalid:
+        raise ValueError(f"Unsupported DiT argument(s): {', '.join(invalid)}")
+    kwargs.update(constructor_overrides)
+    return DiT(**kwargs)

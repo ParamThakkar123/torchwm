@@ -1,4 +1,4 @@
-from .base import OperatorABC
+from .base import OperatorABC, TensorSpec
 from .dreamer_operator import DreamerOperator
 from .jepa_operator import JEPAOperator
 from .iris_operator import IrisOperator
@@ -34,6 +34,7 @@ def get_operator(name: str, **kwargs):
 
 __all__ = [
     "OperatorABC",
+    "TensorSpec",
     "DreamerOperator",
     "JEPAOperator",
     "IrisOperator",

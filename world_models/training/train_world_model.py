@@ -38,7 +38,7 @@ from world_models.training.train_mdn_rnn import train_mdn_rnn
 from world_models.training.train_controller import train_controller
 from world_models.envs.gym_env import GymImageEnv
 from world_models.models.controller import Controller
-from world_models.models.mdrnn import MDRNN
+from world_models.models.mdrnn import MDRNN, MDRNNCell
 from world_models.vision.VAE.ConvVAE import ConvVAE
 
 
@@ -172,6 +172,7 @@ def run_training_pipeline(args, action_size):
                 "latent_size": args.latent_size,
                 "hidden_size": args.rnn_hidden,
                 "action_size": action_size,
+                "env_name": args.env,
                 "logdir": args.logdir,
                 "n_samples": args.ctrl_samples,
                 "pop_size": args.ctrl_pop_size,
@@ -223,54 +224,62 @@ def run_training_pipeline(args, action_size):
 def test_trained_model(logdir, env_name, action_size, num_episodes=5):
     """Test the trained world model with controller in the environment."""
 
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
+
+    vae_file = os.path.join(logdir, "vae", "best.tar")
+    rnn_file = os.path.join(logdir, "mdrnn", "best.tar")
+    ctrl_file = os.path.join(logdir, "ctrl", "best.tar")
+
+    for f in [vae_file, rnn_file, ctrl_file]:
+        if not os.path.exists(f):
+            print(f"Missing: {f}")
+            return
+
+    print("\nLoading trained models...")
+
+    vae_state = torch.load(vae_file, map_location=device)
+    vae = ConvVAE(img_channels=3, latent_size=32).to(device)
+    vae.load_state_dict(vae_state["state_dict"])
+    vae.eval()
+
+    rnn_state = torch.load(rnn_file, map_location=device)
+    batch_rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5)
+    batch_rnn.load_state_dict(rnn_state["state_dict"])
+
+    cell_rnn = MDRNNCell(latents=32, actions=action_size, hiddens=256, gaussians=5).to(
+        device
+    )
+    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)
+    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)
+    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)
+    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)
+    cell_rnn.gmm_linear.load_state_dict(batch_rnn.gmm_linear.state_dict())
+    cell_rnn.eval()
+    del batch_rnn
+
+    ctrl_state = torch.load(ctrl_file, map_location=device)
+    ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
+    ctrl.load_state_dict(ctrl_state["state_dict"])
+    ctrl.eval()
+
     try:
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
-        else:
-            device = torch.device("cpu")
-            print("WARNING: CUDA not available, using CPU")
+        env = gym.make(env_name, continuous=True)
+    except Exception:
+        env = gym.make(env_name)
+    env = GymImageEnv(env=env, size=(64, 64))
 
-        vae_file = os.path.join(logdir, "vae", "best.tar")
-        rnn_file = os.path.join(logdir, "mdrnn", "best.tar")
-        ctrl_file = os.path.join(logdir, "ctrl", "best.tar")
+    print(f"\nRunning {num_episodes} episodes...")
 
-        for f in [vae_file, rnn_file, ctrl_file]:
-            if not os.path.exists(f):
-                print(f"Missing: {f}")
-                return
-
-        print("\nLoading trained models...")
-
-        vae_state = torch.load(vae_file, map_location=device)
-        vae = ConvVAE(img_channels=3, latent_size=32).to(device)
-        vae.load_state_dict(vae_state["state_dict"])
-        vae.eval()
-
-        rnn_state = torch.load(rnn_file, map_location=device)
-        rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5).to(
-            device
-        )
-        rnn.load_state_dict(rnn_state["state_dict"])
-        rnn.eval()
-
-        ctrl_state = torch.load(ctrl_file, map_location=device)
-        ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
-        ctrl.load_state_dict(ctrl_state["state_dict"])
-        ctrl.eval()
-
-        try:
-            env = gym.make(env_name, continuous=True)
-        except Exception:
-            env = gym.make(env_name)
-
-        env = GymImageEnv(env=env, size=(64, 64))
-
-        print(f"\nRunning {num_episodes} episodes...")
-
+    try:
         for episode in range(num_episodes):
             obs, _ = env.reset()
             total_reward = 0
-            h = torch.zeros(1, 256).to(device)
+            h, c = cell_rnn.get_init_hidden(1)
+            h, c = h.to(device), c.to(device)
 
             for step in range(1000):
                 with torch.no_grad():
@@ -281,16 +290,14 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
                         obs_tensor, size=64, mode="bilinear", align_corners=True
                     )
                     obs_tensor = obs_tensor / 255.0
-                    obs_tensor = obs_tensor.permute(0, 2, 3, 1)
 
                     mu, logsigma = vae.encoder(obs_tensor)
                     z = mu + logsigma.exp() * torch.randn_like(logsigma)
 
                     action = ctrl(h, z).cpu().numpy().flatten()
 
-                    mus, sigmas, logpi, _, _ = rnn(action, z)
-                    h = rnn.get_init_hidden(1)
-                    h = h + torch.randn_like(h) * 0.1
+                    action_t = torch.tensor(action).float().to(device)
+                    _, _, _, _, _, (h, c) = cell_rnn(action_t, z, (h, c))
 
                     next_obs, reward, done, _ = env.step(action)
                     total_reward += reward
@@ -300,14 +307,10 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
                         break
 
             print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")
-
-        env.close()
-
     except KeyboardInterrupt:
         print("\nTesting interrupted by user (Ctrl+C)")
-        if "env" in locals():
-            env.close()
-        raise
+    finally:
+        env.close()
 
 
 def main():

@@ -45,6 +45,9 @@ class ResBlock(nn.Module):
         self.norm2 = AdaptiveGroupNorm(32, out_channels, cond_dim)
         self.dropout = nn.Dropout(dropout)
 
+        # skip connection may be either a Conv2d or an Identity - annotate as
+        # generic nn.Module to satisfy static type checkers.
+        self.skip: nn.Module
         if in_channels != out_channels:
             self.skip = nn.Conv2d(in_channels, out_channels, 1)
         else:
@@ -122,6 +125,8 @@ class DownBlock(nn.Module):
             self.res_blocks.append(ResBlock(in_channels, out_channels, cond_dim))
             in_channels = out_channels
 
+        # attn can be AttentionBlock or None
+        self.attn: Optional[AttentionBlock]
         if attention:
             self.attn = AttentionBlock(out_channels, cond_dim)
         else:
@@ -152,6 +157,8 @@ class UpBlock(nn.Module):
             self.res_blocks.append(ResBlock(in_channels, out_channels, cond_dim))
             in_channels = out_channels
 
+        # attn can be AttentionBlock or None
+        self.attn: Optional[AttentionBlock]
         if attention:
             self.attn = AttentionBlock(out_channels, cond_dim)
         else:
@@ -381,7 +388,9 @@ class EDMPreconditioner:
         precond = self.get_preconditioners(sigma)
 
         model_input = precond["c_in"] * x
-        model_output = model(model_input, sigma.squeeze(-1).squeeze(-1), **kwargs)
+        # use EDM's c_noise (log-sigma transform) as the network timestep
+        t_cond = precond["c_noise"].squeeze(-1).squeeze(-1)
+        model_output = model(model_input, t_cond, **kwargs)
 
         denoised = precond["c_skip"] * x + precond["c_out"] * model_output
         return denoised
@@ -396,6 +405,7 @@ class EulerSampler:
         sigma_max: float = 80.0,
         rho: int = 7,
         num_steps: int = 3,
+        edm_precond: Optional[EDMPreconditioner] = None,
     ):
         self.sigma_min = sigma_min
         self.sigma_max = sigma_max
@@ -411,6 +421,10 @@ class EulerSampler:
         ) ** rho
         self.t_steps = torch.flip(t_steps, dims=(0,))
         self.t_next = torch.cat([self.t_steps[1:], torch.tensor([0.0])])
+        # attach EDM preconditioner instance (use provided or default)
+        self.edm_precond = (
+            edm_precond if edm_precond is not None else EDMPreconditioner()
+        )
 
     @torch.no_grad()
     def sample(
@@ -435,24 +449,41 @@ class EulerSampler:
             Generated samples [B, C, H, W]
         """
         B = shape[0]
-        x = torch.randn(shape, device=device) * self.t_steps[0]
+        # Ensure t_steps and t_next are on the same device and dtype as model inputs.
+        # self.t_steps and self.t_next are created on CPU in __init__, so move/cast here.
+        t_steps = self.t_steps.to(device=device, dtype=torch.get_default_dtype())
+        t_next = self.t_next.to(device=device, dtype=torch.get_default_dtype())
+
+        x = torch.randn(shape, device=device) * t_steps[0]
+
+        # Use the preconditioner instance attached to the sampler (injected
+        # at construction time) to ensure a single canonical implementation
+        # of the EDM preconditioning is used across training and sampling.
+        edm_precond = self.edm_precond
 
         for i in range(self.num_steps):
-            t_cur = self.t_steps[i].expand(B)
-            t_next = self.t_next[i].expand(B)
+            t_cur = t_steps[i].expand(B).to(device)
+            t_nxt = t_next[i].expand(B).to(device)
 
             sigma_cur = t_cur.view(-1, 1, 1, 1)
 
-            model_output = model(
+            # Apply EDM preconditioning: model was trained on inputs scaled by
+            # c_in and expected to output the network prediction which is then
+            # combined with c_skip and c_out to form the denoised image. Use
+            # the same transforms at sampling time.
+            # Use the canonical EDM preconditioner denoise helper so all
+            # preconditioning (c_in/c_out/c_skip) and time-conditioning
+            # (c_noise) logic is centralized in one place.
+            denoised = edm_precond.denoise(
+                model,
                 x,
                 t_cur,
                 obs_history=obs_history,
                 actions=actions,
             )
 
-            denoised = x + model_output * sigma_cur
-
+            # Euler step for the probability-flow ODE (deterministic sampler)
             d_cur = (denoised - x) / sigma_cur
-            x = denoised + (t_next.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
+            x = denoised + (t_nxt.view(-1) - t_cur.view(-1)).view(-1, 1, 1, 1) * d_cur
 
         return x.clamp(0, 1)

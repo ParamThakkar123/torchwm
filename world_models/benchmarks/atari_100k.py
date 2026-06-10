@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from tqdm import tqdm
 
 from world_models.configs.diamond_config import (
@@ -14,7 +14,7 @@ def evaluate_atari_100k(
     game: str,
     num_seeds: int = 5,
     checkpoint_path: Optional[str] = None,
-) -> Dict[str, float]:
+) -> Dict[str, Any]:
     """
     Evaluate DIAMOND on a single Atari game following the Atari 100k protocol.
 
@@ -89,7 +89,7 @@ def run_atari_100k_benchmark(
     return results
 
 
-def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
+def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, Any]:
     """
     Compute aggregate metrics across all games.
 
@@ -99,7 +99,7 @@ def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
     Returns:
         Dictionary with aggregate metrics
     """
-    all_hns = []
+    all_hns: List[float] = []
     superhuman_count = 0
 
     for game, game_results in results.items():
@@ -109,18 +109,18 @@ def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, float]:
         if any(hns >= 1.0 for hns in hns_scores):
             superhuman_count += 1
 
-    all_hns = np.array(all_hns)
+    all_hns_arr = np.array(all_hns)
 
     return {
-        "mean_hns": np.mean(all_hns),
-        "median_hns": np.median(all_hns),
-        "iqm_hns": np.mean(np.percentile(all_hns, [25, 50, 75])),
-        "superhuman_games": superhuman_count,
-        "total_games": len(results),
+        "mean_hns": float(np.mean(all_hns_arr)),
+        "median_hns": float(np.median(all_hns_arr)),
+        "iqm_hns": float(np.mean(np.percentile(all_hns_arr, [25, 50, 75]))),
+        "superhuman_games": int(superhuman_count),
+        "total_games": int(len(results)),
     }
 
 
-def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, float]):
+def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, Any]):
     """Print a formatted table of results."""
     print("\n" + "=" * 100)
     print(f"{'Game':<20} {'Mean Score':>12} {'Std':>8} {'Mean HNS':>10} {'Std HNS':>8}")
@@ -147,21 +147,20 @@ def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, float]):
 
 
 if __name__ == "__main__":
-    import argparse
+    from omegaconf import OmegaConf
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--game", type=str, default=None)
-    parser.add_argument("--benchmark", action="store_true")
-    parser.add_argument("--num_seeds", type=int, default=5)
-    args = parser.parse_args()
+    cli_cfg = OmegaConf.from_cli()
+    game = cli_cfg.get("game", None)
+    run_benchmark = cli_cfg.get("benchmark", False)
+    num_seeds = int(cli_cfg.get("num_seeds", 5))
 
-    if args.game:
-        results = evaluate_atari_100k(args.game, num_seeds=args.num_seeds)
-        print(f"\nResults for {args.game}:")
+    if game:
+        results = evaluate_atari_100k(game, num_seeds=num_seeds)
+        print(f"\nResults for {game}:")
         print(f"  Mean Score: {results['mean_score']:.1f} ± {results['std_score']:.1f}")
         print(f"  Mean HNS: {results['mean_hns']:.3f} ± {results['std_hns']:.3f}")
 
-    elif args.benchmark:
-        results = run_atari_100k_benchmark(num_seeds=args.num_seeds)
+    elif run_benchmark:
+        results = run_atari_100k_benchmark(num_seeds=num_seeds)
         aggregate = compute_aggregate_metrics(results)
         print_results_table(results, aggregate)

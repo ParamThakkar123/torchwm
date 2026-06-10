@@ -13,27 +13,28 @@ Operators provide a consistent interface for preprocessing inputs before feeding
 
 ## Base Operator Class
 
-All operators inherit from `OperatorABC`:
+All operators inherit from `OperatorABC`, which provides a `process()` pipeline composed of `preprocess()`, `forward()`, and `postprocess()`, plus `batch()`, `to(device)`, `train()`, `eval()`, and optional tensor shape/dtype validation via `TensorSpec`:
 
 ```python :class: thebe
-from world_models.inference.operators.base import OperatorABC
+from torchwm import OperatorABC
 
 class MyOperator(OperatorABC):
-    def process(self, inputs):
+    def preprocess(self, inputs):
         # Your preprocessing logic
         return processed_tensors
 ```
 
 ## Dreamer Operator
 
-For Dreamer model's image and action processing:
+For Dreamer model's image and action processing, use the top-level operator
+factory in application code:
 
 ```python :class: thebe
-from world_models.inference.operators import DreamerOperator
-from PIL import Image
 import torch
+import torchwm
+from PIL import Image
 
-op = DreamerOperator(image_size=64, action_dim=6)
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 
 # Process single image and action
 image = Image.open('obs.png')
@@ -53,7 +54,7 @@ result = op.process({'image': obs_tensor, 'action': torch.tensor(action)})
 For JEPA's self-supervised image processing with masking:
 
 ```python :class: thebe
-from world_models.inference.operators import JEPAOperator
+from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
 
@@ -74,7 +75,7 @@ result = op.process({'images': images, 'mask': custom_mask})
 For IRIS's sequence processing:
 
 ```python :class: thebe
-from world_models.inference.operators import IrisOperator
+from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
 
@@ -95,7 +96,7 @@ result = op.process({'tokens': tokens, 'embeddings': embeddings})
 For PlaNet's environment state processing:
 
 ```python :class: thebe
-from world_models.inference.operators import PlaNetOperator
+from torchwm import PlaNetOperator
 
 op = PlaNetOperator(state_dim=32, action_dim=4)
 
@@ -116,51 +117,48 @@ print(result['done'].shape)   # torch.Size([1])
 
 ## Configuration Integration
 
-Operators work seamlessly with config classes:
+Operators work seamlessly with config classes and the friendly `torchwm`
+factories:
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig, JEPAConfig, IRISConfig
+import torchwm
 
 # Dreamer
-dreamer_cfg = DreamerConfig()
-dreamer_op = DreamerOperator(
+dreamer_cfg = torchwm.create_config("dreamer")
+dreamer_op = torchwm.get_operator(
+    "dreamer",
     image_size=dreamer_cfg.operator_image_size,
-    action_dim=dreamer_cfg.operator_action_dim
+    action_dim=dreamer_cfg.operator_action_dim,
 )
 
 # JEPA
-jepa_cfg = JEPAConfig()
-jepa_op = JEPAOperator(
+jepa_cfg = torchwm.create_config("jepa")
+jepa_op = torchwm.get_operator(
+    "jepa",
     image_size=jepa_cfg.operator_image_size,
     patch_size=jepa_cfg.operator_patch_size,
-    mask_ratio=jepa_cfg.operator_mask_ratio
+    mask_ratio=jepa_cfg.operator_mask_ratio,
 )
 
 # IRIS
-iris_cfg = IRISConfig()
-iris_op = IrisOperator(
+iris_cfg = torchwm.create_config("iris")
+iris_op = torchwm.get_operator(
+    "iris",
     seq_length=iris_cfg.operator_seq_length,
-    vocab_size=iris_cfg.operator_vocab_size
+    vocab_size=iris_cfg.operator_vocab_size,
 )
 ```
 
 ## Utilities
 
-Common preprocessing functions in `world_models.inference.operators.utils`:
+For most applications, prefer the operator factory instead of importing
+preprocessing utilities directly:
 
 ```python :class: thebe
-from world_models.inference.operators.utils import (
-    normalize_image,
-    tokenize_text,
-    resize_image
-)
+import torchwm
 
-# Image processing
-normalized = normalize_image(pil_image, size=(224, 224))
-resized = resize_image(tensor_image, size=(64, 64))
-
-# Text processing
-tokens = tokenize_text("Hello world", max_length=512)
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
+processed = op.process({"images": [pil_image]})
 ```
 
 ## Error Handling

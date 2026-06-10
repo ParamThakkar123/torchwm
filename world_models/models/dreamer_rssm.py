@@ -16,10 +16,60 @@ _str_to_activation = {
 
 
 class RSSM(nn.Module):
-    """Recurrent State-Space Model used by Dreamer latent dynamics learning.
+    """Recurrent State-Space Model used by Dreamer for latent dynamics learning.
 
-    The RSSM maintains deterministic recurrent state and stochastic latent
-    state, and provides transition/posterior updates plus rollout helpers.
+    The RSSM is the core world model component that learns compact representations
+    of environment dynamics. It maintains a hybrid state consisting of:
+
+    1. **Deterministic State (h)**: A recurrent hidden state updated by a GRU,
+       capturing sequential/temporal information and deterministic transitions.
+
+    2. **Stochastic State (s)**: A latent variable representing stochastic,
+       multi-modal uncertainty in the environment (e.g., ambiguous observations).
+
+    The model operates in two modes:
+
+    - **Observe Mode**: Updates states using actual observations from the environment.
+      Uses the representation model: p(s_t | h_t, obs_t)
+
+    - **Imagine Mode**: Predicts future states without observations.
+      Uses the transition/prior model: p(s_t | h_t)
+
+    Architecture:
+        Input: Previous state (h_{t-1}, s_{t-1}) and action a_{t-1}
+        Process: GRU updates deterministic state, MLP computes stochastic prior/posterior
+        Output: Updated state (h_t, s_t) and distributions
+
+    State Representation:
+        - deter (h): GRU hidden state, captures sequential context
+        - stoch (s): Stochastic latent, multi-modal uncertainty
+        - mean/std: Parameters of the stochastic distribution
+
+    Usage with DreamerAgent:
+        rssm = RSSM(
+            action_size=action_dim,
+            stoch_size=30,      # Stochastic state dimension
+            deter_size=200,     # Deterministic (GRU) state dimension
+            hidden_size=200,    # MLP hidden layer size
+            obs_embed_size=256,  # Observation embedding from encoder
+            activation='elu'
+        )
+
+        # Observe with actual observation
+        posterior = rssm.observe_step(prev_state, prev_action, obs_embed)
+
+        # Imagine future without observation
+        prior = rssm.imagine_step(current_state, action)
+
+    Training:
+        The RSSM is trained by maximizing the ELBO (Evidence Lower Bound):
+        - KL divergence between prior and posterior encourages the prior to
+          capture environment dynamics
+        - Reconstruction loss from decoder ensures state captures observation info
+
+    Reference:
+        Dreamer: Scalable Reinforcement Learning Using World Models
+        Hafner et al., 2020 - https://arxiv.org/abs/1912.01603
     """
 
     def __init__(
@@ -31,13 +81,12 @@ class RSSM(nn.Module):
         obs_embed_size,
         activation,
     ):
-
         super().__init__()
 
         self.action_size = action_size
         self.stoch_size = stoch_size
-        self.deter_size = deter_size  # GRU hidden units
-        self.hidden_size = hidden_size  # intermediate fc_layers hidden units
+        self.deter_size = deter_size
+        self.hidden_size = hidden_size
         self.embedding_size = obs_embed_size
 
         self.act_fn = _str_to_activation[activation]
@@ -54,7 +103,18 @@ class RSSM(nn.Module):
         self.fc_state_posterior = nn.Linear(self.hidden_size, 2 * self.stoch_size)
 
     def init_state(self, batch_size, device):
+        """Initialize RSSM state with zeros.
 
+        Args:
+            batch_size: Number of parallel sequences
+            device: torch device for tensors
+
+        Returns:
+            Dictionary containing zero-initialized state components:
+                - mean, std: Stochastic distribution parameters
+                - stoch: Stochastic state sample
+                - deter: Deterministic GRU hidden state
+        """
         return dict(
             mean=torch.zeros(batch_size, self.stoch_size).to(device),
             std=torch.zeros(batch_size, self.stoch_size).to(device),
@@ -63,13 +123,52 @@ class RSSM(nn.Module):
         )
 
     def get_dist(self, mean, std):
+        """Create an Independent Normal distribution from mean and std.
 
+        Args:
+            mean: Location parameter
+            std: Scale parameter
+
+        Returns:
+            Independent Normal distribution with given parameters
+        """
         distribution = distributions.Normal(mean, std)
         distribution = distributions.independent.Independent(distribution, 1)
         return distribution
 
-    def observe_step(self, prev_state, prev_action, obs_embed, nonterm=1.0):
+    def _gru_input(self, prev_state, prev_action, nonterm):
+        """Project [action, stoch] into the GRU input space and apply nonterm.
 
+        Per the Danijar Dreamer reference, the previous stochastic state is
+        masked by `nonterm` before being concatenated with the action, and the
+        previous deterministic state is also masked by `nonterm` when fed back
+        to the GRU. This ensures that the state is reset (rather than
+        propagated) at episode boundaries.
+        """
+        prev_stoch_masked = prev_state["stoch"] * nonterm
+        x = torch.cat([prev_action, prev_stoch_masked], dim=-1)
+        x = self.act_fn(self.fc_state_action(x))
+        return x
+
+    def observe_step(self, prev_state, prev_action, obs_embed, nonterm=1.0):
+        """Update state using actual observation (observe mode).
+
+        In observe mode, the RSSM first computes a transition prior from the
+        previous state and action, then refines the stochastic state using the
+        actual observation embedding to form the posterior.
+
+        Args:
+            prev_state: Dictionary with 'deter' (h_{t-1}) and 'stoch' (s_{t-1})
+            prev_action: Previous action a_{t-1}, shape (B, action_size)
+            obs_embed: Observation embedding from encoder, shape (B, obs_embed_size)
+            nonterm: Termination mask (1.0 = continue, 0.0 = terminal)
+
+        Returns:
+            A tuple ``(posterior, prior)`` of state dictionaries. The posterior
+            incorporates observation information; the prior is the transition
+            prediction before observation. Both share the same deterministic
+            state because the GRU is only advanced once per timestep.
+        """
         prior = self.imagine_step(prev_state, prev_action, nonterm)
         posterior_embed = self.act_fn(
             self.fc_embed_posterior(torch.cat([obs_embed, prior["deter"]], dim=-1))
@@ -78,107 +177,189 @@ class RSSM(nn.Module):
         mean, std = torch.chunk(posterior, 2, dim=-1)
         std = F.softplus(std) + 0.1
         sample = mean + torch.randn_like(mean) * std
-
-        posterior = {"mean": mean, "std": std, "stoch": sample, "deter": prior["deter"]}
-        return prior, posterior
+        posterior_state = dict(mean=mean, std=std, stoch=sample, deter=prior["deter"])
+        return posterior_state, prior
 
     def imagine_step(self, prev_state, prev_action, nonterm=1.0):
+        """Predict next state without observation (imagine mode).
 
-        state_action = self.act_fn(
-            self.fc_state_action(
-                torch.cat([prev_state["stoch"] * nonterm, prev_action], dim=-1)
-            )
-        )
-        deter = self.rnn(state_action, prev_state["deter"] * nonterm)
-        prior_embed = self.act_fn(self.fc_embed_prior(deter))
-        mean, std = torch.chunk(self.fc_state_prior(prior_embed), 2, dim=-1)
+        In imagine mode, the RSSM predicts future states using only the prior
+        distribution. This is used for planning and policy learning where
+        actual observations are not available.
+
+        Args:
+            prev_state: Dictionary with 'deter' (h_{t-1}) and 'stoch' (s_{t-1})
+            prev_action: Previous action a_{t-1}, shape (B, action_size)
+            nonterm: Termination mask (1.0 = continue, 0.0 = terminal)
+
+        Returns:
+            Dictionary with predicted state containing:
+                - deter: Predicted deterministic state
+                - mean, std, stoch: Prior stochastic state distribution
+        """
+        x = self._gru_input(prev_state, prev_action, nonterm)
+        prior_deter = self.rnn(x, prev_state["deter"] * nonterm)
+        prior_embed = self.act_fn(self.fc_embed_prior(prior_deter))
+        prior = self.fc_state_prior(prior_embed)
+        mean, std = torch.chunk(prior, 2, dim=-1)
         std = F.softplus(std) + 0.1
         sample = mean + torch.randn_like(mean) * std
+        return dict(mean=mean, std=std, stoch=sample, deter=prior_deter)
 
-        prior = {"mean": mean, "std": std, "stoch": sample, "deter": deter}
-        return prior
+    def get_prior(self, prev_state, prev_action, nonterm=1.0):
+        """Compute prior distribution over stochastic state.
 
-    def observe_rollout(self, obs_embed, actions, nonterms, prev_state, horizon):
+        The prior represents the model's belief about the stochastic state
+        before observing the actual outcome.
+
+        Args:
+            prev_state: Previous state dictionary
+            prev_action: Previous action
+            nonterm: Termination mask
+
+        Returns:
+            Dictionary with prior state (no observation information)
+        """
+        return self.imagine_step(prev_state, prev_action, nonterm)
+
+    def get_posterior(self, prev_state, prev_action, obs_embed, nonterm=1.0):
+        """Compute posterior distribution over stochastic state.
+
+        The posterior incorporates observation information to produce
+        a more accurate state estimate.
+
+        Args:
+            prev_state: Previous state dictionary
+            prev_action: Previous action
+            obs_embed: Observation embedding
+            nonterm: Termination mask
+
+        Returns:
+            Dictionary with posterior state (observation-informed). Note that
+            the previous-state shape ``(B, ...)`` is preserved; the batch
+            dimension is not flattened.
+        """
+        posterior, _ = self.observe_step(prev_state, prev_action, obs_embed, nonterm)
+        return posterior
+
+    def detach_state(self, state):
+        """Detach state tensors from computation graph.
+
+        Used during DreamerV2 training to prevent gradient flow through
+        the observation/update pathway.
+
+        Args:
+            state: State dictionary with tensor values
+
+        Returns:
+            Detached state dictionary
+        """
+        return {k: v.detach() for k, v in state.items()}
+
+    def seq_to_batch(self, state_dict):
+        """Convert sequence state to batch format.
+
+        Args:
+            state_dict: Dictionary with sequence-dimension tensors (T, B, ...)
+
+        Returns:
+            Dictionary with batch-dimension tensors (B*T, ...)
+        """
+        return {k: v.reshape(-1, *v.shape[2:]) for k, v in state_dict.items()}
+
+    def observe_rollout(self, obs_embed, actions, nonterms, init_state, seq_len):
+        """Process a sequence of observations (observe mode rollout).
+
+        At each timestep we run ``observe_step`` once to obtain the transition
+        prior (the prediction given the previous state and action) and the
+        observation-informed posterior. The posterior is then used as the
+        previous state for the next step, matching the standard Dreamer
+        inference pattern.
+
+        Args:
+            obs_embed: Observation embeddings, shape (T+1, B, obs_embed_size)
+            actions: Actions, shape (T, B, action_size)
+            nonterms: Non-termination flags, shape (T, B, 1)
+            init_state: Initial state dictionary
+            seq_len: Sequence length T
+
+        Returns:
+            prior: Dictionary with prior states stacked along the time axis.
+            posterior: Dictionary with posterior states stacked along the time
+                axis.
+        """
+        prior_states = []
+        posterior_states = []
+        state = init_state
+
+        for t in range(seq_len):
+            posterior, prior = self.observe_step(
+                state, actions[t], obs_embed[t], nonterms[t]
+            )
+            posterior_states.append(posterior)
+            prior_states.append(prior)
+            state = posterior
+
+        to_stack = ["mean", "std", "stoch", "deter"]
+        prior = {k: torch.stack([p[k] for p in prior_states], dim=0) for k in to_stack}
+        posterior = {
+            k: torch.stack([p[k] for p in posterior_states], dim=0) for k in to_stack
+        }
+
+        return prior, posterior
+
+    def imagine_rollout(self, policy, init_state, horizon):
+        """Generate imagined trajectory using policy (imagine mode rollout).
+
+        Args:
+            policy: Actor network that outputs actions from state features
+            init_state: Initial state dictionary
+            horizon: Number of steps to imagine
+
+        Returns:
+            Dictionary with imagined states for each step
+        """
+        states = []
+        state = init_state
+
+        for _ in range(horizon):
+            features = torch.cat([state["stoch"], state["deter"]], dim=-1)
+            action = policy(features, deter=False)
+            state = self.imagine_step(state, action)
+            states.append(state)
+
+        to_stack = ["mean", "std", "stoch", "deter"]
+        return {k: torch.stack([s[k] for s in states], dim=0) for k in to_stack}
+
+    def forward(self, x, u):
+        """Forward pass for training (computes sequence of states).
+
+        Args:
+            x: Observations, shape (B, T+1, C, H, W)
+            u: Actions, shape (B, T, action_size)
+
+        Returns:
+            states: List of state dictionaries for each timestep
+            priors: List of prior distributions (tuples of mean, std)
+            posteriors: List of posterior distributions (tuples of mean, std)
+        """
+        B = x.size(0)
+        T = u.size(1)
 
         priors = []
         posteriors = []
 
-        for t in range(horizon):
-            prev_action = actions[t] * nonterms[t]
-            prior_state, posterior_state = self.observe_step(
-                prev_state, prev_action, obs_embed[t], nonterms[t]
-            )
-            priors.append(prior_state)
-            posteriors.append(posterior_state)
-            prev_state = posterior_state
+        state = self.init_state(B, x.device)
 
-        priors = self.stack_states(priors, dim=0)
-        posteriors = self.stack_states(posteriors, dim=0)
+        for t in range(T):
+            prior = self.get_prior(state, u[:, t])
+            priors.append((prior["mean"], prior["std"]))
 
-        return priors, posteriors
+            obs_embed = x[:, t + 1].reshape(B, -1)
+            posterior = self.get_posterior(state, u[:, t], obs_embed)
+            posteriors.append((posterior["mean"], posterior["std"]))
 
-    def imagine_rollout(self, actor, prev_state, horizon):
+            state = posterior
 
-        rssm_state = prev_state
-        next_states = []
-
-        for t in range(horizon):
-            action = actor(
-                torch.cat([rssm_state["stoch"], rssm_state["deter"]], dim=-1).detach()
-            )
-            rssm_state = self.imagine_step(rssm_state, action)
-            next_states.append(rssm_state)
-
-        next_states = self.stack_states(next_states)
-        return next_states
-
-    def stack_states(self, states, dim=0):
-
-        return dict(
-            mean=torch.stack([state["mean"] for state in states], dim=dim),
-            std=torch.stack([state["std"] for state in states], dim=dim),
-            stoch=torch.stack([state["stoch"] for state in states], dim=dim),
-            deter=torch.stack([state["deter"] for state in states], dim=dim),
-        )
-
-    def detach_state(self, state):
-
-        return dict(
-            mean=state["mean"].detach(),
-            std=state["std"].detach(),
-            stoch=state["stoch"].detach(),
-            deter=state["deter"].detach(),
-        )
-
-    def seq_to_batch(self, state):
-
-        return dict(
-            mean=torch.reshape(
-                state["mean"],
-                (
-                    state["mean"].shape[0] * state["mean"].shape[1],
-                    *state["mean"].shape[2:],
-                ),
-            ),
-            std=torch.reshape(
-                state["std"],
-                (
-                    state["std"].shape[0] * state["std"].shape[1],
-                    *state["std"].shape[2:],
-                ),
-            ),
-            stoch=torch.reshape(
-                state["stoch"],
-                (
-                    state["stoch"].shape[0] * state["stoch"].shape[1],
-                    *state["stoch"].shape[2:],
-                ),
-            ),
-            deter=torch.reshape(
-                state["deter"],
-                (
-                    state["deter"].shape[0] * state["deter"].shape[1],
-                    *state["deter"].shape[2:],
-                ),
-            ),
-        )
+        states = None
+        return states, priors, posteriors

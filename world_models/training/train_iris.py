@@ -4,8 +4,28 @@ from collections import defaultdict
 import os
 from tqdm import tqdm
 import random
+from typing import Optional, cast
+from gym.spaces import Discrete, Box
+from omegaconf import OmegaConf
+
+from types import ModuleType
+from typing import Optional as _Optional
+
+# Optional OpenCV import at module scope (avoid function-local imports)
+cv2: _Optional[ModuleType] = None
+try:
+    import cv2 as _cv2
+
+    cv2 = _cv2
+except Exception:
+    cv2 = None
 
 from world_models.configs.iris_config import IRISConfig
+from world_models.experiments import (
+    dump_config,
+    load_experiment_config,
+    update_config_object,
+)
 from world_models.models.iris_agent import IRISAgent
 from world_models.memory.iris_memory import IRISReplayBuffer
 from world_models.envs.ale_atari_env import make_atari_env
@@ -19,7 +39,7 @@ class IRISTrainer:
         game: str = "ALE/Pong-v5",
         device: str = "cuda",
         seed: int = 42,
-        config: IRISConfig = None,
+        config: Optional[IRISConfig] = None,
     ):
         self.game = game
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
@@ -41,8 +61,24 @@ class IRISTrainer:
             max_episode_steps=27000,  # Standard Atari limit
         )
 
-        # Get action space
-        self.action_size = self.env.action_space.n
+        # Get action space robustly (Discrete or Box)
+        # Declare attribute type for static checkers
+        self.action_size: int = 0
+
+        if isinstance(self.env.action_space, Discrete):
+            self.action_size = int(self.env.action_space.n)
+        elif isinstance(self.env.action_space, Box):
+            shape = getattr(self.env.action_space, "shape", None)
+            if shape is None:
+                raise TypeError("Box action_space has no shape")
+            self.action_size = int(np.prod(tuple(shape)))
+        else:
+            if hasattr(self.env.action_space, "n"):
+                self.action_size = int(getattr(self.env.action_space, "n"))
+            else:
+                raise TypeError(
+                    f"Unsupported action_space type: {type(self.env.action_space)}"
+                )
 
         # Create replay buffer
         self.replay_buffer = IRISReplayBuffer(
@@ -60,12 +96,15 @@ class IRISTrainer:
             device=self.device,
         )
 
-        # Metrics
-        self.metrics = defaultdict(list)
+        # Metrics: map metric name -> series of numeric values
+        self.metrics: defaultdict[str, list[float]] = defaultdict(list)
 
     def preprocess_frame(self, frame: np.ndarray) -> np.ndarray:
         """Preprocess frame: resize to 64x64 and normalize."""
-        import cv2
+        if cv2 is None:
+            raise ImportError(
+                "cv2 is required for frame preprocessing. Install opencv-python"
+            )
 
         frame = cv2.resize(frame, (64, 64), interpolation=cv2.INTER_LINEAR)
         frame = frame.astype(np.float32) / 255.0
@@ -89,7 +128,7 @@ class IRISTrainer:
         obs = self.preprocess_frame(obs)
 
         episode_returns = []
-        current_return = 0
+        current_return: float = 0.0
         steps_in_episode = 0
 
         for step in range(num_steps):
@@ -109,7 +148,7 @@ class IRISTrainer:
             next_obs = self.preprocess_frame(next_obs)
 
             # Store in replay buffer
-            action_one_hot = np.zeros(self.action_size, dtype=np.float32)
+            action_one_hot: np.ndarray = np.zeros(self.action_size, dtype=np.float32)
             action_one_hot[action] = 1.0
 
             self.replay_buffer.add(
@@ -119,19 +158,19 @@ class IRISTrainer:
                 done,
             )
 
-            current_return += reward
+            current_return += float(reward)
             steps_in_episode += 1
 
             if done:
                 episode_returns.append(current_return)
-                current_return = 0
+                current_return = 0.0
                 steps_in_episode = 0
                 obs, _ = self.env.reset()
                 obs = self.preprocess_frame(obs)
             else:
                 obs = next_obs
 
-        return np.mean(episode_returns) if episode_returns else 0.0
+        return float(np.mean(episode_returns)) if episode_returns else 0.0
 
     def train_epoch(self, epoch: int) -> dict:
         """Train for one epoch.
@@ -157,6 +196,7 @@ class IRISTrainer:
         # Only update components after warm-start periods
         if epoch >= self.config.start_autoencoder_after:
             # Phase 2: Update autoencoder
+            ae_metrics: dict = {}
             for _ in range(self.config.training_steps_per_epoch):
                 # Sample random frames
                 indices = np.random.randint(
@@ -261,7 +301,7 @@ class IRISTrainer:
             raw_obs, _ = self.env.reset()
             obs = self.preprocess_frame(raw_obs)
 
-            episode_return = 0
+            episode_return: float = 0.0
             done = False
             frames: list[np.ndarray] = []
 
@@ -304,7 +344,7 @@ class IRISTrainer:
                     # If encoder fails, skip latent for this step
                     pass
 
-                episode_return += reward
+                episode_return += float(reward)
                 obs = self.preprocess_frame(next_raw) if not done else obs
 
             episode_returns.append(episode_return)
@@ -336,7 +376,7 @@ class IRISTrainer:
 
     def train(
         self,
-        total_epochs: int = None,
+        total_epochs: Optional[int] = None,
         eval_interval: int = 50,
         save_dir: str = "checkpoints/iris",
     ):
@@ -377,7 +417,9 @@ class IRISTrainer:
                 epoch % eval_interval == 0
                 and epoch >= self.config.start_actor_critic_after
             ):
-                eval_metrics = self.evaluate(num_episodes=self.config.eval_episodes)
+                eval_metrics = cast(
+                    dict, self.evaluate(num_episodes=self.config.eval_episodes)
+                )
                 print(f"\nEvaluation at epoch {epoch}:")
                 print(
                     f"  Mean return: {eval_metrics['eval_mean_return']:.2f} +/- {eval_metrics['eval_std_return']:.2f}"
@@ -402,32 +444,44 @@ class IRISTrainer:
         return self.metrics
 
 
-def main():
-    """Run IRIS training on a single Atari game."""
-    import argparse
+def main(argv: list[str] | None = None):
+    """Run IRIS training with YAML config files and Hydra dot-list overrides."""
+    from world_models.experiments import parse_experiment_args
 
-    parser = argparse.ArgumentParser(description="Train IRIS on Atari")
-    parser.add_argument("--game", type=str, default="ALE/Pong-v5", help="Atari game")
-    parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
-    parser.add_argument("--epochs", type=int, default=600, help="Total epochs")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument(
-        "--save_dir", type=str, default="checkpoints/iris", help="Save directory"
-    )
+    args = parse_experiment_args(argv, description="Train IRIS on Atari")
 
-    args = parser.parse_args()
+    config = IRISConfig()
+    values = load_experiment_config(config, args.config, args.overrides)
+    config = update_config_object(config, values)
+
+    game = config.env if hasattr(config, "env") else "ALE/Pong-v5"
+    device = "cuda"
+    seed = config.seed if hasattr(config, "seed") else 42
+    total_epochs = config.total_epochs if hasattr(config, "total_epochs") else None
+    save_dir = config.save_dir if hasattr(config, "save_dir") else "checkpoints/iris"
+
+    # Allow command-line overrides for training-specific options
+    if argv:
+        cli_overrides = OmegaConf.from_cli(argv)
+        game = cli_overrides.get("game", game)
+        device = cli_overrides.get("device", device)
+        seed = cli_overrides.get("seed", seed)
+        total_epochs = cli_overrides.get("epochs", total_epochs)
+        save_dir = cli_overrides.get("save_dir", save_dir)
+
+    if args.print_config:
+        print(dump_config(values))
+        return config
 
     trainer = IRISTrainer(
-        game=args.game,
-        device=args.device,
-        seed=args.seed,
+        game=game,
+        device=device,
+        seed=seed,
+        config=config,
     )
 
     trainer.train(
-        total_epochs=args.epochs,
-        save_dir=args.save_dir,
+        total_epochs=total_epochs,
+        save_dir=save_dir,
     )
-
-
-if __name__ == "__main__":
-    main()
+    return config

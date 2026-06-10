@@ -5,10 +5,28 @@ from typing import Tuple, Optional
 
 
 class IRISActor(nn.Module):
-    """Actor network for IRIS policy.
+    """Actor network for IRIS (Imagined Rollouts with Implicit Successor) policy.
 
-    Takes reconstructed frames as input and outputs action logits.
-    Uses CNN + LSTM architecture with burn-in mechanism.
+    Takes reconstructed frames as input and outputs action logits for policy control.
+    Uses a CNN feature extractor followed by an LSTM for temporal processing.
+    Supports a burn-in mechanism for initializing the hidden state with context frames.
+
+    Architecture:
+        - CNN: Extracts features from input frames (3x64x64 -> 512)
+        - LSTM: Processes temporal sequences with configurable layers
+        - Linear: Maps hidden states to action logits
+
+    Args:
+        action_size (int): Number of discrete actions.
+        hidden_size (int): LSTM hidden state size (default: 512).
+        num_layers (int): Number of LSTM layers (default: 4).
+        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).
+
+    Attributes:
+        action_size (int): Number of discrete actions.
+        hidden_size (int): LSTM hidden state size.
+        num_layers (int): Number of LSTM layers.
+        frame_shape (tuple): Input frame shape.
     """
 
     def __init__(
@@ -139,7 +157,28 @@ class IRISActor(nn.Module):
 class IRISCritic(nn.Module):
     """Critic network for IRIS value estimation.
 
-    Shares CNN and LSTM with actor, but has separate value head.
+    Estimates the value function for given frame sequences. Shares the CNN
+    feature extractor and LSTM backbone with the actor for efficiency, but
+    has a separate value head for estimating expected cumulative rewards.
+
+    Architecture:
+        - CNN: Shared feature extractor with actor (3x64x64 -> 512)
+        - LSTM: Temporal processing with same architecture as actor
+        - Linear: Maps hidden states to scalar values
+
+    Args:
+        hidden_size (int): LSTM hidden state size (default: 512).
+        num_layers (int): Number of LSTM layers (default: 4).
+        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).
+
+    Attributes:
+        hidden_size (int): LSTM hidden state size.
+        num_layers (int): Number of LSTM layers.
+        frame_shape (tuple): Input frame shape.
+
+    Returns:
+        values: Value estimates with shape (B, T).
+        hidden_state: Updated LSTM hidden state (h, c) tuple.
     """
 
     def __init__(
@@ -213,9 +252,27 @@ class IRISCritic(nn.Module):
 
 
 class CNNFeatureExtractor(nn.Module):
-    """CNN feature extractor shared between actor and critic.
+    """CNN feature extractor shared between actor and critic networks.
 
-    Processes input frames into feature vectors.
+    Processes input frames through a series of convolutional layers to produce
+    fixed-size feature vectors. Architecture: Conv2d(3->32) -> ReLU -> stride2
+    repeated 4 times, followed by a linear projection to output_size.
+
+    Architecture:
+        - Conv layers: 32 -> 64 -> 128 -> 256 channels
+        - Each conv has stride=2 for spatial downsampling
+        - Final linear layer projects to desired output dimension
+
+    Args:
+        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).
+        output_size (int): Size of output feature vector (default: 512).
+
+    Attributes:
+        frame_shape (tuple): Input frame shape.
+        output_size (int): Output feature dimension.
+
+    Returns:
+        features: Feature vectors with shape (B, output_size).
     """
 
     def __init__(
@@ -229,7 +286,8 @@ class CNNFeatureExtractor(nn.Module):
         self.output_size = output_size
 
         # CNN layers: 64 -> 32 -> 16 -> 8 -> 4
-        layers = []
+        # Use a generic Module list since we append Conv and activation modules
+        layers: list[nn.Module] = []
         in_channels = frame_shape[0]
 
         channels = [32, 64, 128, 256]
@@ -266,9 +324,32 @@ class CNNFeatureExtractor(nn.Module):
 
 
 class IRISPolicy(nn.Module):
-    """Combined policy module for IRIS.
+    """Combined policy module for IRIS (Imagined Rollouts with Implicit Successor).
 
-    Wraps actor and optionally critic for convenience.
+    Provides a unified interface for actor-only or actor-critic policies.
+    Used in the IRIS algorithm where the actor generates actions from reconstructed
+    frames and the critic estimates value functions for training.
+
+    Args:
+        action_size (int): Number of discrete actions.
+        hidden_size (int): LSTM hidden state size (default: 512).
+        num_layers (int): Number of LSTM layers (default: 4).
+        frame_shape (tuple): Shape of input frames as (C, H, W) (default: (3, 64, 64)).
+
+    Attributes:
+        actor (IRISActor): The actor network for action selection.
+        hidden_size (int): LSTM hidden state size.
+        num_layers (int): Number of LSTM layers.
+        frame_shape (tuple): Input frame shape.
+
+    Example:
+        >>> policy = IRISPolicy(
+        ...     action_size=18,
+        ...     hidden_size=512,
+        ...     num_layers=4,
+        ...     frame_shape=(3, 64, 64)
+        ... )
+        >>> action = policy.act(frame, temperature=1.0, deterministic=False)
     """
 
     def __init__(

@@ -8,7 +8,7 @@ class JEPAConfig:
     Converts to the nested dict expected by `train_jepa.main`.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # meta
         self.use_bfloat16: bool = False
         self.model_name: str = "vit_base"

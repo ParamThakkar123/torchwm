@@ -1,7 +1,8 @@
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict, Optional, Any, overload
+import cv2
 
 
 class DiamondAtariWrapper(gym.Wrapper):
@@ -39,23 +40,47 @@ class DiamondAtariWrapper(gym.Wrapper):
                 low=0, high=255, shape=(self._height, self._width, 3), dtype=np.uint8
             )
 
-    def _apply_frameskip(self, action: int) -> Tuple[np.ndarray, float, bool, Dict]:
-        """Apply frameskip by repeating the action."""
+    def _apply_frameskip(self, action: int) -> Tuple[Any, float, bool, Dict[str, Any]]:
+        """Apply frameskip by repeating the action.
+
+        Returns (obs, total_reward, done, info) where `done` is a collapsed
+        boolean indicating termination/truncation for older gym APIs.
+        """
         total_reward = 0.0
         done = False
-        info = {}
+        info: Dict[str, Any] = {}
+        obs: Any = None
 
         for _ in range(self.frameskip):
-            obs, reward, terminated, truncated, info = self.env.step(action)
+            ret = self.env.step(action)
+            # gymnasium returns (obs, reward, terminated, truncated, info)
+            if isinstance(ret, tuple) and len(ret) == 5:
+                obs, reward, terminated, truncated, info = ret
+            else:
+                # older gym: (obs, reward, done, info)
+                obs, reward, single_done, info = ret  # type: ignore[assignment]
+                terminated = bool(single_done)
+                truncated = False
+
             total_reward += float(reward)
 
-            if terminated or truncated:
+            if terminated or (locals().get("truncated", False)):
                 done = True
                 break
 
             if self.terminate_on_life_loss:
-                if hasattr(self.env, "ale") and hasattr(self.env.ale, "lives"):
-                    self.lives = self.env.ale.lives()
+                # ale attribute may or may not exist depending on backend; runtime
+                # checks are used here. Type-checkers don't know about `ale`, so
+                # use hasattr guards and ignore the attribute access for mypy.
+                if hasattr(self.env, "ale") and hasattr(
+                    getattr(self.env, "ale"), "lives"
+                ):
+                    try:
+                        # type: ignore[attr-defined]
+                        self.lives = self.env.ale.lives()
+                    except Exception:
+                        # some backends expose lives as attribute or method; ignore failures
+                        pass
                     if self.lives < self._last_lives and self.lives > 0:
                         done = True
                         info["life_lost"] = True
@@ -66,17 +91,25 @@ class DiamondAtariWrapper(gym.Wrapper):
         if self.reward_clip:
             total_reward = float(np.clip(total_reward, -1, 1))
 
+        assert obs is not None
         return obs, total_reward, done, info
 
-    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict]:
+    def step(self, action: int) -> Any:  # type: ignore[override]
+        """Step the environment.
+
+        For backwards compatibility with older gym APIs this wrapper returns a
+        4-tuple: (obs, reward, done, info). Internally it supports gymnasium's
+        5-tuple and collapses (terminated, truncated) into a single `done` bool.
+        """
         obs, reward, done, info = self._apply_frameskip(action)
 
         if self.resize is not None:
             obs = self._resize_obs(obs)
 
-        return obs, reward, done, info
+        # Return legacy 4-tuple (obs, reward, done, info)
+        return obs, reward, bool(done), info
 
-    def reset(self, **kwargs) -> Tuple[np.ndarray, Dict]:
+    def reset(self, **kwargs) -> Tuple[Any, Dict[str, Any]]:
         obs, info = self.env.reset(**kwargs)
 
         if self.resize is not None:
@@ -120,8 +153,8 @@ class DiamondAtariWrapper(gym.Wrapper):
         if obs.shape[:2] == (self._height, self._width):
             return obs
 
-        import cv2
-
+        # Use OpenCV for resize. Import is done at module scope to keep
+        # behavior consistent and straightforward.
         obs = cv2.resize(obs, (self._width, self._height), interpolation=cv2.INTER_AREA)
         return obs.astype(np.uint8)
 

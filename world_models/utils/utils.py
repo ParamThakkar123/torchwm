@@ -5,9 +5,11 @@ import torch
 import pickle
 import pathlib
 import numpy as np
+import glob
 
 if not hasattr(np, "bool8"):
-    np.bool8 = np.bool_
+    # Some NumPy builds don't expose `bool8` as an attribute; set it safely
+    setattr(np, "bool8", np.bool_)
 
 import plotly
 from plotly.graph_objs import Scatter, Line
@@ -19,35 +21,29 @@ from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
 
-import yaml
+import yaml  # type: ignore[import]
 
 import collections
 import collections.abc
 
-try:
-    from sklearn.manifold import TSNE
-    import umap
+from sklearn.manifold import TSNE
+import umap
 
-    HAS_VIZ = True
-except ImportError:
-    HAS_VIZ = False
+HAS_VIZ = True
 
-try:
-    from attrdict import AttrDict
-except ImportError:
 
-    class AttrDict(dict):
-        def __getattr__(self, name):
-            try:
-                return self[name]
-            except KeyError:
-                raise AttributeError(name)
+class AttrDict(dict):
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
 
-        def __setattr__(self, name, value):
-            self[name] = value
+    def __setattr__(self, name, value):
+        self[name] = value
 
-        def __delattr__(self, name):
-            del self[name]
+    def __delattr__(self, name):
+        del self[name]
 
 
 for type_name in collections.abc.__all__:
@@ -129,9 +125,9 @@ def save_video(frames, path, name):
     Produces {path}/{name}.mp4 and a debug PNG {path}/{name}_debug_frame.png
     with per-channel statistics printed to stdout.
     """
-    import numpy as _np
+    # use top-level numpy (np) to keep imports top-level
 
-    frames = _np.asarray(frames)
+    frames = np.asarray(frames)
     if frames.ndim != 4:
         raise ValueError(
             f"Expected frames with 4 dims (T, C, H, W) or (T, H, W, C), got shape {frames.shape}"
@@ -167,7 +163,7 @@ def save_video(frames, path, name):
         stats["mean"].append(float(first[..., c].mean()))
     equal_ch = False
     if ch >= 3:
-        equal_ch = _np.all(first[..., 0] == first[..., 1]) and _np.all(
+        equal_ch = np.all(first[..., 0] == first[..., 1]) and np.all(
             first[..., 1] == first[..., 2]
         )
 
@@ -177,7 +173,7 @@ def save_video(frames, path, name):
     try:
         to_write = first
         if first.ndim == 2 or first.shape[-1] == 1:
-            to_write = _np.repeat(first[..., None], 3, axis=-1)
+            to_write = np.repeat(first[..., None], 3, axis=-1)
         cv2.imwrite(str(debug_path), to_write[..., ::-1])
     except Exception as e:
         print(f"Failed to write debug frame PNG: {e}")
@@ -208,7 +204,7 @@ def save_video(frames, path, name):
         for frame in frames_u8:
             # ensure contiguous HWC uint8
             if not frame.flags["C_CONTIGUOUS"]:
-                frame = _np.ascontiguousarray(frame)
+                frame = np.ascontiguousarray(frame)
             # OpenCV expects BGR
             writer.write(frame[..., ::-1])
     finally:
@@ -226,8 +222,6 @@ def combine_videos(
     Example:
       combine_videos("results/planet", output_name="all_training.mp4")
     """
-    import glob
-
     files = sorted(glob.glob(os.path.join(video_dir, pattern)))
     if len(files) == 0:
         raise FileNotFoundError(f"No videos found in {video_dir} matching {pattern}")
@@ -437,9 +431,9 @@ def normalize_frames_for_saving(frames):
     Handles inputs in (T, C, H, W) or (T, H, W, C), repeats single-channel -> RGB,
     drops alpha if present, and maps [-0.5,0.5] -> [0,1] when detected.
     """
-    import numpy as _np
+    # use top-level numpy (np) to keep imports at module scope
 
-    frames = _np.asarray(frames).astype(_np.float32)
+    frames = np.asarray(frames).astype(np.float32)
     if frames.ndim != 4:
         raise ValueError(f"Expected 4D frames array, got shape {frames.shape}")
 
@@ -452,7 +446,7 @@ def normalize_frames_for_saving(frames):
 
     ch = frames.shape[-1]
     if ch == 1:
-        frames = _np.repeat(frames, 3, axis=-1)
+        frames = np.repeat(frames, 3, axis=-1)
     elif ch == 4:
         frames = frames[..., :3]
 
@@ -561,6 +555,16 @@ class TorchImageEnvWrapper:
         if isinstance(env, str):
             try:
                 self.env = gym.make(env, render_mode="rgb_array")
+                self._render_mode_supported = True
+            except ImportError as exc:
+                from world_models.envs.robotics_env import (
+                    is_moved_mujoco_error,
+                    make_robotics_env,
+                )
+
+                if not is_moved_mujoco_error(exc):
+                    raise
+                self.env = make_robotics_env(env, render_mode="rgb_array")
                 self._render_mode_supported = True
             except TypeError:
                 self.env = gym.make(env)
@@ -818,12 +822,6 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
         save_path: path to save the plot (HTML for plotly)
         perplexity: t-SNE perplexity parameter
     """
-    if not HAS_VIZ:
-        print(
-            "t-SNE visualization requires sklearn. Install with: pip install scikit-learn"
-        )
-        return
-
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
 
@@ -873,12 +871,6 @@ def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
         save_path: path to save the plot (HTML for plotly)
         n_neighbors: UMAP n_neighbors parameter
     """
-    if not HAS_VIZ:
-        print(
-            "UMAP visualization requires umap-learn. Install with: pip install umap-learn"
-        )
-        return
-
     if isinstance(latents, torch.Tensor):
         latents = latents.detach().cpu().numpy()
 

@@ -475,7 +475,6 @@ def train_mdn_rnn(
 
     if use_precomputed_latents and exists(latent_file):
         train_dataset = LatentSequenceDataset(
-            latents=all_actions.shape[0],
             latents_arr=latents,
             actions=all_actions,
             rewards=all_rewards,
@@ -493,7 +492,6 @@ def train_mdn_rnn(
             pin_memory=True,
         )
         test_dataset = LatentSequenceDataset(
-            latents=all_actions.shape[0],
             latents_arr=latents,
             actions=all_actions,
             rewards=all_rewards,

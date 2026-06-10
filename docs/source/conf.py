@@ -5,46 +5,36 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime
-
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
 copyright = f"{datetime.now().year}, Param Thakkar"
 author = "Param Thakkar"
 
-# Auto-read version from world_models package
-import world_models
+# Auto-read version from the public torchwm package
 
-release = world_models.__version__
+import torchwm
+release = torchwm.__version__
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    # We load MathJax manually (config + runtime) so we control ordering and
-    # avoid Sphinx injecting the runtime before our config. Do NOT enable the
-    # built-in mathjax extension because it inserts its own script tag which
-    # can cause a race between the config and the runtime.
+    "sphinx.ext.mathjax",
     "myst_parser",
+    "sphinx_copybutton",
     "sphinxext.opengraph",
-    "sphinxcontrib.mermaid",
 ]
-
-# Prevent myst_parser from auto-inserting MathJax runtime; we manage MathJax
-# inclusion/order manually via html_js_files so config can be applied first.
-myst_update_mathjax = False
 
 templates_path = ["_templates"]
 exclude_patterns = []
 
-autosummary_generate = True
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_inherit_docstrings = False
 autodoc_default_options = {
     "members": True,
-    "undoc-members": False,
+    "undoc-members": True,
     "show-inheritance": True,
 }
 
@@ -53,15 +43,46 @@ napoleon_numpy_docstring = True
 
 myst_enable_extensions = [
     "colon_fence",
+    "dollarmath",
     "amsmath",
     "deflist",
     "fieldlist",
 ]
 
+# Let MyST/Sphinx emit math nodes and let sphinx.ext.mathjax load the
+# MathJax runtime exactly once. Keeping MathJax under Sphinx control avoids the
+# previous custom-loader race where a configuration object could prevent the
+# runtime from loading, leaving equations unrendered.
+myst_update_mathjax = False
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+mathjax3_config = {
+    "tex": {
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        "displayMath": [["$$", "$$"], ["\\[", "\\]"]],
+        "packages": {"[+]": ["ams"]},
+        "processEscapes": True,
+        "processEnvironments": True,
+    },
+    "options": {
+        "skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"],
+    },
+}
+
+# Add copy-to-clipboard controls to rendered code blocks. The prompt regexp
+# strips common Python and shell prompts when users copy examples.
+copybutton_selector = "div.highlight pre"
+copybutton_prompt_text = r">>> |\.\.\. |\$ "
+copybutton_prompt_is_regexp = True
+copybutton_only_copy_prompt_lines = False
+
+# Heavy optional runtimes are mocked so the API reference can build in a docs
+# environment without installing all simulation backends.
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",
+    "deepmind_lab",
     "mlagents_envs",
+    "mujoco",
     "moviepy",
     "cv2",
     "pygame",
@@ -70,8 +91,19 @@ autodoc_mock_imports = [
     "torchvision",
     "gym",
     "gymnasium",
+    "brax",
+    "brax.envs",
+    "jax",
+    "jax.numpy",
     "wandb",
     "PIL",
+    "sklearn",
+    "sklearn.manifold",
+    "h5py",
+    "huggingface_hub",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "umap",
     "torch",
     "torch.nn",
     "torch._C",
@@ -82,46 +114,24 @@ html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
     "navigation_depth": 2,
     "show_nav_level": 1,
-    "navbar_end": ["navbar-icon-links", "search-field"],
+    # Keep the top navbar intentionally minimal: project title/logo,
+    # documentation search, and the GitHub redirect link only.
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": [],
+    "navbar_end": ["search-field", "navbar-icon-links"],
+    "navbar_persistent": [],
 }
 
-# sphinxcontrib-mermaid: prefer raw output so the client-side mermaid.js can render
-mermaid_output_format = "raw"
-
-# Include client-side assets in a controlled order:
-# 1) MathJax config + runtime so math renders reliably
-# 2) Mermaid runtime + init so diagrams convert and render client-side
-# 3) Thebe for runnable code blocks
+# Include client-side assets. MathJax itself is loaded by sphinx.ext.mathjax;
+# adding custom MathJax bootstrap files here can race with Sphinx's runtime and
+# prevent equations from being typeset.
 html_js_files = [
-    # MathJax config (local) and runtime (CDN)
-    # Load MathJax config and runtime locally to avoid runtime ordering issues
-    "mathjax_config.js",
-    # Local loader that will load a vendored runtime (mathjax_runtime.js)
-    # when present. Do NOT prefix with `_static/` here; Sphinx will copy the
-    # referenced files into the built `_static/` dir and reference them as
-    # `_static/<name>`. Using a leading `_static/` causes `_static/_static/...`
-    # paths in the output which break file:// viewing.
-    "mathjax_local.js",
-    # Load Mermaid runtime from our vendored copy in `_static` so docs work
-    # even when CDN access is unreliable.
-    "mermaid.min.js",
-    # Local init file that converts script blocks to .mermaid divs then runs Mermaid
-    "mermaid_init.js",
-    # Small script to tidy duplicated navbar elements caused by theme options
+    # Small script to tidy duplicated navbar elements caused by theme options.
     "fix_navbar.js",
-    # Local MathJax typeset helper — runs MathJax.typeset when the runtime is loaded
-    "mathjax_init.js",
-    # (Thebe assets removed — Thebe integration disabled to avoid runtime
-    # kernel/build attempts and to keep the static site lightweight.)
 ]
 
-# Thebe configuration for interactive code execution
-# Thebe integration has been removed from html_js_files and extensions to
-# prevent the client from attempting to start kernels or trigger remote
-# builds. If you want to re-enable Thebe in the future, re-add the
-# "sphinx_thebe" extension and the corresponding JS entries above.
-# Copy both our _static assets and the `images/` dir so images referenced
-# from pages are available at build time (placed under _static/).
+# Copy both our _static assets and the `images/` dir so images referenced from
+# pages are available at build time (placed under _static/).
 html_static_path = ["_static", "images"]
 
 html_css_files = [

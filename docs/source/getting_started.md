@@ -51,6 +51,34 @@ cfg.log_dir = "runs"
 
 Logs will be saved to the specified directory and can be viewed with `tensorboard --logdir runs`.
 
+## Quick Start: Friendly API
+
+The recommended entrypoint for common workflows is `torchwm`. It mirrors the
+TorchWM implementation package, but gives users short factory helpers for
+discovery, model creation, environment creation, and operators.
+
+```python :class: thebe
+import torchwm
+
+print(torchwm.list_models())
+print(torchwm.list_env_backends())
+
+agent = torchwm.create_model("dreamer", env="walker-walk", total_steps=1_000_000)
+env = torchwm.make_env("CartPole-v1", backend="gym")
+op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
+```
+
+You can still import direct research components from `torchwm` when you
+need lower-level control:
+
+```python :class: thebe
+from torchwm import DreamerAgent, DreamerConfig
+
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+agent = DreamerAgent(cfg)
+```
+
 ## Quick Start: Dreamer
 
 TorchWM implements multiple world model algorithms. Click on each to see detailed documentation:
@@ -73,10 +101,11 @@ Operators handle input preprocessing: normalizing images, encoding actions, toke
 ### Basic Usage
 
 ```python :class: thebe
-from world_models.inference.operators import DreamerOperator
+import torchwm
 
 # Create operator with config parameters
-op = DreamerOperator(
+op = torchwm.get_operator(
+    "dreamer",
     image_size=64,  # Image size for Dreamer
     action_dim=6    # Action dimension
 )
@@ -104,7 +133,7 @@ processed = op.process(raw_inputs)
 ### JEPA Example (Self-Supervised)
 
 ```python :class: thebe
-from world_models.inference.operators import JEPAOperator
+from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
 inputs = {'images': [image1, image2]}
@@ -116,7 +145,7 @@ result = op(inputs)
 ### IRIS Example (Sequence Processing)
 
 ```python :class: thebe
-from world_models.inference.operators import IrisOperator
+from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
 inputs = {'tokens': [101, 2054, 2003, 102]}  # Token sequence
@@ -130,24 +159,25 @@ result = op(inputs)
 Operators use parameters from config classes:
 
 ```python :class: thebe
-from world_models.configs import DreamerConfig
+import torchwm
 
-cfg = DreamerConfig()
-op = DreamerOperator(
+cfg = torchwm.create_config("dreamer")
+op = torchwm.get_operator(
+    "dreamer",
     image_size=cfg.operator_image_size,
-    action_dim=cfg.operator_action_dim
+    action_dim=cfg.operator_action_dim,
 )
 ```
 
 ### Utilities
 
-Common preprocessing functions are available in `world_models.inference.operators.utils`:
+For most applications, use `torchwm.get_operator()` for preprocessing. Advanced utility functions remain available to package internals.
 
 ```python :class: thebe
-from world_models.inference.operators.utils import normalize_image, tokenize_text
+import torchwm
 
-normalized_img = normalize_image(pil_image, size=(224, 224))
-tokens = tokenize_text("Hello world", max_length=512)
+op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
+processed = op.process({"images": [pil_image]})
 ```
 
 Train a complete world model pipeline (VAE + MDNRNN + Controller) on any Gym environment:
@@ -166,10 +196,17 @@ python -m world_models.training.train_world_model --env CarRacing-v2 --test
 python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
 ```
 
-Dreamer supports multiple backends through `DreamerConfig.env_backend`:
+Dreamer supports multiple backends through `DreamerConfig.env_backend`; the
+top-level `torchwm.make_env()` helper uses the same backend names for standalone
+environment creation:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
+- `dmlab`: DeepMind Lab 3D navigation tasks (for example `rooms_collect_good_objects_train`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
+- `mujoco`: Gymnasium MuJoCo task ids or native MJCF/MJB models
+- `robotics`: any id registered by the installed Gymnasium Robotics package
+- `procgen`: Procgen benchmark games such as `coinrun` and `heist`
+- `brax`: JAX/Brax continuous-control environments
 - `unity_mlagents`: Unity ML-Agents executable environments
 
 ## Typical Training Flow

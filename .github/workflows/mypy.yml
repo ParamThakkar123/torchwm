@@ -24,7 +24,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .
         pip install mypy
+        # Install common type stubs to reduce import-untyped noise
+        pip install types-PyYAML
 
     - name: Run mypy
       run: |
-        mypy torchwm
+        # Run mypy directly against the actual package directory
+        mypy world_models

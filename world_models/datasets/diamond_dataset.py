@@ -11,7 +11,7 @@ class ReplayBuffer:
 
     def __init__(
         self,
-        capacity: int = 100000,
+        capacity: int = 1000,
         obs_shape: Tuple[int, int, int] = (64, 64, 3),
         action_dim: int = 1,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
@@ -143,6 +143,59 @@ class ReplayBuffer:
         """Check if buffer has enough samples."""
         return self.size >= min_size
 
+    def state_dict(self) -> dict:
+        """Return a serializable state dict for checkpointing.
+
+        Contains numpy arrays and scalar metadata so it can be saved with
+        torch.save or numpy.save.
+        """
+        return {
+            "observations": self.observations,
+            "actions": self.actions,
+            "rewards": self.rewards,
+            "dones": self.dones,
+            "next_observations": self.next_observations,
+            "position": int(self.position),
+            "size": int(self.size),
+            "capacity": int(self.capacity),
+        }
+
+    def load_state_dict(self, state: dict):
+        """Load state previously produced by `state_dict()`.
+
+        This will resize internal arrays if the saved capacity differs from the
+        current buffer capacity.
+        """
+        obs = state["observations"]
+        actions = state["actions"]
+        rewards = state["rewards"]
+        dones = state["dones"]
+        next_obs = state["next_observations"]
+        pos = int(state.get("position", 0))
+        size = int(state.get("size", 0))
+
+        # allocate arrays with saved capacity shapes
+        self.capacity = int(state.get("capacity", obs.shape[0]))
+        self.observations = np.zeros((self.capacity,) + self.obs_shape, dtype=np.uint8)
+        self.next_observations = np.zeros(
+            (self.capacity,) + self.obs_shape, dtype=np.uint8
+        )
+        self.actions = np.zeros((self.capacity, self.action_dim), dtype=np.int64)
+        self.rewards = np.zeros((self.capacity,), dtype=np.float32)
+        self.dones = np.zeros((self.capacity,), dtype=np.bool_)
+
+        # copy available data up to saved size
+        n = min(size, obs.shape[0], self.capacity)
+        if n > 0:
+            self.observations[:n] = obs[:n]
+            self.next_observations[:n] = next_obs[:n]
+            self.actions[:n] = actions[:n]
+            self.rewards[:n] = rewards[:n]
+            self.dones[:n] = dones[:n]
+
+        self.position = int(pos) % self.capacity if self.capacity > 0 else 0
+        self.size = min(int(size), self.capacity)
+
 
 class SequenceDataset(torch.utils.data.Dataset):
     """
@@ -166,28 +219,32 @@ class SequenceDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         """Get a sequence starting at idx."""
         indices = np.arange(idx, idx + self.sequence_length + 1)
-        obs_seq = self.replay_buffer.observations[indices[:-1]]
-        action_seq = self.replay_buffer.actions[indices[:-1]]
-        reward_seq = self.replay_buffer.rewards[indices[:-1]]
-        done_seq = self.replay_buffer.dones[indices[:-1]]
-        next_obs = self.replay_buffer.next_observations[indices[-1]]
+        # keep numpy arrays separate to avoid mypy inferring ndarray types
+        obs_seq_np = self.replay_buffer.observations[indices[:-1]]
+        action_seq_np = self.replay_buffer.actions[indices[:-1]]
+        reward_seq_np = self.replay_buffer.rewards[indices[:-1]]
+        done_seq_np = self.replay_buffer.dones[indices[:-1]]
+        next_obs_np = self.replay_buffer.next_observations[indices[-1]]
 
         # convert and move to device
         device = self.replay_buffer.device
 
-        obs_seq = torch.from_numpy(obs_seq).float().to(device) / 255.0
+        obs_seq = torch.from_numpy(obs_seq_np).float().to(device) / 255.0
         # (T, H, W, C) -> (T, C, H, W)
-        obs_seq = obs_seq.permute(0, 3, 1, 2)
+        if obs_seq.ndim == 4:
+            obs_seq = obs_seq.permute(0, 3, 1, 2)
 
-        next_obs = torch.from_numpy(next_obs).float().to(device) / 255.0
-        next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
+        next_obs = torch.from_numpy(next_obs_np).float().to(device) / 255.0
+        # ensure next_obs is (C, H, W)
+        if next_obs.ndim == 3:
+            next_obs = next_obs.permute(2, 0, 1)  # (H,W,C) -> (C,H,W)
 
-        action_seq = torch.from_numpy(action_seq).long().to(device)
+        action_seq = torch.from_numpy(action_seq_np).long().to(device)
         if action_seq.ndim > 1 and action_seq.shape[-1] == 1:
             action_seq = action_seq.squeeze(-1)
 
-        rewards = torch.from_numpy(reward_seq).float().to(device)
-        dones = torch.from_numpy(done_seq).bool().to(device)
+        rewards = torch.from_numpy(reward_seq_np).float().to(device)
+        dones = torch.from_numpy(done_seq_np).bool().to(device)
 
         return {
             "obs_seq": obs_seq,

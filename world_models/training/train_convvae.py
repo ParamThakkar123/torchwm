@@ -229,42 +229,6 @@ def train_convae(config: WMVAEConfig) -> None:
         num_workers=num_workers,
         pin_memory=pin_memory,
     )
-    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
-
-    test_dataset = ObservationDataset(
-        root=config.data_dir, transform=transform_test, train=False
-    )
-    if len(test_dataset) == 0:
-        print("WARNING: Test dataset is empty! Using training data for validation.")
-        test_loader = train_loader
-    else:
-        test_loader = torch.utils.data.DataLoader(
-            test_dataset,
-            batch_size=config.train_batch_size,
-            shuffle=False,
-            drop_last=False,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-        )
-    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
-
-    test_dataset = ObservationDataset(
-        root=config.data_dir, transform=transform_test, train=False
-    )
-    if len(test_dataset) == 0:
-        print("WARNING: Test dataset is empty! Using training data for validation.")
-        test_loader = train_loader
-    else:
-        test_loader = torch.utils.data.DataLoader(
-            test_dataset,
-            batch_size=config.train_batch_size,
-            shuffle=False,
-            drop_last=False,
-            num_workers=4,
-            pin_memory=True,
-        )
-    print(f"Train dataset size: {len(train_dataset)}, batches: {len(train_loader)}")
-
     test_dataset = ObservationDataset(
         root=config.data_dir, transform=transform_test, train=False
     )

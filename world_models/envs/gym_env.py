@@ -6,18 +6,47 @@ from PIL import Image
 
 
 def make_gym_env(env, **kwargs):
-    """Factory helper for generic Gym/Gymnasium environments."""
+    """Create a GymImageEnv wrapper for generic Gym/Gymnasium environments.
+
+    Args:
+        env: Either a string environment ID (e.g., "Pendulum-v1") or a pre-built
+            gym environment instance.
+        **kwargs: Additional keyword arguments passed to GymImageEnv, including:
+            - seed (int): Random seed for environment (default: 0)
+            - size (tuple): Target image size as (height, width) (default: (64, 64))
+            - render_mode (str): Render mode for environment (default: "rgb_array")
+
+    Returns:
+        GymImageEnv: A wrapper that always returns image observations in the
+            format {"image": (C, H, W)} suitable for pixel-based world models.
+    """
     return GymImageEnv(env=env, **kwargs)
 
 
 class GymImageEnv:
-    """
-    Gym-like environment wrapper that always returns image observations.
+    """Gym-like environment wrapper that always returns image observations.
 
-    - Supports env IDs (string) and prebuilt env objects.
-    - For vector observations, it synthesizes an RGB image so pixel-based
-      world models can still train.
-    - For discrete actions, it exposes a vector action space and maps by argmax.
+    This wrapper normalizes diverse environment interfaces to return consistent
+    image-based observations suitable for pixel-based world models like Dreamer.
+
+    Features:
+        - Supports environment IDs (string) and pre-built environment objects.
+        - Synthesizes RGB images from vector observations for pixel-based training.
+        - Exposes continuous action spaces mapped to [-1, 1] range.
+        - Converts discrete actions to one-hot vectors.
+        - Returns observations as dict {"image": (C, H, W)} with uint8 values.
+
+    Args:
+        env: Either a string environment ID (e.g., "Pendulum-v1") or a pre-built
+            gym environment instance.
+        seed (int): Random seed for environment reset (default: 0).
+        size (tuple): Target image size as (height, width) (default: (64, 64)).
+        render_mode (str): Render mode for environment (default: "rgb_array").
+
+    Attributes:
+        observation_space: Dict space with "image" key containing (C, H, W) Box.
+        action_space: Box space with actions in [-1, 1] range.
+        max_episode_steps: Maximum steps per episode (default: 1000).
     """
 
     def __init__(self, env, seed=0, size=(64, 64), render_mode="rgb_array"):
@@ -25,6 +54,7 @@ class GymImageEnv:
         self._seed = seed
         self._render_mode = render_mode
         self._seed_applied = False
+        self._rng = np.random.default_rng(seed)
 
         if isinstance(env, str):
             self._env = self._make_env_from_id(env, render_mode)
@@ -50,6 +80,8 @@ class GymImageEnv:
             )
             self._action_space.sample = self._sample_discrete_action
 
+        self._seed_spaces(seed)
+
         self._observation_space = gym.spaces.Dict(
             {
                 "image": gym.spaces.Box(
@@ -68,6 +100,19 @@ class GymImageEnv:
 
             try:
                 return gymnasium.make(env_id, render_mode=render_mode)
+            except ImportError as exc:
+                from world_models.envs.robotics_env import (
+                    is_moved_mujoco_error,
+                    register_gymnasium_robotics_envs,
+                )
+
+                if not is_moved_mujoco_error(exc):
+                    raise
+                register_gymnasium_robotics_envs()
+                try:
+                    return gymnasium.make(env_id, render_mode=render_mode)
+                except TypeError:
+                    return gymnasium.make(env_id)
             except TypeError:
                 return gymnasium.make(env_id)
         except Exception:
@@ -98,8 +143,22 @@ class GymImageEnv:
             return int(self._env.spec.max_episode_steps)
         return 1000
 
+    def _seed_spaces(self, seed):
+        if seed is None:
+            return
+        for space in (
+            self._action_space,
+            getattr(self._env, "action_space", None),
+            getattr(self._env, "observation_space", None),
+        ):
+            if hasattr(space, "seed"):
+                try:
+                    space.seed(seed)
+                except Exception:
+                    pass
+
     def _sample_discrete_action(self):
-        idx = np.random.randint(0, self._discrete_n)
+        idx = int(self._rng.integers(0, self._discrete_n))
         action = -np.ones((self._discrete_n,), dtype=np.float32)
         action[idx] = 1.0
         return action

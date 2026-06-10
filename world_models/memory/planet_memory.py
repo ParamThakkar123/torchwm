@@ -9,8 +9,29 @@ def _identity(x):
 
 
 class Episode:
-    """Records the agent's interaction with the environment for a single
-    episode. At termination, it converts all the data to Numpy arrays.
+    """Records the agent's interaction with the environment for a single episode.
+
+    Stores observations, actions, rewards, and terminal flags during a single
+    trajectory. At termination, converts all lists to numpy arrays for
+    efficient batch processing.
+
+    Attributes:
+        x (list or np.ndarray): Observations collected during the episode.
+        u (list or np.ndarray): Actions taken.
+        r (list or np.ndarray): Rewards received.
+        t (list or np.ndarray): Terminal flags (0.0 = continue, 1.0 = terminal).
+        info (dict): Additional episode metadata.
+
+    Args:
+        postprocess_fn (callable, optional): Function to apply to observations
+            before storing (e.g., normalization). Default: identity function.
+
+    Example:
+        >>> episode = Episode()
+        >>> episode.append(obs, action, reward, False)
+        >>> episode.append(obs, action, reward, True)
+        >>> episode.terminate(final_obs)
+        >>> print(episode.x.shape)  # Now a numpy array
     """
 
     def __init__(self, postprocess_fn=None):
@@ -43,14 +64,37 @@ class Episode:
 class Memory(deque):
     """Episode-based replay memory for PlaNet/RSSM training.
 
-    Episodes are stored as variable-length trajectories and sampled as
-    sub-sequences with optional time-major formatting for sequence models.
+    Stores episodes as variable-length trajectories and supports sampling
+    sub-sequences for training. Implements a ring-buffer style eviction
+    when capacity is reached.
+
+    Features:
+        - Stores complete episodes as lists of transitions
+        - Samples contiguous sub-sequences for sequence models
+        - Supports time-major formatting (time-first) for RNN input
+        - Memory usage estimation to prevent OOM errors
+
+    Args:
+        size (int, optional): Maximum number of episodes to store. If None,
+            deque grows without limit (useful for unpickling).
+
+    Attributes:
+        episodes (deque): Collection of Episode objects.
+        eps_lengths (deque): Length of each episode.
+        size (property): Total number of transitions across all episodes.
+
+    Example:
+        >>> memory = Memory(size=100)
+        >>> memory.append([episode1, episode2])
+        >>> batch, lengths = memory.sample(batch_size=32, tracelen=50)
     """
 
     def __init__(self, size=None):
-        """Maintains a FIFO list of `size` number of episodes.
-        If size is None (e.g. during unpickling or loading legacy files),
-        create deques without a fixed maxlen so pickle can restore state.
+        """Initialize memory with optional episode capacity.
+
+        Args:
+            size (int, optional): Maximum number of episodes. If None,
+                creates unbounded deques for pickle compatibility.
         """
         maxlen = size if size is not None else None
         self.episodes = deque(maxlen=maxlen)
@@ -82,6 +126,29 @@ class Memory(deque):
             raise ValueError("can only append <Episode> or list of <Episode>")
 
     def sample(self, batch_size, tracelen=1, time_first=False):
+        """Sample random sub-sequences from stored episodes.
+
+        Randomly selects episodes and starting positions to create batches
+        of contiguous sequences for training sequence models.
+
+        Args:
+            batch_size (int): Number of sequences to sample.
+            tracelen (int): Length of each sequence (default: 1).
+            time_first (bool): If True, returns tensors with time dimension
+                first (T, B, ...) instead of batch first (B, T, ...).
+
+        Returns:
+            tuple: (observations, actions, rewards, terminals, lengths)
+                - observations: (batch, tracelen+1, *obs_shape) or (tracelen+1, batch, ...)
+                - actions: (batch, tracelen, action_dim) or (tracelen, batch, ...)
+                - rewards: (batch, tracelen) or (tracelen, batch)
+                - terminals: (batch, tracelen) or (tracelen, batch)
+                - lengths: (batch,) original episode lengths for each sample
+
+        Raises:
+            ValueError: If memory is empty or no episodes meet minimum length.
+            MemoryError: If estimated memory usage exceeds 200 MiB threshold.
+        """
         if len(self.episodes) == 0:
             raise ValueError("Memory is empty; cannot sample.")
 

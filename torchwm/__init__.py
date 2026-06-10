@@ -1,11 +1,34 @@
-"""Top-level package marker for editable installs and static checkers.
+"""Friendly top-level package for TorchWM.
 
-This package exists so tools like mypy can map files under the repository
-to the `torchwm` package name (the project uses a flat layout with
-`world_models/` as the real package). It intentionally re-exports the
-public modules where appropriate.
+``torchwm`` is the recommended public namespace for users::
+
+    import torchwm
+
+    agent = torchwm.create_model("dreamer", env="walker-walk")
 """
 
-# Keep this file minimal — importing subpackages lazily avoids heavy
-# import-time dependencies during type checking.
-__all__ = []
+from __future__ import annotations
+
+from importlib import import_module
+import sys
+from typing import Any
+
+_world_models = import_module("world_models")
+api = import_module("world_models.api")
+sys.modules[f"{__name__}.api"] = api
+
+__version__ = _world_models.__version__
+__all__ = [*list(_world_models.__all__), "api"]
+
+
+def __getattr__(name: str) -> Any:
+    try:
+        value = getattr(_world_models, name)
+    except AttributeError as exc:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from exc
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__all__))

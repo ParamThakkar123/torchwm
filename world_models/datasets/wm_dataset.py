@@ -75,7 +75,7 @@ class RolloutDataset(Dataset):
         self.buffer = [None] * len(self.files)
         self.buffer_size = buffer_size
         self.buffer_idx = 0
-        self.buffer_fnames = [None] * len(self.files)
+        self.buffer_fnames: list[str | None] = [None] * len(self.files)
 
     def __len__(self):
         """Get the total number of samples in the dataset.

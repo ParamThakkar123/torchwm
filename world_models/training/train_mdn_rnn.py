@@ -492,7 +492,7 @@ def train_mdn_rnn(
             num_workers=4,
             pin_memory=True,
         )
-        test_dataset = LatentSequenceDataset(
+        test_dataset: LatentSequenceDataset | SequenceDataset = LatentSequenceDataset(
             latents_arr=latents,
             actions=all_actions,
             rewards=all_rewards,
@@ -529,7 +529,7 @@ def train_mdn_rnn(
             num_workers=0,
             pin_memory=False,
         )
-        test_dataset: LatentSequenceDataset | SequenceDataset = SequenceDataset(
+        test_dataset = SequenceDataset(
             root=mdrnn_config.data_dir,
             transform=transform,
             train=False,

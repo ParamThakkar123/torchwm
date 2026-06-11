@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 from typing import Optional
 
 
@@ -15,7 +17,7 @@ class STSpatialAttention(nn.Module):
     Architecture:
         QKV projection: Linear(dim, dim*3)
         Reshape to multi-head attention format
-        Attention: softmax(Q @ K^T / sqrt(d_k)) @ V
+        Fused scaled dot-product attention (FlashAttention on supported GPUs)
         Output projection
 
     Usage in ST-Transformer:
@@ -44,7 +46,7 @@ class STSpatialAttention(nn.Module):
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.dropout_p = attn_drop
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
 
@@ -65,11 +67,14 @@ class STSpatialAttention(nn.Module):
         q = self.q_norm(q)
         k = self.k_norm(k)
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(2, 3).reshape(B, T, N, C)
+        x = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            dropout_p=self.dropout_p if self.training else 0.0,
+            scale=self.scale,
+        )
+        x = x.transpose(2, 3).reshape(B, T, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -116,9 +121,15 @@ class STTemporalAttention(nn.Module):
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.dropout_p = attn_drop
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
+
+        self.register_buffer(
+            "causal_mask",
+            torch.empty(0, 0, dtype=torch.bool),
+            persistent=False,
+        )
 
     def forward(self, x: torch.Tensor, causal: bool = True) -> torch.Tensor:
         """
@@ -138,18 +149,25 @@ class STTemporalAttention(nn.Module):
         q = self.q_norm(q)
         k = self.k_norm(k)
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-
-        if causal:
-            mask = torch.triu(
+        # Prefer the fused SDPA path (FlashAttention on supported GPUs).  The
+        # cached mask is kept for callers/backends that need an explicit mask,
+        # but SDPA's is_causal path avoids rebuilding a T x T tensor every call.
+        if causal and (
+            self.causal_mask.shape != (T, T) or self.causal_mask.device != x.device
+        ):
+            self.causal_mask = torch.triu(
                 torch.ones(T, T, device=x.device, dtype=torch.bool), diagonal=1
             )
-            attn = attn.masked_fill(mask, float("-inf"))
 
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(1, 3).reshape(B, T, N, C)
+        x = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            dropout_p=self.dropout_p if self.training else 0.0,
+            is_causal=causal,
+            scale=self.scale,
+        )
+        x = x.transpose(1, 3).reshape(B, T, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -339,12 +357,14 @@ class STTransformer(nn.Module):
         attn_drop_rate: float = 0.0,
         drop_path_rate: float = 0.0,
         norm_layer: type[nn.Module] = nn.LayerNorm,
+        gradient_checkpointing: bool = False,
     ):
         super().__init__()
         self.num_frames = num_frames
         self.num_patches_per_frame = num_patches_per_frame
+        self.gradient_checkpointing = gradient_checkpointing
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
+        dpr = torch.linspace(0, drop_path_rate, depth).tolist()
 
         self.blocks = nn.ModuleList(
             [
@@ -379,7 +399,10 @@ class STTransformer(nn.Module):
         x = x.reshape(B, T, N, C)
 
         for blk in self.blocks:
-            x = blk(x)
+            if self.gradient_checkpointing and self.training:
+                x = checkpoint(blk, x, use_reentrant=False)
+            else:
+                x = blk(x)
 
         x = self.norm(x)
 
@@ -401,6 +424,7 @@ def create_st_transformer(
     drop_rate: float = 0.0,
     attn_drop_rate: float = 0.0,
     drop_path_rate: float = 0.0,
+    gradient_checkpointing: bool = False,
 ) -> STTransformer:
     """Factory function to create an ST-Transformer."""
     num_patches_per_frame = (img_size // patch_size) ** 2
@@ -416,4 +440,5 @@ def create_st_transformer(
         drop_rate=drop_rate,
         attn_drop_rate=attn_drop_rate,
         drop_path_rate=drop_path_rate,
+        gradient_checkpointing=gradient_checkpointing,
     )

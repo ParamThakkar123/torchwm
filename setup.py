@@ -11,7 +11,7 @@ README = (
 
 setup(
     name="torchwm",
-    version="0.3.2",
+    version="0.4.2",
     description="A Pytorch Based library for training world models",
     long_description=README,
     long_description_content_type="text/markdown",

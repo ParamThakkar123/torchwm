@@ -6,7 +6,7 @@ def test_version_shows_package_version():
     runner = CliRunner()
     res = runner.invoke(cli.app, ["version"])
     assert res.exit_code == 0
-    assert "0.4.0" in res.output
+    assert "0.4.2" in res.output
 
 
 def test_envs_list_outputs_backends():

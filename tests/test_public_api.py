@@ -3,7 +3,7 @@ from torchwm import api
 
 
 def test_top_level_torchwm_exports_user_facing_factories():
-    assert torchwm.__version__ == "0.4.0"
+    assert torchwm.__version__ == "0.4.2"
     assert torchwm.create_config is api.create_config
     assert "dreamer" in torchwm.list_models()
     assert "gym" in torchwm.list_env_backends()

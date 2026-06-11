@@ -819,13 +819,11 @@ class DiamondAgent:
                 else:
                     raise FileNotFoundError(f"Checkpoint not found at {path} or {alt}")
 
-        # Use full (unsafe) load to restore Python objects (numpy arrays, lists)
-        # required for replay buffer and obs history restoration.
-        # Load the torch checkpoint (weights + metadata). This file should be
-        # safe to load because it contains only tensor state dicts and small
-        # metadata fields. Larger numpy arrays may be stored separately and
-        # are loaded below when present.
-        checkpoint = torch.load(fpath, map_location=self.device, weights_only=False)
+        # The checkpoint stores tensor state_dicts and primitive metadata only;
+        # larger replay/observation arrays are loaded from separate npz/npy
+        # files below. Keep torch deserialization in weights-only mode to avoid
+        # executing arbitrary pickle payloads from untrusted checkpoints.
+        checkpoint = torch.load(fpath, map_location=self.device, weights_only=True)
         self.diffusion_model.load_state_dict(checkpoint["diffusion_model"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
         self.actor_critic.load_state_dict(checkpoint["actor_critic"])

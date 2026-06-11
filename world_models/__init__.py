@@ -18,7 +18,7 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any
 
-__version__ = "0.4.2"
+from world_models._version import __version__  # noqa: F401
 
 
 try:

@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from setuptools import setup, find_packages
 
@@ -9,9 +10,21 @@ README = (
     else ""
 )
 
+
+def _get_version() -> str:
+    version_file = HERE / "world_models" / "_version.py"
+    if version_file.exists():
+        match = re.search(
+            r'__version__\s*=\s*["\']([^"\']+)["\']', version_file.read_text()
+        )
+        if match:
+            return match.group(1)
+    return "0.0.0"
+
+
 setup(
     name="torchwm",
-    version="0.4.2",
+    version=_get_version(),
     description="A Pytorch Based library for training world models",
     long_description=README,
     long_description_content_type="text/markdown",

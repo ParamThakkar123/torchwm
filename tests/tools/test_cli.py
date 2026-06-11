@@ -1,3 +1,6 @@
+import re
+
+import torchwm
 from click.testing import CliRunner
 from tools import cli
 
@@ -6,7 +9,8 @@ def test_version_shows_package_version():
     runner = CliRunner()
     res = runner.invoke(cli.app, ["version"])
     assert res.exit_code == 0
-    assert "0.4.2" in res.output
+    assert re.search(r"\d+\.\d+\.\d+", res.output)
+    assert torchwm.__version__ in res.output
 
 
 def test_envs_list_outputs_backends():

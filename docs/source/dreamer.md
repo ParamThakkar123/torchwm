@@ -4,7 +4,7 @@ Dreamer is a model-based reinforcement learning algorithm that learns a latent d
 from images and trains a behavior policy entirely in the latent space.
 
 Based on papers:
-- [Dreamer: Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1912.01603) (Hafner et al., 2019)
+- [Dreamer: Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1912.01603) (DreamerV1, Hafner et al., 2019)
 - [Mastering Atari with Discrete World Models](https://arxiv.org/abs/2010.02193) (DreamerV2, Hafner et al., 2020)
 
 ```{contents} Contents
@@ -18,17 +18,323 @@ policy entirely in the imagination of that world model. No gradients flow from t
 environment to the policy — the world model is the only bridge between real
 experience and learned behavior.
 
-The family has two major versions:
+The family has two major versions, documented individually below.
+
+---
+
+## DreamerV1
+
+### Theory
+
+#### Recurrent State-Space Model (RSSM) with Gaussian Latents
+
+DreamerV1's RSSM maintains a hybrid state with two components:
+
+**1. Deterministic state** `h_t` — a GRU hidden state that captures temporal
+dependencies and deterministic transitions:
+
+```{math}
+h_t = \text{GRU}(h_{t-1}, [s_{t-1}, a_{t-1}])
+```
+
+**2. Stochastic state** `s_t` — a diagonal Gaussian latent variable with
+`stoch_size` means and variances, representing uncertainty.
+
+The model operates in two modes:
+
+**Observe mode** (training — uses real observations):
+
+```{math}
+\text{Posterior: } s_t \sim q(s_t | h_t, \text{enc}(x_t))
+```
+
+**Imagine mode** (policy training — no observations):
+
+```{math}
+\text{Prior: } s_t \sim p(s_t | h_t)
+```
+
+#### World Model Loss
+
+The complete world model objective (V1):
+
+```{math}
+\mathcal{L}_{\text{WM}} = \mathcal{L}_{\text{pred}} + \beta \cdot \mathcal{L}_{\text{KL}}
+```
+
+Where:
+
+```{math}
+\begin{aligned}
+\mathcal{L}_{\text{pred}} &=
+\underbrace{\|x_t - \hat{x}_t\|^2}_{\text{image reconstruction}}
++ \underbrace{\|r_t - \hat{r}_t\|^2}_{\text{reward prediction}} \\
+\mathcal{L}_{\text{KL}} &=
+D_{\text{KL}}\big(q(s_t | h_t, e_t) \;\|\; p(s_t | h_t)\big)
+\end{aligned}
+```
+
+V1 applies a single KL coefficient `β` without balancing.
+
+#### Actor-Critic in Imagination
+
+DreamerV1 rolls out imagined trajectories using the prior dynamics and trains
+actor-critic purely in latent space:
+
+**Actor loss** (REINFORCE with baseline):
+
+```{math}
+\mathcal{L}_{\text{actor}} = -\sum_{t=1}^{T}
+\log \pi(a_t | s_t) \cdot \text{sg}(G_t^\lambda - V(s_t))
++ \eta \cdot H[\pi(\cdot | s_t)]
+```
+
+**Critic loss**:
+
+```{math}
+\mathcal{L}_{\text{critic}} = \sum_{t=1}^{T} \|V(s_t) - G_t^\lambda\|^2
+```
+
+**Lambda return** (with fixed `γ`):
+
+```{math}
+G_t^\lambda = r_t + \gamma \cdot
+\begin{cases}
+(1 - \lambda) V(s_{t+1}) + \lambda G_{t+1}^\lambda & \text{if } t < T \\
+V(s_T) & \text{if } t = T
+\end{cases}
+```
+
+### Examples
+
+```python
+import torchwm
+
+agent = torchwm.create_model(
+    "dreamer",
+    env_backend="dmc",
+    env="walker-walk",
+    total_steps=5_000_000,
+)
+agent.train()
+```
+
+Explicit V1 config:
+
+```python
+from torchwm import DreamerAgent, DreamerConfig
+
+cfg = DreamerConfig()
+
+# Select DreamerV1
+cfg.algo = "Dreamerv1"
+
+# Gaussian latent (V1 default)
+cfg.stoch_size = 30       # diagonal Gaussian dimensions
+cfg.deter_size = 200
+
+# Environment
+cfg.env_backend = "dmc"
+cfg.env = "walker-walk"
+cfg.total_steps = 5_000_000
+
+# KL (single coefficient)
+cfg.kl_scale = 1.0
+
+agent = DreamerAgent(cfg)
+agent.train()
+```
+
+```bash
+torchwm train dreamer --env dmc/walker-walk --algo Dreamerv1 --device cuda
+```
+
+---
+
+## DreamerV2
+
+### Theory
+
+#### Recurrent State-Space Model (RSSM) with Categorical Latents
+
+DreamerV2's RSSM maintains the same hybrid state structure as V1 but replaces
+Gaussian latents with **discrete categorical latents**:
+
+```{math}
+h_t = \text{GRU}(h_{t-1}, [s_{t-1}, a_{t-1}])
+```
+
+**Stochastic state** `s_t` — a concatenation of `num_categories` one-hot
+categorical distributions, each with `classes` categories:
+
+```python
+# V2: stack of categoricals (e.g., 32 classes × 32 categories)
+self.stoch = torch.cat([one_hot(logits[i]) for i in range(num_categories)], dim=-1)
+```
+
+Default: 32 categories × 32 classes = 1024 total latent dimensions.
+Discrete latents are better at representing multimodal posteriors and
+are critical for handling aleatoric uncertainty in complex environments like Atari.
+
+#### World Model Loss with KL Balancing
+
+V2 introduces **KL balancing** — separate weighting for the prior and posterior
+KL terms using stop-gradient (`sg`):
+
+```{math}
+\mathcal{L}_{\text{KL}} = \alpha \cdot D_{\text{KL}}[q \| \text{sg}(p)]
++ (1 - \alpha) \cdot D_{\text{KL}}[\text{sg}(q) \| p]
+```
+
+where `α` (default 0.8) weights the prior-following term higher. This prevents
+the posterior from collapsing to a deterministic point mass.
+
+**Free nats**: A threshold (default 3 nats) below which KL is not penalized.
+
+The full world model objective (V2):
+
+```{math}
+\mathcal{L}_{\text{WM}} = \mathcal{L}_{\text{pred}} + \mathcal{L}_{\text{KL}}
+```
+
+```{math}
+\mathcal{L}_{\text{pred}} =
+\|x_t - \hat{x}_t\|^2
++ \|r_t - \hat{r}_t\|^2
++ \text{BCE}(\gamma_t, \hat{\gamma}_t)
+```
+
+#### Discount Head
+
+V2 adds a learned **discount (termination) head** that predicts episode
+continuation probability `γ̂_t` via binary cross-entropy:
+
+```{math}
+\mathcal{L}_{\text{disc}} = \text{BCE}(\gamma_t, \hat{\gamma}_t)
+```
+
+This is critical for Atari where episodes can end due to life loss, so the
+discount factor must be learned rather than fixed.
+
+#### Architecture Improvements
+
+- **Layer normalization** in GRU and MLP layers for training stability
+- **SiLU activations** replace ELU throughout
+- **Two-hot reward encoding** replaces MSE: discretizes reward into 255 bins
+  and predicts a softmax distribution over bins
+
+#### Actor-Critic in Imagination
+
+Same structure as V1 but uses the learned discount `γ̂_t` in λ-returns:
+
+```{math}
+G_t^\lambda = r_t + \hat{\gamma}_t \cdot
+\begin{cases}
+(1 - \lambda) V(s_{t+1}) + \lambda G_{t+1}^\lambda & \text{if } t < T \\
+V(s_T) & \text{if } t = T
+\end{cases}
+```
+
+### Examples
+
+```python
+import torchwm
+
+agent = torchwm.create_model(
+    "dreamer",
+    env_backend="atari",
+    env="PongNoFrameskip-v4",
+    algo="Dreamerv2",
+    total_steps=10_000_000,
+)
+agent.train()
+```
+
+Explicit V2 config:
+
+```python
+from torchwm import DreamerAgent, DreamerConfig
+
+cfg = DreamerConfig()
+
+# Select DreamerV2
+cfg.algo = "Dreamerv2"
+
+# Categorical latent (V2)
+cfg.stoch_size = 32       # number of categorical classes per category
+cfg.num_categories = 32   # number of categorical distributions
+cfg.deter_size = 200
+
+# Environment
+cfg.env_backend = "atari"
+cfg.env = "PongNoFrameskip-v4"
+cfg.total_steps = 10_000_000
+
+# KL balancing
+cfg.kl_alpha = 0.8
+cfg.free_nats = 3.0
+
+# Discount (V2 uses learned termination)
+cfg.discount = 0.997
+
+agent = DreamerAgent(cfg)
+agent.train()
+```
+
+```bash
+torchwm train dreamer --env atari/PongNoFrameskip-v4 --algo Dreamerv2 --device cuda
+```
+
+---
+
+## Differences Between DreamerV1 and DreamerV2
 
 | Aspect | DreamerV1 | DreamerV2 |
 |--------|-----------|-----------|
-| Latent type | Gaussian (continuous) | One-hot categorical (discrete) |
-| KL balancing | Single coefficient | Separate α for prior/posterior |
-| Discount head | Fixed γ | Learned termination predictor |
-| Architecture | ELU activations | LayerNorm + SiLU |
-| Atari performance | ~40% HNS | ~100% HNS |
+| **Latent type** | Gaussian (continuous) | One-hot categorical (discrete) |
+| **Stochastic state** | `stoch_size` diagonal Gaussian | `num_categories` × `classes` categoricals |
+| **KL formulation** | Single coefficient `β` | KL balancing with `α` weight + free nats |
+| **Discount** | Fixed `γ` throughout episode | Learned termination predictor `γ̂_t` |
+| **Reward loss** | MSE | Two-hot discretized cross-entropy |
+| **Activations** | ELU | SiLU |
+| **Normalization** | None in GRU/MLP | LayerNorm in GRU and MLP layers |
+| **Atari performance** | ~40% human-normalized score | ~100% human-normalized score |
+| **Key advantage** | Simpler, fewer hyperparameters | Better on complex/discrete environments |
 
-## Architecture
+### Categorical vs Gaussian Latents
+
+V1 uses a diagonal Gaussian for the stochastic state. V2 uses a concatenation
+of one-hot categorical distributions:
+
+```python
+# V1: single Gaussian
+self.stoch = torch.distributions.Normal(mean, std)
+
+# V2: stack of categoricals
+self.stoch = torch.cat([one_hot(logits[i]) for i in range(num_categories)], dim=-1)
+```
+
+Discrete latents better capture multimodal posteriors (e.g., "the robot could
+be at door A or door B") and are less prone to posterior collapse.
+
+### KL Balancing
+
+| Formulation | V1 | V2 |
+|-------------|----|----|
+| KL loss | `β · KL[q ‖ p]` | `α · KL[q ‖ sg(p)] + (1-α) · KL[sg(q) ‖ p]` |
+| Stop-gradient | None | On prior in first term, posterior in second |
+| Effect | Single trade-off | Prior learns to follow posterior; posterior doesn't collapse |
+
+### Discount Head
+
+| | V1 | V2 |
+|---|----|----|
+| Discount | Fixed scalar `γ=0.99` | Learned `γ̂_t` from BCE loss |
+| Purpose | Simple time discount | Model episode termination (life loss in Atari) |
+
+---
+
+## Shared Architecture
 
 ### High-level diagram
 
@@ -97,7 +403,7 @@ h_t = \text{GRU}(h_{t-1}, [s_{t-1}, a_{t-1}])
 
 **2. Stochastic state** `s_t` — a latent variable representing uncertainty.
 - **V1:** Diagonal Gaussian with `stoch_size` means and variances.
-- **V2:** Concatenation of `stoch_size / classes` one-hot categoricals, each
+- **V2:** Concatenation of `num_categories` one-hot categoricals, each
   with `classes` categories. Default: 32 classes × 32 categories = 1024 total.
 
 The model operates in two modes:
@@ -163,83 +469,7 @@ Outputs the policy distribution over actions. For continuous actions, predicts
 a tanh-squashed Gaussian. For discrete actions, predicts a categorical
 distribution. Uses REINFORCE gradient through the world model.
 
-## Training
-
-### World Model Loss
-
-The complete world model objective (V1 notation):
-
-```{math}
-\mathcal{L}_{\text{WM}} = \mathcal{L}_{\text{pred}} + \beta \cdot \mathcal{L}_{\text{KL}}
-```
-
-Where:
-
-```{math}
-\begin{aligned}
-\mathcal{L}_{\text{pred}} &=
-\underbrace{\|x_t - \hat{x}_t\|^2}_{\text{image reconstruction}}
-+ \underbrace{\|r_t - \hat{r}_t\|^2}_{\text{reward prediction}}
-+ \underbrace{\text{BCE}(\gamma_t, \hat{\gamma}_t)}_{\text{discount (V2)}} \\
-\mathcal{L}_{\text{KL}} &=
-D_{\text{KL}}\big(q(s_t | h_t, e_t) \;\|\; p(s_t | h_t)\big)
-\end{aligned}
-```
-
-In DreamerV2, the KL uses **KL balancing**:
-
-```{math}
-\mathcal{L}_{\text{KL}} = \alpha \cdot D_{\text{KL}}[q \| \text{sg}(p)]
-+ (1 - \alpha) \cdot D_{\text{KL}}[\text{sg}(q) \| p]
-```
-
-where `sg` is stop-gradient and `α` (default 0.8) weights the prior-following
-term higher. This prevents the posterior from collapsing.
-
-**Free nats**: A threshold (default 3 nats) below which KL is not penalized.
-
-### Actor-Critic in Imagination
-
-After the world model is trained, Dreamer rolls out imagined trajectories
-using the prior dynamics and trains an actor-critic purely in latent space:
-
-```{mermaid}
-graph LR
-    A["Posterior state s_0"] --> B["Imagine prior p(s_t | h_t)"]
-    B --> C[s_1, s_2, ..., s_T]
-    C --> D["Reward head → r_t"]
-    C --> E["Discount head → γ_t"]
-    C --> F["Value head → v_t"]
-    D --> G["λ-return G_t"]
-    E --> G
-    F --> G
-    G --> H["Actor: REINFORCE ∇J"]
-    G --> I["Critic: MSE(V - G)"]
-```
-
-**Actor loss** (REINFORCE with baseline):
-
-```{math}
-\mathcal{L}_{\text{actor}} = -\sum_{t=1}^{T}
-\log \pi(a_t | s_t) \cdot \text{sg}(G_t^\lambda - V(s_t))
-+ \eta \cdot H[\pi(\cdot | s_t)]
-```
-
-**Critic loss**:
-
-```{math}
-\mathcal{L}_{\text{critic}} = \sum_{t=1}^{T} \|V(s_t) - G_t^\lambda\|^2
-```
-
-**Lambda return**:
-
-```{math}
-G_t^\lambda = r_t + \gamma_t \cdot
-\begin{cases}
-(1 - \lambda) V(s_{t+1}) + \lambda G_{t+1}^\lambda & \text{if } t < T \\
-V(s_T) & \text{if } t = T
-\end{cases}
-```
+## Shared Training
 
 ### Training Loop
 
@@ -264,20 +494,6 @@ DreamerAgent follows a cyclic training loop:
 ```
 
 ## Usage in TorchWM
-
-### Quick start
-
-```python
-import torchwm
-
-agent = torchwm.create_model(
-    "dreamer",
-    env_backend="dmc",
-    env="walker-walk",
-    total_steps=5_000_000,
-)
-agent.train()
-```
 
 ### Using config directly
 
@@ -410,47 +626,6 @@ config.enable_wandb = False
 | `seed_steps` | 5000 | Random steps before training |
 | `total_steps` | 5e6 | Total environment steps |
 | `collect_steps` | 1000 | Steps between model updates |
-
-## DreamerV1 vs DreamerV2
-
-### Categorical vs Gaussian Latents
-
-V1 uses a diagonal Gaussian for the stochastic state. V2 uses a concatenation
-of one-hot categorical distributions, each independently sampled:
-
-```python
-# V1: single Gaussian
-self.stoch = torch.distributions.Normal(mean, std)
-
-# V2: stack of categoricals (e.g., 32 classes × 32 categories)
-self.stoch = torch.cat([one_hot(logits[i]) for i in range(num_categories)], dim=-1)
-```
-
-### KL Balancing
-
-V1 applies a single KL coefficient `β`:
-
-```{math}
-\mathcal{L}_{\text{KL}} = β \cdot D_{\text{KL}}[q \| p]
-```
-
-V2 splits the KL with stop-gradient:
-
-```{math}
-\mathcal{L}_{\text{KL}} = α \cdot D_{\text{KL}}[q \| \text{sg}(p)]
-+ (1 - α) \cdot D_{\text{KL}}[\text{sg}(q) \| p]
-```
-
-### Discount Head
-
-V2 learns to predict episode termination (`γ̂_t`) via a binary classifier,
-critical for Atari where episodes can end due to life loss.
-
-### Architecture Improvements
-
-- **Layer normalization** in GRU and MLP layers (V2)
-- **SiLU activations** replace ELU (V2)
-- **Two-hot reward encoding** replaces MSE (V2): discretizes reward into 255 bins
 
 ## Common Pitfalls
 

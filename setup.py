@@ -34,7 +34,7 @@ setup(
     include_package_data=True,
     package_data={"world_models": ["configs/experiments/*.yaml"]},
     entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
-    python_requires=">=3.10",
+    python_requires=">=3.11",
     install_requires=[
         "torch>=1.13.0",
         "torchvision>=0.14.0",
@@ -96,6 +96,7 @@ setup(
             "sphinx>=9.1.0",
             "sphinx-autodoc-typehints>=3.6.2",
             "sphinx-copybutton>=0.5.2",
+            "pydata-sphinx-theme>=0.15.0",
             "sphinx-rtd-theme>=3.1.0",
             "sphinxcontrib-bibtex>=2.6.5",
             "sphinxcontrib-mermaid>=0.9.0",

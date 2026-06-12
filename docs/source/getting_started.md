@@ -156,7 +156,8 @@ result = op(inputs)
 
 ### Integration with Configs
 
-Operators use parameters from config classes:
+Operators can reuse matching config fields, but operator-only parameters such as
+action dimensions should be supplied from the target environment:
 
 ```python :class: thebe
 import torchwm
@@ -164,8 +165,8 @@ import torchwm
 cfg = torchwm.create_config("dreamer")
 op = torchwm.get_operator(
     "dreamer",
-    image_size=cfg.operator_image_size,
-    action_dim=cfg.operator_action_dim,
+    image_size=cfg.image_size[0],
+    action_dim=6,
 )
 ```
 

@@ -84,7 +84,7 @@ import torchwm
 
 agent = torchwm.create_model(
     "iris",
-    env_name="Pong-v5",
+    env="ALE/Pong-v5",
     total_epochs=100,
     action_size=4,
     device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
@@ -118,7 +118,7 @@ for step in range(cfg.total_steps):
         metrics = agent.update(batch)
 
     # Log
-    if step % cfg.log_every == 0:
+    if step % cfg.scalar_freq == 0:
         print(f"Step {step}: {metrics}")
 ```
 
@@ -136,8 +136,23 @@ All training is controlled via config objects:
 
 ### Logging
 - `enable_wandb`: Weights & Biases logging
-- `log_dir`: TensorBoard log directory
+- `log_dir`: Base log directory for supported agents
+- `scalar_freq`/`log_interval`: Metric logging cadence, depending on the agent
 - `checkpoint_interval`: Save frequency
+
+### Starter YAML configs
+
+DIAMOND, IRIS, and JEPA include starter experiment YAML files in
+`world_models/configs/experiments/`. Use them with the unified CLI and optional
+OmegaConf/Hydra-style dot-list overrides:
+
+```bash
+torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=1
+torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100 env=ALE/Breakout-v5
+torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimization.epochs=50 data.batch_size=128
+```
+
+Add `--print-config` to inspect the composed configuration without launching a run.
 
 ## Environment Setup
 

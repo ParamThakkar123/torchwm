@@ -77,6 +77,16 @@ Core model families
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.models.mdrnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.models.controller
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.models.modular_rssm
    :members:
    :undoc-members:
@@ -157,6 +167,11 @@ Vision, tokenization, and layers
 
 **Key classes:** ``ConvEncoder``, ``ConvDecoder``, ``DenseDecoder``, ``ActionDecoder``, ``CNNEncoder``, ``CNNDecoder``, ``IRISEncoder``, ``IRISDecoder``, ``DiscreteAutoencoder``, ``VectorQuantizer``, ``VectorQuantizerEMA``, ``VideoTokenizer``, ``MultiHeadSelfAttention``, and ``STTransformer``.
 
+.. automodule:: world_models.vision.VAE.ConvVAE
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.vision.dreamer_encoder
    :members:
    :undoc-members:
@@ -220,6 +235,11 @@ Configuration objects
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.configs.wm_config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.configs.dreamer_config
    :members:
    :undoc-members:
@@ -252,6 +272,26 @@ Configuration objects
 
 Training entry points
 ---------------------
+
+.. automodule:: world_models.training.train_world_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_convvae
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_mdn_rnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_controller
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models.training.train_jepa
    :members:
@@ -438,6 +478,11 @@ not separate environment families.
 Datasets and transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+.. automodule:: world_models.datasets.wm_dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.datasets.video_datasets
    :members:
    :undoc-members:
@@ -526,6 +571,21 @@ Benchmarks and reports
 
 Utilities
 ---------
+
+.. automodule:: world_models.losses.convae_loss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.losses.gmm_loss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.utils.train_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models.utils.dreamer_utils
    :members:

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.controller.rollout_generator &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.controller.rollout_generator &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -120,7 +120,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -287,7 +287,13 @@
                 <article class="bd-article">
                   
   <h1>Source code for world_models.controller.rollout_generator</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;Rollout generation utilities for World Models.</span>
+
+<span class="sd">This module provides the RolloutGenerator class for collecting episode</span>
+<span class="sd">experience using trained policies in environments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
@@ -301,14 +307,35 @@
 <div class="viewcode-block" id="RolloutGenerator">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RolloutGenerator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rollout generator class.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generator for collecting environment rollouts.</span>
+
+<span class="sd">    This class handles environment interactions and rollout collection,</span>
+<span class="sd">    supporting both random and policy-based action selection.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        env: The environment to interact with.</span>
+<span class="sd">        device: Device to run computations on.</span>
+<span class="sd">        policy: The policy to use for action selection (optional).</span>
+<span class="sd">        episode_gen: Factory for creating episode objects.</span>
+<span class="sd">        name: Name identifier for the generator.</span>
+<span class="sd">        max_episode_steps: Maximum steps per episode.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; generator = RolloutGenerator(</span>
+<span class="sd">        ...     env=env,</span>
+<span class="sd">        ...     device=&#39;cuda&#39;,</span>
+<span class="sd">        ...     policy=policy,</span>
+<span class="sd">        ...     max_episode_steps=1000</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; episode = generator.rollout_once()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">env</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">max_episode_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_episode_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">episode_gen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">enable_streaming_video</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -316,6 +343,16 @@
         <span class="n">streaming_video_fps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">streaming_video_format</span><span class="o">=</span><span class="s2">&quot;mp4&quot;</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the RolloutGenerator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            env: The environment to interact with.</span>
+<span class="sd">            device: Device for tensor operations.</span>
+<span class="sd">            policy: Policy to use for action selection.</span>
+<span class="sd">            max_episode_steps: Maximum steps per episode.</span>
+<span class="sd">            episode_gen: Factory function for creating episodes.</span>
+<span class="sd">            name: Name identifier for this generator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">policy</span>
@@ -332,9 +369,17 @@
 
 <div class="viewcode-block" id="RolloutGenerator.rollout_once">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.rollout_once">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explore</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Episode</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a single rollout of an environment given a policy</span>
-<span class="sd">        and returns and episode instance.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_once</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">random_policy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">explore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Episode</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a single rollout of the environment.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            random_policy: If True, use random actions instead of policy.</span>
+<span class="sd">            explore: If True, add exploration noise to policy actions.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Episode object containing the rollout experience.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">random_policy</span><span class="p">:</span>
             <span class="n">random_policy</span> <span class="o">=</span> <span class="kc">True</span>
@@ -358,9 +403,15 @@
 
 <div class="viewcode-block" id="RolloutGenerator.rollout_n">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.rollout_n">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Episode</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Performs n rollouts.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform multiple rollouts.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n: Number of rollouts to perform.</span>
+<span class="sd">            random_policy: If True, use random actions.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of Episode objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">random_policy</span><span class="p">:</span>
             <span class="n">random_policy</span> <span class="o">=</span> <span class="kc">True</span>
@@ -374,7 +425,15 @@
 
 <div class="viewcode-block" id="RolloutGenerator.rollout_eval_n">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.rollout_eval_n">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform multiple evaluation rollouts with metrics.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n: Number of evaluation rollouts.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (episodes, frames, metrics).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="n">episodes</span><span class="p">,</span> <span class="n">frames</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>

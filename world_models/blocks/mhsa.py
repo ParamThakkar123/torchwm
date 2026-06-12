@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
+
 
 class MultiHeadSelfAttention(nn.Module):
     """Multi-head scaled dot-product self-attention over sequence tokens.
@@ -34,9 +34,7 @@ class MultiHeadSelfAttention(nn.Module):
         K = K.view(B, T, self.n_heads, self.d_head).transpose(1, 2)
         V = V.view(B, T, self.n_heads, self.d_head).transpose(1, 2)
 
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_head)
-        attn = F.softmax(scores, dim=-1)
-        context = torch.matmul(attn, V)
+        context = F.scaled_dot_product_attention(Q, K, V)
 
         context = context.transpose(1, 2).contiguous().view(B, T, D)
         out = self.W_o(context)

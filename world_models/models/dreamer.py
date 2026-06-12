@@ -264,6 +264,10 @@ class Dreamer:
             self.args.batch_size,
         )
 
+        self.use_amp = bool(
+            getattr(args, "use_amp", True)
+            and getattr(device, "type", str(device)) == "cuda"
+        )
         self._build_model(restore=self.restore)
 
     def _build_model(self, restore):
@@ -359,6 +363,9 @@ class Dreamer:
         self.actor_opt = optim.Adam(
             self.actor.parameters(), self.args.actor_learning_rate
         )
+        self.world_model_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.actor_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.value_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
 
         if self.args.use_disc_model:
             self.world_model_modules = [
@@ -517,27 +524,49 @@ class Dreamer:
             .unsqueeze(-1)
         )
 
-        model_loss = self.world_model_loss(obs, acs, rews, nonterms)
-        self.world_model_opt.zero_grad()
-        model_loss.backward()
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            model_loss = self.world_model_loss(obs, acs, rews, nonterms)
+        self.world_model_opt.zero_grad(set_to_none=True)
+        self.world_model_scaler.scale(model_loss).backward()
+        self.world_model_scaler.unscale_(self.world_model_opt)
         nn.utils.clip_grad_norm_(self.world_model_params, self.args.grad_clip_norm)
-        self.world_model_opt.step()
+        self.world_model_scaler.step(self.world_model_opt)
+        self.world_model_scaler.update()
 
-        actor_loss = self.actor_loss()
-        self.actor_opt.zero_grad()
-        actor_loss.backward()
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            actor_loss = self.actor_loss()
+        self.actor_opt.zero_grad(set_to_none=True)
+        self.actor_scaler.scale(actor_loss).backward()
+        self.actor_scaler.unscale_(self.actor_opt)
         nn.utils.clip_grad_norm_(self.actor.parameters(), self.args.grad_clip_norm)
-        self.actor_opt.step()
+        self.actor_scaler.step(self.actor_opt)
+        self.actor_scaler.update()
 
-        value_loss = self.value_loss()
-        self.value_opt.zero_grad()
-        value_loss.backward()
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            value_loss = self.value_loss()
+        self.value_opt.zero_grad(set_to_none=True)
+        self.value_scaler.scale(value_loss).backward()
+        self.value_scaler.unscale_(self.value_opt)
         nn.utils.clip_grad_norm_(
             self.value_model.parameters(), self.args.grad_clip_norm
         )
-        self.value_opt.step()
+        self.value_scaler.step(self.value_opt)
+        self.value_scaler.update()
 
-        return model_loss.item(), actor_loss.item(), value_loss.item()
+        return (
+            torch.stack([model_loss.detach(), actor_loss.detach(), value_loss.detach()])
+            .cpu()
+            .tolist()
+        )
 
     def act_with_world_model(self, obs, prev_state, prev_action, explore=False):
         obs = obs["image"]

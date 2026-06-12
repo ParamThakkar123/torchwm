@@ -63,6 +63,8 @@ class IRISConfig:
         self.adam_beta2 = 0.999
         self.weight_decay = 0.01
         self.grad_clip_norm = 10.0
+        self.use_amp = True
+        self.gradient_checkpointing = True
 
         # Exploration
         self.collect_epsilon = 0.1  # Increased from 0.01 for better exploration

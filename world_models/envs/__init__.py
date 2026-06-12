@@ -35,6 +35,9 @@ from .wrappers import (
 )
 from .dmc import DeepMindControlEnv
 import gym
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def make_env(env_id: str, **kwargs):
@@ -59,32 +62,32 @@ def make_env(env_id: str, **kwargs):
     try:
         return make_gym_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_gym_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_robotics_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_robotics_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_atari_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_atari_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_procgen_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_procgen_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_unity_mlagents_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_unity_mlagents_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_bsuite_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_bsuite_env could not create %s", env_id, exc_info=True)
 
     # Fall back to gym.
     return gym.make(env_id, **kwargs)

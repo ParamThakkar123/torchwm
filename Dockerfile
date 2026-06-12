@@ -1,28 +1,43 @@
-FROM python:3.13-slim
+# syntax=docker/dockerfile:1
+ARG PYTHON_VERSION=3.11
+FROM python:${PYTHON_VERSION}-slim
+
+ARG PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
+ARG TORCHWM_EXTRAS=
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    CUDA_VISIBLE_DEVICES=0
+    TORCHWM_HOME=/data/torchwm
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    curl \
     git \
-    wget \
+    ffmpeg \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml setup.py ./
+COPY pyproject.toml setup.py README.md ./
+COPY torchwm.pyi ./
+COPY torchwm ./torchwm
+COPY tools ./tools
 COPY world_models ./world_models
-COPY torchwm_ui ./torchwm_ui
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e .
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --index-url "${PYTORCH_INDEX_URL}" torch torchvision torchaudio && \
+    if [ -n "${TORCHWM_EXTRAS}" ]; then \
+        python -m pip install --editable ".[${TORCHWM_EXTRAS}]"; \
+    else \
+        python -m pip install --editable .; \
+    fi && \
+    torchwm version && \
+    mkdir -p "${TORCHWM_HOME}"
 
-RUN cd torchwm_ui && npm install
+VOLUME ["/data/torchwm"]
 
-EXPOSE 8000
-
-CMD ["uvicorn", "world_models.ui.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+ENTRYPOINT ["torchwm"]
+CMD ["--help"]

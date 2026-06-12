@@ -28,7 +28,9 @@ TRAINING_MODULES = {
     "planet": "world_models.training.train_planet",
     "jepa": "world_models.training.train_jepa",
     "rssm": "world_models.training.train_rssm",
+    "dreamer": "world_models.training.train_dreamer",
     "genie": "world_models.training.train_genie",
+    "world-model": "world_models.training.train_world_model",
 }
 
 BENCHMARK_AGENT_NAMES = ("diamond", "iris", "dreamerv1", "dreamerv2")

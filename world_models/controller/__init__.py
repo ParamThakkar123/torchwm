@@ -2,13 +2,17 @@
 Controller sub-module - Policies and rollout generators.
 
 Exported Components:
+    - Controller: Linear controller mapping latent+hidden states to actions
     - RSSMPolicy: Model-predictive controller with RSSM latent model
     - RolloutGenerator: Episode rollout generator for evaluation
     - IRISActor: Actor network for IRIS policy
-    - IRISValueNetwork: Value network for IRIS
+    - IRISCritic: Value network for IRIS
+    - IRISPolicy: Combined actor-critic policy for IRIS
+    - CNNFeatureExtractor: Feature extraction network for IRIS
 """
 
 __all__ = [
+    "Controller",
     "RSSMPolicy",
     "RolloutGenerator",
     "IRISActor",
@@ -19,6 +23,10 @@ __all__ = [
 
 
 def __getattr__(name):
+    if name == "Controller":
+        from world_models.models.controller import Controller
+
+        return Controller
     if name == "RSSMPolicy":
         from .rssm_policy import RSSMPolicy
 

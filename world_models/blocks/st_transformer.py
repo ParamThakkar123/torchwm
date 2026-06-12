@@ -97,8 +97,9 @@ class STTemporalAttention(nn.Module):
 
     Usage in Genie VideoTokenizer:
         Applied after STSpatialAttention to model temporal dynamics.
-        The causal mask ensures generation is autoregressive.
     """
+
+    causal_mask: torch.Tensor
 
     def __init__(
         self,

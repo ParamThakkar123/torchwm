@@ -185,9 +185,7 @@ class DMLabEnv:
                     low, high = info.min, info.max
                 else:
                     low, high = -np.inf, np.inf
-                spaces[name] = gym.spaces.Box(
-                    low, high, tuple(shape), dtype=np_dtype
-                )
+                spaces[name] = gym.spaces.Box(low, high, tuple(shape), dtype=np_dtype)
         return gym.spaces.Dict(spaces)
 
     @property
@@ -248,7 +246,7 @@ class DMLabEnv:
         index = int(np.argmax(arr.reshape(-1)))
         return self._action_set[index].astype(np.intc, copy=True)
 
-    def _action_to_one_hot(self, native_action):
+    def _action_to_one_hot(self, native_action: np.ndarray) -> np.ndarray:
         matches = np.all(self._action_set == native_action, axis=1)
         index = int(np.argmax(matches)) if matches.any() else 0
         action: np.ndarray = -np.ones((self._action_set.shape[0],), dtype=np.float32)
@@ -264,14 +262,14 @@ class DMLabEnv:
         return obs
 
     def _empty_obs(self):
-        return {
-            "image": np.zeros((3, self._size[0], self._size[1]), dtype=np.uint8)
-        }
+        return {"image": np.zeros((3, self._size[0], self._size[1]), dtype=np.uint8)}
 
     def _to_chw_uint8(self, image):
         image = np.asarray(image)
         if image.ndim != 3:
-            raise ValueError(f"Expected DMLab RGB image with 3 dims, got {image.shape}.")
+            raise ValueError(
+                f"Expected DMLab RGB image with 3 dims, got {image.shape}."
+            )
         if image.shape[0] in (1, 3, 4) and image.shape[-1] not in (1, 3, 4):
             image = image.transpose(1, 2, 0)
         if image.shape[-1] == 1:

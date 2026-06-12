@@ -256,7 +256,7 @@ class DiamondAgent:
         self.diffusion_scaler.step(self.diffusion_opt)
         self.diffusion_scaler.update()
 
-        return loss.detach()
+        return loss.detach().item()
 
     def _update_reward_model(self, batch: Dict[str, torch.Tensor]) -> float:
         """Update reward/termination model."""

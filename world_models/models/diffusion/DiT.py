@@ -224,7 +224,11 @@ class DiT(nn.Module):
         subset_file=None,
         val_split=None,
     ):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         if dataset.lower() == "cifar10":
             transform = Compose([RandomHorizontalFlip(), ToTensor()])

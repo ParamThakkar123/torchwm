@@ -121,6 +121,10 @@ class DreamerConfig:
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        # Base directory for DreamerAgent-created relative log directories.
+        # If unset, DreamerAgent uses TORCHWM_DATA_DIR or log_dir instead of
+        # writing into the package source tree.
+        self.data_dir = None
         self.log_level = "INFO"
         self.log_file = None
         self.enable_tensorboard = False

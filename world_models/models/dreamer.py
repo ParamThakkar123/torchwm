@@ -690,7 +690,7 @@ class Dreamer:
         )
 
     def restore_checkpoint(self, ckpt_path):
-        checkpoint = torch.load(ckpt_path)
+        checkpoint = torch.load(ckpt_path, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
@@ -733,10 +733,19 @@ class DreamerAgent(ExportableAgentMixin):
                     pass
             elif key == "last_latents_ref":
                 self.last_latents_ref = value
+            elif key == "data_path":
+                # Backwards-compatible alias for the new configurable data_dir.
+                setattr(self.args, "data_dir", value)
             else:
                 raise ValueError(f"Invalid argument: {key}")
 
-        data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/")
+        data_path = (
+            getattr(self.args, "data_dir", None)
+            or os.environ.get("TORCHWM_DATA_DIR")
+            or getattr(self.args, "log_dir", None)
+            or "runs"
+        )
+        data_path = os.path.abspath(os.path.expanduser(data_path))
 
         if not (os.path.exists(data_path)):
             os.makedirs(data_path)
@@ -757,7 +766,8 @@ class DreamerAgent(ExportableAgentMixin):
                 + time.strftime("%d-%m-%Y-%H-%M-%S")
             )
 
-        # If `self.logdir` is not an absolute path, place it under package data_path
+        # If `self.logdir` is not an absolute path, place it under the
+        # configurable data directory instead of the package source tree.
         if not os.path.isabs(self.logdir):
             self.logdir = os.path.join(data_path, self.logdir)
         if not (os.path.exists(self.logdir)):

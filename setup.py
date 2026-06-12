@@ -85,7 +85,7 @@ setup(
             "umap-learn>=0.5.11",
         ],
         "dev": [
-            "pytest>=9.0.2",
+            "pytest>=9.0.3",
             "pytest-cov>=7.1.0",
             "pre-commit>=4.5.0",
             "mypy>=1.19.1",

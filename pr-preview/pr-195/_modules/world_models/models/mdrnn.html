@@ -1,0 +1,582 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>world_models.models.mdrnn &#8212; TorchWM 0.4.2 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=43d664b6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=3a14cefc"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/world_models/models/mdrnn';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/fix_navbar.js?v=92322e29"></script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-195/_modules/world_models/models/mdrnn.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">world_models.models.mdrnn</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for world_models.models.mdrnn</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Mixture Density Recurrent Neural Network (MDRNN) model implementation.</span>
+
+<span class="sd">This module provides implementations of MDRNN models for world modeling.</span>
+<span class="sd">The MDRNN is used to predict future latent states given current latent</span>
+<span class="sd">states and actions, using a Gaussian Mixture Model (GMM) for the output.</span>
+
+<span class="sd">Reference:</span>
+<span class="sd">    Ha &amp; Schmidhuber (2018). Recurrent World Models Facilitate Policy Evolution.</span>
+<span class="sd">    https://arxiv.org/abs/1805.11111</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.distributions.normal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normal</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_MDRNNBase</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for MDRNN models.</span>
+
+<span class="sd">    This base class provides the shared GMM (Gaussian Mixture Model) output layer</span>
+<span class="sd">    used by both MDRNN (multi-step) and MDRNNCell (single-step) implementations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latents: Dimensionality of latent space input.</span>
+<span class="sd">        actions: Dimensionality of action space.</span>
+<span class="sd">        hiddens: Number of hidden units in RNN.</span>
+<span class="sd">        gaussians: Number of Gaussian components in GMM output.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latents</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">gaussians</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latents</span> <span class="o">=</span> <span class="n">latents</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hiddens</span> <span class="o">=</span> <span class="n">hiddens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span> <span class="o">=</span> <span class="n">gaussians</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gmm_linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hiddens</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">latents</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">gaussians</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward pass - to be implemented by subclasses.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+
+<div class="viewcode-block" id="MDRNN">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNN">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MDRNN</span><span class="p">(</span><span class="n">_MDRNNBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MDRNN model for multi-step sequence prediction.</span>
+
+<span class="sd">    This model processes entire sequences of latent states and actions,</span>
+<span class="sd">    predicting the next latent state using a Gaussian Mixture Model (GMM).</span>
+<span class="sd">    It also predicts rewards and terminal states.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latents: Dimensionality of latent space (input and output).</span>
+<span class="sd">        actions: Dimensionality of action space.</span>
+<span class="sd">        hiddens: Number of hidden units in LSTM.</span>
+<span class="sd">        gaussians: Number of Gaussian components in GMM output.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; mdrnn = MDRNN(latents=32, actions=3, hiddens=256, gaussians=5)</span>
+<span class="sd">        &gt;&gt;&gt; actions = torch.randn(10, 4, 3)  # seq_len, batch, action</span>
+<span class="sd">        &gt;&gt;&gt; latents = torch.randn(10, 4, 32)  # seq_len, batch, latent</span>
+<span class="sd">        &gt;&gt;&gt; mus, sigmas, logpi, rs, ds = mdrnn(actions, latents)</span>
+<span class="sd">        &gt;&gt;&gt; # mus.shape = (10, 4, 5, 32)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latents</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">gaussians</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">latents</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">gaussians</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">latents</span> <span class="o">+</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MDRNN.forward">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNN.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">latents</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Multi-step forward pass through the MDRNN.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            actions: (SEQ_LEN, BSIZE, ASIZE) Tensor of actions.</span>
+<span class="sd">            latents: (SEQ_LEN, BSIZE, LSIZE) Tensor of latent states.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of:</span>
+<span class="sd">                - mus: (SEQ_LEN, BSIZE, N_GAUSS, LSIZE) GMM means</span>
+<span class="sd">                - sigmas: (SEQ_LEN, BSIZE, N_GAUSS, LSIZE) GMM standard deviations</span>
+<span class="sd">                - logpi: (SEQ_LEN, BSIZE, N_GAUSS) log GMM weights</span>
+<span class="sd">                - rs: (SEQ_LEN, BSIZE) predicted rewards</span>
+<span class="sd">                - ds: (SEQ_LEN, BSIZE) predicted terminal state logits</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">seq_len</span><span class="p">,</span> <span class="n">bs</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">actions</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ins</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">actions</span><span class="p">,</span> <span class="n">latents</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">outs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
+        <span class="n">gmm_outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmm_linear</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+
+        <span class="n">stride</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span>
+
+        <span class="n">mus</span> <span class="o">=</span> <span class="n">gmm_outs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">stride</span><span class="p">]</span>
+        <span class="n">mus</span> <span class="o">=</span> <span class="n">mus</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span><span class="p">)</span>
+
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">gmm_outs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">stride</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span><span class="p">]</span>
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">sigmas</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span><span class="p">)</span>
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">sigmas</span><span class="p">)</span>
+
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">gmm_outs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">]</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">pi</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">)</span>
+        <span class="n">logpi</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">gmm_outs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">gmm_outs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">mus</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">,</span> <span class="n">logpi</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">ds</span></div>
+
+
+<div class="viewcode-block" id="MDRNN.get_init_hidden">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNN.get_init_hidden">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_init_hidden</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return initial hidden state for the LSTM.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch_size: Number of sequences in the batch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (h, c) with shapes (batch_size, hiddens).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hiddens</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hiddens</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="o">.</span><span class="n">is_cuda</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">c</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MDRNNCell">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNNCell">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MDRNNCell</span><span class="p">(</span><span class="n">_MDRNNBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MDRNN model for single-step forward prediction.</span>
+
+<span class="sd">    This model processes a single step of latent state and action,</span>
+<span class="sd">    predicting the next latent state using a Gaussian Mixture Model (GMM).</span>
+<span class="sd">    It also predicts rewards and terminal states. Useful for real-time inference.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latents: Dimensionality of latent space (input and output).</span>
+<span class="sd">        actions: Dimensionality of action space.</span>
+<span class="sd">        hiddens: Number of hidden units in LSTMCell.</span>
+<span class="sd">        gaussians: Number of Gaussian components in GMM output.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; cell = MDRNNCell(latents=32, actions=3, hiddens=256, gaussians=5)</span>
+<span class="sd">        &gt;&gt;&gt; action = torch.randn(4, 3)  # batch, action</span>
+<span class="sd">        &gt;&gt;&gt; latent = torch.randn(4, 32)  # batch, latent</span>
+<span class="sd">        &gt;&gt;&gt; hidden = (torch.randn(4, 256), torch.randn(4, 256))</span>
+<span class="sd">        &gt;&gt;&gt; mus, sigmas, logpi, r, d, next_hidden = cell(action, latent, hidden)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latents</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">gaussians</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">latents</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">gaussians</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">latents</span> <span class="o">+</span> <span class="n">actions</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MDRNNCell.forward">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNNCell.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">latent</span><span class="p">,</span> <span class="n">hidden</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Single-step forward pass through the MDRNN cell.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action: (BSIZE, ASIZE) Tensor of actions for current batch.</span>
+<span class="sd">            latent: (BSIZE, LSIZE) Tensor of latent states for current batch.</span>
+<span class="sd">            hidden: Tuple of (h, c) hidden states for LSTMCell.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of:</span>
+<span class="sd">                - mus: (BSIZE, N_GAUSS, LSIZE) GMM means</span>
+<span class="sd">                - sigmas: (BSIZE, N_GAUSS, LSIZE) GMM standard deviations</span>
+<span class="sd">                - logpi: (BSIZE, N_GAUSS) log GMM weights</span>
+<span class="sd">                - r: (BSIZE,) predicted rewards</span>
+<span class="sd">                - d: (BSIZE,) predicted terminal state logits</span>
+<span class="sd">                - next_hidden: Tuple of (h, c) next hidden states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">in_al</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">action</span><span class="p">,</span> <span class="n">latent</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">next_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">in_al</span><span class="p">,</span> <span class="n">hidden</span><span class="p">)</span>
+        <span class="n">out_rnn</span> <span class="o">=</span> <span class="n">next_hidden</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">out_full</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmm_linear</span><span class="p">(</span><span class="n">out_rnn</span><span class="p">)</span>
+
+        <span class="n">stride</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span>
+
+        <span class="n">mus</span> <span class="o">=</span> <span class="n">out_full</span><span class="p">[:,</span> <span class="p">:</span><span class="n">stride</span><span class="p">]</span>
+        <span class="n">mus</span> <span class="o">=</span> <span class="n">mus</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span><span class="p">)</span>
+
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">out_full</span><span class="p">[:,</span> <span class="n">stride</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span><span class="p">]</span>
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">sigmas</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latents</span><span class="p">)</span>
+        <span class="n">sigmas</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">sigmas</span><span class="p">)</span>
+
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">out_full</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span> <span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">stride</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">]</span>
+        <span class="n">pi</span> <span class="o">=</span> <span class="n">pi</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gaussians</span><span class="p">)</span>
+        <span class="n">logpi</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">out_full</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">out_full</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">mus</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">,</span> <span class="n">logpi</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">next_hidden</span></div>
+
+
+<div class="viewcode-block" id="MDRNNCell.get_init_hidden">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.models.mdrnn.MDRNNCell.get_init_hidden">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_init_hidden</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hiddens</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hiddens</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="o">.</span><span class="n">is_cuda</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">c</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

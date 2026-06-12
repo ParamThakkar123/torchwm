@@ -216,15 +216,127 @@ q(x_t \mid x_0)
 
 Use diffusion when high-quality generative rollouts matter and you can afford more expensive sampling. Use transformer diffusion (`DiT`) when patch-token modeling and scalable attention are central to the experiment.
 
+## World Models (Ha & Schmidhuber, 2018)
+
+This family follows the three-component architecture from the *World Models* paper:
+
+```{math}
+\begin{aligned}
+\text{V:}\quad & z_t \sim \text{VAE}(x_t) \\
+\text{M:}\quad & p(z_{t+1} \mid a_t, z_t, h_t) = \sum_k \pi_k\,\mathcal{N}(\mu_k, \sigma_k) \\
+\text{C:}\quad & a_t = W_c\,[z_t, h_t] + b_c
+\end{aligned}
+```
+
+### Mental model
+
+```{mermaid}
+graph LR
+    A["Raw pixels"] --> B["V: ConvVAE encoder"]
+    B --> C["Latent vector z"]
+    C --> D["M: MDN-RNN"]
+    D --> E["Hidden state h + predicted next z"]
+    C --> F["C: Linear controller"]
+    E --> F
+    F --> G["Action a"]
+    G --> H["Environment"]
+    H --> A
+```
+
+### Three-stage pipeline
+
+| Stage | Component | Training | File |
+|---|---|---|---|
+| 1 | **V — Vision (ConvVAE)** | Unsupervised reconstruction on random rollouts. Encodes 64×64 RGB frames → latent `z` (typically 32-d). | `world_models.vision.VAE.ConvVAE` |
+| 2 | **M — Memory (MDN-RNN)** | Predicts next latent `z_{t+1}` as a Gaussian mixture conditioned on `(a_t, z_t, h_t)`. Also predicts rewards and terminal flags. | `world_models.models.mdrnn` |
+| 3 | **C — Controller (Linear)** | Maps `(z_t, h_t)` → `a_t`. Trained with CMA-ES (not backprop) to maximize cumulative reward. | `world_models.models.controller` |
+
+### Key ideas
+
+- **Latent-space planning**: The controller operates on compressed `z` + `h`, not raw pixels. This makes CMA-ES tractable (only ~10³ params).
+- **Memory via hidden state**: The RNN hidden state `h_t` encodes temporal context. The paper shows removing it drops CarRacing score from 906→632.
+- **Dream training**: The trained M can serve as a differentiable simulator. The controller can be trained entirely inside M's hallucinated latent rollouts and then transferred back to the real environment.
+- **Temperature annealing**: During dream training, increasing M's sampling temperature `τ` makes the dream environment harder, preventing the controller from exploiting model imperfections.
+
+### When to use it
+
+Use the Ha & Schmidhuber world model when you want:
+- A didactic, minimal world model implementation to study how latent-dynamics + evolution works
+- To quickly train a policy on a continuous-control task without GPU-heavy RL backprop
+- A baseline to compare model-based RL (Dreamer/PlaNet) with evolution-based controller training
+
+### TorchWM pieces
+
+| Component | Module | Key classes |
+|---|---|---|
+| VAE | `world_models.vision.VAE.ConvVAE` | `ConvVAE`, `ConvVAEEncoder`, `ConvVAEDecoder` |
+| Dynamics | `world_models.models.mdrnn` | `MDRNN`, `MDRNNCell` |
+| Policy | `world_models.models.controller` | `Controller` |
+| Configs | `world_models.configs.wm_config` | `WMVAEConfig`, `WMMDNRNNConfig`, `WMControllerConfig` |
+| Datasets | `world_models.datasets.wm_dataset` | `RolloutDataset`, `ObservationDataset`, `SequenceDataset`, `LatentSequenceDataset` |
+| Losses | `world_models.losses.convae_loss` | `conv_vae_loss_fn` |
+| | `world_models.losses.gmm_loss` | `gmm_loss` |
+| Training | `world_models.training.train_world_model` | `run_training_pipeline`, `generate_rollouts`, `test_trained_model` |
+| | `world_models.training.train_convvae` | `train_convae` |
+| | `world_models.training.train_mdn_rnn` | `train_mdn_rnn` |
+| | `world_models.training.train_controller` | `train_controller` |
+
+### Quick-start example
+
+```python
+from world_models.configs.wm_config import WMVAEConfig, WMMDNRNNConfig, WMControllerConfig
+from world_models.training.train_convvae import train_convae
+from world_models.training.train_mdn_rnn import train_mdn_rnn
+from world_models.training.train_controller import train_controller
+
+# Stage 1: Train VAE
+vae_config = WMVAEConfig({
+    "height": 64, "width": 64, "latent_size": 32,
+    "data_dir": "./data/carracing", "logdir": "./results/carracing",
+    "num_epochs": 10, "learning_rate": 1e-3,
+})
+train_convae(vae_config)
+
+# Stage 2: Train MDN-RNN
+mdrnn_config = WMMDNRNNConfig({
+    "latent_size": 32, "action_size": 3, "hidden_size": 256,
+    "gmm_components": 5, "data_dir": "./data/carracing",
+    "logdir": "./results/carracing", "num_epochs": 30,
+})
+train_mdn_rnn(vae_config, mdrnn_config)
+
+# Stage 3: Train Controller with CMA-ES
+ctrl_config = WMControllerConfig({
+    "latent_size": 32, "hidden_size": 256, "action_size": 3,
+    "env_name": "CarRacing-v2", "logdir": "./results/carracing",
+    "pop_size": 10, "n_samples": 4, "target_return": 950.0,
+})
+train_controller(ctrl_config)
+```
+
+### Testing a trained model
+
+```python
+from world_models.training.train_world_model import test_trained_model
+
+test_trained_model(
+    logdir="./results/carracing",
+    env_name="CarRacing-v2",
+    action_size=3,
+    num_episodes=5,
+)
+```
+
 ## Practical study path
 
 1. **Start with RSSMs:** understand deterministic and stochastic latent state.
 2. **Study Dreamer:** connect latent dynamics to actor-critic learning.
 3. **Study PlaNet:** compare planning against learned policies.
-4. **Study token world models:** IRIS and Genie show how discrete visual tokens enable transformer dynamics.
-5. **Study representation-only prediction:** JEPA clarifies why not every useful world model must reconstruct pixels.
-6. **Study diffusion:** compare likelihood-style denoising rollouts against autoregressive and RSSM rollouts.
-7. **Read the API reference:** map each concept to the exact TorchWM class or function.
+4. **Study World Models (Ha & Schmidhuber):** see how VAE + MDN-RNN + CMA-ES controller forms the simplest complete pipeline.
+5. **Study token world models:** IRIS and Genie show how discrete visual tokens enable transformer dynamics.
+6. **Study representation-only prediction:** JEPA clarifies why not every useful world model must reconstruct pixels.
+7. **Study diffusion:** compare likelihood-style denoising rollouts against autoregressive and RSSM rollouts.
+8. **Read the API reference:** map each concept to the exact TorchWM class or function.
 
 ## Common failure modes
 

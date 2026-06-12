@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.controller.rssm_policy &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.controller.rssm_policy &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -120,7 +120,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -287,7 +287,18 @@
                 <article class="bd-article">
                   
   <h1>Source code for world_models.controller.rssm_policy</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span></span><span class="sd">&quot;&quot;&quot;RSSM-based policy for model-predictive control.</span>
+
+<span class="sd">This module provides the RSSMPolicy class that implements model-predictive control</span>
+<span class="sd">using the RSSM (Recurrent State Space Model) latent dynamics model. The policy uses</span>
+<span class="sd">a Cross-Entropy Method (CEM) for planning actions in latent space.</span>
+
+<span class="sd">Reference:</span>
+<span class="sd">    Ha &amp; Schmidhuber (2018). Recurrent World Models Facilitate Policy Evolution.</span>
+<span class="sd">    https://arxiv.org/abs/1805.11111</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normal</span>
 
 
@@ -300,6 +311,10 @@
 <span class="sd">    latent space. Uses Cross-Entropy Method to refine action sequences based</span>
 <span class="sd">    on predicted returns.</span>
 
+<span class="sd">    The policy uses a Cross-Entropy Method style loop: it samples candidate</span>
+<span class="sd">    action sequences, rolls them forward in latent space, scores predicted</span>
+<span class="sd">    returns, and refits a Gaussian proposal to top-performing candidates.</span>
+
 <span class="sd">    Algorithm:</span>
 <span class="sd">        1. Initialize Gaussian distribution over action sequences</span>
 <span class="sd">        2. Sample N candidate action sequences</span>
@@ -309,50 +324,49 @@
 <span class="sd">        6. Repeat for T iterations</span>
 <span class="sd">        7. Execute first action from best sequence</span>
 
-<span class="sd">    Why latent space planning?</span>
-<span class="sd">        - Images are high-dimensional; latent states are compact</span>
-<span class="sd">        - Enables thousands of rollouts in parallel</span>
-<span class="sd">        - Dynamics model is more accurate in latent space</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        rssm: The RSSM world model.</span>
+<span class="sd">        N: Number of candidate action sequences to sample.</span>
+<span class="sd">        K: Number of top candidates to use for updating the proposal.</span>
+<span class="sd">        T: Number of CEM iterations per planning step.</span>
+<span class="sd">        H: Planning horizon (number of future steps to consider).</span>
+<span class="sd">        d: Action dimensionality.</span>
+<span class="sd">        device: Device to run computations on.</span>
+<span class="sd">        state_size: Hidden state dimensionality.</span>
+<span class="sd">        latent_size: Latent state dimensionality.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        model: RSSM instance for latent dynamics</span>
-<span class="sd">        planning_horizon: Number of future steps to plan (H)</span>
-<span class="sd">        num_candidates: Number of action sequences to sample (N)</span>
-<span class="sd">        num_iterations: CEM refinement iterations (T)</span>
-<span class="sd">        top_candidates: Number of best candidates to keep (K)</span>
-<span class="sd">        device: torch device</span>
-
-<span class="sd">    Usage with Planet agent:</span>
-<span class="sd">        policy = RSSMPolicy(</span>
-<span class="sd">            model=rssm,</span>
-<span class="sd">            planning_horizon=12,</span>
-<span class="sd">            num_candidates=1000,</span>
-<span class="sd">            num_iterations=8,</span>
-<span class="sd">            top_candidates=100,</span>
-<span class="sd">            device=&#39;cuda&#39;</span>
-<span class="sd">        )</span>
-
-<span class="sd">        policy.reset()</span>
-<span class="sd">        action = policy.poll(observation)  # (1, action_dim)</span>
-
-<span class="sd">        # For continuous control:</span>
-<span class="sd">        next_obs, reward, done, info = env.step(action)</span>
-
-<span class="sd">    Comparison with Dreamer:</span>
-<span class="sd">        - RSSMPolicy: Online planning, chooses actions by optimization at each step</span>
-<span class="sd">        - DreamerActor: Train actor network to predict actions from states</span>
-<span class="sd">        - Dreamer is more sample-efficient for complex tasks; CEM is more flexible</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; policy = RSSMPolicy(</span>
+<span class="sd">        ...     model=rssm,</span>
+<span class="sd">        ...     planning_horizon=12,</span>
+<span class="sd">        ...     num_candidates=1000,</span>
+<span class="sd">        ...     num_iterations=5,</span>
+<span class="sd">        ...     top_candidates=100,</span>
+<span class="sd">        ...     device=&#39;cuda&#39;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; policy.reset()</span>
+<span class="sd">        &gt;&gt;&gt; action = policy.poll(observation)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">,</span>
-        <span class="n">planning_horizon</span><span class="p">,</span>
-        <span class="n">num_candidates</span><span class="p">,</span>
-        <span class="n">num_iterations</span><span class="p">,</span>
-        <span class="n">top_candidates</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">,</span>
+        <span class="n">planning_horizon</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_candidates</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_iterations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">top_candidates</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the RSSM policy.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model: The RSSM world model.</span>
+<span class="sd">            planning_horizon: Number of future steps to plan ahead.</span>
+<span class="sd">            num_candidates: Number of candidate action sequences to sample.</span>
+<span class="sd">            num_iterations: Number of CEM iterations per planning step.</span>
+<span class="sd">            top_candidates: Number of top candidates to keep for refitting.</span>
+<span class="sd">            device: Device to run computations on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">num_candidates</span>
@@ -367,15 +381,27 @@
 <div class="viewcode-block" id="RSSMPolicy.reset">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSMPolicy.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the policy state.</span>
+
+<span class="sd">        Initializes the hidden state, latent state, and action to zeros.</span>
+<span class="sd">        Should be called at the beginning of each episode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform CEM planning to select actions.</span>
+
+<span class="sd">        This internal method runs the Cross-Entropy Method optimization</span>
+<span class="sd">        to find the best action sequence given the current observation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            obs: Current observation tensor of shape (channels, height, width).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stddev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="c1"># observation could be of shape [CHW] but only 1 timestep</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;obs should be [CHW]&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">get_init_state</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="kc">None</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span>
@@ -396,7 +422,16 @@
 
 <div class="viewcode-block" id="RSSMPolicy.poll">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSMPolicy.poll">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">,</span> <span class="n">explore</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">explore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get action for given observation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            observation: Current observation tensor of shape (channels, height, width).</span>
+<span class="sd">            explore: If True, add exploration noise to the selected action.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Action tensor of shape (1, action_size).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_poll</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">explore</span><span class="p">:</span>

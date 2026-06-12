@@ -14,7 +14,7 @@
 <meta property="og:description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
 <meta name="description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
 
-    <title>World Models Study Guide &#8212; TorchWM 0.4.0 documentation</title>
+    <title>World Models Study Guide &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,7 +59,7 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-191/world_models_guide.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Dreamer: Model-Based RL with Latent Dynamics" href="dreamer.html" />
+    <link rel="next" title="World Models Deep Dive (Ha &amp; Schmidhuber, 2018)" href="world_models_deep_dive.html" />
     <link rel="prev" title="Package Overview" href="package_overview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -131,7 +131,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -271,13 +271,14 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -557,12 +558,178 @@ q(x_t \mid x_0)
 <p>Use diffusion when high-quality generative rollouts matter and you can afford more expensive sampling. Use transformer diffusion (<code class="docutils literal notranslate"><span class="pre">DiT</span></code>) when patch-token modeling and scalable attention are central to the experiment.</p>
 </section>
 </section>
+<section id="world-models-ha-schmidhuber-2018">
+<h2>World Models (Ha &amp; Schmidhuber, 2018)<a class="headerlink" href="#world-models-ha-schmidhuber-2018" title="Link to this heading">#</a></h2>
+<p>This family follows the three-component architecture from the <em>World Models</em> paper:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\text{V:}\quad &amp; z_t \sim \text{VAE}(x_t) \\
+\text{M:}\quad &amp; p(z_{t+1} \mid a_t, z_t, h_t) = \sum_k \pi_k\,\mathcal{N}(\mu_k, \sigma_k) \\
+\text{C:}\quad &amp; a_t = W_c\,[z_t, h_t] + b_c
+\end{aligned}\end{split}\]</div>
+<section id="id5">
+<h3>Mental model<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+</section>
+<section id="three-stage-pipeline">
+<h3>Three-stage pipeline<a class="headerlink" href="#three-stage-pipeline" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Stage</p></th>
+<th class="head"><p>Component</p></th>
+<th class="head"><p>Training</p></th>
+<th class="head"><p>File</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>V — Vision (ConvVAE)</strong></p></td>
+<td><p>Unsupervised reconstruction on random rollouts. Encodes 64×64 RGB frames → latent <code class="docutils literal notranslate"><span class="pre">z</span></code> (typically 32-d).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.vision.VAE.ConvVAE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>M — Memory (MDN-RNN)</strong></p></td>
+<td><p>Predicts next latent <code class="docutils literal notranslate"><span class="pre">z_{t+1}</span></code> as a Gaussian mixture conditioned on <code class="docutils literal notranslate"><span class="pre">(a_t,</span> <span class="pre">z_t,</span> <span class="pre">h_t)</span></code>. Also predicts rewards and terminal flags.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.mdrnn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>C — Controller (Linear)</strong></p></td>
+<td><p>Maps <code class="docutils literal notranslate"><span class="pre">(z_t,</span> <span class="pre">h_t)</span></code> → <code class="docutils literal notranslate"><span class="pre">a_t</span></code>. Trained with CMA-ES (not backprop) to maximize cumulative reward.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.controller</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="key-ideas">
+<h3>Key ideas<a class="headerlink" href="#key-ideas" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Latent-space planning</strong>: The controller operates on compressed <code class="docutils literal notranslate"><span class="pre">z</span></code> + <code class="docutils literal notranslate"><span class="pre">h</span></code>, not raw pixels. This makes CMA-ES tractable (only ~10³ params).</p></li>
+<li><p><strong>Memory via hidden state</strong>: The RNN hidden state <code class="docutils literal notranslate"><span class="pre">h_t</span></code> encodes temporal context. The paper shows removing it drops CarRacing score from 906→632.</p></li>
+<li><p><strong>Dream training</strong>: The trained M can serve as a differentiable simulator. The controller can be trained entirely inside M’s hallucinated latent rollouts and then transferred back to the real environment.</p></li>
+<li><p><strong>Temperature annealing</strong>: During dream training, increasing M’s sampling temperature <code class="docutils literal notranslate"><span class="pre">τ</span></code> makes the dream environment harder, preventing the controller from exploiting model imperfections.</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>When to use it<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>Use the Ha &amp; Schmidhuber world model when you want:</p>
+<ul class="simple">
+<li><p>A didactic, minimal world model implementation to study how latent-dynamics + evolution works</p></li>
+<li><p>To quickly train a policy on a continuous-control task without GPU-heavy RL backprop</p></li>
+<li><p>A baseline to compare model-based RL (Dreamer/PlaNet) with evolution-based controller training</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>TorchWM pieces<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Module</p></th>
+<th class="head"><p>Key classes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VAE</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.vision.VAE.ConvVAE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConvVAE</span></code>, <code class="docutils literal notranslate"><span class="pre">ConvVAEEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">ConvVAEDecoder</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dynamics</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.mdrnn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MDRNN</span></code>, <code class="docutils literal notranslate"><span class="pre">MDRNNCell</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Policy</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.controller</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Controller</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Configs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.configs.wm_config</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WMVAEConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WMMDNRNNConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WMControllerConfig</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Datasets</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.datasets.wm_dataset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">ObservationDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">LatentSequenceDataset</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Losses</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.losses.convae_loss</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">conv_vae_loss_fn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.losses.gmm_loss</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gmm_loss</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Training</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_world_model</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">run_training_pipeline</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_rollouts</span></code>, <code class="docutils literal notranslate"><span class="pre">test_trained_model</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_convvae</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_convae</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_mdn_rnn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_mdn_rnn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_controller</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_controller</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="quick-start-example">
+<h3>Quick-start example<a class="headerlink" href="#quick-start-example" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.wm_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">WMVAEConfig</span><span class="p">,</span> <span class="n">WMMDNRNNConfig</span><span class="p">,</span> <span class="n">WMControllerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_convvae</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_convae</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_mdn_rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_mdn_rnn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_controller</span>
+
+<span class="c1"># Stage 1: Train VAE</span>
+<span class="n">vae_config</span> <span class="o">=</span> <span class="n">WMVAEConfig</span><span class="p">({</span>
+    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./data/carracing&quot;</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_convae</span><span class="p">(</span><span class="n">vae_config</span><span class="p">)</span>
+
+<span class="c1"># Stage 2: Train MDN-RNN</span>
+<span class="n">mdrnn_config</span> <span class="o">=</span> <span class="n">WMMDNRNNConfig</span><span class="p">({</span>
+    <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="s2">&quot;gmm_components&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./data/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span> <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_mdn_rnn</span><span class="p">(</span><span class="n">vae_config</span><span class="p">,</span> <span class="n">mdrnn_config</span><span class="p">)</span>
+
+<span class="c1"># Stage 3: Train Controller with CMA-ES</span>
+<span class="n">ctrl_config</span> <span class="o">=</span> <span class="n">WMControllerConfig</span><span class="p">({</span>
+    <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span> <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;env_name&quot;</span><span class="p">:</span> <span class="s2">&quot;CarRacing-v2&quot;</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pop_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;target_return&quot;</span><span class="p">:</span> <span class="mf">950.0</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_controller</span><span class="p">(</span><span class="n">ctrl_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-a-trained-model">
+<h3>Testing a trained model<a class="headerlink" href="#testing-a-trained-model" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_world_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_trained_model</span>
+
+<span class="n">test_trained_model</span><span class="p">(</span>
+    <span class="n">logdir</span><span class="o">=</span><span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="n">env_name</span><span class="o">=</span><span class="s2">&quot;CarRacing-v2&quot;</span><span class="p">,</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">num_episodes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="practical-study-path">
 <h2>Practical study path<a class="headerlink" href="#practical-study-path" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p><strong>Start with RSSMs:</strong> understand deterministic and stochastic latent state.</p></li>
 <li><p><strong>Study Dreamer:</strong> connect latent dynamics to actor-critic learning.</p></li>
 <li><p><strong>Study PlaNet:</strong> compare planning against learned policies.</p></li>
+<li><p><strong>Study World Models (Ha &amp; Schmidhuber):</strong> see how VAE + MDN-RNN + CMA-ES controller forms the simplest complete pipeline.</p></li>
 <li><p><strong>Study token world models:</strong> IRIS and Genie show how discrete visual tokens enable transformer dynamics.</p></li>
 <li><p><strong>Study representation-only prediction:</strong> JEPA clarifies why not every useful world model must reconstruct pixels.</p></li>
 <li><p><strong>Study diffusion:</strong> compare likelihood-style denoising rollouts against autoregressive and RSSM rollouts.</p></li>
@@ -602,11 +769,11 @@ q(x_t \mid x_0)
       </div>
     </a>
     <a class="right-next"
-       href="dreamer.html"
+       href="world_models_deep_dive.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Dreamer: Model-Based RL with Latent Dynamics</p>
+        <p class="prev-next-title">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -665,6 +832,16 @@ q(x_t \mid x_0)
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ddpm-dit-and-diamond-style-diffusion-models">DDPM, DiT, and DIAMOND-style diffusion models</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">TorchWM pieces</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">When to use it</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-models-ha-schmidhuber-2018">World Models (Ha &amp; Schmidhuber, 2018)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Mental model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#three-stage-pipeline">Three-stage pipeline</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-ideas">Key ideas</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">When to use it</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">TorchWM pieces</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-example">Quick-start example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-a-trained-model">Testing a trained model</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-study-path">Practical study path</a></li>

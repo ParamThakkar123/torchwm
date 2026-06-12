@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.training.train_diamond &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.training.train_diamond &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -120,7 +120,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -547,7 +547,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_reward_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update reward/termination model.&quot;&quot;&quot;</span>
@@ -1172,13 +1172,11 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint not found at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Use full (unsafe) load to restore Python objects (numpy arrays, lists)</span>
-        <span class="c1"># required for replay buffer and obs history restoration.</span>
-        <span class="c1"># Load the torch checkpoint (weights + metadata). This file should be</span>
-        <span class="c1"># safe to load because it contains only tensor state dicts and small</span>
-        <span class="c1"># metadata fields. Larger numpy arrays may be stored separately and</span>
-        <span class="c1"># are loaded below when present.</span>
-        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># The checkpoint stores tensor state_dicts and primitive metadata only;</span>
+        <span class="c1"># larger replay/observation arrays are loaded from separate npz/npy</span>
+        <span class="c1"># files below. Keep torch deserialization in weights-only mode to avoid</span>
+        <span class="c1"># executing arbitrary pickle payloads from untrusted checkpoints.</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;diffusion_model&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;reward_model&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;actor_critic&quot;</span><span class="p">])</span>

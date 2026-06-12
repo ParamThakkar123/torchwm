@@ -1,0 +1,658 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>world_models.utils.train_utils &#8212; TorchWM 0.4.2 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=43d664b6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=3a14cefc"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/world_models/utils/train_utils';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../../../_static/fix_navbar.js?v=92322e29"></script>
+    <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-194/_modules/world_models/utils/train_utils.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/paramthakkar123/torchwm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">world_models.utils.train_utils</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for world_models.utils.train_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Training utilities for World Models.</span>
+
+<span class="sd">This module provides utility classes for training neural networks including</span>
+<span class="sd">early stopping and learning rate scheduling.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span>
+
+
+<div class="viewcode-block" id="EarlyStopping">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.EarlyStopping">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EarlyStopping</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Early stopping handler to stop training when validation metric stops improving.</span>
+
+<span class="sd">    This class monitors a validation metric and stops training when no improvement</span>
+<span class="sd">    is seen for a specified number of epochs (patience). This helps prevent</span>
+<span class="sd">    overfitting and reduces unnecessary computation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mode: One of &#39;min&#39; or &#39;max&#39;. In &#39;min&#39; mode, training stops when the</span>
+<span class="sd">            metric stops decreasing; in &#39;max&#39; mode, when it stops increasing.</span>
+<span class="sd">        patience: Number of epochs with no improvement after which to stop training.</span>
+<span class="sd">        threshold: Minimum change to qualify as an improvement.</span>
+<span class="sd">        threshold_mode: One of &#39;rel&#39; or &#39;abs&#39;. In &#39;rel&#39; mode, dynamic threshold</span>
+<span class="sd">            is relative to best value; in &#39;abs&#39; mode, it&#39;s absolute.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        stop: Property that returns True if training should stop.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; early_stopping = EarlyStopping(mode=&#39;min&#39;, patience=10)</span>
+<span class="sd">        &gt;&gt;&gt; for epoch in range(100):</span>
+<span class="sd">        ...     val_loss = validate()</span>
+<span class="sd">        ...     early_stopping.step(val_loss)</span>
+<span class="sd">        ...     if early_stopping.stop:</span>
+<span class="sd">        ...         print(f&quot;Stopped at epoch {epoch}&quot;)</span>
+<span class="sd">        ...         break</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="o">=</span><span class="s2">&quot;rel&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patience</span> <span class="o">=</span> <span class="n">patience</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">=</span> <span class="n">threshold_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_is_better</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the internal state for a new training run.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="EarlyStopping.step">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.EarlyStopping.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update early stopping state with new metric value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            metrics: Current epoch&#39;s metric value.</span>
+<span class="sd">            epoch: Current epoch number. If None, auto-increments from last epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="n">epoch</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="n">current</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;bool: True if training should stop due to no improvement.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">patience</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cmp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">best</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare two values based on mode and threshold settings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;rel&quot;</span><span class="p">:</span>
+            <span class="n">rel_epsilon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">threshold</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">best</span> <span class="o">*</span> <span class="n">rel_epsilon</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;abs&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">best</span> <span class="o">-</span> <span class="n">threshold</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;rel&quot;</span><span class="p">:</span>
+            <span class="n">rel_epsilon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">threshold</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">best</span> <span class="o">*</span> <span class="n">rel_epsilon</span>
+
+        <span class="k">return</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">best</span> <span class="o">+</span> <span class="n">threshold</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_is_better</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the comparison function.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode &quot;</span> <span class="o">+</span> <span class="n">mode</span> <span class="o">+</span> <span class="s2">&quot; is unknown!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">threshold_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;rel&quot;</span><span class="p">,</span> <span class="s2">&quot;abs&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;threshold mode &quot;</span> <span class="o">+</span> <span class="n">threshold_mode</span> <span class="o">+</span> <span class="s2">&quot; is unknown!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EarlyStopping.state_dict">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.EarlyStopping.state_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get state dictionary for checkpointing.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing early stopping state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;is_better&quot;</span><span class="p">,)</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="EarlyStopping.load_state_dict">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.EarlyStopping.load_state_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load state from checkpoint.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: Dictionary containing early stopping state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_is_better</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_mode</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReduceLROnPlateau">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReduceLROnPlateau</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce learning rate when a metric stops improving.</span>
+
+<span class="sd">    This scheduler reduces the learning rate by a factor when a validation</span>
+<span class="sd">    metric stops improving for a specified number of epochs. This helps</span>
+<span class="sd">    models converge better by reducing the step size as they approach</span>
+<span class="sd">    optimal weights.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        optimizer: The PyTorch optimizer to adjust.</span>
+<span class="sd">        mode: One of &#39;min&#39; or &#39;max&#39;. In &#39;min&#39; mode, lr is reduced when metric</span>
+<span class="sd">            stops decreasing; in &#39;max&#39; mode, when it stops increasing.</span>
+<span class="sd">        factor: Factor by which to reduce the learning rate.</span>
+<span class="sd">        patience: Number of epochs with no improvement after which to reduce lr.</span>
+<span class="sd">        threshold: Minimum change to qualify as an improvement.</span>
+<span class="sd">        threshold_mode: One of &#39;rel&#39; or &#39;abs&#39;.</span>
+<span class="sd">        min_lr: Minimum learning rate to reduce to.</span>
+<span class="sd">        eps: Minimum decay for lr.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        lr: Current learning rates for each parameter group.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; optimizer = torch.optim.Adam(model.parameters(), lr=0.001)</span>
+<span class="sd">        &gt;&gt;&gt; scheduler = ReduceLROnPlateau(optimizer, mode=&#39;min&#39;, factor=0.5, patience=5)</span>
+<span class="sd">        &gt;&gt;&gt; for epoch in range(100):</span>
+<span class="sd">        ...     train_loss = train()</span>
+<span class="sd">        ...     val_loss = validate()</span>
+<span class="sd">        ...     scheduler.step(val_loss)</span>
+<span class="sd">        ...     if scheduler.stop:</span>
+<span class="sd">        ...         break</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;min&quot;</span><span class="p">,</span>
+        <span class="n">factor</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">patience</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+        <span class="n">threshold_mode</span><span class="o">=</span><span class="s2">&quot;rel&quot;</span><span class="p">,</span>
+        <span class="n">min_lr</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">eps</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">factor</span> <span class="o">=</span> <span class="n">factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_lr</span> <span class="o">=</span> <span class="n">min_lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patience</span> <span class="o">=</span> <span class="n">patience</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">=</span> <span class="n">threshold_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_is_better</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the internal state for a new training run.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="ReduceLROnPlateau.step">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update learning rate based on metric value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            metrics: Current epoch&#39;s metric value.</span>
+<span class="sd">            epoch: Current epoch number. If None, auto-increments from last epoch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="k">if</span> <span class="n">epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="n">epoch</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="n">current</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">patience</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reduce_lr</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_bad_epochs</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reduce_lr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reduce learning rate for all parameter groups.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">):</span>
+            <span class="n">old_lr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">param_group</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">])</span>
+            <span class="n">new_lr</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">old_lr</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_lr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">old_lr</span> <span class="o">-</span> <span class="n">new_lr</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">:</span>
+                <span class="n">param_group</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_lr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;list: Current learning rates for each parameter group.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">param_group</span><span class="p">[</span><span class="s2">&quot;lr&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cmp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">best</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare two values based on mode and threshold settings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;rel&quot;</span><span class="p">:</span>
+            <span class="n">rel_epsilon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">threshold</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">best</span> <span class="o">*</span> <span class="n">rel_epsilon</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;abs&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">best</span> <span class="o">-</span> <span class="n">threshold</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span> <span class="ow">and</span> <span class="n">threshold_mode</span> <span class="o">==</span> <span class="s2">&quot;rel&quot;</span><span class="p">:</span>
+            <span class="n">rel_epsilon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">threshold</span>
+            <span class="k">return</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">best</span> <span class="o">*</span> <span class="n">rel_epsilon</span>
+
+        <span class="k">return</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">best</span> <span class="o">+</span> <span class="n">threshold</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_is_better</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the comparison function.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode &quot;</span> <span class="o">+</span> <span class="n">mode</span> <span class="o">+</span> <span class="s2">&quot; is unknown!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">threshold_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;rel&quot;</span><span class="p">,</span> <span class="s2">&quot;abs&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;threshold mode &quot;</span> <span class="o">+</span> <span class="n">threshold_mode</span> <span class="o">+</span> <span class="s2">&quot; is unknown!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mode_worse</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_better</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">threshold_mode</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReduceLROnPlateau.state_dict">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.state_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get state dictionary for checkpointing.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing scheduler state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;is_better&quot;</span><span class="p">,)</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ReduceLROnPlateau.load_state_dict">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.load_state_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load state from checkpoint.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: Dictionary containing scheduler state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_is_better</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_mode</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Param Thakkar.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

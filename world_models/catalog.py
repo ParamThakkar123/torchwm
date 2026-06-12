@@ -7,7 +7,10 @@ dependencies.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 DREAMER_ENVS = [
     "cartpole-balance",
@@ -33,6 +36,7 @@ def _iter_gymnasium_registry() -> list[tuple[str, Any]]:
     try:
         import gymnasium as gym
     except Exception:
+        logger.debug("Gymnasium registry unavailable", exc_info=True)
         return []
 
     registry = getattr(getattr(gym, "envs", None), "registry", {})
@@ -112,6 +116,7 @@ def _list_available_robotics_envs() -> list[str]:
 
         return list_gymnasium_robotics_envs()
     except Exception:
+        logger.debug("Gymnasium Robotics environments unavailable", exc_info=True)
         return []
 
 
@@ -146,6 +151,7 @@ def _list_available_bsuite_ids() -> list[str]:
 
         return list_available_bsuite_ids()
     except Exception:
+        logger.debug("BSuite environment ids unavailable; using examples", exc_info=True)
         return [
             "bandit/0",
             "cartpole/0",
@@ -169,6 +175,7 @@ def _list_available_atari_envs() -> list[str]:
 
         return list_available_atari_envs()
     except Exception:
+        logger.debug("Atari environment ids unavailable", exc_info=True)
         return []
 
 
@@ -181,6 +188,7 @@ def _list_available_dmlab_levels() -> list[str]:
 
         return list(DMLAB_LEVELS)
     except Exception:
+        logger.debug("DeepMind Lab levels unavailable", exc_info=True)
         return []
 
 

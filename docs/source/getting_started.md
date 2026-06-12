@@ -180,16 +180,32 @@ op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75
 processed = op.process({"images": [pil_image]})
 ```
 
-## Environment Backends
+Train a complete world model pipeline (VAE + MDNRNN + Controller) on any Gym environment:
+
+```bash
+# Train on CarRacing
+python -m world_models.training.train_world_model --env CarRacing-v2
+
+# Train on Pendulum
+python -m world_models.training.train_world_model --env Pendulum-v1
+
+# Test trained model
+python -m world_models.training.train_world_model --env CarRacing-v2 --test
+
+# Specify action size manually for environments with missing dependencies
+python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
+```
 
 Dreamer supports multiple backends through `DreamerConfig.env_backend`; the
 top-level `torchwm.make_env()` helper uses the same backend names for standalone
 environment creation:
 
 - `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
+- `dmlab`: DeepMind Lab 3D navigation tasks (for example `rooms_collect_good_objects_train`)
 - `gym`: Gym/Gymnasium environment IDs or an existing environment instance
 - `mujoco`: Gymnasium MuJoCo task ids or native MJCF/MJB models
 - `robotics`: any id registered by the installed Gymnasium Robotics package
+- `procgen`: Procgen benchmark games such as `coinrun` and `heist`
 - `brax`: JAX/Brax continuous-control environments
 - `unity_mlagents`: Unity ML-Agents executable environments
 

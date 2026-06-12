@@ -8,12 +8,15 @@ from typing import Dict, List, Optional, Tuple, Union
 from tqdm import tqdm
 import os
 from pathlib import Path
-import argparse
-
 from world_models.configs.diamond_config import (
     DiamondConfig,
     HUMAN_SCORES,
     RANDOM_SCORES,
+)
+from world_models.experiments import (
+    dump_config,
+    instantiate_dataclass,
+    parse_experiment_args,
 )
 from world_models.envs.diamond_atari import make_diamond_atari_env
 from gym.spaces import Discrete, Box
@@ -816,13 +819,11 @@ class DiamondAgent:
                 else:
                     raise FileNotFoundError(f"Checkpoint not found at {path} or {alt}")
 
-        # Use full (unsafe) load to restore Python objects (numpy arrays, lists)
-        # required for replay buffer and obs history restoration.
-        # Load the torch checkpoint (weights + metadata). This file should be
-        # safe to load because it contains only tensor state dicts and small
-        # metadata fields. Larger numpy arrays may be stored separately and
-        # are loaded below when present.
-        checkpoint = torch.load(fpath, map_location=self.device, weights_only=False)
+        # The checkpoint stores tensor state_dicts and primitive metadata only;
+        # larger replay/observation arrays are loaded from separate npz/npy
+        # files below. Keep torch deserialization in weights-only mode to avoid
+        # executing arbitrary pickle payloads from untrusted checkpoints.
+        checkpoint = torch.load(fpath, map_location=self.device, weights_only=True)
         self.diffusion_model.load_state_dict(checkpoint["diffusion_model"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
         self.actor_critic.load_state_dict(checkpoint["actor_critic"])
@@ -906,33 +907,39 @@ class DiamondAgent:
 
 
 def train_diamond(
-    game: str,
-    seed: int = 0,
+    game: str | None = None,
+    seed: int | None = None,
     preset: Optional[str] = None,
-    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    device: str | None = None,
+    config: DiamondConfig | None = None,
 ):
-    """Train DIAMOND on a specific game."""
-    config = DiamondConfig(
-        game=game,
-        seed=seed,
-        preset=preset if preset else None,
-        device=device,
-    )
+    """Train DIAMOND on a specific game or a composed experiment config."""
+    if config is None:
+        config = DiamondConfig()
+        if game is not None:
+            config.game = game
+        if seed is not None:
+            config.seed = seed
+        if preset is not None:
+            config.preset = preset
+            config.__post_init__()
+        if device is not None:
+            config.device = device
 
     agent = DiamondAgent(config)
     agent.train()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--game", type=str, default="Breakout-v5")
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument(
-        "--preset", type=str, default=None, choices=["small", "medium", "large"]
-    )
-    parser.add_argument(
-        "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
-    )
-    args = parser.parse_args()
+def main(argv: list[str] | None = None):
+    """Compose DIAMOND config from YAML/dot-list overrides and launch training."""
+    args = parse_experiment_args(argv, description="Train DIAMOND on Atari")
+    config = instantiate_dataclass(DiamondConfig, args.config, args.overrides)
+    if args.print_config:
+        print(dump_config(config.__dict__))
+        return config
+    train_diamond(config=config)
+    return config
 
-    train_diamond(args.game, args.seed, args.preset, args.device)
+
+if __name__ == "__main__":
+    main()

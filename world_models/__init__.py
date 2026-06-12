@@ -18,7 +18,16 @@ from __future__ import annotations
 from importlib import import_module
 from typing import Any
 
-__version__ = "0.4.0"
+from world_models._version import __version__  # noqa: F401
+
+
+try:
+    from world_models.export import install_export_method as _install_export_method
+
+    _install_export_method()
+except ModuleNotFoundError as exc:  # pragma: no cover - torch-free metadata imports
+    if exc.name != "torch":
+        raise
 
 _API_EXPORTS = {
     "EnvBackendSpec": "world_models.api",
@@ -33,6 +42,9 @@ _API_EXPORTS = {
     "list_envs": "world_models.api",
     "list_models": "world_models.api",
     "make_env": "world_models.api",
+    "export_any": "world_models.export",
+    "export_model": "world_models.export",
+    "ExportableAgentMixin": "world_models.export",
 }
 
 _LAZY_EXPORTS: dict[str, str] = {
@@ -81,6 +93,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "IRISOnPolicyBuffer": "world_models.memory",
     # Diffusion models.
     "DiT": "world_models.models.diffusion",
+    "create_dit": "world_models.models.diffusion",
     "PatchEmbed": "world_models.models.diffusion",
     "PatchUnEmbed": "world_models.models.diffusion",
     "DDPM": "world_models.models.diffusion",
@@ -117,6 +130,9 @@ _LAZY_EXPORTS: dict[str, str] = {
     "HUMAN_SCORES": "world_models.configs",
     "RANDOM_SCORES": "world_models.configs",
     # Environments and wrappers.
+    "BSuiteImageEnv": "world_models.envs",
+    "make_bsuite_env": "world_models.envs",
+    "list_available_bsuite_ids": "world_models.envs",
     "make_atari_env": "world_models.envs",
     "list_available_atari_envs": "world_models.envs",
     "make_atari_vector_env": "world_models.envs",
@@ -134,6 +150,9 @@ _LAZY_EXPORTS: dict[str, str] = {
     "BraxImageEnv": "world_models.envs",
     "make_brax_env": "world_models.envs",
     "DeepMindControlEnv": "world_models.envs",
+    "DMLabEnv": "world_models.envs",
+    "make_dmlab_env": "world_models.envs",
+    "DMLAB_LEVELS": "world_models.envs",
     "UnityMLAgentsEnv": "world_models.envs",
     "make_unity_mlagents_env": "world_models.envs",
     "MujocoEnv": "world_models.envs",
@@ -148,6 +167,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "SelectAction": "world_models.envs",
     # Inference operators.
     "OperatorABC": "world_models.inference.operators",
+    "TensorSpec": "world_models.inference.operators",
     "DreamerOperator": "world_models.inference.operators",
     "JEPAOperator": "world_models.inference.operators",
     "IrisOperator": "world_models.inference.operators",

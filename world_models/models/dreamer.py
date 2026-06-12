@@ -15,8 +15,11 @@ import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
 from world_models.envs.gym_env import GymImageEnv
 from world_models.envs.mujoco_env import make_mujoco_env_from_config
+from world_models.envs.procgen_env import ProcgenImageEnv
 from world_models.envs.robotics_env import make_robotics_env
 from world_models.envs.brax_env import BraxImageEnv
+from world_models.envs.dmlab import DMLabEnv
+from world_models.envs.bsuite_env import BSuiteImageEnv
 from world_models.envs.unity_env import UnityMLAgentsEnv
 from world_models.memory.dreamer_memory import ReplayBuffer
 from world_models.models.dreamer_rssm import RSSM
@@ -31,6 +34,15 @@ from world_models.utils.dreamer_utils import (
     TwoHotEncoder,
 )
 from world_models.configs.dreamer_config import DreamerConfig
+from world_models.export import ExportableAgentMixin
+from world_models.utils.logging_utils import (
+    assert_finite,
+    collect_system_stats,
+    get_package_logger,
+    setup_logging,
+)
+
+logger = get_package_logger(__name__)
 
 # Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
 # causes mujoco to raise a RuntimeError during import. Respect an existing
@@ -93,7 +105,8 @@ def _resolve_image_size(args):
 def make_env(args):
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
-    Supports DMC, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Brax, and Unity ML-Agents backends
+    Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
+    Brax, BSuite, and Unity ML-Agents backends
     and applies the standard wrapper stack: action repeat, action normalization,
     and time limit.
     """
@@ -110,6 +123,17 @@ def make_env(args):
         )
     elif backend == "dmc":
         env = DeepMindControlEnv(args.env, args.seed, size=size)
+    elif backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        env = DMLabEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            action_repeat=int(getattr(args, "dmlab_action_repeat", 4)),
+            action_set=getattr(args, "dmlab_action_set", None),
+            observations=getattr(args, "dmlab_observations", None),
+            config=getattr(args, "dmlab_config", None),
+            renderer=getattr(args, "dmlab_renderer", "hardware"),
+        )
     elif backend in {"gym", "gymnasium", "generic"}:
         env = GymImageEnv(
             args.env,
@@ -119,12 +143,28 @@ def make_env(args):
         )
     elif backend in {"mujoco", "mjcf", "native_mujoco"}:
         env = make_mujoco_env_from_config(args, size)
+    elif backend in {"procgen", "coinrun"}:
+        env = ProcgenImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
+            distribution_mode=getattr(args, "procgen_distribution_mode", "easy"),
+            num_levels=int(getattr(args, "procgen_num_levels", 0)),
+            start_level=getattr(args, "procgen_start_level", None),
+            max_episode_steps=int(getattr(args, "time_limit", 1000)),
+        )
     elif backend in {"robotics", "gymnasium_robotics"}:
         env = make_robotics_env(
             args.env,
             seed=args.seed,
             size=size,
             render_mode=getattr(args, "gym_render_mode", "rgb_array"),
+        )
+    elif backend in {"bsuite", "behavior_suite", "behaviour_suite"}:
+        env = BSuiteImageEnv(
+            args.env,
+            seed=args.seed,
+            size=size,
         )
     elif backend in {"brax", "jax_brax"}:
         env = BraxImageEnv(
@@ -159,7 +199,8 @@ def make_env(args):
         )
     else:
         raise ValueError(
-            f"Unknown env_backend='{backend}'. Use one of: dmc, gym, mujoco, robotics, brax, unity_mlagents."
+            f"Unknown env_backend='{backend}'. Use one of: dmc, dmlab, gym, mujoco, "
+            "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
     env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
@@ -209,8 +250,10 @@ class Dreamer:
         adaptive_buffer_size = min(args.buffer_size, max_buffer_size)
 
         if adaptive_buffer_size < args.buffer_size:
-            print(
-                f"Reducing buffer size from {args.buffer_size} to {adaptive_buffer_size} due to memory constraints."
+            logger.warning(
+                "Reducing buffer size from %s to %s due to memory constraints.",
+                args.buffer_size,
+                adaptive_buffer_size,
             )
 
         self.data_buffer = ReplayBuffer(
@@ -338,6 +381,7 @@ class Dreamer:
         if restore:
             self.restore_checkpoint(self.restore_path)
 
+    @assert_finite
     def world_model_loss(self, obs, acs, rews, nonterms):
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
@@ -404,6 +448,7 @@ class Dreamer:
 
         return model_loss
 
+    @assert_finite
     def actor_loss(self):
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
@@ -446,6 +491,7 @@ class Dreamer:
             actor_loss = -torch.mean(self.discounts * self.returns)
         return actor_loss
 
+    @assert_finite
     def value_loss(self):
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
@@ -644,7 +690,7 @@ class Dreamer:
         )
 
     def restore_checkpoint(self, ckpt_path):
-        checkpoint = torch.load(ckpt_path)
+        checkpoint = torch.load(ckpt_path, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
@@ -658,7 +704,7 @@ class Dreamer:
         self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
 
-class DreamerAgent:
+class DreamerAgent(ExportableAgentMixin):
     """High-level user API for running Dreamer experiments end to end.
 
     It builds environments from config, initializes seeds and logging,
@@ -687,10 +733,19 @@ class DreamerAgent:
                     pass
             elif key == "last_latents_ref":
                 self.last_latents_ref = value
+            elif key == "data_path":
+                # Backwards-compatible alias for the new configurable data_dir.
+                setattr(self.args, "data_dir", value)
             else:
                 raise ValueError(f"Invalid argument: {key}")
 
-        data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data/")
+        data_path = (
+            getattr(self.args, "data_dir", None)
+            or os.environ.get("TORCHWM_DATA_DIR")
+            or getattr(self.args, "log_dir", None)
+            or "runs"
+        )
+        data_path = os.path.abspath(os.path.expanduser(data_path))
 
         if not (os.path.exists(data_path)):
             os.makedirs(data_path)
@@ -711,11 +766,21 @@ class DreamerAgent:
                 + time.strftime("%d-%m-%Y-%H-%M-%S")
             )
 
-        # If `self.logdir` is not an absolute path, place it under package data_path
+        # If `self.logdir` is not an absolute path, place it under the
+        # configurable data directory instead of the package source tree.
         if not os.path.isabs(self.logdir):
             self.logdir = os.path.join(data_path, self.logdir)
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
+
+        setup_logging(
+            "world_models",
+            getattr(self.args, "log_level", "INFO"),
+            getattr(self.args, "log_file", None),
+        )
+        if getattr(self.args, "detect_anomaly", False):
+            torch.autograd.set_detect_anomaly(True)
+            logger.warning("torch.autograd anomaly detection is enabled")
 
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
@@ -725,6 +790,7 @@ class DreamerAgent:
             torch.cuda.manual_seed(self.args.seed)
         else:
             device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         self.train_env = make_env(self.args)
         self.test_env = make_env(self.args)
@@ -737,12 +803,16 @@ class DreamerAgent:
 
         self.logger = Logger(
             self.logdir,
-            self.args.enable_wandb,
-            self.args.wandb_api_key,
-            self.args.wandb_project,
-            self.args.wandb_entity,
-            self.args.video_format,
-            self.args.video_fps,
+            enable_wandb=self.args.enable_wandb,
+            wandb_api_key=self.args.wandb_api_key,
+            wandb_project=self.args.wandb_project,
+            wandb_entity=self.args.wandb_entity,
+            video_format=self.args.video_format,
+            video_fps=self.args.video_fps,
+            enable_tensorboard=getattr(self.args, "enable_tensorboard", False),
+            enable_console=getattr(self.args, "enable_console_metrics", True),
+            enable_jsonl=getattr(self.args, "enable_jsonl", True),
+            jsonl_filename=getattr(self.args, "jsonl_filename", "metrics.jsonl"),
         )
 
     def train(self, total_steps=None):
@@ -771,17 +841,22 @@ class DreamerAgent:
         self.logger.flush()
 
         while global_step <= total_steps:
-            print("##################################")
-            print(f"At global step {global_step}")
+            logger.info("At global step %s", global_step)
 
             logs = OrderedDict()
+            video_images = []
 
+            update_start = time.perf_counter()
             for _ in range(self.args.update_steps):
                 model_loss, actor_loss, value_loss = self.dreamer.train_one_batch()
+            update_elapsed = max(time.perf_counter() - update_start, 1e-9)
 
+            collect_count = self.args.collect_steps // self.args.action_repeat
+            collect_start = time.perf_counter()
             train_rews = self.dreamer.act_and_collect_data(
-                self.train_env, self.args.collect_steps // self.args.action_repeat
+                self.train_env, collect_count
             )
+            collect_elapsed = max(time.perf_counter() - collect_start, 1e-9)
 
             logs.update(
                 {
@@ -792,8 +867,25 @@ class DreamerAgent:
                     "train_max_reward": np.max(train_rews),
                     "train_min_reward": np.min(train_rews),
                     "train_std_reward": np.std(train_rews),
+                    "throughput/env_steps_per_sec": (
+                        collect_count * self.args.action_repeat
+                    )
+                    / collect_elapsed,
+                    "throughput/grad_steps_per_sec": self.args.update_steps
+                    / update_elapsed,
+                    "replay/fill_ratio": min(
+                        1.0,
+                        self.dreamer.data_buffer.steps
+                        / max(1, self.dreamer.data_buffer.size),
+                    ),
+                    "replay/steps": self.dreamer.data_buffer.steps,
+                    "replay/episodes": self.dreamer.data_buffer.episodes,
                 }
             )
+
+            stats_freq = getattr(self.args, "log_system_stats_freq", 0)
+            if stats_freq and global_step % stats_freq == 0:
+                logs.update(collect_system_stats(self.dreamer.device))
 
             if global_step % self.args.test_interval == 0:
                 episode_rews, video_images, latents = self.dreamer.evaluate(
@@ -816,9 +908,10 @@ class DreamerAgent:
             if (
                 global_step % self.args.log_video_freq == 0
                 and self.args.log_video_freq != -1
+                and len(video_images) > 0
                 and len(video_images[0]) != 0
             ):
-                self.logger.log_video(
+                self.logger.log_videos(
                     video_images, global_step, self.args.max_videos_to_save
                 )
             if global_step % self.args.checkpoint_interval == 0:

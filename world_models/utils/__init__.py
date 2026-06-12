@@ -15,6 +15,12 @@ __all__ = [
     "get_parameters",
     "compute_return",
     "preprocess_obs",
+    "MetricsLogger",
+    "assert_finite",
+    "assert_finite_values",
+    "collect_system_stats",
+    "get_package_logger",
+    "setup_logging",
 ]
 
 
@@ -25,6 +31,24 @@ def __getattr__(name):
             FreezeParameters,
             get_parameters,
             compute_return,
+        )
+
+        return locals()[name]
+    if name in (
+        "MetricsLogger",
+        "assert_finite",
+        "assert_finite_values",
+        "collect_system_stats",
+        "get_package_logger",
+        "setup_logging",
+    ):
+        from .logging_utils import (
+            MetricsLogger,
+            assert_finite,
+            assert_finite_values,
+            collect_system_stats,
+            get_package_logger,
+            setup_logging,
         )
 
         return locals()[name]

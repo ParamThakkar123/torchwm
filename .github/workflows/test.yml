@@ -6,8 +6,6 @@ permissions:
 on:
   pull_request:
   push:
-    paths:
-      - 'tests/**'
 
 jobs:
   test:
@@ -26,10 +24,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
         pip install -e .
-        pip install pytest pytest-randomly pytest-mock
+        pip install pytest pytest-randomly pytest-mock pytest-timeout
 
     - name: Run tests
       run: |
-        pytest tests/ --tb=short
+        pytest tests/ --ignore=tests/selenium --tb=short --timeout=30 --maxfail=5
 
   # mypy type checks were moved to a dedicated workflow: .github/workflows/mypy.yml

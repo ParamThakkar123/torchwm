@@ -96,6 +96,7 @@ setup(
             "sphinx>=8.0.0,<9.0.0",
             "sphinx-autodoc-typehints<1.26.0",
             "sphinx-copybutton>=0.5.2",
+            "pydata-sphinx-theme>=0.15.0",
             "sphinx-rtd-theme>=3.1.0",
             "sphinxcontrib-bibtex>=2.6.5",
             "sphinxcontrib-mermaid>=0.9.0",

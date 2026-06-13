@@ -1,6 +1,6 @@
 # Contributing to TorchWM
 
-We welcome contributions to torchwm! This document outlines the guidelines for contributing to the project.
+We welcome contributions to TorchWM! This document outlines the guidelines for contributing to the project.
 
 ## Ways to Contribute
 
@@ -16,26 +16,36 @@ We welcome contributions to torchwm! This document outlines the guidelines for c
    cd torchwm
    ```
 
-2. Install dependencies in editable mode with development extras:
+2. Install dependencies with development extras:
    ```bash
-   pip install -e ".[dev]"
+   uv sync --dev
    ```
 
 3. Set up pre-commit hooks:
    ```bash
-   pre-commit install
+   uv run pre-commit install
    ```
+
+If you are not using `uv`, install the project in editable mode with development extras instead:
+
+```bash
+python -m pip install -e ".[dev]"
+pre-commit install
+```
 
 ## Coding Standards
 
 - Follow PEP 8 style guidelines.
 - Use type hints where possible.
-- Ensure code is linted with Ruff: `ruff check .`
-- Format code with Ruff: `ruff format .`
+- Format code with Black: `uv run black .`
+- Lint code with Ruff: `uv run ruff check .`
+- Type-check code with MyPy where practical: `uv run mypy .`
+- Run all configured hooks with: `uv run pre-commit run --all-files`
 
 ## Testing
 
-- Run tests with: `pytest`
+- Run tests with: `uv run pytest`
+- Run a fast subset with: `uv run pytest -m "not slow and not gpu and not integration"`
 - Ensure all tests pass before submitting a PR.
 - Add tests for new features or bug fixes.
 
@@ -43,8 +53,9 @@ We welcome contributions to torchwm! This document outlines the guidelines for c
 
 1. Create a feature branch from `main`: `git checkout -b feature/your-feature`
 2. Make your changes and commit them.
-3. Push to your fork and create a PR.
-4. PRs must pass CI checks and have at least one approval.
+3. Run checks and tests: `uv run pre-commit run --all-files` and `uv run pytest`
+4. Push to your fork and create a PR.
+5. PRs must pass CI checks and have at least one approval.
 
 ## Code of Conduct
 

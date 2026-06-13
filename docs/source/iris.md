@@ -198,7 +198,7 @@ config.transformer_embed_dim = 256
 # Training
 config.total_epochs = 600
 config.env_steps_per_epoch = 200
-config.env_name = "ALE/Pong-v5"
+config.env = "ALE/Pong-v5"
 ```
 
 ### CLI
@@ -240,7 +240,7 @@ config.total_epochs = 600
 
 # Atari 100k
 config.atari_100k = True
-config.env_name = "ALE/Pong-v5"
+config.env = "ALE/Pong-v5"
 config.max_env_steps = 100000
 ```
 

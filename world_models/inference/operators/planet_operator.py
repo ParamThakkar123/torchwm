@@ -8,6 +8,7 @@ class PlaNetOperator(OperatorABC):
     """Operator for PlaNet model preprocessing: encodes environment states and transitions."""
 
     def __init__(self, state_dim: int = 32, action_dim: int = 4):
+        super().__init__()
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.transform = T.Compose(
@@ -17,7 +18,7 @@ class PlaNetOperator(OperatorABC):
             ]
         )
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def preprocess(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Process PlaNet inputs: state observations and actions.
 

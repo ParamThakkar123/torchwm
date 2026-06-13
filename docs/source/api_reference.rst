@@ -22,6 +22,8 @@ Use ``torchwm`` for common workflows::
    :undoc-members:
    :show-inheritance:
 
+**Primary modules:** ``world_models``, ``world_models.models``, ``world_models.configs``, ``world_models.catalog``, ``world_models.envs``, and ``world_models.inference``.
+
 .. automodule:: world_models
    :members:
    :undoc-members:
@@ -32,7 +34,17 @@ Use ``torchwm`` for common workflows::
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.export
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.catalog
    :members:
    :undoc-members:
    :show-inheritance:
@@ -61,6 +73,16 @@ Core model families
    :show-inheritance:
 
 .. automodule:: world_models.models.planet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.models.mdrnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.models.controller
    :members:
    :undoc-members:
    :show-inheritance:
@@ -145,6 +167,11 @@ Vision, tokenization, and layers
 
 **Key classes:** ``ConvEncoder``, ``ConvDecoder``, ``DenseDecoder``, ``ActionDecoder``, ``CNNEncoder``, ``CNNDecoder``, ``IRISEncoder``, ``IRISDecoder``, ``DiscreteAutoencoder``, ``VectorQuantizer``, ``VectorQuantizerEMA``, ``VideoTokenizer``, ``MultiHeadSelfAttention``, and ``STTransformer``.
 
+.. automodule:: world_models.vision.VAE.ConvVAE
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.vision.dreamer_encoder
    :members:
    :undoc-members:
@@ -208,6 +235,11 @@ Configuration objects
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.configs.wm_config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.configs.dreamer_config
    :members:
    :undoc-members:
@@ -240,6 +272,26 @@ Configuration objects
 
 Training entry points
 ---------------------
+
+.. automodule:: world_models.training.train_world_model
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_convvae
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_mdn_rnn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.training.train_controller
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models.training.train_jepa
    :members:
@@ -347,7 +399,7 @@ Environment adapters
 ~~~~~~~~~~~~~~~~~~~~
 
 The environment APIs below mirror the dedicated environment guide pages: DMC,
-Gym/Gymnasium, Atari/ALE, MuJoCo, Unity ML-Agents, and vectorization utilities.
+DeepMind Lab, Gym/Gymnasium, Atari/ALE, Procgen, MuJoCo, Unity ML-Agents, and vectorization utilities.
 DIAMOND-style Atari support is intentionally not listed as an environment
 adapter because it is Atari preprocessing rather than a separate environment
 family.
@@ -358,6 +410,11 @@ family.
    :show-inheritance:
 
 .. automodule:: world_models.envs.dmc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.dmlab
    :members:
    :undoc-members:
    :show-inheritance:
@@ -373,6 +430,11 @@ family.
    :show-inheritance:
 
 .. automodule:: world_models.envs.ale_atari_vector_env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.envs.procgen_env
    :members:
    :undoc-members:
    :show-inheritance:
@@ -416,6 +478,11 @@ not separate environment families.
 Datasets and transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+.. automodule:: world_models.datasets.wm_dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.datasets.video_datasets
    :members:
    :undoc-members:
@@ -441,7 +508,7 @@ Datasets and transforms
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: world_models.transforms.transforms
+.. automodule:: world_models.transforms.image
    :members:
    :undoc-members:
    :show-inheritance:
@@ -504,6 +571,21 @@ Benchmarks and reports
 
 Utilities
 ---------
+
+.. automodule:: world_models.losses.convae_loss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.losses.gmm_loss
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: world_models.utils.train_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models.utils.dreamer_utils
    :members:

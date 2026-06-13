@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from setuptools import setup, find_packages
 
@@ -9,9 +10,21 @@ README = (
     else ""
 )
 
+
+def _get_version() -> str:
+    version_file = HERE / "world_models" / "_version.py"
+    if version_file.exists():
+        match = re.search(
+            r'__version__\s*=\s*["\']([^"\']+)["\']', version_file.read_text()
+        )
+        if match:
+            return match.group(1)
+    return "0.0.0"
+
+
 setup(
     name="torchwm",
-    version="0.3.2",
+    version=_get_version(),
     description="A Pytorch Based library for training world models",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -19,14 +32,17 @@ setup(
     license="MIT",
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
+    package_data={"world_models": ["configs/experiments/*.yaml"]},
     entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
-    python_requires=">=3.10",
+    python_requires=">=3.11",
     install_requires=[
         "torch>=1.13.0",
         "torchvision>=0.14.0",
-        "torchaudio>=2.10.0",
+        "torchaudio>=2.1.0",
         "einops>=0.8.2",
         "pyyaml>=6.0.3",
+        "omegaconf>=2.3.0",
+        "hydra-core>=1.3.2",
         "tqdm>=4.67.1",
         "click>=8.0.0",
     ],
@@ -48,6 +64,12 @@ setup(
         "brax": [
             "brax>=0.13.0",
         ],
+        "procgen": [
+            "procgen>=0.10.7",
+        ],
+        "bsuite": [
+            "bsuite>=0.3.5",
+        ],
         "viz": [
             "fastapi[standard]>=0.116.0",
             "uvicorn>=0.35.0",
@@ -63,17 +85,18 @@ setup(
             "umap-learn>=0.5.11",
         ],
         "dev": [
-            "pytest>=9.0.2",
+            "pytest>=9.0.3",
             "pytest-cov>=7.1.0",
             "pre-commit>=4.5.0",
             "mypy>=1.19.1",
         ],
         "docs": [
-            "myst-parser>=5.0.0",
+            "myst-parser>=2.0.0,<5.0.0",
             "nbsphinx>=0.9.8",
-            "sphinx>=9.1.0",
-            "sphinx-autodoc-typehints>=3.6.2",
+            "sphinx>=8.0.0,<9.0.0",
+            "sphinx-autodoc-typehints<1.26.0",
             "sphinx-copybutton>=0.5.2",
+            "pydata-sphinx-theme>=0.15.0",
             "sphinx-rtd-theme>=3.1.0",
             "sphinxcontrib-bibtex>=2.6.5",
             "sphinxcontrib-mermaid>=0.9.0",
@@ -82,7 +105,7 @@ setup(
             "wheel>=0.46.3",
         ],
         "all": [
-            "torchwm[gym,viz,ml,mujoco,robotics,brax,dev,docs]",
+            "torchwm[gym,viz,ml,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
         ],
     },
     classifiers=[

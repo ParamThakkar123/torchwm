@@ -13,9 +13,10 @@ from world_models.models.model_io import (
     resolve_pretrained_file,
 )
 from world_models.training.train_jepa import main as train_jepa_main
+from world_models.export import ExportableAgentMixin
 
 
-class JEPAAgent:
+class JEPAAgent(ExportableAgentMixin):
     """Convenience interface for configuring and launching JEPA training runs.
 
     Accepts a `JEPAConfig` plus keyword overrides, prepares output folders,

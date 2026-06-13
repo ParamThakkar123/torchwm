@@ -27,8 +27,13 @@ from world_models.utils.jepa_utils import repeat_interleave_batch
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.helpers.jepa_helper import load_checkpoint, init_model, init_opt
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 from world_models.configs.jepa_config import JEPAConfig
+from world_models.experiments import (
+    dump_config,
+    load_experiment_config,
+    parse_experiment_args,
+)
 
 log_timings = True
 log_freq = 10
@@ -43,12 +48,14 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
 
-def main(args, resume_preempt=False):
-    """Run JEPA training using a nested config dict or `JEPAConfig` instance.
+def main(args=None, resume_preempt=False):
+    """Run JEPA training using a CLI argv, nested dict, or `JEPAConfig` instance.
 
     This entrypoint initializes distributed context, data pipeline, masking,
     models, optimizers/schedulers, checkpointing, and the full epoch loop.
     """
+    if args is None or isinstance(args, list):
+        return main_from_cli(args)
     if isinstance(args, JEPAConfig):
         args = args.to_train_dict()
 
@@ -64,11 +71,12 @@ def main(args, resume_preempt=False):
     copy_data = args["meta"]["copy_data"]
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
-    if not torch.cuda.is_available():
-        device = torch.device("cpu")
-    else:
+    if torch.cuda.is_available():
         device = torch.device("cuda:0")
         torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]
@@ -313,7 +321,6 @@ def main(args, resume_preempt=False):
             if (epoch + 1) % checkpoint_freq == 0:
                 torch.save(save_dict, save_path.format(epoch=f"{epoch + 1}"))
 
-    # -- TRAINING LOOP
     for epoch in range(start_epoch, num_epochs):
         logger.info("Epoch %d" % (epoch + 1))
 
@@ -460,13 +467,28 @@ def sweep_train():
         main(cfg.to_train_dict())
 
 
-if __name__ == "__main__":
-    cfg = JEPAConfig()
-    # TODO: Load config from file if needed
-    if cfg.enable_sweep:
+def main_from_cli(argv: list[str] | None = None):
+    """Compose JEPA config from YAML/dot-list overrides and launch training."""
+    parsed = parse_experiment_args(argv, description="Train JEPA")
+    cfg_dict = load_experiment_config(
+        JEPAConfig().to_dict(), parsed.config, parsed.overrides
+    )
+    if parsed.print_config:
+        print(dump_config(cfg_dict))
+        return cfg_dict
+
+    logging_cfg = cfg_dict.get("logging", {})
+    if logging_cfg.get("enable_sweep", False):
         sweep_id = wandb.sweep(
-            cfg.sweep_config, project=cfg.wandb_project, entity=cfg.wandb_entity
+            logging_cfg.get("sweep_config", {}),
+            project=logging_cfg.get("wandb_project", "torchwm"),
+            entity=logging_cfg.get("wandb_entity", ""),
         )
         wandb.agent(sweep_id, function=sweep_train)
     else:
-        main(cfg.to_train_dict())
+        main(cfg_dict)
+    return cfg_dict
+
+
+if __name__ == "__main__":
+    main_from_cli()

@@ -78,6 +78,10 @@ class IRISAgent(nn.Module):
         self.action_size = action_size
         self.device = device
         self.logger = setup_logging("IRISAgent")
+        self.use_amp = bool(
+            getattr(config, "use_amp", True)
+            and getattr(device, "type", str(device)) == "cuda"
+        )
 
         # === Discrete Autoencoder ===
         self.encoder = IRISEncoder(
@@ -106,6 +110,7 @@ class IRISAgent(nn.Module):
             num_layers=config.transformer_layers,
             num_heads=config.transformer_heads,
             dropout=config.transformer_dropout,
+            gradient_checkpointing=getattr(config, "gradient_checkpointing", True),
         ).to(device)
 
         # === Actor-Critic ===
@@ -127,6 +132,10 @@ class IRISAgent(nn.Module):
 
         # === Optimizers ===
         self._setup_optimizers()
+
+        self.autoencoder_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.transformer_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.ac_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
 
         # === Training state ===
         self.global_step = 0
@@ -257,6 +266,12 @@ class IRISAgent(nn.Module):
             betas=(self.config.adam_beta1, self.config.adam_beta2),
             weight_decay=self.config.weight_decay,
         )
+
+    @staticmethod
+    def _losses_to_floats(losses: dict[str, torch.Tensor]) -> dict[str, float]:
+        keys = list(losses.keys())
+        values = torch.stack([losses[key].detach() for key in keys]).cpu().tolist()
+        return dict(zip(keys, values))
 
     def forward_actor_critic(
         self,
@@ -429,31 +444,39 @@ class IRISAgent(nn.Module):
         self.encoder.train()
         self.decoder.train()
 
-        # Encode
-        z_q, indices, vq_loss = self.encoder(frames)
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            # Encode
+            z_q, indices, vq_loss = self.encoder(frames)
 
-        # Decode
-        reconstruction = self.decoder(z_q)
+            # Decode
+            reconstruction = self.decoder(z_q)
 
-        # Compute losses
-        recon_loss = F.l1_loss(reconstruction, frames)
-        loss = recon_loss + vq_loss["vq_loss"]
+            # Compute losses
+            recon_loss = F.l1_loss(reconstruction, frames)
+            loss = recon_loss + vq_loss["vq_loss"]
 
         # Update
-        self.autoencoder_opt.zero_grad()
-        loss.backward()
+        self.autoencoder_opt.zero_grad(set_to_none=True)
+        self.autoencoder_scaler.scale(loss).backward()
+        self.autoencoder_scaler.unscale_(self.autoencoder_opt)
         nn.utils.clip_grad_norm_(
             list(self.encoder.parameters()) + list(self.decoder.parameters()),
             self.config.grad_clip_norm,
         )
-        self.autoencoder_opt.step()
+        self.autoencoder_scaler.step(self.autoencoder_opt)
+        self.autoencoder_scaler.update()
 
-        losses = {
-            "recon_loss": recon_loss.item(),
-            "vq_loss": vq_loss["vq_loss"].item(),
-            "perplexity": vq_loss["perplexity"].item(),
-            "total_loss": loss.item(),
-        }
+        losses = self._losses_to_floats(
+            {
+                "recon_loss": recon_loss,
+                "vq_loss": vq_loss["vq_loss"],
+                "perplexity": vq_loss["perplexity"],
+                "total_loss": loss,
+            }
+        )
         self.logger.debug(f"Autoencoder update: {losses}")
         return losses
 
@@ -492,45 +515,53 @@ class IRISAgent(nn.Module):
         if actions.dim() == 3:
             actions = actions.argmax(dim=-1)  # (B, T)
 
-        # Get predictions
-        token_logits, rewards_pred, terms_pred = self.transformer(
-            tokens[:, :-1],  # (B, T, K)
-            actions,  # (B, T)
-        )
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            # Get predictions
+            token_logits, rewards_pred, terms_pred = self.transformer(
+                tokens[:, :-1],  # (B, T, K)
+                actions,  # (B, T)
+            )
 
-        # Token prediction loss
-        next_tokens = tokens[:, 1:]  # (B, T, K)
-        token_loss = F.cross_entropy(
-            token_logits.reshape(-1, self.config.vocab_size),
-            next_tokens.reshape(-1),
-        )
+            # Token prediction loss
+            next_tokens = tokens[:, 1:]  # (B, T, K)
+            token_loss = F.cross_entropy(
+                token_logits.reshape(-1, self.config.vocab_size),
+                next_tokens.reshape(-1),
+            )
 
-        # Reward loss (MSE)
-        reward_loss = F.mse_loss(rewards_pred, rewards)
+            # Reward loss (MSE)
+            reward_loss = F.mse_loss(rewards_pred, rewards)
 
-        # Termination loss (cross-entropy)
-        term_loss = F.cross_entropy(
-            terms_pred.reshape(-1, 2),
-            terminals.reshape(-1),
-        )
+            # Termination loss (cross-entropy)
+            term_loss = F.cross_entropy(
+                terms_pred.reshape(-1, 2),
+                terminals.reshape(-1),
+            )
 
-        # Total loss
-        loss = token_loss + 0.1 * reward_loss + 0.1 * term_loss
+            # Total loss
+            loss = token_loss + 0.1 * reward_loss + 0.1 * term_loss
 
         # Update
-        self.transformer_opt.zero_grad()
-        loss.backward()
+        self.transformer_opt.zero_grad(set_to_none=True)
+        self.transformer_scaler.scale(loss).backward()
+        self.transformer_scaler.unscale_(self.transformer_opt)
         nn.utils.clip_grad_norm_(
             self.transformer.parameters(), self.config.grad_clip_norm
         )
-        self.transformer_opt.step()
+        self.transformer_scaler.step(self.transformer_opt)
+        self.transformer_scaler.update()
 
-        losses = {
-            "token_loss": token_loss.item(),
-            "reward_loss": reward_loss.item(),
-            "term_loss": term_loss.item(),
-            "total_loss": loss.item(),
-        }
+        losses = self._losses_to_floats(
+            {
+                "token_loss": token_loss,
+                "reward_loss": reward_loss,
+                "term_loss": term_loss,
+                "total_loss": loss,
+            }
+        )
         self.logger.debug(f"Transformer update: {losses}")
         return losses
 
@@ -554,47 +585,52 @@ class IRISAgent(nn.Module):
 
         B, T_plus_1, C, H, W = frames.shape
 
-        # Forward pass
-        action_logits, values, _ = self.forward_actor_critic(
-            frames[:, :-1]
-        )  # (B, T, A), (B, T)
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            # Forward pass
+            action_logits, values, _ = self.forward_actor_critic(
+                frames[:, :-1]
+            )  # (B, T, A), (B, T)
 
-        # Compute log probabilities
-        action_dist = torch.softmax(action_logits, dim=-1)
-        action_log_probs = torch.log(action_dist + 1e-8)
+            # Compute log probabilities
+            action_dist = torch.softmax(action_logits, dim=-1)
+            action_log_probs = torch.log(action_dist + 1e-8)
 
-        # Gather log probs for taken actions
-        actions_one_hot = F.one_hot(actions, self.action_size).float()
-        taken_log_probs = (action_log_probs * actions_one_hot).sum(dim=-1)  # (B, T)
+            # Gather log probs for taken actions
+            actions_one_hot = F.one_hot(actions, self.action_size).float()
+            taken_log_probs = (action_log_probs * actions_one_hot).sum(dim=-1)  # (B, T)
 
-        # Compute λ-returns
-        discounts = torch.full_like(rewards, self.config.discount)
-        lambda_returns = compute_lambda_return(
-            rewards,
-            torch.cat([values, torch.zeros(B, 1, device=self.device)], dim=1),
-            discounts,
-            self.config.td_lambda,
-        )
+            # Compute λ-returns
+            discounts = torch.full_like(rewards, self.config.discount)
+            lambda_returns = compute_lambda_return(
+                rewards,
+                torch.cat([values, torch.zeros(B, 1, device=self.device)], dim=1),
+                discounts,
+                self.config.td_lambda,
+            )
 
-        # Advantage
-        advantages = lambda_returns - values  # (B, T)
+            # Advantage
+            advantages = lambda_returns - values  # (B, T)
 
-        # Actor loss (REINFORCE with baseline)
-        actor_loss = -(taken_log_probs * advantages.detach()).mean()
+            # Actor loss (REINFORCE with baseline)
+            actor_loss = -(taken_log_probs * advantages.detach()).mean()
 
-        # Entropy bonus
-        entropy = -(action_dist * action_log_probs).sum(dim=-1).mean()
-        actor_loss -= self.config.entropy_coef * entropy
+            # Entropy bonus
+            entropy = -(action_dist * action_log_probs).sum(dim=-1).mean()
+            actor_loss -= self.config.entropy_coef * entropy
 
-        # Critic loss
-        value_loss = F.mse_loss(values, lambda_returns.detach())
+            # Critic loss
+            value_loss = F.mse_loss(values, lambda_returns.detach())
 
-        # Total loss
-        loss = actor_loss + 0.5 * value_loss
+            # Total loss
+            loss = actor_loss + 0.5 * value_loss
 
         # Update
-        self.ac_opt.zero_grad()
-        loss.backward()
+        self.ac_opt.zero_grad(set_to_none=True)
+        self.ac_scaler.scale(loss).backward()
+        self.ac_scaler.unscale_(self.ac_opt)
         nn.utils.clip_grad_norm_(
             list(self.cnn.parameters())
             + list(self.lstm.parameters())
@@ -602,14 +638,17 @@ class IRISAgent(nn.Module):
             + list(self.critic_head.parameters()),
             self.config.grad_clip_norm,
         )
-        self.ac_opt.step()
+        self.ac_scaler.step(self.ac_opt)
+        self.ac_scaler.update()
 
-        losses = {
-            "actor_loss": actor_loss.item(),
-            "value_loss": value_loss.item(),
-            "entropy": entropy.item(),
-            "total_loss": loss.item(),
-        }
+        losses = self._losses_to_floats(
+            {
+                "actor_loss": actor_loss,
+                "value_loss": value_loss,
+                "entropy": entropy,
+                "total_loss": loss,
+            }
+        )
         self.logger.debug(f"Actor-critic update: {losses}")
         return losses
 

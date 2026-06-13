@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 from typing import Optional, Tuple
 
 
@@ -24,6 +25,7 @@ class IRISTransformer(nn.Module):
         num_layers: int = 10,
         num_heads: int = 4,
         dropout: float = 0.1,
+        gradient_checkpointing: bool = False,
     ):
         super().__init__()
 
@@ -33,6 +35,7 @@ class IRISTransformer(nn.Module):
         self.embed_dim = embed_dim
         self.num_layers = num_layers
         self.num_heads = num_heads
+        self.gradient_checkpointing = gradient_checkpointing
 
         # Token embeddings
         self.token_embedding = nn.Embedding(vocab_size, embed_dim)
@@ -83,6 +86,28 @@ class IRISTransformer(nn.Module):
         nn.init.zeros_(self.token_head.bias)
         nn.init.zeros_(self.reward_head.bias)
         nn.init.zeros_(self.termination_head.bias)
+
+    def _run_transformer(
+        self, sequence: torch.Tensor, mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """Run transformer layers, checkpointing them during training when enabled."""
+        if not (self.gradient_checkpointing and self.training):
+            return self.transformer(sequence, mask=mask)
+
+        hidden = sequence
+        for layer in self.transformer.layers:
+            if mask is None:
+                hidden = checkpoint(layer, hidden, use_reentrant=False)
+            else:
+                hidden = checkpoint(
+                    lambda src, src_mask: layer(src, src_mask=src_mask),
+                    hidden,
+                    mask,
+                    use_reentrant=False,
+                )
+        if self.transformer.norm is not None:
+            hidden = self.transformer.norm(hidden)
+        return hidden
 
     def _build_sequence(
         self,
@@ -164,7 +189,7 @@ class IRISTransformer(nn.Module):
         sequence = sequence + self.pos_embedding[:, : T * (K + 1), :]
 
         # Apply transformer
-        hidden = self.transformer(sequence, mask=mask)
+        hidden = self._run_transformer(sequence, mask=mask)
         hidden = self.layer_norm(hidden)
 
         # Reshape hidden states back to per-timestep structure
@@ -222,7 +247,7 @@ class IRISTransformer(nn.Module):
         # Get action hidden states for reward prediction
         B, T, K, embed_dim = token_logits.shape
         hidden = self.layer_norm(
-            self.transformer(self._build_sequence(tokens, actions), mask=None)
+            self._run_transformer(self._build_sequence(tokens, actions), mask=None)
         )
         hidden = hidden.reshape(B, T, K + 1, self.embed_dim)
         action_hidden = hidden[:, -1, K, :]  # (B, embed_dim)

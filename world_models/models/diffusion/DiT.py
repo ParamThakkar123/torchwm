@@ -11,13 +11,13 @@ from world_models.models.model_io import (
     resolve_pretrained_file,
     save_config_next_to_checkpoint,
 )
-from world_models.layers.AdaLNNorm import AdaLNNormalization
+from world_models.layers.ada_ln_norm import AdaLNNormalization
 from world_models.blocks.mhsa import MultiHeadSelfAttention
 from world_models.models.diffusion.DDPM import DDPM
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from torchvision.transforms import RandomHorizontalFlip, Compose, ToTensor
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 import time
 from torchvision.utils import save_image
 import os
@@ -350,7 +350,11 @@ class DiT(nn.Module):
         subset_file=None,
         val_split=None,
     ):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         if dataset.lower() == "cifar10":
             transform = Compose([RandomHorizontalFlip(), ToTensor()])
@@ -521,3 +525,43 @@ class DiT(nn.Module):
             os.makedirs(workdir, exist_ok=True)
             save_image((samples + 1) / 2, f"{workdir}/generated_samples.png", nrow=4)
             print(f"Generated samples saved to {workdir}/generated_samples.png")
+
+
+def create_dit(config=None, **overrides):
+    """Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.
+
+    The public factory API works with config objects, while ``DiT`` itself has a
+    compact constructor. This adapter keeps the lower-level model constructor
+    unchanged and maps the public config fields onto the expected arguments.
+    """
+
+    if config is None:
+        config = Config()
+
+    config_fields = set(getattr(config, "__dataclass_fields__", {}))
+    config_overrides = {
+        key: value for key, value in overrides.items() if key in config_fields
+    }
+    constructor_overrides = {
+        key: value for key, value in overrides.items() if key not in config_fields
+    }
+    if config_overrides:
+        from dataclasses import replace
+
+        config = replace(config, **config_overrides)
+
+    kwargs = {
+        "img_size": config.IMG_SIZE,
+        "patch_size": config.PATCH,
+        "in_channels": config.CHANNELS,
+        "d_model": config.WIDTH,
+        "depth": config.DEPTH,
+        "heads": config.HEADS,
+        "drop": config.DROP,
+    }
+    supported = set(kwargs) | {"t_dim"}
+    invalid = sorted(set(constructor_overrides) - supported)
+    if invalid:
+        raise ValueError(f"Unsupported DiT argument(s): {', '.join(invalid)}")
+    kwargs.update(constructor_overrides)
+    return DiT(**kwargs)

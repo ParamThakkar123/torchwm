@@ -170,12 +170,12 @@ class SelfAttentionBlock(nn.Module):
         k = self.key(x).reshape(B, C, H * W).permute(0, 2, 1)  # (B, HW, C)
         v = self.value(x).reshape(B, C, H * W).permute(0, 2, 1)  # (B, HW, C)
 
-        # Attention scores
-        attn = torch.bmm(q, k.transpose(1, 2)) / (C**0.5)
-        attn = F.softmax(attn, dim=-1)
-
-        # Apply attention
-        out = torch.bmm(attn, v)  # (B, HW, C)
+        # Apply fused scaled dot-product attention over spatial tokens.
+        out = F.scaled_dot_product_attention(
+            q.unsqueeze(1), k.unsqueeze(1), v.unsqueeze(1)
+        ).squeeze(
+            1
+        )  # (B, HW, C)
         out = out.permute(0, 2, 1).reshape(B, C, H, W)
 
         # Residual connection with learned weight

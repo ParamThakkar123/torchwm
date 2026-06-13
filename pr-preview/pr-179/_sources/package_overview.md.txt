@@ -34,7 +34,7 @@ agent = DreamerAgent(cfg)
 | **Friendly factories** | `create_config`, `create_model`, `make_env`, `list_models`, `list_env_backends`, `list_envs` |
 | **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `IRISAgent`, `Genie`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
 | **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig`, `GenieConfig`, `GenieSmallConfig` |
-| **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `GymImageEnv`, wrappers, etc. |
+| **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `make_procgen_env`, `GymImageEnv`, `ProcgenImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, wrappers, etc. |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
 | **Reward** | `RewardModel`, `ValueModel` |
 | **Utilities** | `__version__` |
@@ -57,7 +57,7 @@ processed = op.process({"image": image, "action": action})
 
 - `world_models.models`: High-level models and agents (`Dreamer`, `DreamerAgent`, `Planet`, `JEPAAgent`)
 - `world_models.configs`: Configuration containers for Dreamer, JEPA, and diffusion runs
-- `world_models.training`: Script-style training entrypoints
+- `world_models.training`: Script-style training entrypoints for world models (VAE, MDNRNN, Controller, Planet, RSSM, JEPA)
 
 ## Environment Integration
 
@@ -93,6 +93,7 @@ processed = op.process({"image": image, "action": action})
 
 - End-to-end Dreamer training: `DreamerAgent`
 - End-to-end JEPA training: `JEPAAgent`
+- World model training scripts: `world_models.training` modules (e.g., `train_world_model` for VAE+MDNRNN+Controller pipeline)
 - Low-level model experimentation: `Dreamer`, `RSSM`, decoder/encoder modules
 - Custom world model architectures: `ModularRSSM` with swappable encoder/decoder/backbone
 - Custom data pipelines: `make_cifar10`, `make_imagenet1k`, `make_imagefolder`

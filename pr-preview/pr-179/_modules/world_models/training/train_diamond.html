@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.training.train_diamond &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.training.train_diamond &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -120,7 +120,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -297,8 +297,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.model_io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">apply_config_overrides</span><span class="p">,</span>
     <span class="n">coerce_config</span><span class="p">,</span>
@@ -310,6 +308,11 @@
     <span class="n">DiamondConfig</span><span class="p">,</span>
     <span class="n">HUMAN_SCORES</span><span class="p">,</span>
     <span class="n">RANDOM_SCORES</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.experiments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">dump_config</span><span class="p">,</span>
+    <span class="n">instantiate_dataclass</span><span class="p">,</span>
+    <span class="n">parse_experiment_args</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs.diamond_atari</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_diamond_atari_env</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">gym.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">Discrete</span><span class="p">,</span> <span class="n">Box</span>
@@ -376,6 +379,11 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Unsupported action_space type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;use_amp&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_build_models</span><span class="p">()</span>
 
@@ -566,6 +574,21 @@
             <span class="n">eps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">adam_epsilon</span><span class="p">,</span>
             <span class="n">weight_decay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">weight_decay_actor</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_move_batch_to_device</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">value</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">non_blocking</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">is_tensor</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span> <span class="n">value</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_diffusion_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update diffusion world model.&quot;&quot;&quot;</span>
@@ -604,22 +627,27 @@
                 <span class="sa">f</span><span class="s2">&quot;DEBUG SHAPES: obs_seq=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obs_seq</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;shape&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">, obs_history=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obs_history</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;shape&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">, target_obs=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">target_obs</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;shape&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">model_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="n">model_input</span><span class="p">,</span>
-            <span class="n">t</span><span class="o">=</span><span class="n">t_cond</span><span class="p">,</span>
-            <span class="n">obs_history</span><span class="o">=</span><span class="n">obs_history</span><span class="p">,</span>
-            <span class="n">actions</span><span class="o">=</span><span class="n">action_seq</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span> <span class="p">:],</span>
-        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span>
+            <span class="n">device_type</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)),</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">model_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="n">model_input</span><span class="p">,</span>
+                <span class="n">t</span><span class="o">=</span><span class="n">t_cond</span><span class="p">,</span>
+                <span class="n">obs_history</span><span class="o">=</span><span class="n">obs_history</span><span class="p">,</span>
+                <span class="n">actions</span><span class="o">=</span><span class="n">action_seq</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span> <span class="p">:],</span>
+            <span class="p">)</span>
 
-        <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">next_obs</span> <span class="o">-</span> <span class="n">precond</span><span class="p">[</span><span class="s2">&quot;c_skip&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">noisy_target</span><span class="p">)</span> <span class="o">/</span> <span class="n">precond</span><span class="p">[</span><span class="s2">&quot;c_out&quot;</span><span class="p">]</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">next_obs</span> <span class="o">-</span> <span class="n">precond</span><span class="p">[</span><span class="s2">&quot;c_skip&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">noisy_target</span><span class="p">)</span> <span class="o">/</span> <span class="n">precond</span><span class="p">[</span><span class="s2">&quot;c_out&quot;</span><span class="p">]</span>
 
-        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">model_output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">model_output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_reward_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update reward/termination model.&quot;&quot;&quot;</span>
@@ -632,31 +660,36 @@
 
         <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">obs_seq</span><span class="o">.</span><span class="n">shape</span>
 
-        <span class="n">reward_logits</span><span class="p">,</span> <span class="n">term_logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span>
-            <span class="n">obs</span><span class="o">=</span><span class="n">obs_seq</span><span class="p">,</span>
-            <span class="n">actions</span><span class="o">=</span><span class="n">action_seq</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span>
+            <span class="n">device_type</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)),</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">reward_logits</span><span class="p">,</span> <span class="n">term_logits</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span>
+                <span class="n">obs</span><span class="o">=</span><span class="n">obs_seq</span><span class="p">,</span>
+                <span class="n">actions</span><span class="o">=</span><span class="n">action_seq</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="c1"># Align target sequence lengths: reward_logits has same temporal length as obs_seq</span>
-        <span class="c1"># We predict next-step rewards for all but the last conditioning frame.</span>
-        <span class="c1"># Align rewards/dones length with reward_logits[:, :-1]</span>
-        <span class="n">T_logits</span> <span class="o">=</span> <span class="n">reward_logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">target_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T_logits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">rewards_target</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[:,</span> <span class="p">:</span><span class="n">target_len</span><span class="p">]</span>
-        <span class="n">dones_target</span> <span class="o">=</span> <span class="n">dones</span><span class="p">[:,</span> <span class="p">:</span><span class="n">target_len</span><span class="p">]</span>
+            <span class="c1"># Align target sequence lengths: reward_logits has same temporal length as obs_seq</span>
+            <span class="c1"># We predict next-step rewards for all but the last conditioning frame.</span>
+            <span class="c1"># Align rewards/dones length with reward_logits[:, :-1]</span>
+            <span class="n">T_logits</span> <span class="o">=</span> <span class="n">reward_logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">target_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T_logits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">rewards_target</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[:,</span> <span class="p">:</span><span class="n">target_len</span><span class="p">]</span>
+            <span class="n">dones_target</span> <span class="o">=</span> <span class="n">dones</span><span class="p">[:,</span> <span class="p">:</span><span class="n">target_len</span><span class="p">]</span>
 
-        <span class="n">total_loss</span><span class="p">,</span> <span class="n">reward_loss</span><span class="p">,</span> <span class="n">term_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_loss_fn</span><span class="p">(</span>
-            <span class="n">reward_logits</span><span class="o">=</span><span class="n">reward_logits</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-            <span class="n">termination_logits</span><span class="o">=</span><span class="n">term_logits</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-            <span class="n">rewards</span><span class="o">=</span><span class="n">rewards_target</span><span class="p">,</span>
-            <span class="n">terminated</span><span class="o">=</span><span class="n">dones_target</span><span class="p">,</span>
-        <span class="p">)</span>
+            <span class="n">total_loss</span><span class="p">,</span> <span class="n">reward_loss</span><span class="p">,</span> <span class="n">term_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_loss_fn</span><span class="p">(</span>
+                <span class="n">reward_logits</span><span class="o">=</span><span class="n">reward_logits</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">termination_logits</span><span class="o">=</span><span class="n">term_logits</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">rewards</span><span class="o">=</span><span class="n">rewards_target</span><span class="p">,</span>
+                <span class="n">terminated</span><span class="o">=</span><span class="n">dones_target</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">reward_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-        <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reward_opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reward_opt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_actor_critic</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
@@ -773,41 +806,46 @@
         <span class="c1"># Compute policy logits and values for imagined observations using the</span>
         <span class="c1"># same initial policy hidden state used during imagination so the</span>
         <span class="c1"># logits align with the sampled actions.</span>
-        <span class="n">policy_logits</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="p">(</span><span class="n">obs_imag</span><span class="p">,</span> <span class="n">policy_hidden_init</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span>
+            <span class="n">device_type</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)),</span>
+            <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">policy_logits</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="p">(</span><span class="n">obs_imag</span><span class="p">,</span> <span class="n">policy_hidden_init</span><span class="p">)</span>
 
-        <span class="c1"># values: [B, H, 1] -&gt; squeeze to [B, H]</span>
-        <span class="n">values_squeezed</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># append bootstrap last value to make [B, H+1]</span>
-        <span class="n">values_with_bootstrap</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">values_squeezed</span><span class="p">,</span> <span class="n">values_squeezed</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">detach</span><span class="p">()],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span>
-        <span class="p">)</span>
+            <span class="c1"># values: [B, H, 1] -&gt; squeeze to [B, H]</span>
+            <span class="n">values_squeezed</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># append bootstrap last value to make [B, H+1]</span>
+            <span class="n">values_with_bootstrap</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">values_squeezed</span><span class="p">,</span> <span class="n">values_squeezed</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">detach</span><span class="p">()],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span>
 
-        <span class="c1"># lambda-returns on imagined rewards</span>
-        <span class="n">lambda_returns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">compute_lambda_returns</span><span class="p">(</span>
-            <span class="n">rewards</span><span class="o">=</span><span class="n">rewards_imag</span><span class="p">,</span>
-            <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="p">,</span>
-            <span class="n">dones</span><span class="o">=</span><span class="n">dones_imag</span><span class="p">,</span>
-        <span class="p">)</span>
+            <span class="c1"># lambda-returns on imagined rewards</span>
+            <span class="n">lambda_returns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">compute_lambda_returns</span><span class="p">(</span>
+                <span class="n">rewards</span><span class="o">=</span><span class="n">rewards_imag</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="p">,</span>
+                <span class="n">dones</span><span class="o">=</span><span class="n">dones_imag</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="n">policy_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">policy_loss</span><span class="p">(</span>
-            <span class="n">policy_logits</span><span class="o">=</span><span class="n">policy_logits</span><span class="p">,</span>
-            <span class="n">actions</span><span class="o">=</span><span class="n">policy_actions_imag</span><span class="p">,</span>
-            <span class="n">lambda_returns</span><span class="o">=</span><span class="n">lambda_returns</span><span class="p">,</span>
-            <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="p">,</span>
-        <span class="p">)</span>
+            <span class="n">policy_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">policy_loss</span><span class="p">(</span>
+                <span class="n">policy_logits</span><span class="o">=</span><span class="n">policy_logits</span><span class="p">,</span>
+                <span class="n">actions</span><span class="o">=</span><span class="n">policy_actions_imag</span><span class="p">,</span>
+                <span class="n">lambda_returns</span><span class="o">=</span><span class="n">lambda_returns</span><span class="p">,</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="n">value_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">value_loss</span><span class="p">(</span>
-            <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">lambda_returns</span><span class="o">=</span><span class="n">lambda_returns</span><span class="p">,</span>
-        <span class="p">)</span>
+            <span class="n">value_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rl_loss_fn</span><span class="o">.</span><span class="n">value_loss</span><span class="p">(</span>
+                <span class="n">values</span><span class="o">=</span><span class="n">values_with_bootstrap</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">lambda_returns</span><span class="o">=</span><span class="n">lambda_returns</span><span class="p">,</span>
+            <span class="p">)</span>
 
-        <span class="n">total_loss</span> <span class="o">=</span> <span class="n">policy_loss</span> <span class="o">+</span> <span class="n">value_loss</span>
+            <span class="n">total_loss</span> <span class="o">=</span> <span class="n">policy_loss</span> <span class="o">+</span> <span class="n">value_loss</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-        <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">policy_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">value_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">policy_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">(),</span> <span class="n">value_loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_collect_experience</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect experience from the real environment.&quot;&quot;&quot;</span>
@@ -984,11 +1022,16 @@
                 <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">imagination_horizon</span><span class="p">,</span>
                 <span class="n">burn_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">burn_in_length</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="n">num_workers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;data_loader_num_workers&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
             <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
                 <span class="n">dataset</span><span class="p">,</span>
                 <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
                 <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+                <span class="n">pin_memory</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;pin_memory&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+                <span class="n">persistent_workers</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;persistent_workers&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="n">diffusion_losses</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1005,6 +1048,8 @@
                     <span class="n">data_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
                     <span class="n">batch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data_iter</span><span class="p">)</span>
 
+                <span class="n">batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_move_batch_to_device</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
                 <span class="n">diffusion_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_diffusion_model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
                 <span class="n">diffusion_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diffusion_loss</span><span class="p">)</span>
 
@@ -1017,10 +1062,19 @@
 
             <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">log_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Diffusion loss: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">diffusion_losses</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Reward loss: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reward_losses</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Policy loss: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">policy_losses</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Value loss: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">value_losses</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">diffusion_mean</span><span class="p">,</span> <span class="n">reward_mean</span><span class="p">,</span> <span class="n">policy_mean</span><span class="p">,</span> <span class="n">value_mean</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">losses</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="n">diffusion_losses</span><span class="p">,</span>
+                        <span class="n">reward_losses</span><span class="p">,</span>
+                        <span class="n">policy_losses</span><span class="p">,</span>
+                        <span class="n">value_losses</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Diffusion loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">diffusion_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Reward loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">reward_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Policy loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">policy_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Value loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">value_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Collected reward: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">collected_rewards</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">eval_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1219,13 +1273,11 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint not found at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">alt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Use full (unsafe) load to restore Python objects (numpy arrays, lists)</span>
-        <span class="c1"># required for replay buffer and obs history restoration.</span>
-        <span class="c1"># Load the torch checkpoint (weights + metadata). This file should be</span>
-        <span class="c1"># safe to load because it contains only tensor state dicts and small</span>
-        <span class="c1"># metadata fields. Larger numpy arrays may be stored separately and</span>
-        <span class="c1"># are loaded below when present.</span>
-        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># The checkpoint stores tensor state_dicts and primitive metadata only;</span>
+        <span class="c1"># larger replay/observation arrays are loaded from separate npz/npy</span>
+        <span class="c1"># files below. Keep torch deserialization in weights-only mode to avoid</span>
+        <span class="c1"># executing arbitrary pickle payloads from untrusted checkpoints.</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;diffusion_model&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;reward_model&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;actor_critic&quot;</span><span class="p">])</span>
@@ -1313,37 +1365,46 @@
 <div class="viewcode-block" id="train_diamond">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_diamond.train_diamond">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">train_diamond</span><span class="p">(</span>
-    <span class="n">game</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">game</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">preset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">DiamondConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Train DIAMOND on a specific game.&quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">DiamondConfig</span><span class="p">(</span>
-        <span class="n">game</span><span class="o">=</span><span class="n">game</span><span class="p">,</span>
-        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
-        <span class="n">preset</span><span class="o">=</span><span class="n">preset</span> <span class="k">if</span> <span class="n">preset</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
-    <span class="p">)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Train DIAMOND on a specific game or a composed experiment config.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">DiamondConfig</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">game</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">game</span> <span class="o">=</span> <span class="n">game</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="k">if</span> <span class="n">preset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">preset</span> <span class="o">=</span> <span class="n">preset</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">__post_init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
 
     <span class="n">agent</span> <span class="o">=</span> <span class="n">DiamondAgent</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
     <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--game&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Breakout-v5&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--seed&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--preset&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;small&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;large&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--device&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
-    <span class="p">)</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_diamond.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compose DIAMOND config from YAML/dot-list overrides and launch training.&quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_experiment_args</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train DIAMOND on Atari&quot;</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">instantiate_dataclass</span><span class="p">(</span><span class="n">DiamondConfig</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">print_config</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dump_config</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">config</span>
+    <span class="n">train_diamond</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span></div>
 
-    <span class="n">train_diamond</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">game</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">preset</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
                 </article>

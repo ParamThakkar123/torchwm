@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.utils.utils &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.utils.utils &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -120,7 +120,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -319,6 +319,33 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">umap</span>
 
 <span class="n">HAS_VIZ</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_RestrictedReplayUnpickler</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unpickler that only resolves classes needed by replay buffers.&quot;&quot;&quot;</span>
+
+    <span class="n">_ALLOWED_GLOBALS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="s2">&quot;builtins&quot;</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;builtins&quot;</span><span class="p">,</span> <span class="s2">&quot;list&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;builtins&quot;</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;builtins&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;builtins&quot;</span><span class="p">,</span> <span class="s2">&quot;tuple&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;collections&quot;</span><span class="p">,</span> <span class="s2">&quot;deque&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;numpy.core.multiarray&quot;</span><span class="p">,</span> <span class="s2">&quot;_reconstruct&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;numpy._core.multiarray&quot;</span><span class="p">,</span> <span class="s2">&quot;_reconstruct&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;world_models.memory.planet_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;Episode&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;world_models.memory.planet_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;Memory&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;world_models.memory.planet_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;_identity&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_class</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ALLOWED_GLOBALS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">find_class</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;global &#39;</span><span class="si">{</span><span class="n">module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is not allowed in replay buffers&quot;</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="AttrDict">
@@ -696,13 +723,24 @@
 
 <div class="viewcode-block" id="load_memory">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.load_memory">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_memory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_memory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">trusted</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Loads an experience replay buffer (backwards-compatible with older pickle formats).</span>
+<span class="sd">    Loads an experience replay buffer.</span>
+
+<span class="sd">    Pickle can execute arbitrary code during unrestricted deserialization. By</span>
+<span class="sd">    default this uses a restricted unpickler that only allows the replay buffer</span>
+<span class="sd">    classes and numpy containers required by historical buffers. Pass</span>
+<span class="sd">    ``trusted=True`` only for files created by this application or another</span>
+<span class="sd">    trusted source when compatibility with a legacy pickle requires unrestricted</span>
+<span class="sd">    loading.</span>
+
 <span class="sd">    Converts legacy list/.data formats into the current Memory(episodes) object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">memory</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trusted</span><span class="p">:</span>
+            <span class="n">memory</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">Unpickler</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">memory</span> <span class="o">=</span> <span class="n">_RestrictedReplayUnpickler</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
     <span class="c1"># If file contains a plain list of Episode objects -&gt; wrap into Memory</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>

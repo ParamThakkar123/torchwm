@@ -14,7 +14,7 @@
 <meta property="og:description" content="The project exposes a small command-line interface for common developer tasks: Run the CLI with: python -m tools.cli &lt;command&gt;; after installing the package an installed entrypoint is availab..." />
 <meta name="description" content="The project exposes a small command-line interface for common developer tasks: Run the CLI with: python -m tools.cli &lt;command&gt;; after installing the package an installed entrypoint is availab..." />
 
-    <title>TorchWM CLI &#8212; TorchWM 0.4.0 documentation</title>
+    <title>TorchWM CLI &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -129,7 +129,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -269,13 +269,14 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -376,10 +377,13 @@ a compressed <code class="docutils literal notranslate"><span class="pre">.npz</
 <code class="docutils literal notranslate"><span class="pre">dones</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">train</span> <span class="pre">&lt;model&gt;</span> <span class="pre">[extra</span> <span class="pre">args...]</span> <span class="pre">[--inproc]</span></code> - Launch an existing training
 entrypoint. The CLI maps simple model names to modules in
-<code class="docutils literal notranslate"><span class="pre">world_models.training</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">iris</span></code>, <code class="docutils literal notranslate"><span class="pre">planet</span></code>, <code class="docutils literal notranslate"><span class="pre">jepa</span></code>, <code class="docutils literal notranslate"><span class="pre">rssm</span></code>, <code class="docutils literal notranslate"><span class="pre">genie</span></code>). By
-default <code class="docutils literal notranslate"><span class="pre">train</span></code> spawns a subprocess running <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">world_models.training.&lt;name&gt;</span></code>
-and forwards any extra args. Use <code class="docutils literal notranslate"><span class="pre">--inproc</span></code> to attempt running the training
-entrypoint in-process (calls the module’s <code class="docutils literal notranslate"><span class="pre">main()</span></code> if available).</p></li>
+<code class="docutils literal notranslate"><span class="pre">world_models.training</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">iris</span></code>, <code class="docutils literal notranslate"><span class="pre">planet</span></code>, <code class="docutils literal notranslate"><span class="pre">jepa</span></code>, <code class="docutils literal notranslate"><span class="pre">rssm</span></code>,
+<code class="docutils literal notranslate"><span class="pre">genie</span></code>). By default <code class="docutils literal notranslate"><span class="pre">train</span></code> spawns a subprocess running
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">world_models.training.&lt;name&gt;</span></code> and forwards any extra args. Use
+<code class="docutils literal notranslate"><span class="pre">--inproc</span></code> to attempt running the training entrypoint in-process (calls the
+module’s <code class="docutils literal notranslate"><span class="pre">main()</span></code> if available). DIAMOND, IRIS, and JEPA accept
+<code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">PATH</span></code>, <code class="docutils literal notranslate"><span class="pre">--print-config</span></code>, and OmegaConf/Hydra-style dot-list
+overrides such as <code class="docutils literal notranslate"><span class="pre">total_epochs=100</span></code> or <code class="docutils literal notranslate"><span class="pre">optimization.lr=3e-4</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">models</span> <span class="pre">list</span></code> - Print the known training entrypoints and (when available)
 exported model names from <code class="docutils literal notranslate"><span class="pre">world_models.models</span></code>.</p></li>
 </ul>
@@ -431,9 +435,21 @@ repository.</p></li>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Example: run training for the <code class="docutils literal notranslate"><span class="pre">iris</span></code> entrypoint in a subprocess</p></li>
+<li><p>Example: run IRIS training with a library YAML config and a dot-list override</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>iris<span class="w"> </span>--<span class="w"> </span>--config<span class="w"> </span>configs/iris.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>iris<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/iris.yaml<span class="w"> </span><span class="nv">total_epochs</span><span class="o">=</span><span class="m">100</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Example: inspect a composed JEPA config without starting training</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>jepa<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/jepa.yaml<span class="w"> </span>optimization.epochs<span class="o">=</span><span class="m">50</span><span class="w"> </span>--print-config
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Example: launch a DIAMOND preset from the unified training CLI</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>diamond<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/diamond.yaml<span class="w"> </span><span class="nv">preset</span><span class="o">=</span>small<span class="w"> </span><span class="nv">seed</span><span class="o">=</span><span class="m">3</span>
 </pre></div>
 </div>
 </section>

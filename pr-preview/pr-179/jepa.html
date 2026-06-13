@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-179/jepa.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="JEPA is a self-supervised learning method that learns visual representations by predicting future representations in latent space, without relying on generative modeling. Based on paper: JEPA: Join..." />
-<meta name="description" content="JEPA is a self-supervised learning method that learns visual representations by predicting future representations in latent space, without relying on generative modeling. Based on paper: JEPA: Join..." />
+<meta property="og:description" content="JEPA is a self-supervised learning method that learns visual representations by predicting representations in abstract latent space, without relying on generative modeling or hand-crafted data augm..." />
+<meta name="description" content="JEPA is a self-supervised learning method that learns visual representations by predicting representations in abstract latent space, without relying on generative modeling or hand-crafted data augm..." />
 
-    <title>JEPA: Joint Embedding Predictive Architecture &#8212; TorchWM 0.4.0 documentation</title>
+    <title>JEPA: Joint Embedding Predictive Architecture &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -131,7 +131,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -271,13 +271,14 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -347,23 +348,79 @@
                 <article class="bd-article">
                   
   <section id="jepa-joint-embedding-predictive-architecture">
-<h1>JEPA: Joint Embedding Predictive Architecture<a class="headerlink" href="#jepa-joint-embedding-predictive-architecture" title="Link to this heading">#</a></h1>
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">JEPA: Joint Embedding Predictive Architecture</a><a class="headerlink" href="#jepa-joint-embedding-predictive-architecture" title="Link to this heading">#</a></h1>
 <p>JEPA is a self-supervised learning method that learns visual representations by predicting
-future representations in latent space, without relying on generative modeling.</p>
-<p>Based on paper: <a class="reference external" href="https://arxiv.org/abs/2205.14221">JEPA: Joint Embedding Predictive Architecture</a> (Bardes et al., 2022)</p>
-<section id="key-idea">
-<h2>Key Idea<a class="headerlink" href="#key-idea" title="Link to this heading">#</a></h2>
-<p>Instead of predicting pixels (like autoencoders) or reconstructing images, JEPA predicts
-<strong>latent representations</strong> of future frames from past frames:</p>
-<ol class="arabic simple">
-<li><p><strong>Encoder</strong>: Encodes current frame into latent space</p></li>
-<li><p><strong>Predictor</strong>: Predicts future latent representation</p></li>
-<li><p><strong>Loss</strong>: MSE between predicted and actual future latents</p></li>
-</ol>
-<p>This approach avoids the complexity of pixel-level generation while learning rich representations.</p>
+representations in abstract latent space, without relying on generative modeling or
+hand-crafted data augmentations.</p>
+<p>Based on paper: <a class="reference external" href="https://arxiv.org/abs/2301.08243">I-JEPA: Image-based Joint Embedding Predictive Architecture</a> (Bardes et al., 2023)</p>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#jepa-joint-embedding-predictive-architecture" id="id1">JEPA: Joint Embedding Predictive Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#overview" id="id2">Overview</a></p></li>
+<li><p><a class="reference internal" href="#architecture" id="id3">Architecture</a></p>
+<ul>
+<li><p><a class="reference internal" href="#high-level-diagram" id="id4">High-level diagram</a></p></li>
+<li><p><a class="reference internal" href="#vision-transformer-vit" id="id5">Vision Transformer (ViT)</a></p></li>
+<li><p><a class="reference internal" href="#target-encoder-ema" id="id6">Target Encoder (EMA)</a></p></li>
+<li><p><a class="reference internal" href="#predictor" id="id7">Predictor</a></p></li>
+<li><p><a class="reference internal" href="#masking" id="id8">Masking</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#training" id="id9">Training</a></p>
+<ul>
+<li><p><a class="reference internal" href="#loss-function" id="id10">Loss Function</a></p></li>
+<li><p><a class="reference internal" href="#optimization" id="id11">Optimization</a></p></li>
+<li><p><a class="reference internal" href="#learning-rate-schedule" id="id12">Learning Rate Schedule</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#usage-in-torchwm" id="id13">Usage in TorchWM</a></p>
+<ul>
+<li><p><a class="reference internal" href="#quick-start" id="id14">Quick start</a></p></li>
+<li><p><a class="reference internal" href="#using-config-directly" id="id15">Using config directly</a></p></li>
+<li><p><a class="reference internal" href="#data-pipeline" id="id16">Data pipeline</a></p></li>
+<li><p><a class="reference internal" href="#cli" id="id17">CLI</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#config-reference" id="id18">Config Reference</a></p></li>
+<li><p><a class="reference internal" href="#inference-and-downstream-tasks" id="id19">Inference and Downstream Tasks</a></p>
+<ul>
+<li><p><a class="reference internal" href="#linear-probing-protocol" id="id20">Linear probing protocol</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#i-jepa-vs-v-jepa" id="id21">I-JEPA vs V-JEPA</a></p></li>
+<li><p><a class="reference internal" href="#common-pitfalls" id="id22">Common Pitfalls</a></p>
+<ul>
+<li><p><a class="reference internal" href="#predictor-collapse" id="id23">Predictor collapse</a></p></li>
+<li><p><a class="reference internal" href="#representation-collapse" id="id24">Representation collapse</a></p></li>
+<li><p><a class="reference internal" href="#memory-usage" id="id25">Memory usage</a></p></li>
+<li><p><a class="reference internal" href="#slow-convergence" id="id26">Slow convergence</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#comparison-to-other-methods" id="id27">Comparison to Other Methods</a></p></li>
+<li><p><a class="reference internal" href="#references" id="id28">References</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="overview">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>I-JEPA learns visual representations <strong>without</strong>:</p>
+<ul class="simple">
+<li><p>Hand-crafted data augmentations (color jitter, grayscale, etc.)</p></li>
+<li><p>Negative examples (contrastive learning)</p></li>
+<li><p>Pixel-level reconstruction (autoencoders, MAE)</p></li>
+</ul>
+<p>Instead, it predicts the <strong>latent representation</strong> of one image region from
+another region using a Vision Transformer (ViT) backbone. The predictor operates
+in embedding space, not pixel space, which forces the model to learn
+semantically meaningful features.</p>
 </section>
 <section id="architecture">
-<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Architecture</a><a class="headerlink" href="#architecture" title="Link to this heading">#</a></h2>
+<section id="high-level-diagram">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">High-level diagram</a><a class="headerlink" href="#high-level-diagram" title="Link to this heading">#</a></h3>
 <div class="architecture-diagram" aria-label="JEPA architecture diagram">
   <section class="diagram-section">
     <h3>JEPA Architecture</h3>
@@ -386,54 +443,162 @@ future representations in latent space, without relying on generative modeling.<
   </section>
 </div>
 </section>
-<section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h2>
-<section id="encoder-target-encoder">
-<h3>1. Encoder (Target Encoder)<a class="headerlink" href="#encoder-target-encoder" title="Link to this heading">#</a></h3>
-<p>Encodes input images into latent representations. Two variants available:</p>
+<section id="vision-transformer-vit">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Vision Transformer (ViT)</a><a class="headerlink" href="#vision-transformer-vit" title="Link to this heading">#</a></h3>
+<p>The backbone encoder in <code class="docutils literal notranslate"><span class="pre">world_models.models.vit</span></code> is a Vision Transformer
+following the standard ViT architecture with JEPA-specific modifications.</p>
+<p><strong>Patch embedding:</strong></p>
+<p>The input image <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">∈</span> <span class="pre">ℝ^{3×H×W}</span></code> is split into patches of size <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">×</span> <span class="pre">P</span></code>,
+producing <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">(H/P)</span> <span class="pre">×</span> <span class="pre">(W/P)</span></code> patches. Each patch is linearly projected to
+<code class="docutils literal notranslate"><span class="pre">embed_dim</span></code>:</p>
+<div class="math notranslate nohighlight">
+\[\text{patches} \in \mathbb{R}^{N \times (3 \cdot P^2)} \to
+\text{tokens} \in \mathbb{R}^{N \times D}\]</div>
+<p><strong>Transformer blocks:</strong></p>
+<p>Each block consists of:</p>
+<ol class="arabic simple">
+<li><p><strong>LayerNorm</strong> → Multi-Head Self-Attention → residual</p></li>
+<li><p><strong>LayerNorm</strong> → MLP (GELU, 4× hidden) → residual</p></li>
+<li><p><strong>DropPath</strong> (stochastic depth) regularization during training</p></li>
+</ol>
+<p><strong>Key architectural details:</strong></p>
 <ul class="simple">
-<li><p><strong>Spatial Encoder</strong>: Processes full images, preserves spatial structure</p></li>
-<li><p><strong>Temporal Encoder</strong>: Processes video sequences, captures motion</p></li>
+<li><p>No class token — all patch tokens are used</p></li>
+<li><p>Pre-normalization (LayerNorm before attention and MLP)</p></li>
+<li><p>Fixed sin-cos positional embeddings (not learned)</p></li>
 </ul>
+</section>
+<section id="target-encoder-ema">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Target Encoder (EMA)</a><a class="headerlink" href="#target-encoder-ema" title="Link to this heading">#</a></h3>
+<p>The target encoder <code class="docutils literal notranslate"><span class="pre">f_{\bar{θ}}</span></code> has the same architecture as the context
+encoder <code class="docutils literal notranslate"><span class="pre">f_θ</span></code> but its weights are an <strong>exponential moving average</strong> (EMA) of
+the context encoder’s weights:</p>
+<div class="math notranslate nohighlight">
+\[\bar{θ} \leftarrow m \cdot \bar{θ} + (1 - m) \cdot θ\]</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">m</span></code> is the momentum coefficient (default: cosine schedule from 0.996 to
+1.0). The target encoder receives <code class="docutils literal notranslate"><span class="pre">stop-gradient</span></code>.</p>
 </section>
 <section id="predictor">
-<h3>2. Predictor<a class="headerlink" href="#predictor" title="Link to this heading">#</a></h3>
-<p>Predicts future latent representations from current encoding:</p>
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Predictor</a><a class="headerlink" href="#predictor" title="Link to this heading">#</a></h3>
+<p>The predictor <code class="docutils literal notranslate"><span class="pre">g_φ</span></code> is a smaller transformer (default 6 layers, 384 dim) that
+predicts target patch representations from context patch representations.</p>
+<p>Key design:</p>
 <ul class="simple">
-<li><p>Uses masked prediction (similar to masked autoencoders)</p></li>
-<li><p>Can use spatial/temporal masking strategies</p></li>
-<li><p>Architecture: ViT-style transformer with masked prediction head</p></li>
+<li><p><strong>Lighter than the encoder</strong>: fewer layers, smaller hidden dim</p></li>
+<li><p><strong>Positional embeddings for all patches</strong>: the predictor knows which target patches to predict</p></li>
+<li><p><strong>Mask tokens for target positions</strong>: learnable embeddings substituted for masked patches</p></li>
 </ul>
 </section>
-<section id="loss-functions">
-<h3>3. Loss Functions<a class="headerlink" href="#loss-functions" title="Link to this heading">#</a></h3>
-<p><strong>Main Loss</strong>: MSE between predicted and target representations</p>
-<div class="math notranslate nohighlight">
-\[\mathcal{L} = \left\| \mathrm{predict}(\mathrm{target}) - \mathrm{target} \right\|^2\]</div>
-<p><strong>Additional Losses</strong> (configurable):</p>
-<ul class="simple">
-<li><p>Variance/Invariance regularization</p></li>
-<li><p>Cross-view consistency for multi-frame input</p></li>
-</ul>
+<section id="masking">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Masking</a><a class="headerlink" href="#masking" title="Link to this heading">#</a></h3>
+<p>I-JEPA uses <strong>multi-block masking</strong>: random rectangular blocks are masked
+rather than individual patches.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">num_enc_masks</span> <span class="o">=</span> <span class="mi">1</span>           <span class="c1"># Number of context blocks</span>
+<span class="n">config</span><span class="o">.</span><span class="n">enc_mask_scale</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>   <span class="c1"># Context covers 15-20% of image</span>
+<span class="n">config</span><span class="o">.</span><span class="n">num_pred_masks</span> <span class="o">=</span> <span class="mi">4</span>          <span class="c1"># Number of target blocks</span>
+<span class="n">config</span><span class="o">.</span><span class="n">pred_mask_scale</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>  <span class="c1"># Each target is 15-20%</span>
+<span class="n">config</span><span class="o">.</span><span class="n">aspect_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span>     <span class="c1"># Block aspect ratio range</span>
+</pre></div>
+</div>
+<p>The predictor sees the context patches and must predict the representation of
+each target block’s patches. With 4 target blocks and context covering ~15-20%,
+most of the image must be predicted from a small visible region.</p>
 </section>
 </section>
 <section id="training">
-<h2>Training<a class="headerlink" href="#training" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAConfig</span>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Training</a><a class="headerlink" href="#training" title="Link to this heading">#</a></h2>
+<section id="loss-function">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Loss Function</a><a class="headerlink" href="#loss-function" title="Link to this heading">#</a></h3>
+<p>The I-JEPA loss is the L2 distance between predicted and target representations,
+averaged over masked patches:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{L}_{\text{JEPA}} =
+\frac{1}{|\mathcal{M}|} \sum_{i \in \mathcal{M}}
+\left\| g_φ(f_θ(x)_i + \text{mask\_token}, \text{pos}_i) -
+\text{sg}(f_{\bar{θ}}(x)_i) \right\|_2^2\]</div>
+</section>
+<section id="optimization">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Optimization</a><a class="headerlink" href="#optimization" title="Link to this heading">#</a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\text{Context encoder: } &amp; θ \leftarrow \text{optimizer}(θ, \nabla_θ \mathcal{L}) \\
+\text{Predictor: } &amp; φ \leftarrow \text{optimizer}(φ, \nabla_φ \mathcal{L}) \\
+\text{Target encoder: } &amp; \bar{θ} \leftarrow m \cdot \bar{θ} + (1 - m) \cdot θ
+\end{aligned}\end{split}\]</div>
+</section>
+<section id="learning-rate-schedule">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Learning Rate Schedule</a><a class="headerlink" href="#learning-rate-schedule" title="Link to this heading">#</a></h3>
+<p>Three-phase schedule:</p>
+<ol class="arabic simple">
+<li><p><strong>Warmup</strong> (0 → <code class="docutils literal notranslate"><span class="pre">warmup_epochs</span></code>): Linear increase from 0 to <code class="docutils literal notranslate"><span class="pre">lr</span></code></p></li>
+<li><p><strong>Cosine decay</strong> (<code class="docutils literal notranslate"><span class="pre">warmup_epochs</span></code> → <code class="docutils literal notranslate"><span class="pre">epochs</span></code>): Cosine annealing to <code class="docutils literal notranslate"><span class="pre">min_lr</span></code></p></li>
+<li><p><strong>Constant</strong>: After <code class="docutils literal notranslate"><span class="pre">epochs</span></code>, remains at <code class="docutils literal notranslate"><span class="pre">min_lr</span></code></p></li>
+</ol>
+</section>
+</section>
+<section id="usage-in-torchwm">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Usage in TorchWM</a><a class="headerlink" href="#usage-in-torchwm" title="Link to this heading">#</a></h2>
+<section id="quick-start">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Quick start</a><a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_model</span><span class="p">(</span>
+    <span class="s2">&quot;jepa&quot;</span><span class="p">,</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;imagenet&quot;</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+    <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="using-config-directly">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Using config directly</a><a class="headerlink" href="#using-config-directly" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span><span class="p">,</span> <span class="n">JEPAConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagefolder&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagenet1k&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;/data/imagenet&quot;</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">image_folder</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="mf">1.5e-4</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">JEPAAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
 </pre></div>
 </div>
-<section id="key-hyperparameters">
-<h3>Key Hyperparameters<a class="headerlink" href="#key-hyperparameters" title="Link to this heading">#</a></h3>
+</section>
+<section id="data-pipeline">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Data pipeline</a><a class="headerlink" href="#data-pipeline" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagenet1k&quot;</span>     <span class="c1"># ImageNet-1K (requires download)</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;/data/imagenet&quot;</span>
+
+<span class="c1"># Or use a generic image folder:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;imagefolder&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">root_path</span> <span class="o">=</span> <span class="s2">&quot;./my_dataset&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">image_folder</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
+
+<span class="c1"># Or CIFAR-10 for testing:</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;cifar10&quot;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">download</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>JEPA does NOT rely on heavy augmentation like contrastive methods. The
+core learning signal comes from the masking prediction task, not from image distortion.</p>
+</div>
+</section>
+<section id="cli">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">CLI</a><a class="headerlink" href="#cli" title="Link to this heading">#</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>jepa<span class="w"> </span>--dataset<span class="w"> </span>imagenet1k<span class="w"> </span>--epochs<span class="w"> </span><span class="m">100</span><span class="w"> </span>--batch_size<span class="w"> </span><span class="m">64</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="config-reference">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Config Reference</a><a class="headerlink" href="#config-reference" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
@@ -474,52 +639,145 @@ future representations in latent space, without relying on generative modeling.<
 <td><p>64</p></td>
 <td><p>Training batch size</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code></p></td>
-<td><p>1e-4</p></td>
-<td><p>Learning rate</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lr</span></code></p></td>
+<td><p>1.5e-4</p></td>
+<td><p>Peak learning rate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">min_lr</span></code></p></td>
+<td><p>1e-6</p></td>
+<td><p>Minimum learning rate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">warmup_epochs</span></code></p></td>
+<td><p>40</p></td>
+<td><p>Linear warmup from 0 to <code class="docutils literal notranslate"><span class="pre">lr</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">weight_decay</span></code></p></td>
+<td><p>0.05</p></td>
+<td><p>AdamW weight decay</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clip_grad</span></code></p></td>
+<td><p>1.0</p></td>
+<td><p>Gradient clipping norm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">epochs</span></code></p></td>
+<td><p>100</p></td>
+<td><p>Total training epochs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">accum_iter</span></code></p></td>
+<td><p>1</p></td>
+<td><p>Gradient accumulation steps</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ema</span></code></p></td>
+<td><p>(0.996, 1.0)</p></td>
+<td><p>EMA momentum range (cosine schedule)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="inference-and-downstream-tasks">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Inference and Downstream Tasks</a><a class="headerlink" href="#inference-and-downstream-tasks" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cfg</span><span class="o">.</span><span class="n">eval</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">read_checkpoint</span> <span class="o">=</span> <span class="s2">&quot;./output/checkpoint.pth&quot;</span>
+</pre></div>
+</div>
+<section id="linear-probing-protocol">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Linear probing protocol</a><a class="headerlink" href="#linear-probing-protocol" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Top-1 Accuracy (ViT-B/16)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>I-JEPA</p></td>
+<td><p>72.4%</p></td>
+</tr>
+<tr class="row-odd"><td><p>MAE</p></td>
+<td><p>68.5%</p></td>
+</tr>
+<tr class="row-even"><td><p>iBOT</p></td>
+<td><p>74.7%</p></td>
+</tr>
+<tr class="row-odd"><td><p>DINOv2</p></td>
+<td><p>78.3%</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
 </section>
-<section id="masking-strategies">
-<h2>Masking Strategies<a class="headerlink" href="#masking-strategies" title="Link to this heading">#</a></h2>
-<p>JEPA supports multiple masking approaches:</p>
-<ol class="arabic simple">
-<li><p><strong>Block masking</strong>: Random rectangular regions</p></li>
-<li><p><strong>Random masking</strong>: Random individual patches</p></li>
-<li><p><strong>Temporal masking</strong>: Mask future frames (for video)</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────┐
-│               Masking Strategies                    │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  Original    Block Mask    Random Mask   Temporal  │
-│  ┌───┬───┐  ┌───┬───▓──┐  ┌─▓─┬─▓─┼▓─┐  ┌───┬───┐  │
-│  │ A │ B │  │ A │  C   │  │ A │ B │ C │  │ A │ B │  │
-│  ├───┼───┤  ├───┼───▓──┤  ├─▓─┼─▓─┼▓─┤  ├───┼─▓─┤  │
-│  │ C │ D │  │ C │  D   │  │ C │ D │ A │  │ C │ D │  │
-│  └───┴───┘  └───┴───▓──┘  └───▓─┴─▓─┴─▓─┘  └───┴─▓─┘  │
-│                                                     │
-│  Predict C   Predict B     Predict BCD    Predict C │
-│  from A,B    from A        from A         from A,B │
-└─────────────────────────────────────────────────────┘
-</pre></div>
+<section id="i-jepa-vs-v-jepa">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">I-JEPA vs V-JEPA</a><a class="headerlink" href="#i-jepa-vs-v-jepa" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p>I-JEPA (Image)</p></th>
+<th class="head"><p>V-JEPA (Video)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Input</p></td>
+<td><p>Single image</p></td>
+<td><p>Video clip</p></td>
+</tr>
+<tr class="row-odd"><td><p>Masking</p></td>
+<td><p>Spatial block masking</p></td>
+<td><p>Spatio-temporal tube masking</p></td>
+</tr>
+<tr class="row-even"><td><p>Task</p></td>
+<td><p>Predict masked patch latents</p></td>
+<td><p>Predict future frame latents</p></td>
+</tr>
+<tr class="row-odd"><td><p>Predictor</p></td>
+<td><p>Transformer</p></td>
+<td><p>Spatio-temporal transformer</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </section>
-<section id="uses-for-learned-representations">
-<h2>Uses for Learned Representations<a class="headerlink" href="#uses-for-learned-representations" title="Link to this heading">#</a></h2>
-<p>JEPA representations can be used for:</p>
-<ol class="arabic simple">
-<li><p><strong>Downstream tasks</strong>: Fine-tune for classification/detection</p></li>
-<li><p><strong>World models</strong>: Use as encoder for model-based RL</p></li>
-<li><p><strong>Planning</strong>: Predict future states for MPC/trajectory optimization</p></li>
-<li><p><strong>Representation learning</strong>: Pre-train for transfer</p></li>
-</ol>
+<section id="common-pitfalls">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
+<section id="predictor-collapse">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Predictor collapse</a><a class="headerlink" href="#predictor-collapse" title="Link to this heading">#</a></h3>
+<p>The predictor outputs a constant regardless of input.</p>
+<p><strong>Fixes:</strong></p>
+<ul class="simple">
+<li><p>Ensure EMA starts close to 1.0 (default: 0.996)</p></li>
+<li><p>Verify predictor output variance is non-zero</p></li>
+</ul>
+</section>
+<section id="representation-collapse">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Representation collapse</a><a class="headerlink" href="#representation-collapse" title="Link to this heading">#</a></h3>
+<p>All patches map to nearly identical representations.</p>
+<p><strong>Fixes:</strong></p>
+<ul class="simple">
+<li><p>Use multi-block masking (not random patch masking)</p></li>
+<li><p>Check the feature covariance matrix</p></li>
+</ul>
+</section>
+<section id="memory-usage">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Memory usage</a><a class="headerlink" href="#memory-usage" title="Link to this heading">#</a></h3>
+<p>ViT-B/16 with 224×224 creates 196 patch tokens. Batch size 64 requires ~16 GB GPU.</p>
+<p><strong>Tips:</strong></p>
+<ul class="simple">
+<li><p>Enable <code class="docutils literal notranslate"><span class="pre">gradient_checkpointing</span> <span class="pre">=</span> <span class="pre">True</span></code></p></li>
+<li><p>Reduce <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> and increase <code class="docutils literal notranslate"><span class="pre">accum_iter</span></code></p></li>
+</ul>
+</section>
+<section id="slow-convergence">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Slow convergence</a><a class="headerlink" href="#slow-convergence" title="Link to this heading">#</a></h3>
+<p>JEPA requires long warmup (40 epochs) and many total epochs (100–300).</p>
+<p><strong>Tips:</strong></p>
+<ul class="simple">
+<li><p>Use the cosine schedule for EMA momentum</p></li>
+<li><p>Expect 48+ hours on 4× GPUs for ViT-B/16 at 100 epochs</p></li>
+</ul>
+</section>
 </section>
 <section id="comparison-to-other-methods">
-<h2>Comparison to Other Methods<a class="headerlink" href="#comparison-to-other-methods" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Comparison to Other Methods</a><a class="headerlink" href="#comparison-to-other-methods" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Method</p></th>
@@ -553,9 +811,11 @@ future representations in latent space, without relying on generative modeling.<
 </div>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">References</a><a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p>Bardes, A., Ponce, J., &amp; LeCun, Y. (2022). JEPA: Joint Embedding Predictive Architecture.</p></li>
+<li><p>Bardes, A., Ponce, J., &amp; LeCun, Y. (2023). I-JEPA: Image-based Joint Embedding Predictive Architecture. <em>arXiv:2301.08243.</em></p></li>
+<li><p>Assran, M., et al. (2023). Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture. <em>CVPR 2023.</em></p></li>
+<li><p>Dosovitskiy, A., et al. (2021). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. <em>ICLR 2021.</em></p></li>
 </ul>
 </section>
 </section>
@@ -607,20 +867,41 @@ future representations in latent space, without relying on generative modeling.<
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-idea">Key Idea</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#components">Components</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#encoder-target-encoder">1. Encoder (Target Encoder)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor">2. Predictor</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#loss-functions">3. Loss Functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture">Architecture</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#high-level-diagram">High-level diagram</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vision-transformer-vit">Vision Transformer (ViT)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#target-encoder-ema">Target Encoder (EMA)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor">Predictor</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#masking">Masking</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#training">Training</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-hyperparameters">Key Hyperparameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#loss-function">Loss Function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#optimization">Optimization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#learning-rate-schedule">Learning Rate Schedule</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#masking-strategies">Masking Strategies</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#uses-for-learned-representations">Uses for Learned Representations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-in-torchwm">Usage in TorchWM</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick start</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#using-config-directly">Using config directly</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-pipeline">Data pipeline</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cli">CLI</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#config-reference">Config Reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inference-and-downstream-tasks">Inference and Downstream Tasks</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linear-probing-protocol">Linear probing protocol</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-jepa-vs-v-jepa">I-JEPA vs V-JEPA</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-pitfalls">Common Pitfalls</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#predictor-collapse">Predictor collapse</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#representation-collapse">Representation collapse</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-usage">Memory usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#slow-convergence">Slow convergence</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-to-other-methods">Comparison to Other Methods</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>

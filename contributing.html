@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/contributing.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="We welcome contributions to TorchWM! This guide covers how to get started. Development Setup: Clone the repository, Install in development mode, Install pre-commit hooks. Code Style: We use: Black ..." />
-<meta name="description" content="We welcome contributions to TorchWM! This guide covers how to get started. Development Setup: Clone the repository, Install in development mode, Install pre-commit hooks. Code Style: We use: Black ..." />
+<meta property="og:description" content="We welcome contributions to TorchWM! This guide covers how to get started. Development Setup: Clone the repository, Install in development mode If you are not using uv, use the equivalent editable ..." />
+<meta name="description" content="We welcome contributions to TorchWM! This guide covers how to get started. Development Setup: Clone the repository, Install in development mode If you are not using uv, use the equivalent editable ..." />
 
     <title>Contributing &#8212; TorchWM 0.4.2 documentation</title>
   
@@ -361,9 +361,13 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>sync<span class="w"> </span>--dev
 </pre></div>
 </div>
+<p>If you are not using <code class="docutils literal notranslate"><span class="pre">uv</span></code>, use the equivalent editable install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
 </li>
 <li><p><strong>Install pre-commit hooks</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </li>
@@ -380,16 +384,16 @@
 </ul>
 <p>Run checks:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Format code</span>
-black<span class="w"> </span>.
+uv<span class="w"> </span>run<span class="w"> </span>black<span class="w"> </span>.
 
 <span class="c1"># Lint</span>
-ruff<span class="w"> </span>check<span class="w"> </span>.
+uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.
 
 <span class="c1"># Type check</span>
-mypy<span class="w"> </span>.
+uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>.
 
 <span class="c1"># All checks</span>
-pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
 </pre></div>
 </div>
 </section>
@@ -463,8 +467,8 @@ sphinx-build<span class="w"> </span>-b<span class="w"> </span>html<span class="w
 </li>
 <li><p><strong>Make your changes</strong></p></li>
 <li><p><strong>Run tests and checks</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
-pytest
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+uv<span class="w"> </span>run<span class="w"> </span>pytest
 </pre></div>
 </div>
 </li>

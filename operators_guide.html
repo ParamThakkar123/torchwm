@@ -463,29 +463,32 @@ factory in application code:</p>
 factories:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
-<span class="c1"># Dreamer</span>
+<span class="c1"># Dreamer: reuse matching environment/image fields and pass the action size</span>
+<span class="c1"># for your environment explicitly.</span>
 <span class="n">dreamer_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;dreamer&quot;</span><span class="p">)</span>
 <span class="n">dreamer_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
     <span class="s2">&quot;dreamer&quot;</span><span class="p">,</span>
-    <span class="n">image_size</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">operator_image_size</span><span class="p">,</span>
-    <span class="n">action_dim</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">operator_action_dim</span><span class="p">,</span>
+    <span class="n">image_size</span><span class="o">=</span><span class="n">dreamer_cfg</span><span class="o">.</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="c1"># JEPA</span>
+<span class="c1"># JEPA: reuse crop and patch sizes from JEPAConfig; mask_ratio is an</span>
+<span class="c1"># operator preprocessing choice, so pass it explicitly.</span>
 <span class="n">jepa_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;jepa&quot;</span><span class="p">)</span>
 <span class="n">jepa_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
     <span class="s2">&quot;jepa&quot;</span><span class="p">,</span>
-    <span class="n">image_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_image_size</span><span class="p">,</span>
-    <span class="n">patch_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_patch_size</span><span class="p">,</span>
-    <span class="n">mask_ratio</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">operator_mask_ratio</span><span class="p">,</span>
+    <span class="n">image_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">crop_size</span><span class="p">,</span>
+    <span class="n">patch_size</span><span class="o">=</span><span class="n">jepa_cfg</span><span class="o">.</span><span class="n">patch_size</span><span class="p">,</span>
+    <span class="n">mask_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="c1"># IRIS</span>
+<span class="c1"># IRIS: reuse vocabulary size from IRISConfig and choose the inference</span>
+<span class="c1"># sequence length required by your deployment.</span>
 <span class="n">iris_cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;iris&quot;</span><span class="p">)</span>
 <span class="n">iris_op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
     <span class="s2">&quot;iris&quot;</span><span class="p">,</span>
-    <span class="n">seq_length</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">operator_seq_length</span><span class="p">,</span>
-    <span class="n">vocab_size</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">operator_vocab_size</span><span class="p">,</span>
+    <span class="n">seq_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+    <span class="n">vocab_size</span><span class="o">=</span><span class="n">iris_cfg</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>

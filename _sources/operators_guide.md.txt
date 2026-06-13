@@ -123,29 +123,32 @@ factories:
 ```python :class: thebe
 import torchwm
 
-# Dreamer
+# Dreamer: reuse matching environment/image fields and pass the action size
+# for your environment explicitly.
 dreamer_cfg = torchwm.create_config("dreamer")
 dreamer_op = torchwm.get_operator(
     "dreamer",
-    image_size=dreamer_cfg.operator_image_size,
-    action_dim=dreamer_cfg.operator_action_dim,
+    image_size=dreamer_cfg.image_size[0],
+    action_dim=6,
 )
 
-# JEPA
+# JEPA: reuse crop and patch sizes from JEPAConfig; mask_ratio is an
+# operator preprocessing choice, so pass it explicitly.
 jepa_cfg = torchwm.create_config("jepa")
 jepa_op = torchwm.get_operator(
     "jepa",
-    image_size=jepa_cfg.operator_image_size,
-    patch_size=jepa_cfg.operator_patch_size,
-    mask_ratio=jepa_cfg.operator_mask_ratio,
+    image_size=jepa_cfg.crop_size,
+    patch_size=jepa_cfg.patch_size,
+    mask_ratio=0.75,
 )
 
-# IRIS
+# IRIS: reuse vocabulary size from IRISConfig and choose the inference
+# sequence length required by your deployment.
 iris_cfg = torchwm.create_config("iris")
 iris_op = torchwm.get_operator(
     "iris",
-    seq_length=iris_cfg.operator_seq_length,
-    vocab_size=iris_cfg.operator_vocab_size,
+    seq_length=512,
+    vocab_size=iris_cfg.vocab_size,
 )
 ```
 

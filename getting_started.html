@@ -538,14 +538,15 @@ need lower-level control:</p>
 </section>
 <section id="integration-with-configs">
 <h3>Integration with Configs<a class="headerlink" href="#integration-with-configs" title="Link to this heading">#</a></h3>
-<p>Operators use parameters from config classes:</p>
+<p>Operators can reuse matching config fields, but operator-only parameters such as
+action dimensions should be supplied from the target environment:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">create_config</span><span class="p">(</span><span class="s2">&quot;dreamer&quot;</span><span class="p">)</span>
 <span class="n">op</span> <span class="o">=</span> <span class="n">torchwm</span><span class="o">.</span><span class="n">get_operator</span><span class="p">(</span>
     <span class="s2">&quot;dreamer&quot;</span><span class="p">,</span>
-    <span class="n">image_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">operator_image_size</span><span class="p">,</span>
-    <span class="n">action_dim</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">operator_action_dim</span><span class="p">,</span>
+    <span class="n">image_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="n">action_dim</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>

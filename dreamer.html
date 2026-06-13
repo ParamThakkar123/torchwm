@@ -520,7 +520,7 @@ V(s_T) &amp; \text{if } t = T
 <span class="n">cfg</span><span class="o">.</span><span class="n">total_steps</span> <span class="o">=</span> <span class="mi">5_000_000</span>
 
 <span class="c1"># KL (single coefficient)</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">kl_scale</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">=</span> <span class="mf">1.0</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
@@ -968,11 +968,11 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 <span class="n">config</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">config</span><span class="o">.</span><span class="n">train_seq_len</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">config</span><span class="o">.</span><span class="n">imagine_horizon</span> <span class="o">=</span> <span class="mi">15</span>
-<span class="n">config</span><span class="o">.</span><span class="n">model_lr</span> <span class="o">=</span> <span class="mf">6e-4</span>
+<span class="n">config</span><span class="o">.</span><span class="n">model_learning_rate</span> <span class="o">=</span> <span class="mf">6e-4</span>
 
 <span class="c1"># Actor-critic</span>
-<span class="n">config</span><span class="o">.</span><span class="n">actor_lr</span> <span class="o">=</span> <span class="mf">8e-5</span>
-<span class="n">config</span><span class="o">.</span><span class="n">value_lr</span> <span class="o">=</span> <span class="mf">8e-5</span>
+<span class="n">config</span><span class="o">.</span><span class="n">actor_learning_rate</span> <span class="o">=</span> <span class="mf">8e-5</span>
+<span class="n">config</span><span class="o">.</span><span class="n">value_learning_rate</span> <span class="o">=</span> <span class="mf">8e-5</span>
 <span class="n">config</span><span class="o">.</span><span class="n">discount</span> <span class="o">=</span> <span class="mf">0.99</span>
 <span class="n">config</span><span class="o">.</span><span class="n">td_lambda</span> <span class="o">=</span> <span class="mf">0.95</span>
 
@@ -981,12 +981,11 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 <span class="n">config</span><span class="o">.</span><span class="n">free_nats</span> <span class="o">=</span> <span class="mf">3.0</span>
 
 <span class="c1"># Exploration</span>
-<span class="n">config</span><span class="o">.</span><span class="n">expl_amount</span> <span class="o">=</span> <span class="mf">0.3</span>
-<span class="n">config</span><span class="o">.</span><span class="n">expl_decay</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">config</span><span class="o">.</span><span class="n">action_noise</span> <span class="o">=</span> <span class="mf">0.3</span>
 
 <span class="c1"># Logging</span>
-<span class="n">config</span><span class="o">.</span><span class="n">log_every</span> <span class="o">=</span> <span class="mi">10_000</span>
-<span class="n">config</span><span class="o">.</span><span class="n">save_every</span> <span class="o">=</span> <span class="mi">100_000</span>
+<span class="n">config</span><span class="o">.</span><span class="n">scalar_freq</span> <span class="o">=</span> <span class="mi">10_000</span>
+<span class="n">config</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="o">=</span> <span class="mi">100_000</span>
 <span class="n">config</span><span class="o">.</span><span class="n">enable_wandb</span> <span class="o">=</span> <span class="kc">False</span>
 </pre></div>
 </div>
@@ -1013,7 +1012,7 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 <td><p>200</p></td>
 <td><p>GRU hidden size</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">model_lr</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">model_learning_rate</span></code></p></td>
 <td><p>6e-4</p></td>
 <td><p>3e-4</p></td>
 <td><p>World model learning rate</p></td>
@@ -1048,12 +1047,12 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">actor_lr</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">actor_learning_rate</span></code></p></td>
 <td><p>8e-5</p></td>
 <td><p>8e-5</p></td>
 <td><p>Policy learning rate</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value_lr</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value_learning_rate</span></code></p></td>
 <td><p>8e-5</p></td>
 <td><p>8e-5</p></td>
 <td><p>Critic learning rate</p></td>
@@ -1073,7 +1072,7 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 <td><p>0.95</p></td>
 <td><p>λ-return parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kl_scale</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kl_loss_coeff</span></code></p></td>
 <td><p>1.0</p></td>
 <td><p>1.0</p></td>
 <td><p>KL loss coefficient</p></td>
@@ -1131,7 +1130,7 @@ distribution. Uses REINFORCE gradient through the world model.</p>
 deterministic RNN. Symptoms: good reconstruction but imagination diverges.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
-<li><p>Increase <code class="docutils literal notranslate"><span class="pre">kl_scale</span></code> (V1) or adjust <code class="docutils literal notranslate"><span class="pre">kl_alpha</span></code> (V2)</p></li>
+<li><p>Increase <code class="docutils literal notranslate"><span class="pre">kl_loss_coeff</span></code> or adjust <code class="docutils literal notranslate"><span class="pre">kl_alpha</span></code> (V2)</p></li>
 <li><p>Decrease <code class="docutils literal notranslate"><span class="pre">free_nats</span></code></p></li>
 <li><p>Reduce <code class="docutils literal notranslate"><span class="pre">stoch_size</span></code></p></li>
 </ul>
@@ -1149,7 +1148,7 @@ deterministic RNN. Symptoms: good reconstruction but imagination diverges.</p>
 <h3><a class="toc-backref" href="#id36" role="doc-backlink">NaN loss during training</a><a class="headerlink" href="#nan-loss-during-training" title="Link to this heading">#</a></h3>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
-<li><p>Reduce <code class="docutils literal notranslate"><span class="pre">model_lr</span></code> to 1e-4</p></li>
+<li><p>Reduce <code class="docutils literal notranslate"><span class="pre">model_learning_rate</span></code> to 1e-4</p></li>
 <li><p>Tighten gradient clipping (default 100 → 10)</p></li>
 <li><p>Enable layer norm</p></li>
 </ul>
@@ -1159,7 +1158,7 @@ deterministic RNN. Symptoms: good reconstruction but imagination diverges.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
 <li><p>Increase <code class="docutils literal notranslate"><span class="pre">imagine_horizon</span></code> for delayed rewards</p></li>
-<li><p>Increase entropy bonus via <code class="docutils literal notranslate"><span class="pre">expl_amount</span></code></p></li>
+<li><p>Increase exploration noise via <code class="docutils literal notranslate"><span class="pre">action_noise</span></code></p></li>
 <li><p>Verify critic loss is decreasing</p></li>
 </ul>
 </section>

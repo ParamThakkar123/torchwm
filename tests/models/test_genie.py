@@ -186,6 +186,9 @@ class TestGenieTraining:
         config.max_steps = 1
         config.num_frames = 8
         config.image_size = 32
+        config.tokenizer_encoder_depth = 4
+        config.tokenizer_decoder_depth = 8
+        config.action_encoder_depth = 4
         config.dynamics_dim = 128
         config.dynamics_depth = 2
 

@@ -62,6 +62,16 @@ def main(args=None, resume_preempt=False):
     if isinstance(args, JEPAConfig):
         args = args.to_train_dict()
 
+    logging_args = args.get("logging", {})
+    if logging_args.get("enable_sweep", False):
+        sweep_id = wandb.sweep(
+            logging_args.get("sweep_config", {}),
+            project=logging_args.get("wandb_project"),
+            entity=logging_args.get("wandb_entity") or None,
+        )
+        wandb.agent(sweep_id, function=sweep_train)
+        return
+
     # ----------------------------------------------------------------------- #
     #  PASSED IN PARAMS FROM CONFIG FILE
     # ----------------------------------------------------------------------- #

@@ -33,7 +33,12 @@ setup(
     packages=find_packages(exclude=("tests", "results", "envs", ".venv", "venv")),
     include_package_data=True,
     package_data={"world_models": ["configs/experiments/*.yaml"]},
-    entry_points={"console_scripts": ["torchwm=tools.cli:run"]},
+    entry_points={
+        "console_scripts": [
+            "torchwm=tools.cli:run",
+            "torchwm-train=tools.cli:run_train",
+        ]
+    },
     python_requires=">=3.11",
     install_requires=[
         "torch>=1.13.0",

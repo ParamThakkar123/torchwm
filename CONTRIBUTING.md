@@ -46,6 +46,7 @@ pre-commit install
 
 - Run tests with: `uv run pytest`
 - Run a fast subset with: `uv run pytest -m "not slow and not gpu and not integration"`
+- The repository pins Python bytecode caches outside the source tree with `PYTHONPYCACHEPREFIX=build/__pycache__`; keep this set when running ad-hoc Python commands so `__pycache__` directories are not created beside source files.
 - Ensure all tests pass before submitting a PR.
 - Add tests for new features or bug fixes.
 

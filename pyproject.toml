@@ -53,6 +53,7 @@ Changelog = "https://github.com/paramthakkar123/torchwm/releases"
 
 [project.scripts]
 torchwm = "tools.cli:run"
+torchwm-train = "tools.cli:run_train"
 
 [project.optional-dependencies]
 gym = [
@@ -119,6 +120,17 @@ docs = [
     "nbconvert>=7.17.1",
 ]
 
+[tool.setuptools.package-data]
+torchwm = ["py.typed", "__init__.pyi"]
+
+[tool.uv]
+index-url = "https://download.pytorch.org/whl/cu121"
+extra-index-url = ["https://pypi.org/simple"]
+index-strategy = "unsafe-best-match"
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu121"
+default = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]

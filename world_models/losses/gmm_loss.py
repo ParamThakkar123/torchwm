@@ -18,8 +18,11 @@ def gmm_loss(
     """Compute the negative log-likelihood of a batch under a Gaussian Mixture Model.
 
     This function computes minus the log probability of the batch under the GMM
-    model described by mus, sigmas, and pi. The GMM is defined as:
-        p(x) = sum_k pi_k * N(x | mu_k, sigma_k)
+    model described by mus, sigmas, and pi:
+
+    .. math::
+
+        p(x) = \\sum_k \\pi_k \\cdot \\mathcal{N}(x \\mid \\mu_k, \\sigma_k)
 
     This is the loss function used in the MDRNN paper for predicting
     the next latent state.

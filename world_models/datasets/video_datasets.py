@@ -79,7 +79,8 @@ class VideoFolderDataset(VideoDatasetBase):
 
     Supports common video formats: .mp4, .avi, .mkv, .webm
 
-    Usage:
+    **Usage**::
+
         dataset = VideoFolderDataset(
             data_source="/path/to/videos",
             num_frames=16,
@@ -170,7 +171,8 @@ class ImageFolderDataset(VideoDatasetBase):
 
     Each subfolder is treated as a video sequence.
 
-    Usage:
+    **Usage**::
+
         dataset = ImageFolderDataset(
             data_source="/path/to/images",
             num_frames=16,
@@ -239,7 +241,8 @@ class NumPyDataset(VideoDatasetBase):
 
     Supports .npy and .npz files.
 
-    Usage:
+    **Usage**::
+
         dataset = NumPyDataset(
             data_source="/path/to/videos.npy",
             num_frames=16,
@@ -305,7 +308,8 @@ class RLEnvironmentDataset(VideoDatasetBase):
     - .npz files with 'observations' and 'actions' keys
     - Directory with episode folders
 
-    Usage:
+    **Usage**::
+
         dataset = RLEnvironmentDataset(
             data_source="/path/to/rl_episodes",
             num_frames=16,
@@ -390,7 +394,8 @@ class HDF5Dataset(VideoDatasetBase):
     Expected structure: HDF5 file with 'videos' dataset of shape (N, T, H, W, C)
     or (N, T, C, H, W).
 
-    Usage:
+    **Usage**::
+
         dataset = HDF5Dataset(
             data_source="/path/to/videos.h5",
             num_frames=16,
@@ -531,7 +536,8 @@ def create_video_dataloader(
     Returns:
         Tuple of (dataset, dataloader)
 
-    Usage:
+    **Usage**::
+
         dataset, loader = create_video_dataloader(
             dataset_type="video_folder",
             data_source="/path/to/videos",

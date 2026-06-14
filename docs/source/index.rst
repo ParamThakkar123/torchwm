@@ -1,5 +1,5 @@
 TorchWM Documentation
-====================
+======================
 
 TorchWM is a modular PyTorch library for world models, latent-dynamics planning,
 and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).

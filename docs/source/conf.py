@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime
+
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
@@ -14,6 +15,7 @@ author = "Param Thakkar"
 # Auto-read version from the public torchwm package
 
 import torchwm
+
 release = torchwm.__version__
 
 extensions = [
@@ -24,6 +26,7 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinxext.opengraph",
+    "sphinxcontrib.mermaid",
     "nbsphinx",
 ]
 
@@ -109,6 +112,7 @@ autodoc_mock_imports = [
     "torch",
     "torch.nn",
     "torch._C",
+    "cma",
 ]
 
 html_theme = "pydata_sphinx_theme"

@@ -562,7 +562,7 @@ class IRISAgent(nn.Module):
                 "autoencoder_opt": self.autoencoder_opt.state_dict(),
                 "transformer_opt": self.transformer_opt.state_dict(),
                 "ac_opt": self.ac_opt.state_dict(),
-                "config": self.config,
+                "config": dict(vars(self.config)),
                 "global_step": self.global_step,
                 "epoch": self.current_epoch,
             },
@@ -572,7 +572,11 @@ class IRISAgent(nn.Module):
     def load(self, path: str):
         """Load agent state."""
         with torch.serialization.safe_globals([IRISConfig]):
-            checkpoint = torch.load(path, map_location=self.device)
+            checkpoint = torch.load(
+                path,
+                map_location=self.device,
+                weights_only=True,
+            )
 
         self.encoder.load_state_dict(checkpoint["encoder"])
         self.decoder.load_state_dict(checkpoint["decoder"])

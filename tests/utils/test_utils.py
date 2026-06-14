@@ -1,9 +1,11 @@
+import os
+import pickle
+import tempfile
+from unittest.mock import Mock, patch, MagicMock
+
+import numpy as np
 import pytest
 import torch
-import numpy as np
-from unittest.mock import Mock, patch, MagicMock
-import os
-import tempfile
 
 
 class TestUtils:
@@ -134,6 +136,33 @@ class TestUtils:
         mask = get_mask(tensor, lengths)
 
         assert mask.shape == (2, 5, 3)
+
+    def test_load_memory_blocks_untrusted_pickle_globals(self, tmp_path):
+        from world_models.utils.utils import load_memory
+
+        class Evil:
+            def __reduce__(self):
+                return (eval, ("1 + 1",))
+
+        replay_path = tmp_path / "evil_replay.pkl"
+        replay_path.write_bytes(pickle.dumps(Evil()))
+
+        with pytest.raises(pickle.UnpicklingError, match="not allowed"):
+            load_memory(replay_path, torch.device("cpu"))
+
+    def test_load_memory_trusted_flag_still_uses_restricted_unpickler(self, tmp_path):
+        from world_models.utils.utils import load_memory
+
+        class Evil:
+            def __reduce__(self):
+                return (eval, ("1 + 1",))
+
+        replay_path = tmp_path / "evil_trusted_replay.pkl"
+        replay_path.write_bytes(pickle.dumps(Evil()))
+
+        with pytest.warns(DeprecationWarning, match="unrestricted pickle loading"):
+            with pytest.raises(pickle.UnpicklingError, match="not allowed"):
+                load_memory(replay_path, torch.device("cpu"), trusted=True)
 
     def test_apply_model_placeholder(self):
         from world_models.utils.utils import apply_model

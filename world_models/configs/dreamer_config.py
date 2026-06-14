@@ -101,6 +101,7 @@ class DreamerConfig:
         self.value_learning_rate = 8e-5
         self.adam_epsilon = 1e-7
         self.grad_clip_norm = 100.0
+        self.use_amp = True
         self.test = False
         self.test_interval = 10000
         self.test_episodes = 10

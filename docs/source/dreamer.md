@@ -139,7 +139,7 @@ cfg.env = "walker-walk"
 cfg.total_steps = 5_000_000
 
 # KL (single coefficient)
-cfg.kl_scale = 1.0
+cfg.kl_loss_coeff = 1.0
 
 agent = DreamerAgent(cfg)
 agent.train()
@@ -570,11 +570,11 @@ config.total_steps = 5_000_000
 config.batch_size = 50
 config.train_seq_len = 50
 config.imagine_horizon = 15
-config.model_lr = 6e-4
+config.model_learning_rate = 6e-4
 
 # Actor-critic
-config.actor_lr = 8e-5
-config.value_lr = 8e-5
+config.actor_learning_rate = 8e-5
+config.value_learning_rate = 8e-5
 config.discount = 0.99
 config.td_lambda = 0.95
 
@@ -583,12 +583,11 @@ config.kl_alpha = 0.8
 config.free_nats = 3.0
 
 # Exploration
-config.expl_amount = 0.3
-config.expl_decay = 0.0
+config.action_noise = 0.3
 
 # Logging
-config.log_every = 10_000
-config.save_every = 100_000
+config.scalar_freq = 10_000
+config.checkpoint_interval = 100_000
 config.enable_wandb = False
 ```
 
@@ -600,7 +599,7 @@ config.enable_wandb = False
 |-----------|------------|------------|--------|
 | `stoch_size` | 30 | 32 × 32 classes | Total stochastic capacity |
 | `deter_size` | 200 | 200 | GRU hidden size |
-| `model_lr` | 6e-4 | 3e-4 | World model learning rate |
+| `model_learning_rate` | 6e-4 | 3e-4 | World model learning rate |
 | `train_seq_len` | 50 | 50 | Sequence length per batch |
 | `batch_size` | 50 | 16 | Sequences per batch |
 | `free_nats` | 3.0 | 3.0 | KL free bits threshold |
@@ -609,12 +608,12 @@ config.enable_wandb = False
 
 | Parameter | V1 Default | V2 Default | Effect |
 |-----------|------------|------------|--------|
-| `actor_lr` | 8e-5 | 8e-5 | Policy learning rate |
-| `value_lr` | 8e-5 | 8e-5 | Critic learning rate |
+| `actor_learning_rate` | 8e-5 | 8e-5 | Policy learning rate |
+| `value_learning_rate` | 8e-5 | 8e-5 | Critic learning rate |
 | `imagine_horizon` | 15 | 15 | Imagination rollout length |
 | `discount` | 0.99 | 0.997 | Discount factor |
 | `td_lambda` | 0.95 | 0.95 | λ-return parameter |
-| `kl_scale` | 1.0 | 1.0 | KL loss coefficient |
+| `kl_loss_coeff` | 1.0 | 1.0 | KL loss coefficient |
 | `kl_alpha` | — | 0.8 | KL balancing weight (V2 only) |
 
 #### Environment Interaction
@@ -635,7 +634,7 @@ If the stochastic state is ignored by the dynamics, the model reduces to a
 deterministic RNN. Symptoms: good reconstruction but imagination diverges.
 
 **Fixes:**
-- Increase `kl_scale` (V1) or adjust `kl_alpha` (V2)
+- Increase `kl_loss_coeff` or adjust `kl_alpha` (V2)
 - Decrease `free_nats`
 - Reduce `stoch_size`
 
@@ -650,7 +649,7 @@ The prior predicts states that drift from realistic latents over long horizons.
 ### NaN loss during training
 
 **Fixes:**
-- Reduce `model_lr` to 1e-4
+- Reduce `model_learning_rate` to 1e-4
 - Tighten gradient clipping (default 100 → 10)
 - Enable layer norm
 
@@ -658,7 +657,7 @@ The prior predicts states that drift from realistic latents over long horizons.
 
 **Fixes:**
 - Increase `imagine_horizon` for delayed rewards
-- Increase entropy bonus via `expl_amount`
+- Increase exploration noise via `action_noise`
 - Verify critic loss is decreasing
 
 ## References

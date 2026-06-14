@@ -130,7 +130,11 @@ def main():
     and periodically evaluates and checkpoints the model.
     """
     global FREE_NATS
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda:0")
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
     FREE_NATS = torch.full((1,), FREE_NATS).to(device)
     rssm = RecurrentStateSpaceModel(1, STATE_SIZE, LATENT_SIZE, EMBEDDING_SIZE).to(
         device
@@ -178,7 +182,7 @@ def main():
         if (i + 1) % 10 == 0:
             evaluate(test_data, rssm, "results/test_rssm/eps", i + 1)
         if (i + 1) % 25 == 0:
-            torch.save(rssm.state_dict(), f"results/test_rssm/ckpt_{i+1}.pth")
+            torch.save(rssm.state_dict(), f"results/test_rssm/ckpt_{i + 1}.pth")
     if os.getenv("TRAIN_RSSM_DEBUG", "0") == "1":
         pdb.set_trace()
 

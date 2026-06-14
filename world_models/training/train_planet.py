@@ -107,7 +107,11 @@ def main():
     env = __import__(
         "world_models.utils.utils", fromlist=["TorchImageEnvWrapper"]
     ).TorchImageEnvWrapper("Pendulum-v1", bit_depth=5)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
     rssm_model = RecurrentStateSpaceModel(env.action_size).to(device)
     optimizer = torch.optim.Adam(rssm_model.parameters(), lr=1e-3, eps=1e-4)
 
@@ -180,11 +184,11 @@ def main():
         mem.append(eval_episode)
         # normalize frames to (T,H,W,3) float in [0,1] before saving
         safe_frames = normalize_frames_for_saving(eval_frames)
-        save_video(safe_frames, res_dir, f"vid_{i+1}")
+        save_video(safe_frames, res_dir, f"vid_{i + 1}")
         summary.update(eval_metrics)
 
         if (i + 1) % 25 == 0:
-            torch.save(rssm_model.state_dict(), f"{res_dir}/ckpt_{i+1}.pth")
+            torch.save(rssm_model.state_dict(), f"{res_dir}/ckpt_{i + 1}.pth")
 
     if os.getenv("TRAIN_RSSM_DEBUG", "0") == "1":
         pdb.set_trace()

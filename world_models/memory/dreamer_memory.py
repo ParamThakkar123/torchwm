@@ -9,25 +9,29 @@ class ReplayBuffer:
     Stores (observation, action, reward, terminal) tuples in a ring buffer and
     supports sampling contiguous sequences for world-model training.
 
-    Key Features:
-        - Ring buffer with fixed capacity (FIFO eviction when full)
-        - Stores raw uint8 images to save memory
-        - Samples sequences (not single transitions) for temporal modeling
-        - Validates sampled sequences don't span episode boundaries
+    **Key Features**
 
-    Memory Layout:
-        - observations: (capacity, C, H, W) uint8 images
-        - actions: (capacity, action_dim) float32
-        - rewards: (capacity,) float32
-        - terminals: (capacity,) float32 (1.0 = terminal, 0.0 = continue)
+    - Ring buffer with fixed capacity (FIFO eviction when full)
+    - Stores raw uint8 images to save memory
+    - Samples sequences (not single transitions) for temporal modeling
+    - Validates sampled sequences don't span episode boundaries
 
-    Sampling Process:
-        1. Random start index (avoiding episode boundaries)
-        2. Collect sequence of length seq_len with wraparound
-        3. Validate no terminal in middle of sequence
-        4. Return batch of sequences
+    **Memory Layout**
 
-    Usage with Dreamer:
+    - observations: (capacity, C, H, W) uint8 images
+    - actions: (capacity, action_dim) float32
+    - rewards: (capacity,) float32
+    - terminals: (capacity,) float32 (1.0 = terminal, 0.0 = continue)
+
+    **Sampling Process**
+
+    1. Random start index (avoiding episode boundaries)
+    2. Collect sequence of length seq_len with wraparound
+    3. Validate no terminal in middle of sequence
+    4. Return batch of sequences
+
+    **Usage with Dreamer**::
+
         buffer = ReplayBuffer(
             size=100000,           # Max transitions to store
             obs_shape=(3, 64, 64), # RGB images
@@ -41,12 +45,12 @@ class ReplayBuffer:
 
         # Sample batch for world model training
         obs_batch, action_batch, reward_batch, term_batch = buffer.sample()
-        # Shapes: (seq_len, batch, C, H, W), (seq_len, batch, action_dim), etc.
 
-    Memory Efficiency:
-        - Uses uint8 for images (1 byte per pixel vs 4 for float32)
-        - Sequences share observations (overlapping windows)
-        - Configurable capacity based on available system memory
+    **Memory Efficiency**
+
+    - Uses uint8 for images (1 byte per pixel vs 4 for float32)
+    - Sequences share observations (overlapping windows)
+    - Configurable capacity based on available system memory
 
     Note:
         The buffer stores observations as {"image": ...} dicts but returns
@@ -179,7 +183,8 @@ class Memory:
     Args:
         capacity: Maximum number of transitions to store
 
-    Usage:
+    **Usage**::
+
         memory = Memory(capacity=10000)
         memory.append(obs, action, reward, done, info)
         batch = random.sample(memory, batch_size=32)
@@ -228,7 +233,8 @@ class Episode:
         reward: Initial reward (optional)
         info: Additional info dict (optional)
 
-    Usage:
+    **Usage**::
+
         episode = Episode(obs, info=info)
         episode.append(action, obs, reward, done, info)
         episodes = [episode for _ in range(num_episodes)]

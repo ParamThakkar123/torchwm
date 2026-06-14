@@ -261,19 +261,12 @@ def run_atari_100k(
 
 
 def main():
-    """Run full Atari 100k benchmark."""
-    import argparse
+    """Run full Atari 100k benchmark using OmegaConf CLI overrides."""
+    from omegaconf import OmegaConf
 
-    parser = argparse.ArgumentParser(description="Run IRIS Atari 100k benchmark")
-    parser.add_argument("--device", type=str, default="cuda", help="Device")
-    parser.add_argument(
-        "--output", type=str, default="results/iris_atari100k.json", help="Output file"
-    )
-    parser.add_argument(
-        "--num_seeds", type=int, default=5, help="Number of random seeds"
-    )
-
-    args = parser.parse_args()
+    cli_cfg = OmegaConf.from_cli()
+    device = cli_cfg.get("device", "cuda")
+    output_file = cli_cfg.get("output", "results/iris_atari100k.json")
 
     # Create config optimized for Atari 100k
     config = IRISConfig()
@@ -283,8 +276,8 @@ def main():
     # Run benchmark
     run_atari_100k(
         config=config,
-        device=args.device,
-        output_file=args.output,
+        device=device,
+        output_file=output_file,
     )
 
 

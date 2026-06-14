@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from datetime import datetime
+
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "TorchWM"
@@ -14,6 +15,7 @@ author = "Param Thakkar"
 # Auto-read version from the public torchwm package
 
 import torchwm
+
 release = torchwm.__version__
 
 extensions = [
@@ -24,10 +26,13 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinxext.opengraph",
+    "sphinxcontrib.mermaid",
+    "nbsphinx",
 ]
 
 templates_path = ["_templates"]
 exclude_patterns = []
+nbsphinx_execute = "never"
 
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
@@ -80,6 +85,7 @@ copybutton_only_copy_prompt_lines = False
 autodoc_mock_imports = [
     "ale_py",
     "dm_control",
+    "deepmind_lab",
     "mlagents_envs",
     "mujoco",
     "moviepy",
@@ -106,6 +112,7 @@ autodoc_mock_imports = [
     "torch",
     "torch.nn",
     "torch._C",
+    "cma",
 ]
 
 html_theme = "pydata_sphinx_theme"

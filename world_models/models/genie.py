@@ -1,11 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple, Dict, Literal
+from pathlib import Path
+from typing import Any, Optional, Tuple, Dict, Literal
 
 from world_models.vision.video_tokenizer import VideoTokenizer
 from world_models.models.latent_action_model import LatentActionModel
 from world_models.models.dynamics_model import DynamicsModel, MaskGITSampler
+from world_models.configs.genie_config import GenieConfig
+from world_models.models.model_io import (
+    apply_config_overrides,
+    coerce_config,
+    module_summary,
+    resolve_pretrained_file,
+    save_config_next_to_checkpoint,
+)
 
 
 class Genie(nn.Module):
@@ -60,6 +69,26 @@ class Genie(nn.Module):
         self.tokenizer_vocab_size = tokenizer_vocab_size
         self.action_vocab_size = action_vocab_size
         self.use_bfloat16 = use_bfloat16
+        self.config = GenieConfig(
+            num_frames=num_frames,
+            image_size=image_size,
+            in_channels=in_channels,
+            tokenizer_vocab_size=tokenizer_vocab_size,
+            tokenizer_embedding_dim=tokenizer_embedding_dim,
+            tokenizer_encoder_dim=tokenizer_encoder_dim,
+            tokenizer_decoder_dim=tokenizer_decoder_dim,
+            tokenizer_encoder_depth=encoder_depth,
+            tokenizer_decoder_depth=decoder_depth,
+            action_vocab_size=action_vocab_size,
+            action_embedding_dim=action_embedding_dim,
+            action_encoder_dim=action_encoder_dim,
+            action_encoder_depth=latent_action_depth,
+            dynamics_dim=dynamics_dim,
+            dynamics_depth=dynamics_depth,
+            dynamics_num_heads=dynamics_num_heads,
+            action_pooling=action_pooling,
+            window_attention_heads=window_attention_heads,
+        )
 
         # Video Tokenizer (VQ-VAE with ST-Transformer)
         self.video_tokenizer = VideoTokenizer(
@@ -110,6 +139,124 @@ class Genie(nn.Module):
 
         # MaskGIT sampler for inference
         self.sampler = MaskGITSampler(num_steps=25, temperature=2.0)
+
+    @classmethod
+    def from_config(
+        cls,
+        config: GenieConfig | dict[str, Any] | str | Path | None = None,
+        **overrides: Any,
+    ) -> "Genie":
+        """Build Genie from a config object, dict, YAML file, or YAML string."""
+
+        args = apply_config_overrides(coerce_config(GenieConfig, config), overrides)
+        return cls(
+            num_frames=args.num_frames,
+            image_size=args.image_size,
+            in_channels=args.in_channels,
+            tokenizer_vocab_size=args.tokenizer_vocab_size,
+            tokenizer_embedding_dim=args.tokenizer_embedding_dim,
+            tokenizer_encoder_dim=args.tokenizer_encoder_dim,
+            tokenizer_decoder_dim=args.tokenizer_decoder_dim,
+            action_vocab_size=args.action_vocab_size,
+            action_embedding_dim=args.action_embedding_dim,
+            action_encoder_dim=args.action_encoder_dim,
+            encoder_depth=args.tokenizer_encoder_depth,
+            decoder_depth=args.tokenizer_decoder_depth,
+            latent_action_depth=args.action_encoder_depth,
+            dynamics_dim=args.dynamics_dim,
+            dynamics_depth=args.dynamics_depth,
+            dynamics_num_heads=args.dynamics_num_heads,
+            action_pooling=args.action_pooling,
+            window_attention_heads=args.window_attention_heads,
+        )
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: GenieConfig | dict[str, Any] | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        map_location: str | torch.device | None = None,
+        **overrides: Any,
+    ) -> "Genie":
+        """Load Genie weights from a local path/directory or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("model.pt", "genie.pt", "checkpoint.pt", "pytorch_model.bin")
+        )
+        checkpoint_path = resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                f"Could not find a Genie checkpoint for {pretrained_model_name_or_path!r}."
+            )
+        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint_config = (
+            checkpoint.get("config") if isinstance(checkpoint, dict) else None
+        )
+        if config is None and isinstance(checkpoint_config, dict):
+            args = GenieConfig.from_dict(checkpoint_config)
+        elif config is None:
+            config_path = resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "genie_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = GenieConfig.from_yaml(config_path)
+        else:
+            args = coerce_config(GenieConfig, config)
+        model = cls.from_config(apply_config_overrides(args, overrides))
+        state_dict = checkpoint
+        if isinstance(checkpoint, dict):
+            state_dict = checkpoint.get(
+                "model_state_dict", checkpoint.get("state_dict", checkpoint)
+            )
+        model.load_state_dict(state_dict)
+        return model
+
+    def save_pretrained(self, path: str | Path) -> None:
+        """Save Genie weights and config in a from_pretrained-compatible format."""
+
+        checkpoint_path = Path(path)
+        if checkpoint_path.suffix == "":
+            checkpoint_path = checkpoint_path / "model.pt"
+        save_config_next_to_checkpoint(self.config, checkpoint_path)
+        torch.save(
+            {"config": self.config.to_dict(), "model_state_dict": self.state_dict()},
+            checkpoint_path,
+        )
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        return sum(
+            param.numel()
+            for param in self.parameters()
+            if not trainable_only or param.requires_grad
+        )
+
+    def summary(self) -> dict[str, Any]:
+        return module_summary(
+            {
+                "video_tokenizer": self.video_tokenizer,
+                "latent_action_model": self.latent_action_model,
+                "dynamics_model": self.dynamics_model,
+            }
+        )
 
     def forward(
         self,

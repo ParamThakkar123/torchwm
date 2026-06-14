@@ -11,6 +11,7 @@ class JEPAOperator(OperatorABC):
     def __init__(
         self, image_size: int = 224, patch_size: int = 16, mask_ratio: float = 0.75
     ):
+        super().__init__()
         self.image_size = image_size
         self.patch_size = patch_size
         self.mask_ratio = mask_ratio
@@ -22,7 +23,7 @@ class JEPAOperator(OperatorABC):
             ]
         )
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def preprocess(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Process JEPA inputs: images with masking.
 

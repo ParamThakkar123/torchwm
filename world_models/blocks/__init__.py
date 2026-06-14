@@ -6,11 +6,12 @@ Exported Components:
         - STTransformer: Spatiotemporal Transformer for video processing
         - STSpatialAttention: Spatial attention layer
         - STTemporalAttention: Temporal attention layer
-        - STBlock: Combined spatiotemporal transformer block
+        - STTransformerBlock: Combined spatiotemporal transformer block
+        - STBlock: Backwards-compatible alias for STTransformerBlock
 
     Attention:
         - MultiHeadSelfAttention: Multi-head self-attention
-        - MultiHeadAttention: Generic multi-head attention (alias)
+        - MultiHeadAttention: Backwards-compatible alias for MultiHeadSelfAttention
         - Attention: Attention mechanism
 
     Normalization:
@@ -22,6 +23,10 @@ __all__ = [
     # Transformers
     "STTransformer",
     "STSpatialAttention",
+    "STTemporalAttention",
+    "STTransformerBlock",
+    "STBlock",
+    # Attention
     "MultiHeadSelfAttention",
     "MultiHeadAttention",
     # Normalization
@@ -40,6 +45,18 @@ def __getattr__(name):
         from .st_transformer import STSpatialAttention
 
         return STSpatialAttention
+    if name == "STTemporalAttention":
+        from .st_transformer import STTemporalAttention
+
+        return STTemporalAttention
+    if name == "STTransformerBlock":
+        from .st_transformer import STTransformerBlock
+
+        return STTransformerBlock
+    if name == "STBlock":
+        from .st_transformer import STTransformerBlock
+
+        return STTransformerBlock
 
     # Attention
     if name == "MultiHeadSelfAttention":
@@ -49,15 +66,15 @@ def __getattr__(name):
     if name == "MultiHeadAttention":
         from .mhsa import MultiHeadSelfAttention
 
-        return MultiHeadSelfAttention  # Alias
+        return MultiHeadSelfAttention
 
     # Normalization
     if name == "RMSNorm":
-        from world_models.layers.RMSNorm import RMSNorm
+        from world_models.layers.rms_norm import RMSNorm
 
         return RMSNorm
     if name == "AdaLNNormalization":
-        from world_models.layers.AdaLNNorm import AdaLNNormalization
+        from world_models.layers.ada_ln_norm import AdaLNNormalization
 
         return AdaLNNormalization
 

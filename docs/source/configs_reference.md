@@ -2,6 +2,30 @@
 
 This page documents all configuration classes in TorchWM.
 
+## Shared Serialization API
+
+All model config classes exported by TorchWM support a common
+serialization interface:
+
+```python
+from torchwm import DreamerConfig, GenieConfig, JEPAConfig
+
+cfg = GenieConfig(image_size=32, num_frames=8)
+cfg_dict = cfg.to_dict()
+yaml_text = cfg.to_yaml("configs/genie.yaml")
+restored = GenieConfig.from_yaml("configs/genie.yaml")
+
+# JEPA keeps a separate nested dict for the trainer entrypoint.
+jepa = JEPAConfig()
+trainer_args = jepa.to_train_dict()
+```
+
+The corresponding model or agent classes expose HF-style construction and
+introspection helpers where weights are resident in the object, including
+`from_config(...)`, `from_pretrained(...)`, `summary()`, and
+`parameter_count()`. Checkpoint save paths write a sibling `config.yaml` so runs
+can be reproduced without guessing hyperparameters.
+
 ## DreamerConfig
 
 Configuration for Dreamer agent training.
@@ -16,6 +40,18 @@ class DreamerConfig:
     image_size: Tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
 
+    # DeepMind Lab (optional)
+    dmlab_action_repeat: int = 4
+    dmlab_action_set: Optional[object] = None
+    dmlab_observations: Optional[list[str]] = None
+    dmlab_config: Optional[dict] = None
+    dmlab_renderer: str = "hardware"
+
+    # Procgen (optional)
+    procgen_distribution_mode: str = "easy"
+    procgen_num_levels: int = 0
+    procgen_start_level: Optional[int] = None
+
     # MuJoCo (optional)
     mujoco_xml_path: Optional[str] = None
     mujoco_xml_string: Optional[str] = None
@@ -28,6 +64,7 @@ class DreamerConfig:
     brax_backend: str = "generalized"
     brax_jit: bool = True
     brax_auto_reset: bool = False
+    brax_suppress_warp_warnings: bool = True
 
     # Unity ML-Agents
     unity_file_name: Optional[str] = None
@@ -60,9 +97,9 @@ class DreamerConfig:
     action_noise: float = 0.3
 
     # Learning
-    model_lr: float = 6e-4
-    actor_lr: float = 8e-5
-    value_lr: float = 8e-5
+    model_learning_rate: float = 6e-4
+    actor_learning_rate: float = 8e-5
+    value_learning_rate: float = 8e-5
     total_steps: int = int(5e6)
     seed_steps: int = 5000
     update_steps: int = 100
@@ -70,33 +107,36 @@ class DreamerConfig:
     batch_size: int = 50
     train_seq_len: int = 50
     imagine_horizon: int = 15
+    use_disc_model: bool = False
 
     # Loss
     free_nats: float = 3.0
-    kl_scale: float = 1.0
     discount: float = 0.99
     td_lambda: float = 0.95
     kl_loss_coeff: float = 1.0
     kl_alpha: float = 0.8
     disc_loss_coeff: float = 10.0
+    num_buckets: int = 255
+    symlog_range: float = 10.0
 
     # Optimization
     adam_epsilon: float = 1e-7
     grad_clip_norm: float = 100.0
 
-    # Exploration
-    expl_amount: float = 0.3
-    expl_decay: float = 0.0
-    expl_min: float = 0.0
-
-    # Logging
-    log_every: int = 1e4
-    log_scalars: bool = True
-    log_images: bool = True
-    log_videos: bool = False
-    save_every: int = 1e5
-    eval_every: int = 1e4
-    eval_episodes: int = 10
+    # Evaluation and checkpointing
+    test: bool = False
+    test_interval: int = 10000
+    test_episodes: int = 10
+    scalar_freq: int = int(1e3)
+    log_video_freq: int = -1
+    max_videos_to_save: int = 2
+    video_format: str = "gif"
+    video_fps: int = 20
+    checkpoint_interval: int = 10000
+    checkpoint_path: str = ""
+    restore: bool = False
+    experience_replay: str = ""
+    render: bool = False
 
     # WandB
     enable_wandb: bool = False
@@ -104,10 +144,15 @@ class DreamerConfig:
     wandb_project: str = "torchwm"
     wandb_entity: str = ""
     log_dir: str = "runs"
-
-    # Operator parameters
-    operator_image_size: int = 64
-    operator_action_dim: int = 6
+    data_dir: Optional[str] = None
+    log_level: str = "INFO"
+    log_file: Optional[str] = None
+    enable_tensorboard: bool = False
+    enable_console_metrics: bool = True
+    enable_jsonl: bool = True
+    jsonl_filename: str = "metrics.jsonl"
+    log_system_stats_freq: int = int(1e3)
+    detect_anomaly: bool = False
 ```
 
 ## JEPAConfig
@@ -154,43 +199,24 @@ class JEPAConfig:
 
     # Optimization
     ema: Tuple[float, float] = (0.996, 1.0)
-    clip_grad: float = 1.0
-    weight_decay: float = 0.0
-    epochs: int = 100
-    warmup_epochs: int = 40
-    start_epoch: int = 0
+    ipe_scale: float = 1.0
+    weight_decay: float = 0.04
+    final_weight_decay: float = 0.4
+    epochs: int = 300
+    warmup: int = 40
+    start_lr: float = 1e-6
     lr: float = 1.5e-4
-    min_lr: float = 1e-6
-    accum_iter: int = 1
-    output_dir: str = "./output"
-    log_dir: str = "./output"
-    device: str = "cuda"
-    seed: int = 0
-    resume: str = ""
-    auto_resume: bool = True
-    save_ckpt: bool = True
-    save_ckpt_freq: int = 20
-    save_ckpt_num: int = 3
-    start_ckpt: str = ""
-    debug: bool = False
-    num_debug: int = 10
-    wandb: bool = True
-    wandb_project: str = "jepa"
+    final_lr: float = 1e-6
+
+    # Logging
+    folder: str = "results/jepa"
+    write_tag: str = "jepa_run"
+    enable_wandb: bool = False
+    wandb_api_key: str = ""
+    wandb_project: str = "torchwm"
     wandb_entity: str = ""
     enable_sweep: bool = False
     sweep_config: Dict[str, Any] = {}
-    dist_eval: bool = True
-    no_env: bool = False
-    eval: bool = False
-    disable_rel_pos_bias: bool = True
-    disable_masking: bool = False
-    enable_deepspeed: bool = False
-    gradient_checkpointing: bool = True
-
-    # Operator parameters
-    operator_image_size: int = 224
-    operator_patch_size: int = 16
-    operator_mask_ratio: float = 0.75
 ```
 
 ## IRISConfig
@@ -243,7 +269,7 @@ class IRISConfig:
     adam_beta1: float = 0.9
     adam_beta2: float = 0.999
     weight_decay: float = 0.01
-    max_grad_norm: float = 10.0
+    grad_clip_norm: float = 10.0
     collect_epsilon: float = 0.1
     eval_temperature: float = 0.1
     start_autoencoder_after: int = 1
@@ -257,25 +283,12 @@ class IRISConfig:
     atari_100k: bool = True
     max_env_steps: int = 100000
     env_backend: str = "gym"
-    env_name: str = "ALE/Pong-v5"
+    env: str = "ALE/Pong-v5"
     action_repeat: int = 4
-    max_episode_steps: int = 108000
-    num_eval_episodes: int = 10
-    eval_max_episode_steps: int = 27000
-    buffer_capacity: int = 100000
-    num_workers: int = 4
-    prefetch_factor: int = 2
-
     # Logging
-    log_dir: str = "./logs"
-    checkpoint_dir: str = "./checkpoints"
-    use_wandb: bool = True
-    wandb_project: str = "iris"
-    wandb_entity: str = ""
-
-    # Operator parameters
-    operator_seq_length: int = 512
-    operator_vocab_size: int = 32000
+    log_interval: int = 1000
+    eval_episodes: int = 100
+    checkpoint_interval: int = 50
 ```
 
 ## DiamondConfig
@@ -290,6 +303,7 @@ class DiamondConfig:
 
     # Environment
     game: str = "Breakout-v5"
+    seed: int = 0
     obs_size: int = 64
     frameskip: int = 4
     max_noop: int = 30
@@ -345,8 +359,6 @@ class DiamondConfig:
     log_interval: int = 10
     eval_interval: int = 50
     save_interval: int = 100
-    num_seeds: int = 5
-    seed: int = 0
 
     # Operator parameters
     operator_state_dim: int = 32
@@ -371,6 +383,11 @@ cfg.total_steps = 1_000_000
 # DMC
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
+
+# DeepMind Lab
+cfg.env_backend = "dmlab"
+cfg.env = "rooms_collect_good_objects_train"
+cfg.dmlab_action_repeat = 4
 
 # Gym
 cfg.env_backend = "gym"
@@ -397,7 +414,7 @@ cfg.unity_file_name = "env.exe"
 ```python :class: thebe
 # Basic training
 cfg.batch_size = 50
-cfg.learning_rate = 6e-4
+cfg.model_learning_rate = 6e-4
 cfg.total_steps = 5_000_000
 
 # Logging
@@ -405,7 +422,7 @@ cfg.enable_wandb = True
 cfg.wandb_project = "my_project"
 
 # Checkpointing
-cfg.save_every = 100_000
+cfg.checkpoint_interval = 100_000
 ```
 
 ### Advanced Configs
@@ -416,11 +433,41 @@ cfg.obs_embed_size = 2048
 cfg.num_units = 600
 cfg.deter_size = 300
 
-# Exploration
-cfg.expl_amount = 0.5
-cfg.expl_decay = 0.0001
+# Exploration noise (Dreamer)
+cfg.action_noise = 0.5
 
 # Loss weights
-cfg.kl_scale = 0.1
+cfg.kl_loss_coeff = 0.1
 cfg.free_nats = 1.0
 ```
+
+## Experiment YAML and OmegaConf overrides
+
+TorchWM provides a shared experiment configuration layer in
+`world_models.experiments`. Training entrypoints can compose their Python
+configuration defaults with a YAML file and Hydra/OmegaConf-style dot-list
+overrides, while still receiving plain Python dictionaries or config objects at
+runtime.
+
+Built-in YAML starters live under `world_models/configs/experiments/`:
+
+- `diamond.yaml` for DIAMOND Atari experiments.
+- `iris.yaml` for IRIS Atari experiments.
+- `jepa.yaml` for JEPA image pretraining experiments.
+
+Examples:
+
+```bash
+torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=1
+```
+
+```bash
+torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100 env=ALE/Breakout-v5
+```
+
+```bash
+torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimization.epochs=50 data.batch_size=128
+```
+
+Use `--print-config` with these entrypoints to inspect the fully composed config
+without launching a run.

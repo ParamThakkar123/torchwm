@@ -5,14 +5,16 @@ try:
 except Exception:
     pass
 
-import argparse
 import copy
 import logging
 import sys
-import yaml
+import torch.multiprocessing as mp
+import torch.nn.functional as F
+import yaml  # type: ignore[import-untyped]
 
 import numpy as np
 import torch
+from torch.nn.parallel import DistributedDataParallel
 import wandb
 
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator
@@ -28,8 +30,13 @@ from world_models.utils.jepa_utils import repeat_interleave_batch
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.helpers.jepa_helper import load_checkpoint, init_model, init_opt
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 from world_models.configs.jepa_config import JEPAConfig
+from world_models.experiments import (
+    dump_config,
+    load_experiment_config,
+    parse_experiment_args,
+)
 
 log_timings = True
 log_freq = 10
@@ -44,34 +51,16 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
 
-def _load_cli_config(argv: list[str] | None = None) -> dict:
-    """Load JEPA config from an optional YAML file for console-script use."""
-    parser = argparse.ArgumentParser(description="Train JEPA")
-    parser.add_argument(
-        "--config",
-        type=str,
-        default=None,
-        help="Path to a YAML config matching JEPAConfig.to_dict() output.",
-    )
-    parsed = parser.parse_args(argv)
-    if parsed.config is None:
-        return JEPAConfig().to_dict()
-    with open(parsed.config, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
 def main(args=None, resume_preempt=False):
-    """Run JEPA training using a nested config dict or `JEPAConfig` instance.
+    """Run JEPA training using a CLI argv, nested dict, or `JEPAConfig` instance.
 
     This entrypoint initializes distributed context, data pipeline, masking,
     models, optimizers/schedulers, checkpointing, and the full epoch loop.
     """
     if args is None or isinstance(args, list):
-        args = _load_cli_config(args)
-    elif isinstance(args, tuple):
-        args = _load_cli_config(list(args))
-    elif isinstance(args, JEPAConfig):
-        args = args.to_dict()
+        return main_from_cli(args)
+    if isinstance(args, JEPAConfig):
+        args = args.to_train_dict()
 
     logging_args = args.get("logging", {})
     if logging_args.get("enable_sweep", False):
@@ -95,11 +84,12 @@ def main(args=None, resume_preempt=False):
     copy_data = args["meta"]["copy_data"]
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
-    if not torch.cuda.is_available():
-        device = torch.device("cpu")
-    else:
+    if torch.cuda.is_available():
         device = torch.device("cuda:0")
         torch.cuda.set_device(device)
+    else:
+        device = torch.device("cpu")
+        print("WARNING: CUDA not available, using CPU")
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]
@@ -344,7 +334,6 @@ def main(args=None, resume_preempt=False):
             if (epoch + 1) % checkpoint_freq == 0:
                 torch.save(save_dict, save_path.format(epoch=f"{epoch + 1}"))
 
-    # -- TRAINING LOOP
     for epoch in range(start_epoch, num_epochs):
         logger.info("Epoch %d" % (epoch + 1))
 
@@ -488,8 +477,31 @@ def sweep_train():
         for key, value in wandb.config.items():
             if hasattr(cfg, key):
                 setattr(cfg, key, value)
-        main(cfg.to_dict())
+        main(cfg.to_train_dict())
+
+
+def main_from_cli(argv: list[str] | None = None):
+    """Compose JEPA config from YAML/dot-list overrides and launch training."""
+    parsed = parse_experiment_args(argv, description="Train JEPA")
+    cfg_dict = load_experiment_config(
+        JEPAConfig().to_dict(), parsed.config, parsed.overrides
+    )
+    if parsed.print_config:
+        print(dump_config(cfg_dict))
+        return cfg_dict
+
+    logging_cfg = cfg_dict.get("logging", {})
+    if logging_cfg.get("enable_sweep", False):
+        sweep_id = wandb.sweep(
+            logging_cfg.get("sweep_config", {}),
+            project=logging_cfg.get("wandb_project", "torchwm"),
+            entity=logging_cfg.get("wandb_entity", ""),
+        )
+        wandb.agent(sweep_id, function=sweep_train)
+    else:
+        main(cfg_dict)
+    return cfg_dict
 
 
 if __name__ == "__main__":
-    main()
+    main_from_cli()

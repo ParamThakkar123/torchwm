@@ -1,8 +1,10 @@
 import os
 from typing import Tuple, Dict, Any
 
+from world_models.configs.serialization import SerializableConfigMixin, make_yaml_safe
 
-class JEPAConfig:
+
+class JEPAConfig(SerializableConfigMixin):
     """
     Minimal configuration container for JEPA training.
     Converts to the nested dict expected by `train_jepa.main`.
@@ -70,7 +72,7 @@ class JEPAConfig:
         self.sweep_config: Dict[str, Any] = {}
 
     def to_dict(self) -> Dict[str, Dict[str, Any]]:
-        return {
+        return make_yaml_safe({
             "meta": {
                 "use_bfloat16": self.use_bfloat16,
                 "model_name": self.model_name,
@@ -127,4 +129,35 @@ class JEPAConfig:
                 "enable_sweep": self.enable_sweep,
                 "sweep_config": self.sweep_config,
             },
-        }
+        })
+
+    @classmethod
+    def from_dict(cls, values: Dict[str, Any]) -> "JEPAConfig":
+        """Load flat field values or the nested trainer dictionary."""
+
+        config = cls()
+        if any(key in values for key in ("meta", "data", "mask", "optimization", "logging")):
+            values = {
+                key: value
+                for section in values.values()
+                if isinstance(section, dict)
+                for key, value in section.items()
+            }
+        for key, value in values.items():
+            if not hasattr(config, key):
+                raise ValueError(f"Invalid JEPAConfig field: {key}")
+            current = getattr(config, key)
+            if isinstance(current, tuple) and isinstance(value, list):
+                value = tuple(value)
+            setattr(config, key, value)
+        return config
+
+    def to_train_dict(self) -> Dict[str, Dict[str, Any]]:
+        """Return the nested dictionary expected by train_jepa."""
+
+        return self.to_dict()
+
+    def to_nested_dict(self) -> Dict[str, Dict[str, Any]]:
+        """Backward-compatible alias for the nested JEPA trainer dictionary."""
+
+        return self.to_train_dict()

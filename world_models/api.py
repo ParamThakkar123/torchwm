@@ -80,6 +80,20 @@ MODEL_SPECS: dict[str, ModelSpec] = {
         description="Large Genie variant.",
         aliases=("genie_large",),
     ),
+    "diamond": ModelSpec(
+        name="diamond",
+        import_path="world_models.training.train_diamond:DiamondAgent",
+        config_path="world_models.configs.diamond_config:DiamondConfig",
+        description="DIAMOND diffusion world model agent for Atari-style control.",
+        aliases=("diamond_agent",),
+    ),
+    "dit": ModelSpec(
+        name="dit",
+        import_path="world_models.models.diffusion.DiT:create_dit",
+        config_path="world_models.configs.dit_config:DiTConfig",
+        description="Diffusion Transformer (DiT) image denoising model.",
+        aliases=("diffusion-transformer", "diffusion_transformer"),
+    ),
     "modular-rssm": ModelSpec(
         name="modular-rssm",
         import_path="world_models.models.modular_rssm:create_modular_rssm",
@@ -119,17 +133,41 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="Gymnasium Robotics environments.",
         aliases=("gymnasium_robotics",),
     ),
+    "procgen": EnvBackendSpec(
+        name="procgen",
+        factory_path="world_models.envs:make_procgen_env",
+        description="Procedurally generated benchmark environments.",
+        aliases=("coinrun",),
+    ),
+    "dmlab": EnvBackendSpec(
+        name="dmlab",
+        factory_path="world_models.envs:make_dmlab_env",
+        description="DeepMind Lab 3D navigation and puzzle tasks.",
+        aliases=("deepmind_lab", "deepmindlab"),
+    ),
     "brax": EnvBackendSpec(
         name="brax",
         factory_path="world_models.envs:make_brax_env",
         description="JAX/Brax continuous-control environments.",
         aliases=(),
     ),
+    "bsuite": EnvBackendSpec(
+        name="bsuite",
+        factory_path="world_models.envs:make_bsuite_env",
+        description="Behaviour Suite for Reinforcement Learning (BSuite) environments.",
+        aliases=("behavior_suite", "behaviour_suite"),
+    ),
     "unity": EnvBackendSpec(
         name="unity",
         factory_path="world_models.envs:make_unity_mlagents_env",
         description="Unity ML-Agents executables.",
         aliases=("mlagents", "unity_mlagents"),
+    ),
+    "world-model": EnvBackendSpec(
+        name="world-model",
+        factory_path="world_models.envs:make_world_model_env",
+        description="Gymnasium-compatible rollouts inside a trained world model.",
+        aliases=("world_model", "model", "wm"),
     ),
 }
 
@@ -138,7 +176,9 @@ def _normalize(name: str) -> str:
     return name.strip().lower().replace("_", "-")
 
 
-def _alias_map(specs: dict[str, ModelSpec] | dict[str, EnvBackendSpec]) -> dict[str, str]:
+def _alias_map(
+    specs: dict[str, ModelSpec] | dict[str, EnvBackendSpec],
+) -> dict[str, str]:
     aliases: dict[str, str] = {}
     for canonical, spec in specs.items():
         aliases[_normalize(canonical)] = canonical
@@ -153,7 +193,9 @@ def _resolve_model_name(name: str) -> str:
         return aliases[_normalize(name)]
     except KeyError as exc:
         available = ", ".join(list_models())
-        raise ValueError(f"Unknown model {name!r}. Available models: {available}") from exc
+        raise ValueError(
+            f"Unknown model {name!r}. Available models: {available}"
+        ) from exc
 
 
 def _resolve_backend_name(name: str) -> str:
@@ -162,7 +204,9 @@ def _resolve_backend_name(name: str) -> str:
         return aliases[_normalize(name)]
     except KeyError as exc:
         available = ", ".join(list_env_backends())
-        raise ValueError(f"Unknown environment backend {name!r}. Available: {available}") from exc
+        raise ValueError(
+            f"Unknown environment backend {name!r}. Available: {available}"
+        ) from exc
 
 
 def _load_object(import_path: str) -> Any:
@@ -199,7 +243,9 @@ def _split_config_and_constructor_overrides(
     config: Any, overrides: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     config_keys = _config_fields(config)
-    config_overrides = {key: value for key, value in overrides.items() if key in config_keys}
+    config_overrides = {
+        key: value for key, value in overrides.items() if key in config_keys
+    }
     constructor_overrides = {
         key: value for key, value in overrides.items() if key not in config_keys
     }
@@ -226,7 +272,9 @@ def _apply_overrides(config: Any, overrides: dict[str, Any]) -> Any:
     return config
 
 
-def _supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+def _supported_kwargs(
+    factory: Callable[..., Any], kwargs: dict[str, Any]
+) -> dict[str, Any]:
     params = signature(factory).parameters
     if any(param.kind == param.VAR_KEYWORD for param in params.values()):
         return dict(kwargs)
@@ -234,7 +282,9 @@ def _supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> di
     return {key: value for key, value in kwargs.items() if key in supported}
 
 
-def _call_with_supported_kwargs(factory: Callable[..., Any], kwargs: dict[str, Any]) -> Any:
+def _call_with_supported_kwargs(
+    factory: Callable[..., Any], kwargs: dict[str, Any]
+) -> Any:
     params = signature(factory).parameters
     accepts_kwargs = any(param.kind == param.VAR_KEYWORD for param in params.values())
     if accepts_kwargs:
@@ -312,8 +362,8 @@ def create_model(model: str, config: Any | None = None, **overrides: Any) -> Any
     if spec.config_path is not None:
         if config is None:
             config = create_config(spec.name)
-        config_overrides, constructor_overrides = _split_config_and_constructor_overrides(
-            config, overrides
+        config_overrides, constructor_overrides = (
+            _split_config_and_constructor_overrides(config, overrides)
         )
         config = _apply_overrides(config, config_overrides)
         if spec.name in {"genie", "genie-small", "genie-large"}:
@@ -356,7 +406,9 @@ def list_envs(model: str | None = None) -> list[str] | dict[str, list[str]]:
         return list(ENVIRONMENTS_BY_MODEL[canonical])
     except KeyError as exc:
         available = ", ".join(sorted(ENVIRONMENTS_BY_MODEL))
-        raise ValueError(f"Unknown model environment catalog {model!r}: {available}") from exc
+        raise ValueError(
+            f"Unknown model environment catalog {model!r}: {available}"
+        ) from exc
 
 
 __all__ = [

@@ -1,7 +1,12 @@
-class DreamerConfig:
+from __future__ import annotations
+
+from world_models.configs.serialization import SerializableConfigMixin
+
+
+class DreamerConfig(SerializableConfigMixin):
     """Configuration container for Dreamer training, evaluation, and environment setup.
 
-    This class centralizes environment backend selection (DMC/Gym/MuJoCo/Robotics/Unity/Brax),
+    This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
     model dimensions, replay and optimization settings, logging cadence, and
     checkpoint options consumed by `DreamerAgent`.
     """
@@ -9,9 +14,11 @@ class DreamerConfig:
     def __init__(self):
         # Environment selection.
         # dmc: DeepMind Control Suite
+        # dmlab: DeepMind Lab 3D navigation tasks
         # gym: generic Gym/Gymnasium env IDs or prebuilt env instances
         # mujoco: Gymnasium MuJoCo task IDs or native MuJoCo XML/MJB
         # robotics: Gymnasium Robotics env IDs (including legacy MuJoCo v2/v3)
+        # procgen: Procgen procedurally generated benchmark games
         # unity_mlagents: Unity ML-Agents executable
         # brax: JAX/Brax continuous-control environments
         self.env_backend = "dmc"
@@ -19,6 +26,20 @@ class DreamerConfig:
         self.env_instance = None
         self.image_size = (64, 64)
         self.gym_render_mode = "rgb_array"
+
+        # DeepMind Lab options. dmlab_action_repeat is native DMLab frame
+        # repeat; Dreamer action_repeat is still applied by the shared wrapper
+        # stack outside the backend adapter.
+        self.dmlab_action_repeat = 4
+        self.dmlab_action_set = None
+        self.dmlab_observations = None
+        self.dmlab_config = None
+        self.dmlab_renderer = "hardware"
+
+        # Procgen options. Use env values like "coinrun" or "procgen-coinrun-v0".
+        self.procgen_distribution_mode = "easy"
+        self.procgen_num_levels = 0
+        self.procgen_start_level = None
 
         # MuJoCo options. Leave mujoco_xml_path unset to auto-detect whether
         # `env` is a Gymnasium task ID or a native MJCF/MJB source.
@@ -85,6 +106,7 @@ class DreamerConfig:
         self.value_learning_rate = 8e-5
         self.adam_epsilon = 1e-7
         self.grad_clip_norm = 100.0
+        self.use_amp = True
         self.test = False
         self.test_interval = 10000
         self.test_episodes = 10
@@ -105,3 +127,16 @@ class DreamerConfig:
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        self.logdir = None
+        # Base directory for DreamerAgent-created relative log directories.
+        # If unset, DreamerAgent uses TORCHWM_DATA_DIR or log_dir instead of
+        # writing into the package source tree.
+        self.data_dir = None
+        self.log_level = "INFO"
+        self.log_file = None
+        self.enable_tensorboard = False
+        self.enable_console_metrics = True
+        self.enable_jsonl = True
+        self.jsonl_filename = "metrics.jsonl"
+        self.log_system_stats_freq = int(1e3)
+        self.detect_anomaly = False

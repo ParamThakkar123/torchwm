@@ -6,11 +6,14 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Optional, Dict, Tuple, Literal
 import numpy as np
 from dataclasses import dataclass
+
+from world_models.configs.serialization import SerializableConfigMixin
 from world_models.models.genie import Genie
+from world_models.models.model_io import save_config_next_to_checkpoint
 
 
 @dataclass
-class GenieConfig:
+class GenieConfig(SerializableConfigMixin):
     """Configuration for Genie training."""
 
     num_frames: int = 16
@@ -241,8 +244,10 @@ class GenieTrainer:
 
     def save_checkpoint(self, path: str):
         """Save model checkpoint."""
+        save_config_next_to_checkpoint(self.config, path)
         torch.save(
             {
+                "config": self.config.to_dict(),
                 "model_state_dict": self.model.state_dict(),
                 "optimizer_state_dict": self.optimizer.state_dict(),
                 "scheduler_state_dict": self.scheduler.state_dict(),
@@ -256,7 +261,7 @@ class GenieTrainer:
         checkpoint = torch.load(
             path,
             map_location=self.device,
-            weights_only=False,
+            weights_only=True,
         )
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])

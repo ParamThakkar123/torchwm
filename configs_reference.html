@@ -11,12 +11,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/configs_reference.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
-<meta property="og:description" content="This page documents all configuration classes in TorchWM. DreamerConfig: Configuration for Dreamer agent training. JEPAConfig: Configuration for JEPA training. IRISConfig: Configuration for IRIS tr..." />
+<meta property="og:description" content="This page documents all configuration classes in TorchWM. Shared Serialization API: All model config classes exported by TorchWM support a common serialization interface: The corresponding model or..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/_images/social_previews/summary_configs_reference_a4b789a0.png" />
-<meta property="og:image:alt" content="This page documents all configuration classes in TorchWM. DreamerConfig: Configuration for Dreamer agent training. JEPAConfig: Configuration for JEPA training. IRISConfig: Configuration for IRIS tr..." />
-<meta name="description" content="This page documents all configuration classes in TorchWM. DreamerConfig: Configuration for Dreamer agent training. JEPAConfig: Configuration for JEPA training. IRISConfig: Configuration for IRIS tr..." />
+<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/_images/social_previews/summary_configs_reference_ddaddc20.png" />
+<meta property="og:image:alt" content="This page documents all configuration classes in TorchWM. Shared Serialization API: All model config classes exported by TorchWM support a common serialization interface: The corresponding model or..." />
+<meta name="description" content="This page documents all configuration classes in TorchWM. Shared Serialization API: All model config classes exported by TorchWM support a common serialization interface: The corresponding model or..." />
 <meta name="twitter:card" content="summary_large_image" />
 
     <title>Configs Reference &#8212; TorchWM 0.4.2 documentation</title>
@@ -355,6 +355,28 @@
   <section id="configs-reference">
 <h1>Configs Reference<a class="headerlink" href="#configs-reference" title="Link to this heading">#</a></h1>
 <p>This page documents all configuration classes in TorchWM.</p>
+<section id="shared-serialization-api">
+<h2>Shared Serialization API<a class="headerlink" href="#shared-serialization-api" title="Link to this heading">#</a></h2>
+<p>All model config classes exported by TorchWM support a common
+serialization interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span><span class="p">,</span> <span class="n">GenieConfig</span><span class="p">,</span> <span class="n">JEPAConfig</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="p">(</span><span class="n">image_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">cfg_dict</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="n">yaml_text</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">to_yaml</span><span class="p">(</span><span class="s2">&quot;configs/genie.yaml&quot;</span><span class="p">)</span>
+<span class="n">restored</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="s2">&quot;configs/genie.yaml&quot;</span><span class="p">)</span>
+
+<span class="c1"># JEPA keeps a separate nested dict for the trainer entrypoint.</span>
+<span class="n">jepa</span> <span class="o">=</span> <span class="n">JEPAConfig</span><span class="p">()</span>
+<span class="n">trainer_args</span> <span class="o">=</span> <span class="n">jepa</span><span class="o">.</span><span class="n">to_train_dict</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The corresponding model or agent classes expose HF-style construction and
+introspection helpers where weights are resident in the object, including
+<code class="docutils literal notranslate"><span class="pre">from_config(...)</span></code>, <code class="docutils literal notranslate"><span class="pre">from_pretrained(...)</span></code>, <code class="docutils literal notranslate"><span class="pre">summary()</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">parameter_count()</span></code>. Checkpoint save paths write a sibling <code class="docutils literal notranslate"><span class="pre">config.yaml</span></code> so runs
+can be reproduced without guessing hyperparameters.</p>
+</section>
 <section id="dreamerconfig">
 <h2>DreamerConfig<a class="headerlink" href="#dreamerconfig" title="Link to this heading">#</a></h2>
 <p>Configuration for Dreamer agent training.</p>
@@ -842,6 +864,7 @@ without launching a run.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-serialization-api">Shared Serialization API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamerconfig">DreamerConfig</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#jepaconfig">JEPAConfig</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#irisconfig">IRISConfig</a></li>

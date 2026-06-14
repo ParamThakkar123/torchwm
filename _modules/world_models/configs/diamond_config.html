@@ -726,7 +726,10 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for world_models.configs.diamond_config</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializableConfigMixin</span>
 
 
 <div class="viewcode-block" id="get_default_device">
@@ -742,7 +745,7 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="ModelPreset">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.ModelPreset">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">ModelPreset</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelPreset</span><span class="p">(</span><span class="n">SerializableConfigMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Model architecture preset for different hardware tiers.&quot;&quot;&quot;</span>
 
     <span class="n">diffusion_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
@@ -789,7 +792,7 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="DiamondConfig">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.DiamondConfig">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">DiamondConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DiamondConfig</span><span class="p">(</span><span class="n">SerializableConfigMixin</span><span class="p">):</span>
     <span class="c1"># Preset selection (overrides manual model config if set)</span>
     <span class="n">preset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># &quot;small&quot;, &quot;medium&quot;, &quot;large&quot;, or None</span>
 

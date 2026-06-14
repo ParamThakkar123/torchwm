@@ -511,6 +511,81 @@ agent.train()
 
 ### Environment backends
 
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `stoch_size` | 30 | Stochastic latent dimensions |
+| `deter_size` | 200 | Deterministic hidden size |
+| `embed_size` | 1024 | Encoder embedding size |
+| `imagine_horizon` | 15 | Imagination rollout length |
+| `discount` | 0.99 | Discount factor γ |
+| `td_lambda` | 0.95 | λ-return parameter |
+| `kl_loss_coeff` | 1.0 | KL divergence weight |
+
+### Learning Objectives
+
+**World Model Loss**:
+
+```{math}
+\begin{aligned}
+\mathcal{L}_\mathrm{world}
+&= \mathcal{L}_\mathrm{reconstruction}
+ + \mathcal{L}_\mathrm{reward}
+ + \beta \cdot \mathcal{L}_\mathrm{KL}
+\end{aligned}
+```
+
+**Actor Loss** (REINFORCE):
+
+```{math}
+\mathcal{L}_\mathrm{actor}
+= -\mathbb{E}\left[\log \pi(\mathbf{a} \mid \mathbf{s}) \cdot (G - V(\mathbf{s}))\right]
+```
+
+**Critic Loss** (MSE):
+
+```{math}
+\mathcal{L}_\mathrm{critic} = \mathbb{E}[(G - V(\mathbf{s}))^2]
+```
+
+## DreamerV2 Enhancements
+
+DreamerV2 introduces several improvements:
+
+1. **Discrete latents**: Categorical latent variables instead of Gaussian
+2. **KL balancing**: Separate weighting for prior/posterior KL
+3. **Discount model**: Learns to predict episode termination
+4. **Layer normalization**: More stable training
+
+## Configuration and Checkpoints
+
+Dreamer configs are serializable, so experiments can be reproduced from the
+YAML saved with each run or checkpoint:
+
+```python
+from world_models.configs import DreamerConfig
+from world_models.models import DreamerAgent
+
+cfg = DreamerConfig()
+cfg.env = "walker-walk"
+cfg.to_yaml("configs/dreamer_walker.yaml")
+
+agent = DreamerAgent.from_config("configs/dreamer_walker.yaml", seed=7)
+agent.train()
+
+# Checkpoints save `config.yaml` beside the weights automatically.
+agent.dreamer.save("runs/walker/ckpts/model.pt")
+restored = DreamerAgent.from_pretrained("runs/walker/ckpts")
+print(restored.summary()["total_parameters"])
+```
+
+For lower-level workflows, the core `Dreamer` class also supports
+`Dreamer.from_config(...)`, `Dreamer.from_pretrained(...)`,
+`Dreamer.summary()`, and `Dreamer.parameter_count()`.
+
+## Environment Support
+
+Dreamer supports multiple backends:
+
 ```python
 cfg = DreamerConfig()
 

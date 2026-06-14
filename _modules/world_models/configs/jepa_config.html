@@ -727,10 +727,12 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializableConfigMixin</span><span class="p">,</span> <span class="n">make_yaml_safe</span>
+
 
 <div class="viewcode-block" id="JEPAConfig">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.JEPAConfig">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">JEPAConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">JEPAConfig</span><span class="p">(</span><span class="n">SerializableConfigMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Minimal configuration container for JEPA training.</span>
 <span class="sd">    Converts to the nested dict expected by `train_jepa.main`.</span>
@@ -800,7 +802,7 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="JEPAConfig.to_dict">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.JEPAConfig.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">make_yaml_safe</span><span class="p">({</span>
             <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;use_bfloat16&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_bfloat16</span><span class="p">,</span>
                 <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
@@ -857,7 +859,47 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">&quot;enable_sweep&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_sweep</span><span class="p">,</span>
                 <span class="s2">&quot;sweep_config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweep_config</span><span class="p">,</span>
             <span class="p">},</span>
-        <span class="p">}</span></div>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="JEPAConfig.from_dict">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.JEPAConfig.from_dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;JEPAConfig&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load flat field values or the nested trainer dictionary.&quot;&quot;&quot;</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;optimization&quot;</span><span class="p">,</span> <span class="s2">&quot;logging&quot;</span><span class="p">)):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+                <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">section</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid JEPAConfig field: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="JEPAConfig.to_train_dict">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.JEPAConfig.to_train_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_train_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the nested dictionary expected by train_jepa.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="JEPAConfig.to_nested_dict">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.JEPAConfig.to_nested_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_nested_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Backward-compatible alias for the nested JEPA trainer dictionary.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_train_dict</span><span class="p">()</span></div>
 </div>
 
 </pre></div>

@@ -730,6 +730,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">einops</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dit_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiTConfig</span> <span class="k">as</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.model_io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">apply_config_overrides</span><span class="p">,</span>
+    <span class="n">coerce_config</span><span class="p">,</span>
+    <span class="n">module_summary</span><span class="p">,</span>
+    <span class="n">resolve_pretrained_file</span><span class="p">,</span>
+    <span class="n">save_config_next_to_checkpoint</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.layers.ada_ln_norm</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaLNNormalization</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.blocks.mhsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiHeadSelfAttention</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.diffusion.DDPM</span><span class="w"> </span><span class="kn">import</span> <span class="n">DDPM</span>
@@ -740,6 +747,8 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_image</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 
@@ -918,6 +927,15 @@ window.runMermaid = runMermaid;</script>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DiT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_dim</span> <span class="o">=</span> <span class="n">t_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
+            <span class="n">IMG_SIZE</span><span class="o">=</span><span class="n">img_size</span><span class="p">,</span>
+            <span class="n">CHANNELS</span><span class="o">=</span><span class="n">in_channels</span><span class="p">,</span>
+            <span class="n">PATCH</span><span class="o">=</span><span class="n">patch_size</span><span class="p">,</span>
+            <span class="n">WIDTH</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">DEPTH</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span>
+            <span class="n">HEADS</span><span class="o">=</span><span class="n">heads</span><span class="p">,</span>
+            <span class="n">DROP</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">t_dim</span><span class="p">,</span> <span class="n">t_dim</span><span class="p">),</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">GELU</span><span class="p">(),</span>
@@ -946,6 +964,129 @@ window.runMermaid = runMermaid;</script>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpatchify</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="DiT.from_config">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DiT&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build DiT from a config object, dict, YAML file, or YAML string.&quot;&quot;&quot;</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">coerce_config</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">overrides</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">img_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">IMG_SIZE</span><span class="p">,</span>
+            <span class="n">patch_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">PATCH</span><span class="p">,</span>
+            <span class="n">in_channels</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">CHANNELS</span><span class="p">,</span>
+            <span class="n">d_model</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">WIDTH</span><span class="p">,</span>
+            <span class="n">depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">DEPTH</span><span class="p">,</span>
+            <span class="n">heads</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">HEADS</span><span class="p">,</span>
+            <span class="n">drop</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">DROP</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.from_pretrained">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.from_pretrained">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">checkpoint_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">repo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">map_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DiT&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DiT weights from a local path/directory or HF Hub.&quot;&quot;&quot;</span>
+
+        <span class="n">checkpoint_candidates</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">checkpoint_filename</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="n">checkpoint_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;dit_model.pth&quot;</span><span class="p">,</span> <span class="s2">&quot;model.pt&quot;</span><span class="p">,</span> <span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="s2">&quot;checkpoint.pt&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">resolve_pretrained_file</span><span class="p">(</span>
+            <span class="n">pretrained_model_name_or_path</span><span class="p">,</span>
+            <span class="n">checkpoint_candidates</span><span class="p">,</span>
+            <span class="n">repo_type</span><span class="o">=</span><span class="n">repo_type</span><span class="p">,</span>
+            <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not find a DiT checkpoint for </span><span class="si">{</span><span class="n">pretrained_model_name_or_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span> <span class="ow">or</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint_config</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint_config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">checkpoint_config</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config_path</span> <span class="o">=</span> <span class="n">resolve_pretrained_file</span><span class="p">(</span>
+                <span class="n">pretrained_model_name_or_path</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="s2">&quot;dit_config.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;config.yml&quot;</span><span class="p">),</span>
+                <span class="n">repo_type</span><span class="o">=</span><span class="n">repo_type</span><span class="p">,</span>
+                <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">config_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="s2">&quot;No config was provided and no config YAML was found beside &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pretrained_model_name_or_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">coerce_config</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">overrides</span><span class="p">))</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">checkpoint</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">state_dict</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;model_state_dict&quot;</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state_dict&quot;</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="DiT.save_pretrained">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.save_pretrained">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save DiT weights and config in a from_pretrained-compatible format.&quot;&quot;&quot;</span>
+
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint_path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">&quot;dit_model.pth&quot;</span>
+        <span class="n">save_config_next_to_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s2">&quot;model_state_dict&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()},</span>
+            <span class="n">checkpoint_path</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.parameter_count">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.parameter_count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameter_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainable_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">trainable_only</span> <span class="ow">or</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.summary">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">module_summary</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;t_mlp&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span><span class="p">,</span>
+                <span class="s2">&quot;patchify&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchify</span><span class="p">,</span>
+                <span class="s2">&quot;transformer_blocks&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer_blocks</span><span class="p">,</span>
+                <span class="s2">&quot;unpatchify&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpatchify</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DiT.train">
@@ -1118,8 +1259,30 @@ window.runMermaid = runMermaid;</script>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">model_to_save</span> <span class="o">=</span> <span class="n">ema_model</span> <span class="k">if</span> <span class="n">ema_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">model</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_to_save</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/dit_model.pth&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/dit_model.pth&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;dit_model.pth&quot;</span>
+        <span class="n">train_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
+            <span class="n">DATASET</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="n">BATCH</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">EPOCHS</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span>
+            <span class="n">LR</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
+            <span class="n">IMG_SIZE</span><span class="o">=</span><span class="n">img_size</span><span class="p">,</span>
+            <span class="n">CHANNELS</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
+            <span class="n">PATCH</span><span class="o">=</span><span class="n">patch</span><span class="p">,</span>
+            <span class="n">WIDTH</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">DEPTH</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span>
+            <span class="n">HEADS</span><span class="o">=</span><span class="n">heads</span><span class="p">,</span>
+            <span class="n">DROP</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span>
+            <span class="n">BETA_START</span><span class="o">=</span><span class="n">beta_start</span><span class="p">,</span>
+            <span class="n">BETA_END</span><span class="o">=</span><span class="n">beta_end</span><span class="p">,</span>
+            <span class="n">TIMESTEPS</span><span class="o">=</span><span class="n">timesteps</span><span class="p">,</span>
+            <span class="n">EMA</span><span class="o">=</span><span class="n">ema</span><span class="p">,</span>
+            <span class="n">EMA_DECAY</span><span class="o">=</span><span class="n">ema_decay</span><span class="p">,</span>
+            <span class="n">WORKDIR</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span>
+            <span class="n">ROOT_PATH</span><span class="o">=</span><span class="n">root_path</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">save_config_next_to_checkpoint</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_to_save</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Generate new Images</span>
         <span class="n">model_to_sample</span> <span class="o">=</span> <span class="n">ema_model</span> <span class="k">if</span> <span class="n">ema_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">model</span>

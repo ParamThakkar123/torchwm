@@ -20,6 +20,7 @@ def test_create_config_accepts_aliases_and_overrides():
 def test_model_and_backend_specs_resolve_aliases():
     assert torchwm.get_model_spec("i-jepa").name == "jepa"
     assert torchwm.get_env_backend_spec("gymnasium").name == "gym"
+    assert torchwm.get_env_backend_spec("wm").name == "world-model"
 
 
 def test_make_env_dispatches_to_selected_backend(monkeypatch):
@@ -64,6 +65,28 @@ def test_create_model_for_factory_only_spec_filters_through_signature(monkeypatc
     assert api.create_model("dummy", required=3, optional=5) == {
         "required": 3,
         "optional": 5,
+    }
+
+
+def test_make_env_dispatches_world_model_backend(monkeypatch):
+    calls = {}
+
+    def fake_loader(import_path):
+        calls["import_path"] = import_path
+
+        def factory(world_model, **kwargs):
+            return {"world_model": world_model, "kwargs": kwargs}
+
+        return factory
+
+    model = object()
+    monkeypatch.setattr(api, "_load_object", fake_loader)
+    env = api.make_env(model, backend="wm", observation_space="obs", action_space="act")
+
+    assert calls["import_path"] == "world_models.envs:make_world_model_env"
+    assert env == {
+        "world_model": model,
+        "kwargs": {"observation_space": "obs", "action_space": "act"},
     }
 
 

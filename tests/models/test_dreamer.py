@@ -163,7 +163,7 @@ class TestDreamerUXConstructors:
     @patch("world_models.models.dreamer.make_env")
     @patch("world_models.models.dreamer.Logger")
     def test_export_uses_dreamer_actor_default(
-        self, mock_logger, mock_make_env, config, monkeypatch, tmp_path
+        self, mock_logger, mock_make_env, monkeypatch, tmp_path
     ):
         import world_models.export as export_utils
 
@@ -175,6 +175,9 @@ class TestDreamerUXConstructors:
         mock_action_space.shape = (2,)
         mock_env.action_space = mock_action_space
         mock_make_env.return_value = mock_env
+
+        config = DreamerConfig()
+        config.buffer_size = 10
 
         calls = {}
 

@@ -153,7 +153,9 @@ class IRISAgent(nn.Module):
         """Build an IRIS agent from a config object, dict, YAML file, or YAML string."""
 
         args = apply_config_overrides(coerce_config(IRISConfig, config), overrides)
-        torch_device = torch.device(device) if device is not None else torch.device("cpu")
+        torch_device = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
         return cls(args, action_size=action_size, device=torch_device)
 
     @classmethod
@@ -187,7 +189,9 @@ class IRISAgent(nn.Module):
             raise FileNotFoundError(
                 f"Could not find an IRIS checkpoint for {pretrained_model_name_or_path!r}."
             )
-        map_location = torch.device(device) if device is not None else torch.device("cpu")
+        map_location = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
         checkpoint = torch.load(
             checkpoint_path, map_location=map_location, weights_only=False
         )
@@ -214,7 +218,9 @@ class IRISAgent(nn.Module):
         args = apply_config_overrides(args, overrides)
         resolved_action_size = action_size or checkpoint.get("action_size")
         if resolved_action_size is None:
-            raise ValueError("action_size must be provided or present in the checkpoint.")
+            raise ValueError(
+                "action_size must be provided or present in the checkpoint."
+            )
         agent = cls(args, action_size=int(resolved_action_size), device=map_location)
         agent.load(str(checkpoint_path))
         return agent
@@ -679,7 +685,9 @@ class IRISAgent(nn.Module):
         """Load agent state."""
         with torch.serialization.safe_globals([IRISConfig]):
             checkpoint = torch.load(
-                path, map_location=self.device, weights_only=False
+                path,
+                map_location=self.device,
+                weights_only=True,
             )
 
         self.encoder.load_state_dict(checkpoint["encoder"])

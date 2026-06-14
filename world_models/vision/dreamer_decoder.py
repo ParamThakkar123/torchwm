@@ -31,12 +31,12 @@ class TanhBijector(distributions.Transform):
     2. **Stable log-det Jacobian**: Computable for gradient-based training
     3. **Clipped actions**: During inference, actions are naturally bounded
 
-    Math:
-        Forward: y = tanh(x)
-        Inverse: x = atanh(y) = 0.5 * log((1+y)/(1-y))
-        Log-det: log|dy/dx| = 2*(log(2) - x - softplus(-2x))
+    - Forward: y = tanh(x)
+    - Inverse: x = atanh(y) = 0.5 * log((1+y)/(1-y))
+    - Log-det: log|dy/dx| = 2*(log(2) - x - softplus(-2x))
 
-    Usage with Dreamer ActionDecoder:
+    **Usage with Dreamer ActionDecoder**::
+
         dist = TransformedDistribution(
             Normal(mean, std),
             TanhBijector()
@@ -80,20 +80,19 @@ class ConvDecoder(nn.Module):
     Part of Dreamer's world model, this decoder reconstructs image observations
     from the combined stochastic (s) and deterministic (h) RSSM states.
 
-    Architecture:
-        Input: Concatenated [stoch_state, deter_state], shape (B, stoch+deter)
-        Process: Dense projection + 4 transposed convolutions (upsampling 2x each)
-        Output: Independent Normal distribution over observation pixels
+    - Input: Concatenated [stoch_state, deter_state], shape (B, stoch+deter)
+    - Process: Dense projection + 4 transposed convolutions (upsampling 2x each)
+    - Output: Independent Normal distribution over observation pixels
 
     The decoder mirrors the ConvEncoder's structure but in reverse (transposed convs
     instead of regular convs). This creates a symmetric autoencoder where the encoder
     and decoder can be trained jointly to learn compressed representations.
 
-    Output Distribution:
-        Returns torch.distributions.Independent(Normal(mean, std), len(shape))
-        This allows computing log_prob(observation) for reconstruction loss.
+    Returns ``torch.distributions.Independent(Normal(mean, std), len(shape))``
+    allowing log_prob(observation) computation for reconstruction loss.
 
-    Usage in Dreamer world model:
+    **Usage in Dreamer world model**::
+
         decoder = ConvDecoder(
             stoch_size=30,
             deter_size=200,
@@ -103,9 +102,8 @@ class ConvDecoder(nn.Module):
         obs_dist = decoder(latent_features)  # Returns distribution
         log_prob = obs_dist.log_prob(target_observation)
 
-    Training:
-        The reconstruction loss is: -log_prob(observation)
-        This encourages the RSSM to learn states that capture observation information.
+    The reconstruction loss is ``-log_prob(observation)``, which encourages
+    the RSSM to learn states that capture observation information.
     """
 
     def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
@@ -194,17 +192,17 @@ class DenseDecoder(nn.Module):
     Part of Dreamer's world model, this decoder predicts scalar quantities
     (rewards, values, discount factors) from RSSM latent states.
 
-    Architecture:
-        Input: [stoch_state, deter_state] concatenated, shape (B, stoch+deter)
-        Process: MLP with configurable layers and hidden units
-        Output: Predicted quantity with distribution (normal, binary, or raw)
+    - Input: [stoch_state, deter_state] concatenated, shape (B, stoch+deter)
+    - Process: MLP with configurable layers and hidden units
+    - Output: Predicted quantity with distribution (normal, binary, or raw)
 
     Supports three output types:
-        - 'normal': Gaussian distribution for regression (rewards, values)
-        - 'binary': Bernoulli distribution for binary classification (discount)
-        - 'none': Raw tensor for non-probabilistic outputs
+    - ``'normal'``: Gaussian distribution for regression (rewards, values)
+    - ``'binary'``: Bernoulli distribution for binary classification (discount)
+    - ``'none'``: Raw tensor for non-probabilistic outputs
 
-    Usage:
+    **Usage**::
+
         reward_decoder = DenseDecoder(
             stoch_size=30,
             deter_size=200,
@@ -217,7 +215,8 @@ class DenseDecoder(nn.Module):
         reward_dist = reward_decoder(latent_features)
         reward_loss = -reward_dist.log_prob(target_reward)
 
-    For discount prediction (binary):
+    **For discount prediction (binary)**::
+
         discount_decoder = DenseDecoder(
             stoch_size=30,
             deter_size=200,
@@ -225,7 +224,7 @@ class DenseDecoder(nn.Module):
             n_layers=2,
             units=400,
             activation='elu',
-            dist='binary'  # Bernoulli for P(continue)
+            dist='binary'
         )
     """
 

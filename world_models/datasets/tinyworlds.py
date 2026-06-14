@@ -331,7 +331,8 @@ class TinyWorldsDataLoader:
         Returns:
             Tuple of (dataset, dataloader)
 
-        Usage:
+        **Usage**::
+
             dataset, loader = TinyWorldsDataLoader.create_dataloader(
                 dataset_name="SONIC",
                 num_frames=16,
@@ -406,7 +407,8 @@ def create_tinyworlds_dataloader(
     Returns:
         Tuple of (dataset, dataloader)
 
-    Usage:
+    **Usage**::
+
         dataset, loader = create_tinyworlds_dataloader(
             dataset_name="SONIC",
             num_frames=16,

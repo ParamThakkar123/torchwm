@@ -26,12 +26,13 @@ class Episode:
         postprocess_fn (callable, optional): Function to apply to observations
             before storing (e.g., normalization). Default: identity function.
 
-    Example:
-        >>> episode = Episode()
-        >>> episode.append(obs, action, reward, False)
-        >>> episode.append(obs, action, reward, True)
-        >>> episode.terminate(final_obs)
-        >>> print(episode.x.shape)  # Now a numpy array
+    Example::
+
+        episode = Episode()
+        episode.append(obs, action, reward, False)
+        episode.append(obs, action, reward, True)
+        episode.terminate(final_obs)
+        print(episode.x.shape)  # Now a numpy array
     """
 
     def __init__(self, postprocess_fn=None):
@@ -68,11 +69,10 @@ class Memory(deque):
     sub-sequences for training. Implements a ring-buffer style eviction
     when capacity is reached.
 
-    Features:
-        - Stores complete episodes as lists of transitions
-        - Samples contiguous sub-sequences for sequence models
-        - Supports time-major formatting (time-first) for RNN input
-        - Memory usage estimation to prevent OOM errors
+    - Stores complete episodes as lists of transitions
+    - Samples contiguous sub-sequences for sequence models
+    - Supports time-major formatting (time-first) for RNN input
+    - Memory usage estimation to prevent OOM errors
 
     Args:
         size (int, optional): Maximum number of episodes to store. If None,
@@ -83,10 +83,11 @@ class Memory(deque):
         eps_lengths (deque): Length of each episode.
         size (property): Total number of transitions across all episodes.
 
-    Example:
-        >>> memory = Memory(size=100)
-        >>> memory.append([episode1, episode2])
-        >>> batch, lengths = memory.sample(batch_size=32, tracelen=50)
+    Example::
+
+        memory = Memory(size=100)
+        memory.append([episode1, episode2])
+        batch, lengths = memory.sample(batch_size=32, tracelen=50)
     """
 
     def __init__(self, size=None):
@@ -139,7 +140,7 @@ class Memory(deque):
 
         Returns:
             tuple: (observations, actions, rewards, terminals, lengths)
-                - observations: (batch, tracelen+1, *obs_shape) or (tracelen+1, batch, ...)
+                -             observations: (batch, tracelen+1, \\*obs_shape) or (tracelen+1, batch, ...)
                 - actions: (batch, tracelen, action_dim) or (tracelen, batch, ...)
                 - rewards: (batch, tracelen) or (tracelen, batch)
                 - terminals: (batch, tracelen) or (tracelen, batch)

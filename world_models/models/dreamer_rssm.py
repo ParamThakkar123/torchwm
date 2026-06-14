@@ -21,31 +21,33 @@ class RSSM(nn.Module):
     The RSSM is the core world model component that learns compact representations
     of environment dynamics. It maintains a hybrid state consisting of:
 
-    1. **Deterministic State (h)**: A recurrent hidden state updated by a GRU,
+    1. **Deterministic State (h)** -- A recurrent hidden state updated by a GRU,
        capturing sequential/temporal information and deterministic transitions.
 
-    2. **Stochastic State (s)**: A latent variable representing stochastic,
+    2. **Stochastic State (s)** -- A latent variable representing stochastic,
        multi-modal uncertainty in the environment (e.g., ambiguous observations).
 
     The model operates in two modes:
 
-    - **Observe Mode**: Updates states using actual observations from the environment.
+    - **Observe Mode** -- Updates states using actual observations from the environment.
       Uses the representation model: p(s_t | h_t, obs_t)
-
-    - **Imagine Mode**: Predicts future states without observations.
+    - **Imagine Mode** -- Predicts future states without observations.
       Uses the transition/prior model: p(s_t | h_t)
 
-    Architecture:
-        Input: Previous state (h_{t-1}, s_{t-1}) and action a_{t-1}
-        Process: GRU updates deterministic state, MLP computes stochastic prior/posterior
-        Output: Updated state (h_t, s_t) and distributions
+    **Architecture**
 
-    State Representation:
-        - deter (h): GRU hidden state, captures sequential context
-        - stoch (s): Stochastic latent, multi-modal uncertainty
-        - mean/std: Parameters of the stochastic distribution
+    - Input: Previous state (h_{t-1}, s_{t-1}) and action a_{t-1}
+    - Process: GRU updates deterministic state, MLP computes stochastic prior/posterior
+    - Output: Updated state (h_t, s_t) and distributions
 
-    Usage with DreamerAgent:
+    **State Representation**
+
+    - deter (h): GRU hidden state, captures sequential context
+    - stoch (s): Stochastic latent, multi-modal uncertainty
+    - mean/std: Parameters of the stochastic distribution
+
+    **Usage with DreamerAgent**::
+
         rssm = RSSM(
             action_size=action_dim,
             stoch_size=30,      # Stochastic state dimension
@@ -61,11 +63,12 @@ class RSSM(nn.Module):
         # Imagine future without observation
         prior = rssm.imagine_step(current_state, action)
 
-    Training:
-        The RSSM is trained by maximizing the ELBO (Evidence Lower Bound):
-        - KL divergence between prior and posterior encourages the prior to
-          capture environment dynamics
-        - Reconstruction loss from decoder ensures state captures observation info
+    **Training**
+
+    The RSSM is trained by maximizing the ELBO (Evidence Lower Bound):
+    - KL divergence between prior and posterior encourages the prior to
+      capture environment dynamics
+    - Reconstruction loss from decoder ensures state captures observation info
 
     Reference:
         Dreamer: Scalable Reinforcement Learning Using World Models
@@ -284,9 +287,8 @@ class RSSM(nn.Module):
             seq_len: Sequence length T
 
         Returns:
-            prior: Dictionary with prior states stacked along the time axis.
-            posterior: Dictionary with posterior states stacked along the time
-                axis.
+            prior: Dictionary with prior states stacked along the time axis
+            posterior: Dictionary with posterior states stacked along the time axis
         """
         prior_states = []
         posterior_states = []

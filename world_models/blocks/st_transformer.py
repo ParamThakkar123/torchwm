@@ -11,18 +11,18 @@ class STSpatialAttention(nn.Module):
     Processes video tokens by attending over spatial positions (H*W) within
     each time step independently. Captures within-frame spatial relationships.
 
-    Input: (B, T, N, C) - B batches, T time steps, N spatial positions (H*W), C channels
-    Output: (B, T, N, C) - Same shape, spatially attended features
+    - Input: (B, T, N, C) -- B batches, T time steps, N spatial positions (H*W), C channels
+    - Output: (B, T, N, C) -- Same shape, spatially attended features
 
-    Architecture:
-        QKV projection: Linear(dim, dim*3)
-        Reshape to multi-head attention format
-        Fused scaled dot-product attention (FlashAttention on supported GPUs)
-        Output projection
+    **Architecture**
 
-    Usage in ST-Transformer:
-        Applied to video tokens of shape (B, T, N, C) to capture
-        within-frame spatial structure (e.g., object positions).
+    - QKV projection: Linear(dim, dim*3)
+    - Reshape to multi-head attention format
+    - Fused scaled dot-product attention (FlashAttention on supported GPUs)
+    - Output projection
+
+    Applied to video tokens of shape (B, T, N, C) to capture within-frame
+    spatial structure (e.g., object positions).
     """
 
     def __init__(
@@ -87,16 +87,16 @@ class STTemporalAttention(nn.Module):
     positions. Uses causal masking to ensure each frame only attends to previous
     frames (important for autoregressive video generation).
 
-    Input: (B, T, N, C) - B batches, T time steps, N spatial positions, C channels
-    Output: (B, T, N, C) - Same shape, temporally attended features
+    - Input: (B, T, N, C) -- B batches, T time steps, N spatial positions, C channels
+    - Output: (B, T, N, C) -- Same shape, temporally attended features
 
-    Key Feature: Causal masking
-        - Frame t can only attend to frames 0...t-1
-        - Prevents information leakage from future frames
-        - Essential for autoregressive video generation models
+    **Causal masking**
 
-    Usage in Genie VideoTokenizer:
-        Applied after STSpatialAttention to model temporal dynamics.
+    - Frame t can only attend to frames 0...t-1
+    - Prevents information leakage from future frames
+    - Essential for autoregressive video generation models
+
+    Applied after STSpatialAttention to model temporal dynamics in the Genie VideoTokenizer.
     """
 
     causal_mask: torch.Tensor
@@ -206,9 +206,10 @@ class STTransformerBlock(nn.Module):
     """Combined spatiotemporal transformer block with interleaved attention.
 
     A single block applies:
-        1. Spatial attention (within each time frame)
-        2. Temporal attention (across frames with causal mask)
-        3. MLP projection
+
+    1. Spatial attention (within each time frame)
+    2. Temporal attention (across frames with causal mask)
+    3. MLP projection
 
     The order is: x -> + SpatialAttn -> + TemporalAttn -> + MLP -> x
 
@@ -223,11 +224,12 @@ class STTransformerBlock(nn.Module):
         drop_path: Stochastic depth rate for drop path regularization
         norm_layer: Normalization layer class (default: nn.LayerNorm)
 
-    Usage in Genie:
+    **Usage in Genie**::
+
         # VideoTokenizer encoder (12 layers)
         encoder = STTransformer(
             num_frames=16,
-            num_patches_per_frame=256,  # 16x16 for 64x64 images with patch_size=4
+            num_patches_per_frame=256,
             dim=512,
             depth=12,
             num_heads=16

@@ -145,6 +145,8 @@ _LAZY_EXPORTS: dict[str, str] = {
     "register_gymnasium_robotics_envs": "world_models.envs",
     "GymImageEnv": "world_models.envs",
     "make_gym_env": "world_models.envs",
+    "WorldModelEnv": "world_models.envs",
+    "make_world_model_env": "world_models.envs",
     "BraxImageEnv": "world_models.envs",
     "make_brax_env": "world_models.envs",
     "DeepMindControlEnv": "world_models.envs",

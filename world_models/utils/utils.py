@@ -6,6 +6,7 @@ import pickle
 import pathlib
 import numpy as np
 import glob
+import warnings
 
 if not hasattr(np, "bool8"):
     # Some NumPy builds don't expose `bool8` as an attribute; set it safely
@@ -400,20 +401,24 @@ def load_memory(path, device, *, trusted=False):
     """
     Loads an experience replay buffer.
 
-    Pickle can execute arbitrary code during unrestricted deserialization. By
-    default this uses a restricted unpickler that only allows the replay buffer
-    classes and numpy containers required by historical buffers. Pass
-    ``trusted=True`` only for files created by this application or another
-    trusted source when compatibility with a legacy pickle requires unrestricted
-    loading.
+    Pickle can execute arbitrary code during unrestricted deserialization, so
+    user-supplied replay buffers are always loaded with a restricted unpickler
+    that only allows the replay buffer classes and numpy containers required by
+    historical buffers. The ``trusted`` argument is retained for backwards
+    compatibility, but it no longer enables unrestricted pickle loading.
 
     Converts legacy list/.data formats into the current Memory(episodes) object.
     """
+    if trusted:
+        warnings.warn(
+            "load_memory(trusted=True) is deprecated and no longer enables "
+            "unrestricted pickle loading.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     with open(path, "rb") as f:
-        if trusted:
-            memory = pickle.Unpickler(f).load()
-        else:
-            memory = _RestrictedReplayUnpickler(f).load()
+        memory = _RestrictedReplayUnpickler(f).load()
 
     # If file contains a plain list of Episode objects -> wrap into Memory
     if isinstance(memory, list):

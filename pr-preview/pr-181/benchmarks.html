@@ -12,9 +12,14 @@
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-181/benchmarks.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
 <meta property="og:description" content="TorchWM includes a lightweight benchmark harness for running standardized evaluations of trained world-model agents and exporting results that can be used in experiment logs, reports, and papers. Q..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-181/_images/social_previews/summary_benchmarks_588f723f.png" />
+<meta property="og:image:alt" content="TorchWM includes a lightweight benchmark harness for running standardized evaluations of trained world-model agents and exporting results that can be used in experiment logs, reports, and papers. Q..." />
 <meta name="description" content="TorchWM includes a lightweight benchmark harness for running standardized evaluations of trained world-model agents and exporting results that can be used in experiment logs, reports, and papers. Q..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>Benchmarking World Models &#8212; TorchWM 0.4.0 documentation</title>
+    <title>Benchmarking World Models &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,11 +51,12 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=3a14cefc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'benchmarks';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
@@ -128,7 +134,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -268,13 +274,15 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -400,6 +408,21 @@ to <code class="docutils literal notranslate"><span class="pre">results/bench</s
 <span class="w">  </span>--device<span class="w"> </span>cpu
 </pre></div>
 </div>
+<p>Run DreamerV1 on a DeepMind BSuite diagnostic task:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>benchmark<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--agent<span class="w"> </span>dreamerv1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--game<span class="w"> </span>catch/0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--env-backend<span class="w"> </span>bsuite<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--checkpoint<span class="w"> </span>checkpoints/dreamerv1/bsuite_catch.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seeds<span class="w"> </span><span class="m">0</span>,1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--episodes<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--device<span class="w"> </span>cpu
+</pre></div>
+</div>
+<p>The BSuite backend is optional. Install it with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torchwm[bsuite]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">bsuite</span></code> before running BSuite tasks. TorchWM wraps BSuite’s compact
+<code class="docutils literal notranslate"><span class="pre">dm_env</span></code> observations as synthetic RGB images so the existing pixel-based
+Dreamer benchmark path can evaluate trained world-model agents.</p>
 <p>Run all registered adapters on the same game with per-agent checkpoints:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>benchmark<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--all-agents<span class="w"> </span><span class="se">\</span>
@@ -420,9 +443,10 @@ to <code class="docutils literal notranslate"><span class="pre">results/bench</s
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--agent</span> <span class="pre">AGENT</span></code> / <code class="docutils literal notranslate"><span class="pre">-a</span> <span class="pre">AGENT</span></code>: run one adapter (<code class="docutils literal notranslate"><span class="pre">iris</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">dreamerv1</span></code>, or <code class="docutils literal notranslate"><span class="pre">dreamerv2</span></code>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--all-agents</span></code>: run every registered adapter on the same environment.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--game</span> <span class="pre">GAME</span></code> / <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">GAME</span></code>: Gym/ALE environment id, such as <code class="docutils literal notranslate"><span class="pre">ALE/Pong-v5</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--game</span> <span class="pre">GAME</span></code> / <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">GAME</span></code>: environment id, such as <code class="docutils literal notranslate"><span class="pre">ALE/Pong-v5</span></code> or a BSuite id like <code class="docutils literal notranslate"><span class="pre">catch/0</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint</span> <span class="pre">PATH</span></code> / <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">PATH</span></code>: checkpoint path for single-agent benchmarks.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint-map</span> <span class="pre">AGENT=PATH</span></code>: repeatable per-agent checkpoint mapping for <code class="docutils literal notranslate"><span class="pre">--all-agents</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--env-backend</span> <span class="pre">BACKEND</span></code>: optional backend hint forwarded to adapters. Use <code class="docutils literal notranslate"><span class="pre">bsuite</span></code> for DeepMind BSuite ids such as <code class="docutils literal notranslate"><span class="pre">catch/0</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--seeds</span> <span class="pre">SEEDS</span></code>: either <code class="docutils literal notranslate"><span class="pre">N</span></code> for seeds <code class="docutils literal notranslate"><span class="pre">0..N-1</span></code>, or a comma-separated list such as <code class="docutils literal notranslate"><span class="pre">0,1,2</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--episodes</span> <span class="pre">N</span></code> / <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">N</span></code>: number of evaluation episodes per seed.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--out-dir</span> <span class="pre">DIR</span></code>: output directory for report artifacts. The legacy alias <code class="docutils literal notranslate"><span class="pre">--out_dir</span></code> is also accepted.</p></li>

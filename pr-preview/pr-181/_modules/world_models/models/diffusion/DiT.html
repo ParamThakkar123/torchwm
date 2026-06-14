@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>world_models.models.diffusion.DiT &#8212; TorchWM 0.4.0 documentation</title>
+    <title>world_models.models.diffusion.DiT &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,11 +39,448 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../../../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=3a14cefc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/world_models/models/diffusion/DiT';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../../../../_static/fix_navbar.js?v=92322e29"></script>
@@ -120,7 +557,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -293,16 +730,25 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">einops</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dit_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiTConfig</span> <span class="k">as</span> <span class="n">Config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.layers.AdaLNNorm</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaLNNormalization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.model_io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">apply_config_overrides</span><span class="p">,</span>
+    <span class="n">coerce_config</span><span class="p">,</span>
+    <span class="n">module_summary</span><span class="p">,</span>
+    <span class="n">resolve_pretrained_file</span><span class="p">,</span>
+    <span class="n">save_config_next_to_checkpoint</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.layers.ada_ln_norm</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaLNNormalization</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.blocks.mhsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultiHeadSelfAttention</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.diffusion.DDPM</span><span class="w"> </span><span class="kn">import</span> <span class="n">DDPM</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.datasets.cifar10</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_cifar10</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.datasets.imagenet1k</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_imagenet1k</span><span class="p">,</span> <span class="n">make_imagefolder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomHorizontalFlip</span><span class="p">,</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">ToTensor</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.transforms.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_transforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.transforms.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_transforms</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_image</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 
@@ -481,6 +927,15 @@
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DiT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_dim</span> <span class="o">=</span> <span class="n">t_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
+            <span class="n">IMG_SIZE</span><span class="o">=</span><span class="n">img_size</span><span class="p">,</span>
+            <span class="n">CHANNELS</span><span class="o">=</span><span class="n">in_channels</span><span class="p">,</span>
+            <span class="n">PATCH</span><span class="o">=</span><span class="n">patch_size</span><span class="p">,</span>
+            <span class="n">WIDTH</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">DEPTH</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span>
+            <span class="n">HEADS</span><span class="o">=</span><span class="n">heads</span><span class="p">,</span>
+            <span class="n">DROP</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">t_dim</span><span class="p">,</span> <span class="n">t_dim</span><span class="p">),</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">GELU</span><span class="p">(),</span>
@@ -509,6 +964,129 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpatchify</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="DiT.from_config">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.from_config">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DiT&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build DiT from a config object, dict, YAML file, or YAML string.&quot;&quot;&quot;</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">coerce_config</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">overrides</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">img_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">IMG_SIZE</span><span class="p">,</span>
+            <span class="n">patch_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">PATCH</span><span class="p">,</span>
+            <span class="n">in_channels</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">CHANNELS</span><span class="p">,</span>
+            <span class="n">d_model</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">WIDTH</span><span class="p">,</span>
+            <span class="n">depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">DEPTH</span><span class="p">,</span>
+            <span class="n">heads</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">HEADS</span><span class="p">,</span>
+            <span class="n">drop</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">DROP</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.from_pretrained">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.from_pretrained">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">pretrained_model_name_or_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Config</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">checkpoint_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">,</span>
+        <span class="n">repo_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">revision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">map_location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DiT&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DiT weights from a local path/directory or HF Hub.&quot;&quot;&quot;</span>
+
+        <span class="n">checkpoint_candidates</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">checkpoint_filename</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="n">checkpoint_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="p">(</span><span class="s2">&quot;dit_model.pth&quot;</span><span class="p">,</span> <span class="s2">&quot;model.pt&quot;</span><span class="p">,</span> <span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="s2">&quot;checkpoint.pt&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">resolve_pretrained_file</span><span class="p">(</span>
+            <span class="n">pretrained_model_name_or_path</span><span class="p">,</span>
+            <span class="n">checkpoint_candidates</span><span class="p">,</span>
+            <span class="n">repo_type</span><span class="o">=</span><span class="n">repo_type</span><span class="p">,</span>
+            <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not find a DiT checkpoint for </span><span class="si">{</span><span class="n">pretrained_model_name_or_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span> <span class="ow">or</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint_config</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint_config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">checkpoint_config</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config_path</span> <span class="o">=</span> <span class="n">resolve_pretrained_file</span><span class="p">(</span>
+                <span class="n">pretrained_model_name_or_path</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">config_filename</span><span class="p">,</span> <span class="s2">&quot;dit_config.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;config.yml&quot;</span><span class="p">),</span>
+                <span class="n">repo_type</span><span class="o">=</span><span class="n">repo_type</span><span class="p">,</span>
+                <span class="n">revision</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">config_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="s2">&quot;No config was provided and no config YAML was found beside &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pretrained_model_name_or_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">coerce_config</span><span class="p">(</span><span class="n">Config</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">overrides</span><span class="p">))</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">checkpoint</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">state_dict</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;model_state_dict&quot;</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state_dict&quot;</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="DiT.save_pretrained">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.save_pretrained">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save DiT weights and config in a from_pretrained-compatible format.&quot;&quot;&quot;</span>
+
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint_path</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">&quot;dit_model.pth&quot;</span>
+        <span class="n">save_config_next_to_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="s2">&quot;model_state_dict&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()},</span>
+            <span class="n">checkpoint_path</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.parameter_count">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.parameter_count">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parameter_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainable_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">trainable_only</span> <span class="ow">or</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DiT.summary">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">module_summary</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;t_mlp&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span><span class="p">,</span>
+                <span class="s2">&quot;patchify&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchify</span><span class="p">,</span>
+                <span class="s2">&quot;transformer_blocks&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer_blocks</span><span class="p">,</span>
+                <span class="s2">&quot;unpatchify&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unpatchify</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DiT.train">
@@ -541,7 +1119,11 @@
         <span class="n">subset_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">val_split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: CUDA not available, using CPU&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;cifar10&quot;</span><span class="p">:</span>
             <span class="n">transform</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">([</span><span class="n">RandomHorizontalFlip</span><span class="p">(),</span> <span class="n">ToTensor</span><span class="p">()])</span>
@@ -677,8 +1259,30 @@
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">model_to_save</span> <span class="o">=</span> <span class="n">ema_model</span> <span class="k">if</span> <span class="n">ema_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">model</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_to_save</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/dit_model.pth&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/dit_model.pth&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;dit_model.pth&quot;</span>
+        <span class="n">train_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
+            <span class="n">DATASET</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+            <span class="n">BATCH</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">EPOCHS</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span>
+            <span class="n">LR</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span>
+            <span class="n">IMG_SIZE</span><span class="o">=</span><span class="n">img_size</span><span class="p">,</span>
+            <span class="n">CHANNELS</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
+            <span class="n">PATCH</span><span class="o">=</span><span class="n">patch</span><span class="p">,</span>
+            <span class="n">WIDTH</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">DEPTH</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span>
+            <span class="n">HEADS</span><span class="o">=</span><span class="n">heads</span><span class="p">,</span>
+            <span class="n">DROP</span><span class="o">=</span><span class="n">drop</span><span class="p">,</span>
+            <span class="n">BETA_START</span><span class="o">=</span><span class="n">beta_start</span><span class="p">,</span>
+            <span class="n">BETA_END</span><span class="o">=</span><span class="n">beta_end</span><span class="p">,</span>
+            <span class="n">TIMESTEPS</span><span class="o">=</span><span class="n">timesteps</span><span class="p">,</span>
+            <span class="n">EMA</span><span class="o">=</span><span class="n">ema</span><span class="p">,</span>
+            <span class="n">EMA_DECAY</span><span class="o">=</span><span class="n">ema_decay</span><span class="p">,</span>
+            <span class="n">WORKDIR</span><span class="o">=</span><span class="n">workdir</span><span class="p">,</span>
+            <span class="n">ROOT_PATH</span><span class="o">=</span><span class="n">root_path</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">save_config_next_to_checkpoint</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model_to_save</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">checkpoint_path</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Generate new Images</span>
         <span class="n">model_to_sample</span> <span class="o">=</span> <span class="n">ema_model</span> <span class="k">if</span> <span class="n">ema_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">model</span>
@@ -691,6 +1295,49 @@
             <span class="n">save_image</span><span class="p">((</span><span class="n">samples</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/generated_samples.png&quot;</span><span class="p">,</span> <span class="n">nrow</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated samples saved to </span><span class="si">{</span><span class="n">workdir</span><span class="si">}</span><span class="s2">/generated_samples.png&quot;</span><span class="p">)</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="create_dit">
+<a class="viewcode-back" href="../../../../api_reference.html#torchwm.create_dit">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_dit</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.</span>
+
+<span class="sd">    The public factory API works with config objects, while ``DiT`` itself has a</span>
+<span class="sd">    compact constructor. This adapter keeps the lower-level model constructor</span>
+<span class="sd">    unchanged and maps the public config fields onto the expected arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+
+    <span class="n">config_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;__dataclass_fields__&quot;</span><span class="p">,</span> <span class="p">{}))</span>
+    <span class="n">config_overrides</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">config_fields</span>
+    <span class="p">}</span>
+    <span class="n">constructor_overrides</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config_fields</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">config_overrides</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">config_overrides</span><span class="p">)</span>
+
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;img_size&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">IMG_SIZE</span><span class="p">,</span>
+        <span class="s2">&quot;patch_size&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">PATCH</span><span class="p">,</span>
+        <span class="s2">&quot;in_channels&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">CHANNELS</span><span class="p">,</span>
+        <span class="s2">&quot;d_model&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">WIDTH</span><span class="p">,</span>
+        <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">DEPTH</span><span class="p">,</span>
+        <span class="s2">&quot;heads&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">HEADS</span><span class="p">,</span>
+        <span class="s2">&quot;drop&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">DROP</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">supported</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">|</span> <span class="p">{</span><span class="s2">&quot;t_dim&quot;</span><span class="p">}</span>
+    <span class="n">invalid</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">constructor_overrides</span><span class="p">)</span> <span class="o">-</span> <span class="n">supported</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">invalid</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported DiT argument(s): </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">invalid</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">constructor_overrides</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DiT</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </pre></div>
 

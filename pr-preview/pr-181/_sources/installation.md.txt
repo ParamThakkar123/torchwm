@@ -52,29 +52,49 @@ pip install -e .
 pip install -e ".[gym,ml-agents,ml,viz,dev,docs]"
 ```
 
-## CUDA Support
+## PyTorch Build Selection
 
-For GPU acceleration, install PyTorch with CUDA:
+TorchWM does not pin a single PyTorch wheel index. Install the PyTorch build that matches your platform (CPU, macOS, CUDA, ROCm, etc.) using the index recommended by the [PyTorch installation selector](https://pytorch.org/get-started/locally/).
 
 ```bash
-# Using uv (recommended)
-uv add torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# Example: CUDA 12.1 wheels. Replace the index for CPU, ROCm, or other CUDA versions.
+uv add torch torchvision torchaudio --index https://download.pytorch.org/whl/cu121
 
-# Or using pip
+# Or using pip.
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
 ## Docker
 
-Build and run using Docker:
+Build the default CPU image and run the TorchWM CLI:
 
 ```bash
 # Build
 docker build -t torchwm .
 
-# Run
-docker run -it torchwm
+# Show the CLI help
+docker run --rm torchwm
+
+# Run a specific command
+docker run --rm torchwm models list
 ```
+
+The Dockerfile installs PyTorch explicitly before installing TorchWM so the wheel
+source is controlled by the `PYTORCH_INDEX_URL` build argument. The default uses
+CPU wheels. To build against a CUDA wheel index, pass the matching PyTorch index
+and run the container with the NVIDIA runtime:
+
+```bash
+docker build \
+  --build-arg PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu121 \
+  -t torchwm:cu121 .
+
+docker run --rm --gpus all torchwm:cu121 models list
+```
+
+Additional optional dependency groups can be installed at build time with
+`TORCHWM_EXTRAS`, for example `--build-arg TORCHWM_EXTRAS=viz,ml`. Runtime data is
+stored under `/data/torchwm`, which you can persist with a bind mount or volume.
 
 ## Verification
 

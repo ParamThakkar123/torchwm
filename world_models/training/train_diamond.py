@@ -8,6 +8,13 @@ from typing import Dict, List, Optional, Tuple, Union
 from tqdm import tqdm
 import os
 from pathlib import Path
+from world_models.models.model_io import (
+    apply_config_overrides,
+    coerce_config,
+    module_summary,
+    resolve_pretrained_file,
+    save_config_next_to_checkpoint,
+)
 from world_models.configs.diamond_config import (
     DiamondConfig,
     HUMAN_SCORES,
@@ -44,7 +51,8 @@ class DiamondAgent:
     """
 
     def __init__(self, config: DiamondConfig):
-        self.config = config
+        self.config = coerce_config(DiamondConfig, config)
+        config = self.config
         self.device = torch.device(
             config.device if torch.cuda.is_available() else "cpu"
         )
@@ -105,6 +113,86 @@ class DiamondAgent:
         # last LSTM hidden states (saved for reproducible imagined rollouts)
         self.last_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
         self.last_reward_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+
+    @classmethod
+    def from_config(
+        cls,
+        config: DiamondConfig | dict | str | Path | None = None,
+        **overrides,
+    ) -> "DiamondAgent":
+        """Build a DIAMOND agent from a config object, dict, YAML file, or YAML string."""
+
+        args = apply_config_overrides(coerce_config(DiamondConfig, config), overrides)
+        return cls(args)
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: DiamondConfig | dict | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        **overrides,
+    ) -> "DiamondAgent":
+        """Load a DIAMOND checkpoint from a local path/directory or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("checkpoint.pt", "model.pt", "diamond.pt", "pytorch_model.bin")
+        )
+        checkpoint_path = resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                "Could not find a DIAMOND checkpoint for "
+                f"{pretrained_model_name_or_path!r}."
+            )
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        if config is None and isinstance(checkpoint.get("config"), dict):
+            args = DiamondConfig.from_dict(checkpoint["config"])
+        elif config is None:
+            config_path = resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "diamond_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = DiamondConfig.from_yaml(config_path)
+        else:
+            args = coerce_config(DiamondConfig, config)
+        agent = cls(apply_config_overrides(args, overrides))
+        agent.load_checkpoint(str(checkpoint_path))
+        return agent
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        return sum(
+            param.numel()
+            for module in (self.diffusion_model, self.reward_model, self.actor_critic)
+            for param in module.parameters()
+            if not trainable_only or param.requires_grad
+        )
+
+    def summary(self) -> dict:
+        return module_summary(
+            {
+                "diffusion_model": self.diffusion_model,
+                "reward_model": self.reward_model,
+                "actor_critic": self.actor_critic,
+            }
+        )
 
     def _build_models(self):
         """Initialize all DIAMOND models."""
@@ -804,8 +892,9 @@ class DiamondAgent:
         # Prepare checkpoint (model weights + metadata). We keep hidden states
         # in the torch checkpoint but save large numpy arrays to separate files
         # with a common basename derived from the output path.
+        save_config_next_to_checkpoint(self.config, out_path)
         checkpoint = {
-            "config": self.config.__dict__,
+            "config": self.config.to_dict(),
             "diffusion_model": self.diffusion_model.state_dict(),
             "reward_model": self.reward_model.state_dict(),
             "actor_critic": self.actor_critic.state_dict(),

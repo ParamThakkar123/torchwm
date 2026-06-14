@@ -1,4 +1,9 @@
-class DreamerConfig:
+from __future__ import annotations
+
+from world_models.configs.serialization import SerializableConfigMixin
+
+
+class DreamerConfig(SerializableConfigMixin):
     """Configuration container for Dreamer training, evaluation, and environment setup.
 
     This class centralizes environment backend selection (DMC/DMLab/Gym/MuJoCo/Robotics/Unity/Brax),
@@ -122,6 +127,7 @@ class DreamerConfig:
         self.wandb_project = "torchwm"
         self.wandb_entity = ""
         self.log_dir = "runs"
+        self.logdir = None
         # Base directory for DreamerAgent-created relative log directories.
         # If unset, DreamerAgent uses TORCHWM_DATA_DIR or log_dir instead of
         # writing into the package source tree.

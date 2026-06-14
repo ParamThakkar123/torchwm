@@ -8,10 +8,13 @@ except Exception:
 import copy
 import logging
 import sys
+import torch.multiprocessing as mp
+import torch.nn.functional as F
 import yaml  # type: ignore[import-untyped]
 
 import numpy as np
 import torch
+from torch.nn.parallel import DistributedDataParallel
 import wandb
 
 from world_models.masks.multiblock import MaskCollator as MBMaskCollator
@@ -57,7 +60,7 @@ def main(args=None, resume_preempt=False):
     if args is None or isinstance(args, list):
         return main_from_cli(args)
     if isinstance(args, JEPAConfig):
-        args = args.to_dict()
+        args = args.to_train_dict()
 
     # ----------------------------------------------------------------------- #
     #  PASSED IN PARAMS FROM CONFIG FILE
@@ -464,7 +467,7 @@ def sweep_train():
         for key, value in wandb.config.items():
             if hasattr(cfg, key):
                 setattr(cfg, key, value)
-        main(cfg.to_dict())
+        main(cfg.to_train_dict())
 
 
 def main_from_cli(argv: list[str] | None = None):

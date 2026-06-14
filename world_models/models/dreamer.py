@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import importlib.util
 import numpy as np
 import ctypes
 
@@ -10,6 +11,8 @@ import torch.optim as optim
 import torch.distributions as distributions
 
 from collections import OrderedDict
+from pathlib import Path
+from typing import Any
 
 import world_models.envs.wrappers as env_wrapper
 from world_models.envs.dmc import DeepMindControlEnv
@@ -211,6 +214,94 @@ def make_env(args):
     return env
 
 
+def _coerce_dreamer_config(config: Any | None) -> DreamerConfig:
+    """Normalize Dreamer config inputs to a ``DreamerConfig`` instance."""
+
+    if config is None:
+        return DreamerConfig()
+    if isinstance(config, DreamerConfig):
+        return config
+    if isinstance(config, dict):
+        return DreamerConfig.from_dict(config)
+    if isinstance(config, (str, Path)):
+        return DreamerConfig.from_yaml(config)
+    raise TypeError(
+        "config must be a DreamerConfig, dict, YAML path/string, or None; "
+        f"got {type(config).__name__}."
+    )
+
+
+def _apply_config_overrides(
+    config: DreamerConfig, overrides: dict[str, Any]
+) -> DreamerConfig:
+    for key, value in overrides.items():
+        if not hasattr(config, key):
+            raise ValueError(f"Invalid DreamerConfig override: {key}")
+        setattr(config, key, value)
+    return config
+
+
+def _default_device(config: DreamerConfig) -> torch.device:
+    if torch.cuda.is_available() and not config.no_gpu:
+        return torch.device("cuda")
+    return torch.device("cpu")
+
+
+def _find_local_pretrained_file(path: Path, candidates: tuple[str, ...]) -> Path | None:
+    if path.is_file():
+        return path
+    if path.is_dir():
+        for name in candidates:
+            candidate = path / name
+            if candidate.exists():
+                return candidate
+        for pattern in ("*.pt", "*.pth", "*.bin"):
+            matches = sorted(path.glob(pattern))
+            if matches:
+                return matches[0]
+    return None
+
+
+def _resolve_pretrained_file(
+    pretrained_model_name_or_path: str | Path,
+    candidates: tuple[str, ...],
+    *,
+    repo_type: str | None = None,
+    revision: str | None = None,
+) -> Path | None:
+    local_path = Path(pretrained_model_name_or_path)
+    local_file = _find_local_pretrained_file(local_path, candidates)
+    if local_file is not None:
+        return local_file
+
+    if importlib.util.find_spec("huggingface_hub") is None:
+        return None
+
+    from huggingface_hub import hf_hub_download
+
+    repo_id = str(pretrained_model_name_or_path)
+    for filename in candidates:
+        try:
+            downloaded = hf_hub_download(
+                repo_id=repo_id,
+                filename=filename,
+                repo_type=repo_type,
+                revision=revision,
+            )
+        except Exception:
+            continue
+        return Path(downloaded)
+    return None
+
+
+def _save_config_next_to_checkpoint(
+    config: DreamerConfig, checkpoint_path: str | Path
+) -> None:
+    checkpoint = Path(checkpoint_path)
+    checkpoint.parent.mkdir(parents=True, exist_ok=True)
+    config.to_yaml(checkpoint.parent / "config.yaml")
+
+
 def preprocess_obs(obs):
     """Convert raw uint8 image observations to Dreamer float input space.
 
@@ -387,6 +478,149 @@ class Dreamer:
 
         if restore:
             self.restore_checkpoint(self.restore_path)
+
+    @classmethod
+    def from_config(
+        cls,
+        config: DreamerConfig | dict[str, Any] | str | Path | None = None,
+        *,
+        obs_shape: tuple[int, ...] | None = None,
+        action_size: int | None = None,
+        device: str | torch.device | None = None,
+        restore: bool | None = None,
+        **overrides: Any,
+    ) -> "Dreamer":
+        """Build a core Dreamer model from a config object, dict, or YAML file.
+
+        ``obs_shape`` and ``action_size`` may be supplied directly. When either
+        is omitted, this method constructs a temporary environment from the
+        config to infer the model shapes.
+        """
+
+        args = _apply_config_overrides(_coerce_dreamer_config(config), overrides)
+        if obs_shape is None or action_size is None:
+            env = make_env(args)
+            if obs_shape is None:
+                obs_shape = tuple(env.observation_space["image"].shape)
+            if action_size is None:
+                action_size = int(env.action_space.shape[0])
+        torch_device = (
+            torch.device(device) if device is not None else _default_device(args)
+        )
+        should_restore = args.restore if restore is None else restore
+        return cls(args, obs_shape, action_size, torch_device, should_restore)
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: DreamerConfig | dict[str, Any] | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        map_location: str | torch.device | None = None,
+        **overrides: Any,
+    ) -> "Dreamer":
+        """Load a Dreamer checkpoint from a local path/directory or the HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("model.pt", "pytorch_model.bin", "checkpoint.pt", "ckpt.pt")
+        )
+        checkpoint_path = _resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
+            )
+
+        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint_config = (
+            checkpoint.get("config") if isinstance(checkpoint, dict) else None
+        )
+        if config is None and checkpoint_config is not None:
+            args = _coerce_dreamer_config(checkpoint_config)
+        elif config is not None:
+            args = _coerce_dreamer_config(config)
+        else:
+            config_path = _resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "dreamer_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = DreamerConfig.from_yaml(config_path)
+        args = _apply_config_overrides(args, overrides)
+
+        obs_shape = (
+            checkpoint.get("obs_shape") if isinstance(checkpoint, dict) else None
+        )
+        action_size = (
+            checkpoint.get("action_size") if isinstance(checkpoint, dict) else None
+        )
+        model = cls.from_config(
+            args,
+            obs_shape=tuple(obs_shape) if obs_shape is not None else None,
+            action_size=int(action_size) if action_size is not None else None,
+            device=map_location,
+            restore=False,
+        )
+        model.restore_checkpoint(checkpoint_path, map_location=map_location)
+        return model
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        """Return the total number of parameters owned by the Dreamer modules."""
+
+        return sum(
+            param.numel()
+            for module in (
+                self.world_model_modules + self.actor_modules + self.value_modules
+            )
+            for param in module.parameters()
+            if not trainable_only or param.requires_grad
+        )
+
+    def summary(self) -> dict[str, Any]:
+        """Return a compact parameter-count summary for the Dreamer modules."""
+
+        modules = {
+            "rssm": self.rssm,
+            "actor": self.actor,
+            "reward_model": self.reward_model,
+            "obs_encoder": self.obs_encoder,
+            "obs_decoder": self.obs_decoder,
+            "value_model": self.value_model,
+        }
+        if self.args.use_disc_model:
+            modules["discount_model"] = self.discount_model
+        module_params = {
+            name: sum(param.numel() for param in module.parameters())
+            for name, module in modules.items()
+        }
+        trainable_params = {
+            name: sum(
+                param.numel() for param in module.parameters() if param.requires_grad
+            )
+            for name, module in modules.items()
+        }
+        return {
+            "total_parameters": sum(module_params.values()),
+            "trainable_parameters": sum(trainable_params.values()),
+            "modules": module_params,
+            "trainable_modules": trainable_params,
+        }
 
     @assert_finite
     def world_model_loss(self, obs, acs, rews, nonterms):
@@ -699,8 +933,12 @@ class Dreamer:
         return np.array(seed_episode_rews)
 
     def save(self, save_path):
+        _save_config_next_to_checkpoint(self.args, save_path)
         torch.save(
             {
+                "config": self.args.to_dict(),
+                "obs_shape": tuple(self.obs_shape),
+                "action_size": int(self.action_size),
                 "rssm": self.rssm.state_dict(),
                 "actor": self.actor.state_dict(),
                 "reward_model": self.reward_model.state_dict(),
@@ -718,8 +956,8 @@ class Dreamer:
             save_path,
         )
 
-    def restore_checkpoint(self, ckpt_path):
-        checkpoint = torch.load(ckpt_path, weights_only=True)
+    def restore_checkpoint(self, ckpt_path, map_location=None):
+        checkpoint = torch.load(ckpt_path, map_location=map_location, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
@@ -741,10 +979,7 @@ class DreamerAgent(ExportableAgentMixin):
     """
 
     def __init__(self, config=None, **kwargs):
-        if config is None:
-            self.args = DreamerConfig()
-        else:
-            self.args = config
+        self.args = _coerce_dreamer_config(config)
 
         self.last_latents_ref = kwargs.get("last_latents_ref", None)
 
@@ -801,6 +1036,7 @@ class DreamerAgent(ExportableAgentMixin):
             self.logdir = os.path.join(data_path, self.logdir)
         if not (os.path.exists(self.logdir)):
             os.makedirs(self.logdir)
+        self.args.to_yaml(os.path.join(self.logdir, "config.yaml"))
 
         setup_logging(
             "world_models",
@@ -843,6 +1079,84 @@ class DreamerAgent(ExportableAgentMixin):
             enable_jsonl=getattr(self.args, "enable_jsonl", True),
             jsonl_filename=getattr(self.args, "jsonl_filename", "metrics.jsonl"),
         )
+
+    @classmethod
+    def from_config(
+        cls,
+        config: DreamerConfig | dict[str, Any] | str | Path | None = None,
+        **overrides: Any,
+    ) -> "DreamerAgent":
+        """Build a high-level Dreamer agent from a config object, dict, or YAML file."""
+
+        return cls(_apply_config_overrides(_coerce_dreamer_config(config), overrides))
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: DreamerConfig | dict[str, Any] | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        map_location: str | torch.device | None = None,
+        **overrides: Any,
+    ) -> "DreamerAgent":
+        """Create a Dreamer agent and restore weights from a local path or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("model.pt", "pytorch_model.bin", "checkpoint.pt", "ckpt.pt")
+        )
+        checkpoint_path = _resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
+            )
+
+        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint_config = (
+            checkpoint.get("config") if isinstance(checkpoint, dict) else None
+        )
+        if config is None and checkpoint_config is not None:
+            args = _coerce_dreamer_config(checkpoint_config)
+        elif config is not None:
+            args = _coerce_dreamer_config(config)
+        else:
+            config_path = _resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "dreamer_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = DreamerConfig.from_yaml(config_path)
+        args = _apply_config_overrides(args, overrides)
+        args.restore = False
+        agent = cls(args)
+        agent.dreamer.restore_checkpoint(checkpoint_path, map_location=map_location)
+        return agent
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        """Return the total number of Dreamer parameters."""
+
+        return self.dreamer.parameter_count(trainable_only=trainable_only)
+
+    def summary(self) -> dict[str, Any]:
+        """Return a compact parameter-count summary for the wrapped Dreamer model."""
+
+        return self.dreamer.summary()
 
     def train(self, total_steps=None):
         if total_steps is None:

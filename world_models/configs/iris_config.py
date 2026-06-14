@@ -1,4 +1,7 @@
-class IRISConfig:
+from world_models.configs.serialization import SerializableConfigMixin
+
+
+class IRISConfig(SerializableConfigMixin):
     """Configuration for IRIS (Imagination with auto-Regression over an Inner Speech)
 
     Based on paper: "Transformers are Sample-Efficient World Models"

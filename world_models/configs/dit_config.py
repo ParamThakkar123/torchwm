@@ -1,8 +1,10 @@
 from dataclasses import dataclass, replace
 
+from world_models.configs.serialization import SerializableConfigMixin
+
 
 @dataclass
-class DiTConfig:
+class DiTConfig(SerializableConfigMixin):
     """Default configuration values for Diffusion Transformer (DiT) training.
 
     The fields define dataset selection, model architecture, diffusion schedule,

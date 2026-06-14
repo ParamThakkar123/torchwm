@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 import torch
+
+from world_models.configs.serialization import SerializableConfigMixin
 
 
 def get_default_device() -> str:
@@ -11,7 +14,7 @@ def get_default_device() -> str:
 
 
 @dataclass
-class ModelPreset:
+class ModelPreset(SerializableConfigMixin):
     """Model architecture preset for different hardware tiers."""
 
     diffusion_channels: List[int]
@@ -55,7 +58,7 @@ MODEL_PRESETS = {
 
 
 @dataclass
-class DiamondConfig:
+class DiamondConfig(SerializableConfigMixin):
     # Preset selection (overrides manual model config if set)
     preset: Optional[str] = None  # "small", "medium", "large", or None
 

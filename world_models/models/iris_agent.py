@@ -1,11 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from typing import Tuple, Optional
+from pathlib import Path
+from typing import Any, Tuple, Optional
 import torch.nn.functional as F
 from world_models.utils.logging_utils import setup_logging
 
 from world_models.configs.iris_config import IRISConfig
+from world_models.models.model_io import (
+    apply_config_overrides,
+    coerce_config,
+    module_summary,
+    parameter_count as count_parameters,
+    resolve_pretrained_file,
+    save_config_next_to_checkpoint,
+)
 from world_models.vision.iris_encoder import IRISEncoder
 from world_models.vision.iris_decoder import IRISDecoder
 from world_models.models.iris_transformer import IRISTransformer
@@ -64,7 +73,8 @@ class IRISAgent(nn.Module):
     ):
         super().__init__()
 
-        self.config = config
+        self.config = coerce_config(IRISConfig, config)
+        config = self.config
         self.action_size = action_size
         self.device = device
         self.logger = setup_logging("IRISAgent")
@@ -130,6 +140,106 @@ class IRISAgent(nn.Module):
         # === Training state ===
         self.global_step = 0
         self.current_epoch = 0
+
+    @classmethod
+    def from_config(
+        cls,
+        config: IRISConfig | dict[str, Any] | str | Path | None = None,
+        *,
+        action_size: int,
+        device: torch.device | str | None = None,
+        **overrides: Any,
+    ) -> "IRISAgent":
+        """Build an IRIS agent from a config object, dict, YAML file, or YAML string."""
+
+        args = apply_config_overrides(coerce_config(IRISConfig, config), overrides)
+        torch_device = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
+        return cls(args, action_size=action_size, device=torch_device)
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        action_size: int | None = None,
+        device: torch.device | str | None = None,
+        config: IRISConfig | dict[str, Any] | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        **overrides: Any,
+    ) -> "IRISAgent":
+        """Load an IRIS agent checkpoint from a local path/directory or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("model.pt", "iris.pt", "checkpoint.pt", "ckpt.pt")
+        )
+        checkpoint_path = resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                f"Could not find an IRIS checkpoint for {pretrained_model_name_or_path!r}."
+            )
+        map_location = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location, weights_only=False
+        )
+        checkpoint_config = checkpoint.get("config")
+        if config is None and isinstance(checkpoint_config, IRISConfig):
+            args = checkpoint_config
+        elif config is None and isinstance(checkpoint_config, dict):
+            args = IRISConfig.from_dict(checkpoint_config)
+        elif config is None:
+            config_path = resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "iris_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = IRISConfig.from_yaml(config_path)
+        else:
+            args = coerce_config(IRISConfig, config)
+        args = apply_config_overrides(args, overrides)
+        resolved_action_size = action_size or checkpoint.get("action_size")
+        if resolved_action_size is None:
+            raise ValueError(
+                "action_size must be provided or present in the checkpoint."
+            )
+        agent = cls(args, action_size=int(resolved_action_size), device=map_location)
+        agent.load(str(checkpoint_path))
+        return agent
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        return count_parameters(self, trainable_only=trainable_only)
+
+    def summary(self) -> dict[str, Any]:
+        return module_summary(
+            {
+                "encoder": self.encoder,
+                "decoder": self.decoder,
+                "transformer": self.transformer,
+                "cnn": self.cnn,
+                "lstm": self.lstm,
+                "actor_head": self.actor_head,
+                "critic_head": self.critic_head,
+            }
+        )
 
     def _setup_optimizers(self):
         """Setup separate optimizers for each component."""
@@ -550,8 +660,11 @@ class IRISAgent(nn.Module):
 
     def save(self, path: str):
         """Save agent state."""
+        save_config_next_to_checkpoint(self.config, path)
         torch.save(
             {
+                "config": self.config.to_dict(),
+                "action_size": int(self.action_size),
                 "encoder": self.encoder.state_dict(),
                 "decoder": self.decoder.state_dict(),
                 "transformer": self.transformer.state_dict(),
@@ -562,7 +675,6 @@ class IRISAgent(nn.Module):
                 "autoencoder_opt": self.autoencoder_opt.state_dict(),
                 "transformer_opt": self.transformer_opt.state_dict(),
                 "ac_opt": self.ac_opt.state_dict(),
-                "config": dict(vars(self.config)),
                 "global_step": self.global_step,
                 "epoch": self.current_epoch,
             },

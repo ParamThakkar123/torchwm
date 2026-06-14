@@ -119,6 +119,7 @@ class GenieTrainer:
             Dictionary of losses
         """
         self.model.train()
+        batch = batch.to(self.device)
 
         B, C, T, H, W = batch.shape
         mask_prob = (

@@ -12,9 +12,14 @@
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-175/environments/world_model.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
 <meta property="og:description" content="WorldModelEnv wraps a trained or adapter-backed world model as a Gymnasium-compliant environment. It lets you run simulated rollouts with the same API shape expected by RL libraries such as Stable-..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-175/_images/social_previews/summary_environments_world_model_7c852b9a.png" />
+<meta property="og:image:alt" content="WorldModelEnv wraps a trained or adapter-backed world model as a Gymnasium-compliant environment. It lets you run simulated rollouts with the same API shape expected by RL libraries such as Stable-..." />
 <meta name="description" content="WorldModelEnv wraps a trained or adapter-backed world model as a Gymnasium-compliant environment. It lets you run simulated rollouts with the same API shape expected by RL libraries such as Stable-..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>World Model Env &#8212; TorchWM 0.4.0 documentation</title>
+    <title>World Model Env &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,11 +51,12 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/documentation_options.js?v=ff822928"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=3a14cefc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'environments/world_model';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../_static/fix_navbar.js?v=92322e29"></script>
@@ -129,7 +135,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -269,13 +275,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -358,7 +366,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">step(action)</span> <span class="pre">-&gt;</span> <span class="pre">(observation,</span> <span class="pre">reward,</span> <span class="pre">terminated,</span> <span class="pre">truncated,</span> <span class="pre">info)</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">observation_space</span></code>, <code class="docutils literal notranslate"><span class="pre">action_space</span></code>, <code class="docutils literal notranslate"><span class="pre">render()</span></code>, and <code class="docutils literal notranslate"><span class="pre">close()</span></code></p></li>
 </ul>
-<p>The wrapper is model-agnostic. You can either expose common model methods (<code class="docutils literal notranslate"><span class="pre">env_step</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">predict_step</span></code>, <code class="docutils literal notranslate"><span class="pre">predict</span></code>, <code class="docutils literal notranslate"><span class="pre">imagine_step</span></code>, <code class="docutils literal notranslate"><span class="pre">transition</span></code>, or <code class="docutils literal notranslate"><span class="pre">__call__</span></code>) or provide explicit adapter callables.</p>
+<p>The wrapper is model-agnostic. You can either expose common model methods (<code class="docutils literal notranslate"><span class="pre">env_step</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">predict_step</span></code>, <code class="docutils literal notranslate"><span class="pre">predict</span></code>, <code class="docutils literal notranslate"><span class="pre">imagine_step</span></code>, <code class="docutils literal notranslate"><span class="pre">transition</span></code>, or <code class="docutils literal notranslate"><span class="pre">__call__</span></code>) or provide explicit adapter callables. For end-to-end examples with Stable-Baselines3, TorchRL, and CleanRL, see the <a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html"><span class="std std-doc">RL library integration tutorial</span></a> and its <a class="reference internal" href="../tutorials/world_model_env_rl_libraries_notebook.html"><span class="std std-doc">notebook version</span></a>.</p>
 <section id="basic-usage">
 <h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
@@ -391,6 +399,24 @@
 
 <span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="action-adapters">
+<h2>Action adapters<a class="headerlink" href="#action-adapters" title="Link to this heading">#</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">action_transform_fn</span></code> when the RL library should optimize a different action representation than the world model consumes. For example, expose a <code class="docutils literal notranslate"><span class="pre">Discrete</span></code> action space to an RL library while converting each action into a learned one-hot or latent action vector before the model step:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">action_transform</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="n">one_hot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_actions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">one_hot</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">action</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">return</span> <span class="n">one_hot</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">WorldModelEnv</span><span class="p">(</span>
+    <span class="n">trained_model</span><span class="p">,</span>
+    <span class="n">observation_space</span><span class="o">=</span><span class="n">obs_space</span><span class="p">,</span>
+    <span class="n">action_space</span><span class="o">=</span><span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="n">trained_model</span><span class="o">.</span><span class="n">num_actions</span><span class="p">),</span>
+    <span class="n">transition_fn</span><span class="o">=</span><span class="n">transition</span><span class="p">,</span>
+    <span class="n">action_transform_fn</span><span class="o">=</span><span class="n">action_transform</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -491,6 +517,7 @@
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-usage">Basic usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#action-adapters">Action adapters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factory-and-public-api">Factory and public API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accepted-adapter-return-forms">Accepted adapter return forms</a></li>
 </ul>

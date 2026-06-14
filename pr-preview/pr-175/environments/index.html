@@ -12,9 +12,14 @@
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-175/environments/index.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
 <meta property="og:description" content="TorchWM ships environment adapters for pixel-based world-model training, model-based reinforcement learning, and benchmark collection. Each backend page explains the installation requirements, fact..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-175/_images/social_previews/summary_environments_index_5d3085c4.png" />
+<meta property="og:image:alt" content="TorchWM ships environment adapters for pixel-based world-model training, model-based reinforcement learning, and benchmark collection. Each backend page explains the installation requirements, fact..." />
 <meta name="description" content="TorchWM ships environment adapters for pixel-based world-model training, model-based reinforcement learning, and benchmark collection. Each backend page explains the installation requirements, fact..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>Environment Backends &#8212; TorchWM 0.4.0 documentation</title>
+    <title>Environment Backends &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -46,11 +51,12 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/documentation_options.js?v=ff822928"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=3a14cefc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'environments/index';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="../_static/fix_navbar.js?v=92322e29"></script>
@@ -129,7 +135,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -269,13 +275,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -353,9 +361,11 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dmc.html">DeepMind Control Suite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dmlab.html">DeepMind Lab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gym.html">Gym and Gymnasium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="brax.html">Brax</a></li>
 <li class="toctree-l1"><a class="reference internal" href="atari.html">Atari</a></li>
+<li class="toctree-l1"><a class="reference internal" href="procgen.html">Procgen</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mujoco.html">MuJoCo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robotics.html">Gymnasium Robotics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unity.html">Unity ML-Agents</a></li>
@@ -382,11 +392,23 @@
 <td><p>Dict with DMC state keys plus <code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code> from the DMC action spec</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="gym.html"><span class="std std-doc">Gym and Gymnasium</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="dmlab.html"><span class="std std-doc">DeepMind Lab</span></a></p></td>
+<td><p>3D navigation and puzzle tasks from DeepMind Lab</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_dmlab_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;dmlab&quot;</span></code></p></td>
+<td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code> plus requested Lab observations</p></td>
+<td><p>Normalized one-hot <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code> over native Lab actions</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="gym.html"><span class="std std-doc">Gym and Gymnasium</span></a></p></td>
 <td><p>Classic control, Box2D, custom Gym environments, and generic rendered tasks</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_gym_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;gym&quot;</span></code></p></td>
 <td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code> only</p></td>
 <td><p>Original continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code> or one-hot vector for discrete actions</p></td>
+</tr>
+<tr class="row-odd"><td><p>DeepMind BSuite</p></td>
+<td><p>Small diagnostic RL benchmark tasks such as <code class="docutils literal notranslate"><span class="pre">catch/0</span></code> and <code class="docutils literal notranslate"><span class="pre">deep_sea/0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BSuiteImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_bsuite_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;bsuite&quot;</span></code></p></td>
+<td><p>Dict with synthetic <code class="docutils literal notranslate"><span class="pre">image</span></code> only</p></td>
+<td><p>One-hot vector for discrete actions</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="brax.html"><span class="std std-doc">Brax</span></a></p></td>
 <td><p>JAX/Brax continuous-control tasks through a Gym-like image adapter</p></td>
@@ -400,37 +422,43 @@
 <td><p>ALE RGB/RAM observations</p></td>
 <td><p>Discrete Atari actions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="procgen.html"><span class="std std-doc">Procgen</span></a></p></td>
+<td><p>Procedurally generated benchmark games</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_procgen_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;procgen&quot;</span></code></p></td>
+<td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p>One-hot vector for discrete Procgen actions</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mujoco.html"><span class="std std-doc">MuJoCo</span></a></p></td>
 <td><p>Gymnasium MuJoCo task ids and native MJCF/MJB models</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_mujoco_env</span></code></p></td>
 <td><p>Image dict via <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>/<code class="docutils literal notranslate"><span class="pre">MuJoCoImageEnv</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="robotics.html"><span class="std std-doc">Gymnasium Robotics</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="robotics.html"><span class="std std-doc">Gymnasium Robotics</span></a></p></td>
 <td><p>All ids registered by the installed Gymnasium Robotics package, including moved legacy MuJoCo v2/v3 ids</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_robotics_env</span></code>, <code class="docutils literal notranslate"><span class="pre">list_gymnasium_robotics_envs</span></code></p></td>
 <td><p>Image dict via <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="unity.html"><span class="std std-doc">Unity ML-Agents</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="unity.html"><span class="std std-doc">Unity ML-Agents</span></a></p></td>
 <td><p>External Unity executable simulations with continuous-control behaviors</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;unity_mlagents&quot;</span></code></p></td>
 <td><p>Dict with <code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
 <td><p>Continuous <code class="docutils literal notranslate"><span class="pre">Box[-1,</span> <span class="pre">1]</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="vectorized.html"><span class="std std-doc">Vectorized environments</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="vectorized.html"><span class="std std-doc">Vectorized environments</span></a></p></td>
 <td><p>Multiprocess/vector rollout collection and native ALE vectorization</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TorchVectorizedEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_atari_vector_env</span></code></p></td>
 <td><p>Batched observations</p></td>
 <td><p>Batched actions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="world_model.html"><span class="std std-doc">World Model Env</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="world_model.html"><span class="std std-doc">World Model Env</span></a></p></td>
 <td><p>Model-based RL, policy optimization, and evaluation inside learned dynamics</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">WorldModelEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_world_model_env</span></code>, <code class="docutils literal notranslate"><span class="pre">env_backend=&quot;world-model&quot;</span></code></p></td>
 <td><p>Adapter-defined Gymnasium space</p></td>
 <td><p>Adapter-defined Gymnasium space</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wrappers.html"><span class="std std-doc">Wrappers</span></a></p></td>
 <td><p>Shared preprocessing, action conversion, time limits, reward observations, and image transforms</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">world_models.envs.wrappers</span></code></p></td>
 <td><p>Backend-dependent</p></td>
@@ -444,7 +472,7 @@
 <h2>Shared conventions<a class="headerlink" href="#shared-conventions" title="Link to this heading">#</a></h2>
 <p>Most TorchWM training code expects image observations as a dictionary entry named <code class="docutils literal notranslate"><span class="pre">image</span></code> with channel-first shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> and <code class="docutils literal notranslate"><span class="pre">uint8</span></code> values. Backend adapters that wrap vector-only environments synthesize an image representation so pixel-based agents can still run.</p>
 <p>DIAMOND-style Atari support is documented on the Atari page as a preprocessing helper for Atari rollouts. It is not a separate environment backend.</p>
-<p>Dreamer environment construction applies a standard wrapper stack after creating DMC, Gym/Gymnasium, Brax, or Unity environments:</p>
+<p>Dreamer environment construction applies a standard wrapper stack after creating DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen, BSuite, Brax, or Unity environments:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code> repeats each selected action for <code class="docutils literal notranslate"><span class="pre">cfg.action_repeat</span></code> environment steps.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NormalizeActions</span></code> exposes finite continuous action bounds as normalized <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> policy outputs.</p></li>

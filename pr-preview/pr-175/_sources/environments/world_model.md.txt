@@ -6,7 +6,7 @@
 - `step(action) -> (observation, reward, terminated, truncated, info)`
 - `observation_space`, `action_space`, `render()`, and `close()`
 
-The wrapper is model-agnostic. You can either expose common model methods (`env_step`, `step`, `predict_step`, `predict`, `imagine_step`, `transition`, or `__call__`) or provide explicit adapter callables.
+The wrapper is model-agnostic. You can either expose common model methods (`env_step`, `step`, `predict_step`, `predict`, `imagine_step`, `transition`, or `__call__`) or provide explicit adapter callables. For end-to-end examples with Stable-Baselines3, TorchRL, and CleanRL, see the [RL library integration tutorial](../tutorials/world_model_env_rl_libraries.md) and its [notebook version](../tutorials/world_model_env_rl_libraries_notebook.ipynb).
 
 ## Basic usage
 
@@ -41,6 +41,26 @@ env = WorldModelEnv(
 
 obs, info = env.reset(seed=0)
 obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
+```
+
+
+## Action adapters
+
+Use `action_transform_fn` when the RL library should optimize a different action representation than the world model consumes. For example, expose a `Discrete` action space to an RL library while converting each action into a learned one-hot or latent action vector before the model step:
+
+```python
+def action_transform(model, action):
+    one_hot = np.zeros(model.num_actions, dtype=np.float32)
+    one_hot[int(action)] = 1.0
+    return one_hot
+
+env = WorldModelEnv(
+    trained_model,
+    observation_space=obs_space,
+    action_space=gym.spaces.Discrete(trained_model.num_actions),
+    transition_fn=transition,
+    action_transform_fn=action_transform,
+)
 ```
 
 ## Factory and public API

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; TorchWM 0.4.0 documentation</title>
+    <title>Index &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -39,11 +39,448 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=3a14cefc"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
@@ -120,7 +557,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -273,6 +710,7 @@
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -420,6 +858,10 @@
       <ul>
         <li><a href="api_reference.html#torchwm.IRISReplayBuffer.action_size">(torchwm.IRISReplayBuffer attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.action_size">(world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.action_size">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.controller.iris_policy.IRISActor.action_size">(world_models.controller.iris_policy.IRISActor attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.IRISActor.action_size">(world_models.IRISActor attribute)</a>
@@ -428,27 +870,35 @@
 </li>
         <li><a href="api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer.action_size">(world_models.memory.iris_memory.IRISReplayBuffer attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.models.controller.Controller.action_size">(world_models.models.controller.Controller attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.utils.utils.TorchImageEnvWrapper.action_size">(world_models.utils.utils.TorchImageEnvWrapper property)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.envs.BraxImageEnv.action_space">action_space (world_models.envs.BraxImageEnv property)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.action_space">(world_models.envs.BSuiteImageEnv property)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.DeepMindControlEnv.action_space">(world_models.envs.DeepMindControlEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id22">(world_models.envs.DeepMindControlEnv property)</a>
+        <li><a href="api_reference.html#id10">(world_models.envs.DeepMindControlEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.dmc.DeepMindControlEnv.action_space">(world_models.envs.dmc.DeepMindControlEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id24">(world_models.envs.dmc.DeepMindControlEnv property)</a>
+        <li><a href="api_reference.html#id12">(world_models.envs.dmc.DeepMindControlEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.action_space">(world_models.envs.dmlab.DMLabEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.action_space">(world_models.envs.DMLabEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.action_space">(world_models.envs.gym_env.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id26">(world_models.envs.gym_env.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id14">(world_models.envs.gym_env.GymImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.GymImageEnv.action_space">(world_models.envs.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id16">(world_models.envs.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id4">(world_models.envs.GymImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.mujoco_env.MuJoCoImageEnv.action_space">(world_models.envs.mujoco_env.MuJoCoImageEnv property)</a>
 </li>
@@ -460,13 +910,17 @@
 </li>
         <li><a href="api_reference.html#world_models.envs.OneHotAction.action_space">(world_models.envs.OneHotAction property)</a>
 </li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.action_space">(world_models.envs.procgen_env.ProcgenImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.action_space">(world_models.envs.ProcgenImageEnv property)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.unity_env.UnityMLAgentsEnv.action_space">(world_models.envs.unity_env.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id29">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id17">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.UnityMLAgentsEnv.action_space">(world_models.envs.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id19">(world_models.envs.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id7">(world_models.envs.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.wrappers.NormalizeActions.action_space">(world_models.envs.wrappers.NormalizeActions property)</a>
 </li>
@@ -673,6 +1127,10 @@
 </li>
       <li><a href="api_reference.html#world_models.utils.utils.apply_model">apply_model() (in module world_models.utils.utils)</a>
 </li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.assert_finite">assert_finite() (in module world_models.utils.logging_utils)</a>
+</li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.assert_finite_values">assert_finite_values() (in module world_models.utils.logging_utils)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.utils.TensorBoardMetrics.assign_type">assign_type() (world_models.utils.utils.TensorBoardMetrics method)</a>
 </li>
       <li><a href="api_reference.html#torchwm.TanhBijector.atanh">atanh() (torchwm.TanhBijector method)</a>
@@ -749,6 +1207,14 @@
         <li><a href="api_reference.html#world_models.DiTConfig.BATCH">(world_models.DiTConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#torchwm.OperatorABC.batch">batch() (torchwm.OperatorABC method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.batch">(world_models.inference.operators.base.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.batch">(world_models.OperatorABC method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.batch_size">batch_size (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -769,6 +1235,8 @@
         <li><a href="api_reference.html#world_models.configs.GenieConfig.batch_size">(world_models.configs.GenieConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.configs.GenieSmallConfig.batch_size">(world_models.configs.GenieSmallConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.batch_size">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsConfig.batch_size">(world_models.datasets.tinyworlds.TinyWorldsConfig attribute)</a>
 </li>
@@ -829,6 +1297,8 @@
 </li>
       <li><a href="api_reference.html#world_models.envs.BraxImageEnv">BraxImageEnv (class in world_models.envs)</a>
 </li>
+      <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv">BSuiteImageEnv (class in world_models.envs)</a>
+</li>
       <li><a href="api_reference.html#torchwm.IRISReplayBuffer.buffer_capacity">buffer_capacity (torchwm.IRISReplayBuffer property)</a>
 
       <ul>
@@ -837,6 +1307,8 @@
         <li><a href="api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer.buffer_capacity">(world_models.memory.iris_memory.IRISReplayBuffer property)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.buffer_size">buffer_size (world_models.datasets.wm_dataset.RolloutDataset attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.burn_in_length">burn_in_length (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -854,6 +1326,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsConfig.cache_dir">cache_dir (world_models.datasets.tinyworlds.TinyWorldsConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.blocks.st_transformer.STTemporalAttention.causal_mask">causal_mask (world_models.blocks.st_transformer.STTemporalAttention attribute)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiTConfig.CHANNELS">CHANNELS (torchwm.DiTConfig attribute)</a>
 
@@ -878,6 +1352,12 @@
       <li><a href="api_reference.html#world_models.envs.BraxImageEnv.close">close() (world_models.envs.BraxImageEnv method)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.close">(world_models.envs.BSuiteImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.close">(world_models.envs.dmlab.DMLabEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.close">(world_models.envs.DMLabEnv method)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.close">(world_models.envs.gym_env.GymImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.GymImageEnv.close">(world_models.envs.GymImageEnv method)</a>
@@ -886,6 +1366,10 @@
 </li>
         <li><a href="api_reference.html#world_models.envs.MuJoCoImageEnv.close">(world_models.envs.MuJoCoImageEnv method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.close">(world_models.envs.procgen_env.ProcgenImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.close">(world_models.envs.ProcgenImageEnv method)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.unity_env.UnityMLAgentsEnv.close">(world_models.envs.unity_env.UnityMLAgentsEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.UnityMLAgentsEnv.close">(world_models.envs.UnityMLAgentsEnv method)</a>
@@ -893,6 +1377,8 @@
         <li><a href="api_reference.html#world_models.envs.vector_env.VectorizedEnv.close">(world_models.envs.vector_env.VectorizedEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.WorldModelEnv.close">(world_models.envs.WorldModelEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.utils.logging_utils.MetricsLogger.close">(world_models.utils.logging_utils.MetricsLogger method)</a>
 </li>
         <li><a href="api_reference.html#world_models.utils.utils.StreamingVideoWriter.close">(world_models.utils.utils.StreamingVideoWriter method)</a>
 </li>
@@ -928,6 +1414,8 @@
       <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.collect_experience">collect_experience() (world_models.training.train_iris.IRISTrainer method)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.dreamer.Dreamer.collect_random_episodes">collect_random_episodes() (world_models.models.dreamer.Dreamer method)</a>
+</li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.collect_system_stats">collect_system_stats() (in module world_models.utils.logging_utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.training.rl_harness.PPOTrainer.collect_trajectories">collect_trajectories() (world_models.training.rl_harness.PPOTrainer method)</a>
 </li>
@@ -981,6 +1469,10 @@
         <li><a href="api_reference.html#world_models.ModelSpec.config_path">(world_models.ModelSpec attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.models.controller.Controller">Controller (class in world_models.models.controller)</a>
+</li>
+      <li><a href="api_reference.html#world_models.losses.convae_loss.conv_vae_loss_fn">conv_vae_loss_fn() (in module world_models.losses.convae_loss)</a>
+</li>
       <li><a href="api_reference.html#world_models.models.diffusion.reward_termination.ConvBlock">ConvBlock (class in world_models.models.diffusion.reward_termination)</a>
 </li>
       <li><a href="api_reference.html#torchwm.ConvDecoder">ConvDecoder (class in torchwm)</a>
@@ -1005,6 +1497,12 @@
         <li><a href="api_reference.html#world_models.vision.dreamer_encoder.ConvEncoder">(class in world_models.vision.dreamer_encoder)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAE">ConvVAE (class in world_models.vision.VAE.ConvVAE)</a>
+</li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEDecoder">ConvVAEDecoder (class in world_models.vision.VAE.ConvVAE)</a>
+</li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEEncoder">ConvVAEEncoder (class in world_models.vision.VAE.ConvVAE)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.imagenet1k.copy_imgnt_locally">copy_imgnt_locally() (in module world_models.datasets.imagenet1k)</a>
 </li>
       <li><a href="api_reference.html#world_models.utils.jepa_utils.CosineWDSchedule">CosineWDSchedule (class in world_models.utils.jepa_utils)</a>
@@ -1019,6 +1517,14 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsDataLoader.create_dataloader">create_dataloader() (world_models.datasets.tinyworlds.TinyWorldsDataLoader static method)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.create_dit">create_dit() (in module torchwm)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.create_dit">(in module world_models)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.diffusion.DiT.create_dit">(in module world_models.models.diffusion.DiT)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.create_dynamics_model">create_dynamics_model() (in module torchwm)</a>
 
       <ul>
@@ -1105,6 +1611,32 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.d">d (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.d">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.d">(world_models.RSSMPolicy attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.data_dir">data_dir (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.data_dir">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.DiamondConfig.data_loader_num_workers">data_loader_num_workers (torchwm.DiamondConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.data_loader_num_workers">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.DiamondConfig.data_loader_num_workers">(world_models.configs.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.DiamondConfig.data_loader_num_workers">(world_models.DiamondConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_mdn_rnn.data_pass">data_pass() (in module world_models.training.train_mdn_rnn)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.video_datasets.VideoDatasetBase.data_source">data_source (world_models.datasets.video_datasets.VideoDatasetBase attribute)</a>
 
       <ul>
@@ -1215,6 +1747,8 @@
         <li><a href="api_reference.html#world_models.ModularRSSM.decode_reward">(world_models.ModularRSSM method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAE.decoder">decoder (world_models.vision.VAE.ConvVAE.ConvVAE attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.VideoTokenizerConfig.decoder_depth">decoder_depth (torchwm.VideoTokenizerConfig attribute)</a>
 
       <ul>
@@ -1340,11 +1874,23 @@
       <li><a href="api_reference.html#torchwm.DiamondConfig.device">device (torchwm.DiamondConfig attribute)</a>
 
       <ul>
+        <li><a href="api_reference.html#torchwm.RSSMPolicy.device">(torchwm.RSSMPolicy attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.device">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.configs.DiamondConfig.device">(world_models.configs.DiamondConfig attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.device">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.device">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.device">(world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.device">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.DiamondConfig.device">(world_models.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.device">(world_models.RSSMPolicy attribute)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.benchmarks.DiamondAdapter">DiamondAdapter (class in world_models.benchmarks)</a>
@@ -1357,6 +1903,8 @@
 </li>
       <li><a href="api_reference.html#world_models.envs.diamond_atari.DiamondAtariWrapper">DiamondAtariWrapper (class in world_models.envs.diamond_atari)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.DiamondConfig">DiamondConfig (class in torchwm)</a>
 
       <ul>
@@ -1379,8 +1927,6 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.diffusion_channels">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.DiamondConfig.diffusion_cond_dim">diffusion_cond_dim (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -1437,6 +1983,8 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.vision.iris_decoder.DiscreteAutoencoder">DiscreteAutoencoder (class in world_models.vision.iris_decoder)</a>
 </li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.display">display (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.DiT">DiT (class in torchwm)</a>
 
       <ul>
@@ -1453,6 +2001,12 @@
         <li><a href="api_reference.html#world_models.configs.DiTConfig">(class in world_models.configs)</a>
 </li>
         <li><a href="api_reference.html#world_models.configs.dit_config.DiTConfig">(class in world_models.configs.dit_config)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.envs.DMLabEnv">DMLabEnv (class in world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv">(class in world_models.envs.dmlab)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.models.diffusion.diamond_diffusion.DownBlock">DownBlock (class in world_models.models.diffusion.diamond_diffusion)</a>
@@ -1487,6 +2041,8 @@
         <li><a href="api_reference.html#world_models.inference.operators.dreamer_operator.DreamerOperator">(class in world_models.inference.operators.dreamer_operator)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.export.DreamerPolicyExport">DreamerPolicyExport (class in world_models.export)</a>
+</li>
       <li><a href="api_reference.html#world_models.benchmarks.adapters.DreamerV1Adapter">DreamerV1Adapter (class in world_models.benchmarks.adapters)</a>
 </li>
       <li><a href="api_reference.html#world_models.benchmarks.adapters.DreamerV2Adapter">DreamerV2Adapter (class in world_models.benchmarks.adapters)</a>
@@ -1543,6 +2099,14 @@
 
       <ul>
         <li><a href="api_reference.html#world_models.models.vit.DropPath">(class in world_models.models.vit)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.TensorSpec.dtype">dtype (torchwm.TensorSpec attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.TensorSpec.dtype">(world_models.inference.operators.base.TensorSpec attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.TensorSpec.dtype">(world_models.TensorSpec attribute)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger.dump_scalars_to_pickle">dump_scalars_to_pickle() (world_models.utils.dreamer_utils.Logger method)</a>
@@ -1631,6 +2195,14 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.early_stopping_patience">early_stopping_patience (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.early_stopping_patience">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.utils.train_utils.EarlyStopping">EarlyStopping (class in world_models.utils.train_utils)</a>
+</li>
       <li><a href="api_reference.html#world_models.models.diffusion.diamond_diffusion.EDMPreconditioner">EDMPreconditioner (class in world_models.models.diffusion.diamond_diffusion)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiTConfig.EMA">EMA (torchwm.DiTConfig attribute)</a>
@@ -1743,6 +2315,8 @@
         <li><a href="api_reference.html#world_models.models.genie.Genie.encode_video">(world_models.models.genie.Genie method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAE.encoder">encoder (world_models.vision.VAE.ConvVAE.ConvVAE attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.LatentActionModelConfig.encoder_depth">encoder_depth (torchwm.LatentActionModelConfig attribute)</a>
 
       <ul>
@@ -1779,8 +2353,6 @@
         <li><a href="api_reference.html#world_models.VideoTokenizerConfig.encoder_dim">(world_models.VideoTokenizerConfig attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.models.modular_rssm.EncoderBase">EncoderBase (class in world_models.models.modular_rssm)</a>
 </li>
       <li><a href="api_reference.html#world_models.utils.utils.ensure_results_dir_exists">ensure_results_dir_exists() (in module world_models.utils.utils)</a>
@@ -1793,6 +2365,8 @@
         <li><a href="api_reference.html#world_models.vision.dreamer_decoder.SampleDist.entropy">(world_models.vision.dreamer_decoder.SampleDist method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.DiamondConfig.entropy_weight">entropy_weight (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -1803,6 +2377,8 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.entropy_weight">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.env">env (world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.EnvBackendSpec">EnvBackendSpec (class in torchwm)</a>
 
       <ul>
@@ -1831,6 +2407,8 @@
         <li><a href="api_reference.html#world_models.memory.planet_memory.Episode">(class in world_models.memory.planet_memory)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.episode_gen">episode_gen (world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.IRISReplayBuffer.episodes">episodes (torchwm.IRISReplayBuffer attribute)</a>
 
       <ul>
@@ -1885,9 +2463,11 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.eval_interval">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#world_models.training.train_rssm.evaluate">evaluate() (in module world_models.training.train_rssm)</a>
+      <li><a href="api_reference.html#world_models.training.train_controller.evaluate">evaluate() (in module world_models.training.train_controller)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.training.train_rssm.evaluate">(in module world_models.training.train_rssm)</a>
+</li>
         <li><a href="api_reference.html#world_models.benchmarks.adapters.BaseAdapter.evaluate">(world_models.benchmarks.adapters.BaseAdapter method)</a>
 </li>
         <li><a href="api_reference.html#world_models.benchmarks.adapters.DiamondAdapter.evaluate">(world_models.benchmarks.adapters.DiamondAdapter method)</a>
@@ -1913,14 +2493,52 @@
         <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.evaluate">(world_models.training.train_iris.IRISTrainer method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#torchwm.ExportableAgentMixin.export">export() (torchwm.ExportableAgentMixin method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.export.ExportableAgentMixin.export">(world_models.export.ExportableAgentMixin method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.ExportableAgentMixin.export">(world_models.ExportableAgentMixin method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.export_any">export_any() (in module torchwm)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.export_any">(in module world_models)</a>
+</li>
+        <li><a href="api_reference.html#world_models.export.export_any">(in module world_models.export)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.benchmarks.reporting.export_csv">export_csv() (in module world_models.benchmarks.reporting)</a>
 </li>
       <li><a href="api_reference.html#world_models.benchmarks.reporting.export_latex">export_latex() (in module world_models.benchmarks.reporting)</a>
 </li>
       <li><a href="api_reference.html#world_models.benchmarks.reporting.export_markdown">export_markdown() (in module world_models.benchmarks.reporting)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.export_model">export_model() (in module torchwm)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.export_model">(in module world_models)</a>
+</li>
+        <li><a href="api_reference.html#world_models.export.export_model">(in module world_models.export)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.ExportableAgentMixin">ExportableAgentMixin (class in torchwm)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.ExportableAgentMixin">(class in world_models)</a>
+</li>
+        <li><a href="api_reference.html#world_models.export.ExportableAgentMixin">(class in world_models.export)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.datasets.video_datasets.VideoDatasetConfig.extensions">extensions (world_models.datasets.video_datasets.VideoDatasetConfig attribute)</a>
 </li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.extra">extra (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.extra">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1945,8 +2563,14 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.flatten_dict">flatten_dict() (in module world_models.utils.utils)</a>
 </li>
-      <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger.flush">flush() (world_models.utils.dreamer_utils.Logger method)</a>
+      <li><a href="api_reference.html#world_models.training.train_controller.flatten_parameters">flatten_parameters() (in module world_models.training.train_controller)</a>
 </li>
+      <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger.flush">flush() (world_models.utils.dreamer_utils.Logger method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.utils.logging_utils.MetricsLogger.flush">(world_models.utils.logging_utils.MetricsLogger method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.ActionDecoder.forward">forward() (torchwm.ActionDecoder method)</a>
 
       <ul>
@@ -1985,6 +2609,8 @@
         <li><a href="api_reference.html#torchwm.LatentActionModel.forward">(torchwm.LatentActionModel method)</a>
 </li>
         <li><a href="api_reference.html#torchwm.MultiHeadSelfAttention.forward">(torchwm.MultiHeadSelfAttention method)</a>
+</li>
+        <li><a href="api_reference.html#torchwm.OperatorABC.forward">(torchwm.OperatorABC method)</a>
 </li>
         <li><a href="api_reference.html#torchwm.PatchEmbed.forward">(torchwm.PatchEmbed method)</a>
 </li>
@@ -2054,7 +2680,13 @@
 </li>
         <li><a href="api_reference.html#world_models.DynamicsModel.forward">(world_models.DynamicsModel method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.export.DreamerPolicyExport.forward">(world_models.export.DreamerPolicyExport method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.export.IRISActorCriticExport.forward">(world_models.export.IRISActorCriticExport method)</a>
+</li>
         <li><a href="api_reference.html#world_models.Genie.forward">(world_models.Genie method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.forward">(world_models.inference.operators.base.OperatorABC method)</a>
 </li>
         <li><a href="api_reference.html#world_models.IRISActor.forward">(world_models.IRISActor method)</a>
 </li>
@@ -2067,6 +2699,8 @@
         <li><a href="api_reference.html#world_models.IRISPolicy.forward">(world_models.IRISPolicy method)</a>
 </li>
         <li><a href="api_reference.html#world_models.LatentActionModel.forward">(world_models.LatentActionModel method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.controller.Controller.forward">(world_models.models.controller.Controller method)</a>
 </li>
         <li><a href="api_reference.html#world_models.models.diffusion.actor_critic.ActorCriticNetwork.forward">(world_models.models.diffusion.actor_critic.ActorCriticNetwork method)</a>
 </li>
@@ -2109,6 +2743,10 @@
         <li><a href="api_reference.html#world_models.models.iris_transformer.IRISWorldModel.forward">(world_models.models.iris_transformer.IRISWorldModel method)</a>
 </li>
         <li><a href="api_reference.html#world_models.models.latent_action_model.LatentActionModel.forward">(world_models.models.latent_action_model.LatentActionModel method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.mdrnn.MDRNN.forward">(world_models.models.mdrnn.MDRNN method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.mdrnn.MDRNNCell.forward">(world_models.models.mdrnn.MDRNNCell method)</a>
 </li>
         <li><a href="api_reference.html#world_models.models.modular_rssm.BackboneBase.forward">(world_models.models.modular_rssm.BackboneBase method)</a>
 </li>
@@ -2153,6 +2791,8 @@
         <li><a href="api_reference.html#world_models.models.vit.VisionTransformerPredictor.forward">(world_models.models.vit.VisionTransformerPredictor method)</a>
 </li>
         <li><a href="api_reference.html#world_models.MultiHeadSelfAttention.forward">(world_models.MultiHeadSelfAttention method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.forward">(world_models.OperatorABC method)</a>
 </li>
         <li><a href="api_reference.html#world_models.PatchEmbed.forward">(world_models.PatchEmbed method)</a>
 </li>
@@ -2211,6 +2851,12 @@
         <li><a href="api_reference.html#world_models.vision.planet_decoder.CNNDecoder.forward">(world_models.vision.planet_decoder.CNNDecoder method)</a>
 </li>
         <li><a href="api_reference.html#world_models.vision.planet_encoder.CNNEncoder.forward">(world_models.vision.planet_encoder.CNNEncoder method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAE.forward">(world_models.vision.VAE.ConvVAE.ConvVAE method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEDecoder.forward">(world_models.vision.VAE.ConvVAE.ConvVAEDecoder method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEEncoder.forward">(world_models.vision.VAE.ConvVAE.ConvVAEEncoder method)</a>
 </li>
         <li><a href="api_reference.html#world_models.vision.video_tokenizer.VideoTokenizer.forward">(world_models.vision.video_tokenizer.VideoTokenizer method)</a>
 </li>
@@ -2283,7 +2929,7 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.game">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#world_models.transforms.transforms.GaussianBlur">GaussianBlur (class in world_models.transforms.transforms)</a>
+      <li><a href="api_reference.html#world_models.transforms.image.GaussianBlur">GaussianBlur (class in world_models.transforms.image)</a>
 </li>
       <li><a href="api_reference.html#torchwm.Genie.generate">generate() (torchwm.Genie method)</a>
 
@@ -2293,6 +2939,8 @@
         <li><a href="api_reference.html#world_models.models.genie.Genie.generate">(world_models.models.genie.Genie method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_world_model.generate_rollouts">generate_rollouts() (in module world_models.training.train_world_model)</a>
+</li>
       <li><a href="api_reference.html#torchwm.Genie">Genie (class in torchwm)</a>
 
       <ul>
@@ -2441,6 +3089,12 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsDataset.get_info">get_info() (world_models.datasets.tinyworlds.TinyWorldsDataset method)</a>
 </li>
+      <li><a href="api_reference.html#world_models.models.mdrnn.MDRNN.get_init_hidden">get_init_hidden() (world_models.models.mdrnn.MDRNN method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.models.mdrnn.MDRNNCell.get_init_hidden">(world_models.models.mdrnn.MDRNNCell method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.RecurrentStateSpaceModel.get_init_state">get_init_state() (torchwm.RecurrentStateSpaceModel method)</a>
 
       <ul>
@@ -2449,6 +3103,8 @@
         <li><a href="api_reference.html#world_models.RecurrentStateSpaceModel.get_init_state">(world_models.RecurrentStateSpaceModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_mdn_rnn.get_loss">get_loss() (in module world_models.training.train_mdn_rnn)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.utils.get_mask">get_mask() (in module world_models.utils.utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.dynamics_model.MaskGITSampler.get_mask_prob">get_mask_prob() (world_models.models.dynamics_model.MaskGITSampler method)</a>
@@ -2475,6 +3131,8 @@
         <li><a href="api_reference.html#world_models.get_operator">(in module world_models)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.get_package_logger">get_package_logger() (in module world_models.utils.logging_utils)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.get_parameters">get_parameters() (in module world_models.utils.dreamer_utils)</a>
 </li>
       <li><a href="api_reference.html#torchwm.RSSM.get_posterior">get_posterior() (torchwm.RSSM method)</a>
@@ -2523,6 +3181,10 @@
         <li><a href="api_reference.html#world_models.models.diffusion.actor_critic.ActorCriticNetwork.get_value">(world_models.models.diffusion.actor_critic.ActorCriticNetwork method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.gmm_components">gmm_components (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.losses.gmm_loss.gmm_loss">gmm_loss() (in module world_models.losses.gmm_loss)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.jepa_utils.gpu_timer">gpu_timer() (in module world_models.utils.jepa_utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.utils.jepa_utils.grad_logger">grad_logger() (in module world_models.utils.jepa_utils)</a>
@@ -2541,6 +3203,14 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.H">H (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.H">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.H">(world_models.RSSMPolicy attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.datasets.video_datasets.HDF5Dataset">HDF5Dataset (class in world_models.datasets.video_datasets)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiTConfig.HEADS">HEADS (torchwm.DiTConfig attribute)</a>
@@ -2553,12 +3223,18 @@
         <li><a href="api_reference.html#world_models.DiTConfig.HEADS">(world_models.DiTConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.height">height (world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.IRISActor.hidden_size">hidden_size (torchwm.IRISActor attribute)</a>
 
       <ul>
         <li><a href="api_reference.html#torchwm.IRISCritic.hidden_size">(torchwm.IRISCritic attribute)</a>
 </li>
         <li><a href="api_reference.html#torchwm.IRISPolicy.hidden_size">(torchwm.IRISPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.hidden_size">(world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.hidden_size">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.controller.iris_policy.IRISActor.hidden_size">(world_models.controller.iris_policy.IRISActor attribute)</a>
 </li>
@@ -2571,6 +3247,8 @@
         <li><a href="api_reference.html#world_models.IRISCritic.hidden_size">(world_models.IRISCritic attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.IRISPolicy.hidden_size">(world_models.IRISPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.controller.Controller.hidden_size">(world_models.models.controller.Controller attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -2679,6 +3357,12 @@
         <li><a href="api_reference.html#world_models.RSSM.imagine_step">(world_models.RSSM method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEDecoder.img_channels">img_channels (world_models.vision.VAE.ConvVAE.ConvVAEDecoder attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEEncoder.img_channels">(world_models.vision.VAE.ConvVAE.ConvVAEEncoder attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.DiTConfig.IMG_SIZE">IMG_SIZE (torchwm.DiTConfig attribute)</a>
 
       <ul>
@@ -2733,6 +3417,8 @@
         <li><a href="api_reference.html#world_models.VideoTokenizerConfig.in_channels">(world_models.VideoTokenizerConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.include_reward">include_reward (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.Genie.infer_actions">infer_actions() (torchwm.Genie method)</a>
 
       <ul>
@@ -2813,6 +3499,16 @@
         <li><a href="api_reference.html#world_models.RSSM.init_state">(world_models.RSSM method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#torchwm.OperatorABC.input_specs">input_specs (torchwm.OperatorABC attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.input_specs">(world_models.inference.operators.base.OperatorABC attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.input_specs">(world_models.OperatorABC attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.export.install_export_method">install_export_method() (in module world_models.export)</a>
+</li>
       <li><a href="api_reference.html#world_models.models.vit.VisionTransformer.interpolate_pos_encoding">interpolate_pos_encoding() (world_models.models.vit.VisionTransformer method)</a>
 </li>
       <li><a href="api_reference.html#world_models.benchmarks.iqm_of_array">iqm_of_array() (in module world_models.benchmarks)</a>
@@ -2829,6 +3525,8 @@
         <li><a href="api_reference.html#world_models.controller.iris_policy.IRISActor">(class in world_models.controller.iris_policy)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.export.IRISActorCriticExport">IRISActorCriticExport (class in world_models.export)</a>
+</li>
       <li><a href="api_reference.html#world_models.benchmarks.IRISAdapter">IRISAdapter (class in world_models.benchmarks)</a>
 
       <ul>
@@ -2954,6 +3652,20 @@
   </ul></td>
 </tr></table>
 
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.K">K (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.K">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.K">(world_models.RSSMPolicy attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -2965,6 +3677,26 @@
         <li><a href="api_reference.html#world_models.configs.DiamondConfig.lambda_returns">(world_models.configs.DiamondConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.DiamondConfig.lambda_returns">(world_models.DiamondConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.latent_size">latent_size (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.latent_size">(world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.latent_size">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.latent_size">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.latent_size">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.models.controller.Controller.latent_size">(world_models.models.controller.Controller attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.latent_size">(world_models.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEDecoder.latent_size">(world_models.vision.VAE.ConvVAE.ConvVAEDecoder attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.vision.VAE.ConvVAE.ConvVAEEncoder.latent_size">(world_models.vision.VAE.ConvVAE.ConvVAEEncoder attribute)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#torchwm.LatentActionModel">LatentActionModel (class in torchwm)</a>
@@ -2985,6 +3717,8 @@
         <li><a href="api_reference.html#world_models.configs.genie_config.LatentActionModelConfig">(class in world_models.configs.genie_config)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.LatentSequenceDataset">LatentSequenceDataset (class in world_models.datasets.wm_dataset)</a>
+</li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.learning_rate">learning_rate (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -3004,6 +3738,10 @@
 </li>
         <li><a href="api_reference.html#world_models.configs.GenieSmallConfig.learning_rate">(world_models.configs.GenieSmallConfig attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.learning_rate">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.learning_rate">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.DiamondConfig.learning_rate">(world_models.DiamondConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.GenieConfig.learning_rate">(world_models.GenieConfig attribute)</a>
@@ -3021,6 +3759,8 @@
         <li><a href="api_reference.html#world_models.envs.ale_atari_env.list_available_atari_envs">(in module world_models.envs.ale_atari_env)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.envs.list_available_bsuite_ids">list_available_bsuite_ids() (in module world_models.envs)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsDataLoader.list_available_datasets">list_available_datasets() (world_models.datasets.tinyworlds.TinyWorldsDataLoader static method)</a>
 </li>
       <li><a href="api_reference.html#torchwm.list_env_backends">list_env_backends() (in module torchwm)</a>
@@ -3053,6 +3793,12 @@
         <li><a href="api_reference.html#world_models.list_models">(in module world_models)</a>
 </li>
         <li><a href="api_reference.html#world_models.api.list_models">(in module world_models.api)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.envs.list_procgen_envs">list_procgen_envs() (in module world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.list_procgen_envs">(in module world_models.envs.procgen_env)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#torchwm.IRISAgent.load">load() (torchwm.IRISAgent method)</a>
@@ -3089,12 +3835,26 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.load_memory">load_memory() (in module world_models.utils.utils)</a>
 </li>
-      <li><a href="api_reference.html#world_models.datasets.diamond_dataset.ReplayBuffer.load_state_dict">load_state_dict() (world_models.datasets.diamond_dataset.ReplayBuffer method)</a>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.load_next_buffer">load_next_buffer() (world_models.datasets.wm_dataset.RolloutDataset method)</a>
 </li>
+      <li><a href="api_reference.html#world_models.training.train_controller.load_parameters">load_parameters() (in module world_models.training.train_controller)</a>
+</li>
+      <li><a href="api_reference.html#world_models.datasets.diamond_dataset.ReplayBuffer.load_state_dict">load_state_dict() (world_models.datasets.diamond_dataset.ReplayBuffer method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.utils.train_utils.EarlyStopping.load_state_dict">(world_models.utils.train_utils.EarlyStopping method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.load_state_dict">(world_models.utils.train_utils.ReduceLROnPlateau method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.load_yml_config">load_yml_config() (in module world_models.utils.utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.utils.jepa_utils.CSVLogger.log">log() (world_models.utils.jepa_utils.CSVLogger method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.utils.logging_utils.MetricsLogger.log">(world_models.utils.logging_utils.MetricsLogger method)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.TanhBijector.log_abs_det_jacobian">log_abs_det_jacobian() (torchwm.TanhBijector method)</a>
 
       <ul>
@@ -3117,8 +3877,18 @@
 </li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger.log_scalars">log_scalars() (world_models.utils.dreamer_utils.Logger method)</a>
 </li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.MetricsLogger.log_video">log_video() (world_models.utils.logging_utils.MetricsLogger method)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger.log_videos">log_videos() (world_models.utils.dreamer_utils.Logger method)</a>
 </li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.logdir">logdir (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.logdir">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.logdir">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.Logger">Logger (class in world_models.utils.dreamer_utils)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiTConfig.LR">LR (torchwm.DiTConfig attribute)</a>
@@ -3131,6 +3901,12 @@
         <li><a href="api_reference.html#world_models.DiTConfig.LR">(world_models.DiTConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.lr">lr (world_models.utils.train_utils.ReduceLROnPlateau attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#id20">(world_models.utils.train_utils.ReduceLROnPlateau property)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.models.modular_rssm.LSTMBackbone">LSTMBackbone (class in world_models.models.modular_rssm)</a>
 </li>
   </ul></td>
@@ -3139,16 +3915,22 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference.html#world_models.training.train_iris.main">main() (in module world_models.training.train_iris)</a>
+      <li><a href="api_reference.html#world_models.training.train_diamond.main">main() (in module world_models.training.train_diamond)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.training.train_iris.main">(in module world_models.training.train_iris)</a>
+</li>
         <li><a href="api_reference.html#world_models.training.train_jepa.main">(in module world_models.training.train_jepa)</a>
 </li>
         <li><a href="api_reference.html#world_models.training.train_planet.main">(in module world_models.training.train_planet)</a>
 </li>
         <li><a href="api_reference.html#world_models.training.train_rssm.main">(in module world_models.training.train_rssm)</a>
 </li>
+        <li><a href="api_reference.html#world_models.training.train_world_model.main">(in module world_models.training.train_world_model)</a>
+</li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_jepa.main_from_cli">main_from_cli() (in module world_models.training.train_jepa)</a>
+</li>
       <li><a href="api_reference.html#world_models.envs.make_atari_env">make_atari_env() (in module world_models.envs)</a>
 
       <ul>
@@ -3163,10 +3945,18 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.envs.make_brax_env">make_brax_env() (in module world_models.envs)</a>
 </li>
+      <li><a href="api_reference.html#world_models.envs.make_bsuite_env">make_bsuite_env() (in module world_models.envs)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.cifar10.make_cifar10">make_cifar10() (in module world_models.datasets.cifar10)</a>
 </li>
       <li><a href="api_reference.html#world_models.envs.diamond_atari.make_diamond_atari_env">make_diamond_atari_env() (in module world_models.envs.diamond_atari)</a>
 </li>
+      <li><a href="api_reference.html#world_models.envs.make_dmlab_env">make_dmlab_env() (in module world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.dmlab.make_dmlab_env">(in module world_models.envs.dmlab)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.make_env">make_env() (in module torchwm)</a>
 
       <ul>
@@ -3203,13 +3993,19 @@
         <li><a href="api_reference.html#world_models.envs.mujoco_env.make_mujoco_env_from_config">(in module world_models.envs.mujoco_env)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.envs.make_procgen_env">make_procgen_env() (in module world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.make_procgen_env">(in module world_models.envs.procgen_env)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.envs.make_robotics_env">make_robotics_env() (in module world_models.envs)</a>
 
       <ul>
         <li><a href="api_reference.html#world_models.envs.robotics_env.make_robotics_env">(in module world_models.envs.robotics_env)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#world_models.transforms.transforms.make_transforms">make_transforms() (in module world_models.transforms.transforms)</a>
+      <li><a href="api_reference.html#world_models.transforms.image.make_transforms">make_transforms() (in module world_models.transforms.image)</a>
 </li>
       <li><a href="api_reference.html#world_models.envs.make_unity_mlagents_env">make_unity_mlagents_env() (in module world_models.envs)</a>
 
@@ -3279,24 +4075,36 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.models.dynamics_model.MaskGITSampler">MaskGITSampler (class in world_models.models.dynamics_model)</a>
 </li>
-      <li><a href="api_reference.html#world_models.envs.BraxImageEnv.max_episode_steps">max_episode_steps (world_models.envs.BraxImageEnv property)</a>
+      <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.max_episode_steps">max_episode_steps (world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.envs.BraxImageEnv.max_episode_steps">(world_models.envs.BraxImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.max_episode_steps">(world_models.envs.BSuiteImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.max_episode_steps">(world_models.envs.dmlab.DMLabEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.max_episode_steps">(world_models.envs.DMLabEnv property)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.max_episode_steps">(world_models.envs.gym_env.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id27">(world_models.envs.gym_env.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id15">(world_models.envs.gym_env.GymImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.GymImageEnv.max_episode_steps">(world_models.envs.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id17">(world_models.envs.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id5">(world_models.envs.GymImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.max_episode_steps">(world_models.envs.procgen_env.ProcgenImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.max_episode_steps">(world_models.envs.ProcgenImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.unity_env.UnityMLAgentsEnv.max_episode_steps">(world_models.envs.unity_env.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id30">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id18">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.UnityMLAgentsEnv.max_episode_steps">(world_models.envs.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id20">(world_models.envs.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id8">(world_models.envs.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.utils.utils.TorchImageEnvWrapper.max_episode_steps">(world_models.utils.utils.TorchImageEnvWrapper property)</a>
 </li>
@@ -3337,6 +4145,12 @@
         <li><a href="api_reference.html#world_models.training.train_genie.GenieConfig.max_steps">(world_models.training.train_genie.GenieConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.max_workers">max_workers (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.models.mdrnn.MDRNN">MDRNN (class in world_models.models.mdrnn)</a>
+</li>
+      <li><a href="api_reference.html#world_models.models.mdrnn.MDRNNCell">MDRNNCell (class in world_models.models.mdrnn)</a>
+</li>
       <li><a href="api_reference.html#torchwm.SampleDist.mean">mean() (torchwm.SampleDist method)</a>
 
       <ul>
@@ -3356,6 +4170,8 @@
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.envs.WorldModelEnv.metadata">metadata (world_models.envs.WorldModelEnv attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.utils.logging_utils.MetricsLogger">MetricsLogger (class in world_models.utils.logging_utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.vit.MLP">MLP (class in world_models.models.vit)</a>
 </li>
@@ -3391,6 +4207,8 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.configs.diamond_config.ModelPreset">ModelPreset (class in world_models.configs.diamond_config)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.ModelSpec">ModelSpec (class in torchwm)</a>
 
       <ul>
@@ -3399,8 +4217,6 @@
         <li><a href="api_reference.html#world_models.api.ModelSpec">(class in world_models.api)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.ModularRSSM">ModularRSSM (class in torchwm)</a>
 
       <ul>
@@ -3435,6 +4251,8 @@
 </li>
         <li><a href="api_reference.html#module-world_models.blocks.st_transformer">world_models.blocks.st_transformer</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.catalog">world_models.catalog</a>
+</li>
         <li><a href="api_reference.html#module-world_models.configs">world_models.configs</a>
 </li>
         <li><a href="api_reference.html#module-world_models.configs.diamond_config">world_models.configs.diamond_config</a>
@@ -3448,6 +4266,8 @@
         <li><a href="api_reference.html#module-world_models.configs.iris_config">world_models.configs.iris_config</a>
 </li>
         <li><a href="api_reference.html#module-world_models.configs.jepa_config">world_models.configs.jepa_config</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.configs.wm_config">world_models.configs.wm_config</a>
 </li>
         <li><a href="api_reference.html#module-world_models.controller.iris_policy">world_models.controller.iris_policy</a>
 </li>
@@ -3465,6 +4285,8 @@
 </li>
         <li><a href="api_reference.html#module-world_models.datasets.video_datasets">world_models.datasets.video_datasets</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.datasets.wm_dataset">world_models.datasets.wm_dataset</a>
+</li>
         <li><a href="api_reference.html#module-world_models.envs">world_models.envs</a>
 </li>
         <li><a href="api_reference.html#module-world_models.envs.ale_atari_env">world_models.envs.ale_atari_env</a>
@@ -3475,9 +4297,13 @@
 </li>
         <li><a href="api_reference.html#module-world_models.envs.dmc">world_models.envs.dmc</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.envs.dmlab">world_models.envs.dmlab</a>
+</li>
         <li><a href="api_reference.html#module-world_models.envs.gym_env">world_models.envs.gym_env</a>
 </li>
         <li><a href="api_reference.html#module-world_models.envs.mujoco_env">world_models.envs.mujoco_env</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.envs.procgen_env">world_models.envs.procgen_env</a>
 </li>
         <li><a href="api_reference.html#module-world_models.envs.robotics_env">world_models.envs.robotics_env</a>
 </li>
@@ -3486,6 +4312,8 @@
         <li><a href="api_reference.html#module-world_models.envs.vector_env">world_models.envs.vector_env</a>
 </li>
         <li><a href="api_reference.html#module-world_models.envs.wrappers">world_models.envs.wrappers</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.export">world_models.export</a>
 </li>
         <li><a href="api_reference.html#module-world_models.helpers.jepa_helper">world_models.helpers.jepa_helper</a>
 </li>
@@ -3498,6 +4326,10 @@
         <li><a href="api_reference.html#module-world_models.inference.operators.jepa_operator">world_models.inference.operators.jepa_operator</a>
 </li>
         <li><a href="api_reference.html#module-world_models.inference.operators.planet_operator">world_models.inference.operators.planet_operator</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.losses.convae_loss">world_models.losses.convae_loss</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.losses.gmm_loss">world_models.losses.gmm_loss</a>
 </li>
         <li><a href="api_reference.html#module-world_models.masks">world_models.masks</a>
 </li>
@@ -3514,6 +4346,8 @@
         <li><a href="api_reference.html#module-world_models.memory.planet_memory">world_models.memory.planet_memory</a>
 </li>
         <li><a href="api_reference.html#module-world_models.models">world_models.models</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.models.controller">world_models.models.controller</a>
 </li>
         <li><a href="api_reference.html#module-world_models.models.diffusion">world_models.models.diffusion</a>
 </li>
@@ -3543,6 +4377,8 @@
 </li>
         <li><a href="api_reference.html#module-world_models.models.latent_action_model">world_models.models.latent_action_model</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.models.mdrnn">world_models.models.mdrnn</a>
+</li>
         <li><a href="api_reference.html#module-world_models.models.modular_rssm">world_models.models.modular_rssm</a>
 </li>
         <li><a href="api_reference.html#module-world_models.models.planet">world_models.models.planet</a>
@@ -3553,6 +4389,10 @@
 </li>
         <li><a href="api_reference.html#module-world_models.training.rl_harness">world_models.training.rl_harness</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.training.train_controller">world_models.training.train_controller</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.training.train_convvae">world_models.training.train_convvae</a>
+</li>
         <li><a href="api_reference.html#module-world_models.training.train_diamond">world_models.training.train_diamond</a>
 </li>
         <li><a href="api_reference.html#module-world_models.training.train_genie">world_models.training.train_genie</a>
@@ -3561,11 +4401,15 @@
 </li>
         <li><a href="api_reference.html#module-world_models.training.train_jepa">world_models.training.train_jepa</a>
 </li>
+        <li><a href="api_reference.html#module-world_models.training.train_mdn_rnn">world_models.training.train_mdn_rnn</a>
+</li>
         <li><a href="api_reference.html#module-world_models.training.train_planet">world_models.training.train_planet</a>
 </li>
         <li><a href="api_reference.html#module-world_models.training.train_rssm">world_models.training.train_rssm</a>
 </li>
-        <li><a href="api_reference.html#module-world_models.transforms.transforms">world_models.transforms.transforms</a>
+        <li><a href="api_reference.html#module-world_models.training.train_world_model">world_models.training.train_world_model</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.transforms.image">world_models.transforms.image</a>
 </li>
         <li><a href="api_reference.html#module-world_models.utils.data_utils">world_models.utils.data_utils</a>
 </li>
@@ -3578,6 +4422,8 @@
         <li><a href="api_reference.html#module-world_models.utils.logging_utils">world_models.utils.logging_utils</a>
 </li>
         <li><a href="api_reference.html#module-world_models.utils.memory_utils">world_models.utils.memory_utils</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.utils.train_utils">world_models.utils.train_utils</a>
 </li>
         <li><a href="api_reference.html#module-world_models.utils.utils">world_models.utils.utils</a>
 </li>
@@ -3592,6 +4438,8 @@
         <li><a href="api_reference.html#module-world_models.vision.planet_decoder">world_models.vision.planet_decoder</a>
 </li>
         <li><a href="api_reference.html#module-world_models.vision.planet_encoder">world_models.vision.planet_encoder</a>
+</li>
+        <li><a href="api_reference.html#module-world_models.vision.VAE.ConvVAE">world_models.vision.VAE.ConvVAE</a>
 </li>
         <li><a href="api_reference.html#module-world_models.vision.video_tokenizer">world_models.vision.video_tokenizer</a>
 </li>
@@ -3632,6 +4480,16 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.N">N (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.N">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.N">(world_models.RSSMPolicy attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.n_samples">n_samples (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.EnvBackendSpec.name">name (torchwm.EnvBackendSpec attribute)</a>
 
       <ul>
@@ -3643,6 +4501,8 @@
 </li>
         <li><a href="api_reference.html#world_models.api.ModelSpec.name">(world_models.api.ModelSpec attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.name">(world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.EnvBackendSpec.name">(world_models.EnvBackendSpec attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.ModelSpec.name">(world_models.ModelSpec attribute)</a>
@@ -3652,14 +4512,28 @@
         <li><a href="api_reference.html#world_models.vision.dreamer_decoder.SampleDist.name">(world_models.vision.dreamer_decoder.SampleDist property)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.noreload">noreload (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.noreload">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.normalize_frames_for_saving">normalize_frames_for_saving() (in module world_models.utils.utils)</a>
 </li>
+      <li><a href="api_reference.html#world_models.envs.normalize_procgen_env_name">normalize_procgen_env_name() (in module world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.normalize_procgen_env_name">(in module world_models.envs.procgen_env)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.envs.NormalizeActions">NormalizeActions (class in world_models.envs)</a>
 
       <ul>
         <li><a href="api_reference.html#world_models.envs.wrappers.NormalizeActions">(class in world_models.envs.wrappers)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.nosamples">nosamples (world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.num_conditioning_frames">num_conditioning_frames (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -3676,6 +4550,10 @@
         <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.num_epochs">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.configs.DiamondConfig.num_epochs">(world_models.configs.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.num_epochs">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.num_epochs">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.DiamondConfig.num_epochs">(world_models.DiamondConfig attribute)</a>
 </li>
@@ -3812,6 +4690,8 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.num_sampling_steps">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.num_test_files">num_test_files (world_models.datasets.wm_dataset.RolloutDataset attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsConfig.num_workers">num_workers (world_models.datasets.tinyworlds.TinyWorldsConfig attribute)</a>
 
       <ul>
@@ -3867,21 +4747,27 @@
       <li><a href="api_reference.html#world_models.envs.BraxImageEnv.observation_space">observation_space (world_models.envs.BraxImageEnv property)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.observation_space">(world_models.envs.BSuiteImageEnv property)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.DeepMindControlEnv.observation_space">(world_models.envs.DeepMindControlEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id21">(world_models.envs.DeepMindControlEnv property)</a>
+        <li><a href="api_reference.html#id9">(world_models.envs.DeepMindControlEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.dmc.DeepMindControlEnv.observation_space">(world_models.envs.dmc.DeepMindControlEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id23">(world_models.envs.dmc.DeepMindControlEnv property)</a>
+        <li><a href="api_reference.html#id11">(world_models.envs.dmc.DeepMindControlEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.observation_space">(world_models.envs.dmlab.DMLabEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.observation_space">(world_models.envs.DMLabEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.observation_space">(world_models.envs.gym_env.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id25">(world_models.envs.gym_env.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id13">(world_models.envs.gym_env.GymImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.GymImageEnv.observation_space">(world_models.envs.GymImageEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id15">(world_models.envs.GymImageEnv property)</a>
+        <li><a href="api_reference.html#id3">(world_models.envs.GymImageEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.mujoco_env.MuJoCoImageEnv.observation_space">(world_models.envs.mujoco_env.MuJoCoImageEnv property)</a>
 </li>
@@ -3889,15 +4775,19 @@
 </li>
         <li><a href="api_reference.html#world_models.envs.ObsDict.observation_space">(world_models.envs.ObsDict property)</a>
 </li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.observation_space">(world_models.envs.procgen_env.ProcgenImageEnv property)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.observation_space">(world_models.envs.ProcgenImageEnv property)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.RewardObs.observation_space">(world_models.envs.RewardObs property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.unity_env.UnityMLAgentsEnv.observation_space">(world_models.envs.unity_env.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id28">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id16">(world_models.envs.unity_env.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.UnityMLAgentsEnv.observation_space">(world_models.envs.UnityMLAgentsEnv attribute)</a>
 </li>
-        <li><a href="api_reference.html#id18">(world_models.envs.UnityMLAgentsEnv property)</a>
+        <li><a href="api_reference.html#id6">(world_models.envs.UnityMLAgentsEnv property)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.wrappers.ObsDict.observation_space">(world_models.envs.wrappers.ObsDict property)</a>
 </li>
@@ -3906,6 +4796,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.ObservationDataset">ObservationDataset (class in world_models.datasets.wm_dataset)</a>
+</li>
       <li><a href="api_reference.html#torchwm.IRISOnPolicyBuffer.observations">observations (torchwm.IRISOnPolicyBuffer attribute)</a>
 
       <ul>
@@ -3984,6 +4876,14 @@
         <li><a href="api_reference.html#world_models.CNNFeatureExtractor.output_size">(world_models.CNNFeatureExtractor attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.controller.iris_policy.CNNFeatureExtractor.output_size">(world_models.controller.iris_policy.CNNFeatureExtractor attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.OperatorABC.output_specs">output_specs (torchwm.OperatorABC attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.output_specs">(world_models.inference.operators.base.OperatorABC attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.output_specs">(world_models.OperatorABC attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -4074,8 +4974,28 @@
         <li><a href="api_reference.html#world_models.models.diffusion.DiT.PatchUnEmbed">(class in world_models.models.diffusion.DiT)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#world_models.datasets.video_datasets.DatasetConfig.pin_memory">pin_memory (world_models.datasets.video_datasets.DatasetConfig attribute)</a>
+      <li><a href="api_reference.html#torchwm.DiamondConfig.persistent_workers">persistent_workers (torchwm.DiamondConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.persistent_workers">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
 </li>
+        <li><a href="api_reference.html#world_models.configs.DiamondConfig.persistent_workers">(world_models.configs.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.DiamondConfig.persistent_workers">(world_models.DiamondConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.DiamondConfig.pin_memory">pin_memory (torchwm.DiamondConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.pin_memory">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.DiamondConfig.pin_memory">(world_models.configs.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.datasets.video_datasets.DatasetConfig.pin_memory">(world_models.datasets.video_datasets.DatasetConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.DiamondConfig.pin_memory">(world_models.DiamondConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.models.planet.Planet">Planet (class in world_models.models.planet)</a>
 </li>
       <li><a href="api_reference.html#torchwm.PlaNetOperator">PlaNetOperator (class in torchwm)</a>
@@ -4086,8 +5006,6 @@
         <li><a href="api_reference.html#world_models.inference.operators.planet_operator.PlaNetOperator">(class in world_models.inference.operators.planet_operator)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.Genie.play">play() (torchwm.Genie method)</a>
 
       <ul>
@@ -4096,7 +5014,11 @@
         <li><a href="api_reference.html#world_models.models.genie.Genie.play">(world_models.models.genie.Genie method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.utils.utils.plot_metrics">plot_metrics() (in module world_models.utils.utils)</a>
+</li>
+      <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.policy">policy (world_models.controller.rollout_generator.RolloutGenerator attribute)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.diffusion.actor_critic.RLLoss.policy_loss">policy_loss() (world_models.models.diffusion.actor_critic.RLLoss method)</a>
 </li>
@@ -4108,9 +5030,21 @@
         <li><a href="api_reference.html#world_models.RSSMPolicy.poll">(world_models.RSSMPolicy method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.pop_size">pop_size (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#torchwm.OperatorABC.postprocess">postprocess() (torchwm.OperatorABC method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.postprocess">(world_models.inference.operators.base.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.postprocess">(world_models.OperatorABC method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.postprocess_img">postprocess_img() (in module world_models.utils.utils)</a>
 </li>
       <li><a href="api_reference.html#world_models.training.rl_harness.PPOTrainer">PPOTrainer (class in world_models.training.rl_harness)</a>
+</li>
+      <li><a href="api_reference.html#world_models.training.train_mdn_rnn.precompute_latents">precompute_latents() (in module world_models.training.train_mdn_rnn)</a>
 </li>
       <li><a href="api_reference.html#torchwm.RecurrentStateSpaceModel.pred_reward">pred_reward() (torchwm.RecurrentStateSpaceModel method)</a>
 
@@ -4132,6 +5066,38 @@
 </li>
       <li><a href="api_reference.html#world_models.utils.data_utils.prefetch_iterator">prefetch_iterator() (in module world_models.utils.data_utils)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.DreamerOperator.preprocess">preprocess() (torchwm.DreamerOperator method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#torchwm.IrisOperator.preprocess">(torchwm.IrisOperator method)</a>
+</li>
+        <li><a href="api_reference.html#torchwm.JEPAOperator.preprocess">(torchwm.JEPAOperator method)</a>
+</li>
+        <li><a href="api_reference.html#torchwm.OperatorABC.preprocess">(torchwm.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#torchwm.PlaNetOperator.preprocess">(torchwm.PlaNetOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.DreamerOperator.preprocess">(world_models.DreamerOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.preprocess">(world_models.inference.operators.base.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.dreamer_operator.DreamerOperator.preprocess">(world_models.inference.operators.dreamer_operator.DreamerOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.iris_operator.IrisOperator.preprocess">(world_models.inference.operators.iris_operator.IrisOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.jepa_operator.JEPAOperator.preprocess">(world_models.inference.operators.jepa_operator.JEPAOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.planet_operator.PlaNetOperator.preprocess">(world_models.inference.operators.planet_operator.PlaNetOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.IrisOperator.preprocess">(world_models.IrisOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.JEPAOperator.preprocess">(world_models.JEPAOperator method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.preprocess">(world_models.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.PlaNetOperator.preprocess">(world_models.PlaNetOperator method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.preprocess_frame">preprocess_frame() (world_models.training.train_iris.IRISTrainer method)</a>
 </li>
       <li><a href="api_reference.html#world_models.utils.utils.preprocess_img">preprocess_img() (in module world_models.utils.utils)</a>
@@ -4148,36 +5114,18 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.preset">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#torchwm.DreamerOperator.process">process() (torchwm.DreamerOperator method)</a>
+      <li><a href="api_reference.html#torchwm.OperatorABC.process">process() (torchwm.OperatorABC method)</a>
 
       <ul>
-        <li><a href="api_reference.html#torchwm.IrisOperator.process">(torchwm.IrisOperator method)</a>
-</li>
-        <li><a href="api_reference.html#torchwm.JEPAOperator.process">(torchwm.JEPAOperator method)</a>
-</li>
-        <li><a href="api_reference.html#torchwm.OperatorABC.process">(torchwm.OperatorABC method)</a>
-</li>
-        <li><a href="api_reference.html#torchwm.PlaNetOperator.process">(torchwm.PlaNetOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.DreamerOperator.process">(world_models.DreamerOperator method)</a>
-</li>
         <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.process">(world_models.inference.operators.base.OperatorABC method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.inference.operators.dreamer_operator.DreamerOperator.process">(world_models.inference.operators.dreamer_operator.DreamerOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.inference.operators.iris_operator.IrisOperator.process">(world_models.inference.operators.iris_operator.IrisOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.inference.operators.jepa_operator.JEPAOperator.process">(world_models.inference.operators.jepa_operator.JEPAOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.inference.operators.planet_operator.PlaNetOperator.process">(world_models.inference.operators.planet_operator.PlaNetOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.IrisOperator.process">(world_models.IrisOperator method)</a>
-</li>
-        <li><a href="api_reference.html#world_models.JEPAOperator.process">(world_models.JEPAOperator method)</a>
 </li>
         <li><a href="api_reference.html#world_models.OperatorABC.process">(world_models.OperatorABC method)</a>
 </li>
-        <li><a href="api_reference.html#world_models.PlaNetOperator.process">(world_models.PlaNetOperator method)</a>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv">ProcgenImageEnv (class in world_models.envs)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv">(class in world_models.envs.procgen_env)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -4238,6 +5186,8 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.datasets.video_datasets.VideoDatasetConfig.recursive">recursive (world_models.datasets.video_datasets.VideoDatasetConfig attribute)</a>
 </li>
+      <li><a href="api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau">ReduceLROnPlateau (class in world_models.utils.train_utils)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers">register_buffers() (world_models.utils.dreamer_utils.TwoHotEncoder method)</a>
 </li>
       <li><a href="api_reference.html#world_models.envs.register_gymnasium_robotics_envs">register_gymnasium_robotics_envs() (in module world_models.envs)</a>
@@ -4249,9 +5199,15 @@
       <li><a href="api_reference.html#world_models.envs.BraxImageEnv.render">render() (world_models.envs.BraxImageEnv method)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.render">(world_models.envs.BSuiteImageEnv method)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.DeepMindControlEnv.render">(world_models.envs.DeepMindControlEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.dmc.DeepMindControlEnv.render">(world_models.envs.dmc.DeepMindControlEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.render">(world_models.envs.dmlab.DMLabEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.render">(world_models.envs.DMLabEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.render">(world_models.envs.gym_env.GymImageEnv method)</a>
 </li>
@@ -4260,6 +5216,10 @@
         <li><a href="api_reference.html#world_models.envs.mujoco_env.MuJoCoImageEnv.render">(world_models.envs.mujoco_env.MuJoCoImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.MuJoCoImageEnv.render">(world_models.envs.MuJoCoImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.render">(world_models.envs.procgen_env.ProcgenImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.render">(world_models.envs.ProcgenImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.unity_env.UnityMLAgentsEnv.render">(world_models.envs.unity_env.UnityMLAgentsEnv method)</a>
 </li>
@@ -4290,6 +5250,14 @@
         <li><a href="api_reference.html#world_models.memory.dreamer_memory.ReplayBuffer">(class in world_models.memory.dreamer_memory)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#torchwm.TensorSpec.required">required (torchwm.TensorSpec attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.TensorSpec.required">(world_models.inference.operators.base.TensorSpec attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.TensorSpec.required">(world_models.TensorSpec attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.models.diffusion.diamond_diffusion.ResBlock">ResBlock (class in world_models.models.diffusion.diamond_diffusion)</a>
 </li>
       <li><a href="api_reference.html#torchwm.RSSMPolicy.reset">reset() (torchwm.RSSMPolicy method)</a>
@@ -4299,11 +5267,17 @@
 </li>
         <li><a href="api_reference.html#world_models.envs.BraxImageEnv.reset">(world_models.envs.BraxImageEnv method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.reset">(world_models.envs.BSuiteImageEnv method)</a>
+</li>
         <li><a href="api_reference.html#world_models.envs.DeepMindControlEnv.reset">(world_models.envs.DeepMindControlEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.diamond_atari.DiamondAtariWrapper.reset">(world_models.envs.diamond_atari.DiamondAtariWrapper method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.dmc.DeepMindControlEnv.reset">(world_models.envs.dmc.DeepMindControlEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.reset">(world_models.envs.dmlab.DMLabEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.reset">(world_models.envs.DMLabEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.reset">(world_models.envs.gym_env.GymImageEnv method)</a>
 </li>
@@ -4316,6 +5290,10 @@
         <li><a href="api_reference.html#world_models.envs.ObsDict.reset">(world_models.envs.ObsDict method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.OneHotAction.reset">(world_models.envs.OneHotAction method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.reset">(world_models.envs.procgen_env.ProcgenImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.reset">(world_models.envs.ProcgenImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.RenderImage.reset">(world_models.envs.RenderImage method)</a>
 </li>
@@ -4358,6 +5336,8 @@
         <li><a href="api_reference.html#world_models.envs.vector_env.VectorizedEnv.reset_batch">(world_models.envs.vector_env.VectorizedEnv method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.vision.iris_decoder.ResidualBlock">ResidualBlock (class in world_models.vision.iris_decoder)</a>
 
       <ul>
@@ -4370,8 +5350,6 @@
         <li><a href="api_reference.html#world_models.envs.wrappers.ResizeImage">(class in world_models.envs.wrappers)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.models.dreamer.Dreamer.restore_checkpoint">restore_checkpoint() (world_models.models.dreamer.Dreamer method)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.reward_channels">reward_channels (torchwm.DiamondConfig attribute)</a>
@@ -4494,7 +5472,11 @@
         <li><a href="api_reference.html#world_models.RecurrentStateSpaceModel.rollout_prior">(world_models.RecurrentStateSpaceModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset">RolloutDataset (class in world_models.datasets.wm_dataset)</a>
+</li>
       <li><a href="api_reference.html#world_models.controller.rollout_generator.RolloutGenerator">RolloutGenerator (class in world_models.controller.rollout_generator)</a>
+</li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.root">root (world_models.datasets.wm_dataset.RolloutDataset attribute)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiTConfig.ROOT_PATH">ROOT_PATH (torchwm.DiTConfig attribute)</a>
 
@@ -4512,6 +5494,14 @@
         <li><a href="api_reference.html#world_models.RSSM">(class in world_models)</a>
 </li>
         <li><a href="api_reference.html#world_models.models.dreamer_rssm.RSSM">(class in world_models.models.dreamer_rssm)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.rssm">rssm (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.rssm">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.rssm">(world_models.RSSMPolicy attribute)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#torchwm.RSSMPolicy">RSSMPolicy (class in torchwm)</a>
@@ -4536,6 +5526,8 @@
         <li><a href="api_reference.html#world_models.benchmarks.runner.MultiAgentBenchmarkRunner.run_all">(world_models.benchmarks.runner.MultiAgentBenchmarkRunner method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_world_model.run_training_pipeline">run_training_pipeline() (in module world_models.training.train_world_model)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -4582,6 +5574,8 @@
         <li><a href="api_reference.html#world_models.vision.dreamer_decoder.SampleDist.sample">(world_models.vision.dreamer_decoder.SampleDist method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.sample_interval">sample_interval (world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.models.iris_transformer.IRISTransformer.sample_next_tokens">sample_next_tokens() (world_models.models.iris_transformer.IRISTransformer method)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.diffusion.diamond_diffusion.EDMPreconditioner.sample_noise_level">sample_noise_level() (world_models.models.diffusion.diamond_diffusion.EDMPreconditioner method)</a>
@@ -4646,9 +5640,13 @@
         <li><a href="api_reference.html#world_models.models.iris_agent.IRISAgent.save">(world_models.models.iris_agent.IRISAgent method)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference.html#world_models.training.train_diamond.DiamondAgent.save_checkpoint">save_checkpoint() (world_models.training.train_diamond.DiamondAgent method)</a>
+      <li><a href="api_reference.html#world_models.training.train_convvae.save_checkpoint">save_checkpoint() (in module world_models.training.train_convvae)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.training.train_mdn_rnn.save_checkpoint">(in module world_models.training.train_mdn_rnn)</a>
+</li>
+        <li><a href="api_reference.html#world_models.training.train_diamond.DiamondAgent.save_checkpoint">(world_models.training.train_diamond.DiamondAgent method)</a>
+</li>
         <li><a href="api_reference.html#world_models.training.train_genie.GenieTrainer.save_checkpoint">(world_models.training.train_genie.GenieTrainer method)</a>
 </li>
       </ul></li>
@@ -4666,6 +5664,18 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.save_video">save_video() (in module world_models.utils.utils)</a>
 </li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.scheduler_factor">scheduler_factor (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.scheduler_factor">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.scheduler_patience">scheduler_patience (world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.scheduler_patience">(world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.seed">seed (torchwm.DiamondConfig attribute)</a>
 
       <ul>
@@ -4687,6 +5697,10 @@
       <li><a href="api_reference.html#torchwm.IRISReplayBuffer.seq_len">seq_len (torchwm.IRISReplayBuffer attribute)</a>
 
       <ul>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.seq_len">(world_models.configs.wm_config.WMMDNRNNConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.datasets.wm_dataset.SequenceDataset.seq_len">(world_models.datasets.wm_dataset.SequenceDataset attribute)</a>
+</li>
         <li><a href="api_reference.html#world_models.IRISReplayBuffer.seq_len">(world_models.IRISReplayBuffer attribute)</a>
 </li>
         <li><a href="api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer.seq_len">(world_models.memory.iris_memory.IRISReplayBuffer attribute)</a>
@@ -4707,9 +5721,21 @@
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.datasets.diamond_dataset.SequenceDataset">SequenceDataset (class in world_models.datasets.diamond_dataset)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.datasets.wm_dataset.SequenceDataset">(class in world_models.datasets.wm_dataset)</a>
 </li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.utils.logging_utils.setup_logging">setup_logging() (in module world_models.utils.logging_utils)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.TensorSpec.shape">shape (torchwm.TensorSpec attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.TensorSpec.shape">(world_models.inference.operators.base.TensorSpec attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.TensorSpec.shape">(world_models.TensorSpec attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.datasets.video_datasets.DatasetConfig.shuffle">shuffle (world_models.datasets.video_datasets.DatasetConfig attribute)</a>
 </li>
       <li><a href="api_reference.html#torchwm.DiamondConfig.sigma_data">sigma_data (torchwm.DiamondConfig attribute)</a>
@@ -4777,7 +5803,7 @@
 </li>
         <li><a href="api_reference.html#world_models.Memory.size">(world_models.Memory attribute)</a>
 </li>
-        <li><a href="api_reference.html#id7">(world_models.Memory property)</a>
+        <li><a href="api_reference.html#id1">(world_models.Memory property)</a>
 </li>
         <li><a href="api_reference.html#world_models.memory.iris_memory.IRISReplayBuffer.size">(world_models.memory.iris_memory.IRISReplayBuffer attribute)</a>
 </li>
@@ -4785,15 +5811,23 @@
 </li>
         <li><a href="api_reference.html#world_models.memory.planet_memory.Memory.size">(world_models.memory.planet_memory.Memory attribute)</a>
 </li>
-        <li><a href="api_reference.html#id12">(world_models.memory.planet_memory.Memory property)</a>
+        <li><a href="api_reference.html#id2">(world_models.memory.planet_memory.Memory property)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_controller.slave_routine">slave_routine() (in module world_models.training.train_controller)</a>
+</li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsConfig.split">split (world_models.datasets.tinyworlds.TinyWorldsConfig attribute)</a>
 </li>
       <li><a href="api_reference.html#world_models.envs.WorldModelEnv.state">state (world_models.envs.WorldModelEnv property)</a>
 </li>
       <li><a href="api_reference.html#world_models.datasets.diamond_dataset.ReplayBuffer.state_dict">state_dict() (world_models.datasets.diamond_dataset.ReplayBuffer method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.utils.train_utils.EarlyStopping.state_dict">(world_models.utils.train_utils.EarlyStopping method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.state_dict">(world_models.utils.train_utils.ReduceLROnPlateau method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.RecurrentStateSpaceModel.state_posterior">state_posterior() (torchwm.RecurrentStateSpaceModel method)</a>
 
       <ul>
@@ -4810,16 +5844,30 @@
         <li><a href="api_reference.html#world_models.RecurrentStateSpaceModel.state_prior">(world_models.RecurrentStateSpaceModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.state_size">state_size (torchwm.RSSMPolicy attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.state_size">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.RSSMPolicy.state_size">(world_models.RSSMPolicy attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.envs.ActionRepeat.step">step() (world_models.envs.ActionRepeat method)</a>
 
       <ul>
         <li><a href="api_reference.html#world_models.envs.BraxImageEnv.step">(world_models.envs.BraxImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.BSuiteImageEnv.step">(world_models.envs.BSuiteImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.DeepMindControlEnv.step">(world_models.envs.DeepMindControlEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.diamond_atari.DiamondAtariWrapper.step">(world_models.envs.diamond_atari.DiamondAtariWrapper method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.dmc.DeepMindControlEnv.step">(world_models.envs.dmc.DeepMindControlEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.dmlab.DMLabEnv.step">(world_models.envs.dmlab.DMLabEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.DMLabEnv.step">(world_models.envs.DMLabEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.gym_env.GymImageEnv.step">(world_models.envs.gym_env.GymImageEnv method)</a>
 </li>
@@ -4834,6 +5882,10 @@
         <li><a href="api_reference.html#world_models.envs.ObsDict.step">(world_models.envs.ObsDict method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.OneHotAction.step">(world_models.envs.OneHotAction method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.step">(world_models.envs.procgen_env.ProcgenImageEnv method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.envs.ProcgenImageEnv.step">(world_models.envs.ProcgenImageEnv method)</a>
 </li>
         <li><a href="api_reference.html#world_models.envs.RenderImage.step">(world_models.envs.RenderImage method)</a>
 </li>
@@ -4877,6 +5929,10 @@
 </li>
         <li><a href="api_reference.html#world_models.utils.jepa_utils.WarmupCosineSchedule.step">(world_models.utils.jepa_utils.WarmupCosineSchedule method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.utils.train_utils.EarlyStopping.step">(world_models.utils.train_utils.EarlyStopping method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.utils.train_utils.ReduceLROnPlateau.step">(world_models.utils.train_utils.ReduceLROnPlateau method)</a>
+</li>
         <li><a href="api_reference.html#world_models.utils.utils.TorchImageEnvWrapper.step">(world_models.utils.utils.TorchImageEnvWrapper method)</a>
 </li>
       </ul></li>
@@ -4904,6 +5960,12 @@
         <li><a href="api_reference.html#world_models.models.modular_rssm.ModularRSSM.stoch_size">(world_models.models.modular_rssm.ModularRSSM property)</a>
 </li>
         <li><a href="api_reference.html#world_models.ModularRSSM.stoch_size">(world_models.ModularRSSM property)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.utils.train_utils.EarlyStopping.stop">stop (world_models.utils.train_utils.EarlyStopping attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#id19">(world_models.utils.train_utils.EarlyStopping property)</a>
 </li>
       </ul></li>
       <li><a href="api_reference.html#world_models.utils.utils.StreamingVideoWriter">StreamingVideoWriter (class in world_models.utils.utils)</a>
@@ -4945,13 +6007,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.Episode.t">t (torchwm.Episode attribute)</a>
+</li>
+      <li><a href="api_reference.html#torchwm.RSSMPolicy.T">T (torchwm.RSSMPolicy attribute)</a>
 
       <ul>
-        <li><a href="api_reference.html#world_models.Episode.t">(world_models.Episode attribute)</a>
+        <li><a href="api_reference.html#world_models.controller.rssm_policy.RSSMPolicy.T">(world_models.controller.rssm_policy.RSSMPolicy attribute)</a>
 </li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.Episode.t">t (world_models.Episode attribute)</a>
+
+      <ul>
         <li><a href="api_reference.html#world_models.memory.planet_memory.Episode.t">(world_models.memory.planet_memory.Episode attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.RSSMPolicy.T">T (world_models.RSSMPolicy attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.TanhBijector">TanhBijector (class in torchwm)</a>
 
       <ul>
@@ -4960,8 +6030,18 @@
         <li><a href="api_reference.html#world_models.vision.dreamer_decoder.TanhBijector">(class in world_models.vision.dreamer_decoder)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.target_return">target_return (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.utils.TensorBoardMetrics">TensorBoardMetrics (class in world_models.utils.utils)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.TensorSpec">TensorSpec (class in torchwm)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.TensorSpec">(class in world_models)</a>
+</li>
+        <li><a href="api_reference.html#world_models.inference.operators.base.TensorSpec">(class in world_models.inference.operators.base)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.IRISOnPolicyBuffer.terminals">terminals (torchwm.IRISOnPolicyBuffer attribute)</a>
 
       <ul>
@@ -4988,6 +6068,12 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.terminate_on_life_loss">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_convvae.test_epoch">test_epoch() (in module world_models.training.train_convvae)</a>
+</li>
+      <li><a href="api_reference.html#world_models.training.train_world_model.test_trained_model">test_trained_model() (in module world_models.training.train_world_model)</a>
+</li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.time_limit">time_limit (world_models.configs.wm_config.WMControllerConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.envs.TimeLimit">TimeLimit (class in world_models.envs)</a>
 
       <ul>
@@ -5012,8 +6098,16 @@
 </li>
       <li><a href="api_reference.html#world_models.datasets.tinyworlds.TinyWorldsDataset">TinyWorldsDataset (class in world_models.datasets.tinyworlds)</a>
 </li>
-      <li><a href="api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.to">to() (world_models.utils.dreamer_utils.TwoHotEncoder method)</a>
+      <li><a href="api_reference.html#torchwm.OperatorABC.to">to() (torchwm.OperatorABC method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.to">(world_models.inference.operators.base.OperatorABC method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.OperatorABC.to">(world_models.OperatorABC method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.to">(world_models.utils.dreamer_utils.TwoHotEncoder method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.JEPAConfig.to_dict">to_dict() (torchwm.JEPAConfig method)</a>
 
       <ul>
@@ -5021,9 +6115,15 @@
 </li>
         <li><a href="api_reference.html#world_models.configs.JEPAConfig.to_dict">(world_models.configs.JEPAConfig method)</a>
 </li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig.to_dict">(world_models.configs.wm_config.WMControllerConfig method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.to_dict">(world_models.configs.wm_config.WMMDNRNNConfig method)</a>
+</li>
         <li><a href="api_reference.html#world_models.JEPAConfig.to_dict">(world_models.JEPAConfig method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_mdn_rnn.to_latent">to_latent() (in module world_models.training.train_mdn_rnn)</a>
+</li>
       <li><a href="api_reference.html#world_models.utils.utils.to_tensor_obs">to_tensor_obs() (in module world_models.utils.utils)</a>
 </li>
       <li><a href="api_reference.html#torchwm.GenieConfig.tokenizer_decoder_depth">tokenizer_decoder_depth (torchwm.GenieConfig attribute)</a>
@@ -5086,6 +6186,8 @@
         <li><a href="api_reference.html#world_models.training.train_genie.GenieConfig.tokenizer_embedding_dim">(world_models.training.train_genie.GenieConfig attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.GenieConfig.tokenizer_encoder_depth">tokenizer_encoder_depth (torchwm.GenieConfig attribute)</a>
 
       <ul>
@@ -5106,8 +6208,6 @@
         <li><a href="api_reference.html#world_models.training.train_genie.GenieConfig.tokenizer_encoder_depth">(world_models.training.train_genie.GenieConfig attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.GenieConfig.tokenizer_encoder_dim">tokenizer_encoder_dim (torchwm.GenieConfig attribute)</a>
 
       <ul>
@@ -5177,6 +6277,8 @@
         <li><a href="api_reference.html#module-torchwm">module</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.train">train (world_models.datasets.wm_dataset.RolloutDataset attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.training.train_planet.train">train() (in module world_models.training.train_planet)</a>
 
       <ul>
@@ -5201,9 +6303,21 @@
         <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.train">(world_models.training.train_iris.IRISTrainer method)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.train_batch_size">train_batch_size (world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.training.train_controller.train_controller">train_controller() (in module world_models.training.train_controller)</a>
+</li>
+      <li><a href="api_reference.html#world_models.training.train_convvae.train_convae">train_convae() (in module world_models.training.train_convvae)</a>
+</li>
       <li><a href="api_reference.html#world_models.training.train_diamond.train_diamond">train_diamond() (in module world_models.training.train_diamond)</a>
 </li>
-      <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.train_epoch">train_epoch() (world_models.training.train_iris.IRISTrainer method)</a>
+      <li><a href="api_reference.html#world_models.training.train_convvae.train_epoch">train_epoch() (in module world_models.training.train_convvae)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.training.train_iris.IRISTrainer.train_epoch">(world_models.training.train_iris.IRISTrainer method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_reference.html#world_models.training.train_mdn_rnn.train_mdn_rnn">train_mdn_rnn() (in module world_models.training.train_mdn_rnn)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.dreamer.Dreamer.train_one_batch">train_one_batch() (world_models.models.dreamer.Dreamer method)</a>
 </li>
@@ -5233,6 +6347,8 @@
         <li><a href="api_reference.html#world_models.DiamondConfig.training_steps_per_epoch">(world_models.DiamondConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.datasets.wm_dataset.RolloutDataset.transform">transform (world_models.datasets.wm_dataset.RolloutDataset attribute)</a>
+</li>
       <li><a href="api_reference.html#world_models.models.modular_rssm.TransformerBackbone">TransformerBackbone (class in world_models.models.modular_rssm)</a>
 </li>
       <li><a href="api_reference.html#world_models.models.diffusion.DiT.TransformerBlock">TransformerBlock (class in world_models.models.diffusion.DiT)</a>
@@ -5281,8 +6397,6 @@
         <li><a href="api_reference.html#world_models.models.iris_agent.IRISAgent.update_actor_critic">(world_models.models.iris_agent.IRISAgent method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.IRISAgent.update_autoencoder">update_autoencoder() (torchwm.IRISAgent method)</a>
 
       <ul>
@@ -5291,6 +6405,8 @@
         <li><a href="api_reference.html#world_models.models.iris_agent.IRISAgent.update_autoencoder">(world_models.models.iris_agent.IRISAgent method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#torchwm.IRISAgent.update_transformer">update_transformer() (torchwm.IRISAgent method)</a>
 
       <ul>
@@ -5301,6 +6417,16 @@
       </ul></li>
       <li><a href="api_reference.html#world_models.vision.iris_decoder.UpsampleBlock">UpsampleBlock (class in world_models.vision.iris_decoder)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.DiamondConfig.use_amp">use_amp (torchwm.DiamondConfig attribute)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.configs.diamond_config.DiamondConfig.use_amp">(world_models.configs.diamond_config.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.configs.DiamondConfig.use_amp">(world_models.configs.DiamondConfig attribute)</a>
+</li>
+        <li><a href="api_reference.html#world_models.DiamondConfig.use_amp">(world_models.DiamondConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#torchwm.VideoTokenizerConfig.use_ema">use_ema (torchwm.VideoTokenizerConfig attribute)</a>
 
       <ul>
@@ -5321,6 +6447,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference.html#world_models.training.train_genie.GenieTrainer.validate">validate() (world_models.training.train_genie.GenieTrainer method)</a>
 </li>
+      <li><a href="api_reference.html#torchwm.OperatorABC.validate_mapping">validate_mapping() (torchwm.OperatorABC class method)</a>
+
+      <ul>
+        <li><a href="api_reference.html#world_models.inference.operators.base.OperatorABC.validate_mapping">(world_models.inference.operators.base.OperatorABC class method)</a>
+</li>
+        <li><a href="api_reference.html#world_models.OperatorABC.validate_mapping">(world_models.OperatorABC class method)</a>
+</li>
+      </ul></li>
       <li><a href="api_reference.html#world_models.models.diffusion.actor_critic.RLLoss.value_loss">value_loss() (world_models.models.diffusion.actor_critic.RLLoss method)</a>
 
       <ul>
@@ -5518,9 +6652,11 @@
 </li>
         <li><a href="api_reference.html#world_models.configs.DiTConfig.WIDTH">(world_models.configs.DiTConfig attribute)</a>
 </li>
-        <li><a href="api_reference.html#world_models.DiTConfig.WIDTH">(world_models.DiTConfig attribute)</a>
-</li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig.width">width (world_models.configs.wm_config.WMVAEConfig attribute)</a>
+</li>
+      <li><a href="api_reference.html#world_models.DiTConfig.WIDTH">WIDTH (world_models.DiTConfig attribute)</a>
+</li>
       <li><a href="api_reference.html#torchwm.GenieConfig.window_attention_heads">window_attention_heads (torchwm.GenieConfig attribute)</a>
 
       <ul>
@@ -5549,6 +6685,12 @@
         <li><a href="api_reference.html#world_models.training.train_genie.GenieConfig.window_attention_heads">(world_models.training.train_genie.GenieConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMControllerConfig">WMControllerConfig (class in world_models.configs.wm_config)</a>
+</li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig">WMMDNRNNConfig (class in world_models.configs.wm_config)</a>
+</li>
+      <li><a href="api_reference.html#world_models.configs.wm_config.WMVAEConfig">WMVAEConfig (class in world_models.configs.wm_config)</a>
+</li>
       <li><a href="api_reference.html#torchwm.DiTConfig.WORKDIR">WORKDIR (torchwm.DiTConfig attribute)</a>
 
       <ul>
@@ -5632,6 +6774,13 @@
 </li>
       </ul></li>
       <li>
+    world_models.catalog
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.catalog">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.configs
 
       <ul>
@@ -5678,6 +6827,13 @@
 
       <ul>
         <li><a href="api_reference.html#module-world_models.configs.jepa_config">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.configs.wm_config
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.configs.wm_config">module</a>
 </li>
       </ul></li>
       <li>
@@ -5737,6 +6893,13 @@
 </li>
       </ul></li>
       <li>
+    world_models.datasets.wm_dataset
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.datasets.wm_dataset">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.envs
 
       <ul>
@@ -5772,6 +6935,13 @@
 </li>
       </ul></li>
       <li>
+    world_models.envs.dmlab
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.envs.dmlab">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.envs.gym_env
 
       <ul>
@@ -5786,14 +6956,19 @@
 </li>
       </ul></li>
       <li>
+    world_models.envs.procgen_env
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.envs.procgen_env">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.envs.robotics_env
 
       <ul>
         <li><a href="api_reference.html#module-world_models.envs.robotics_env">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     world_models.envs.unity_env
 
@@ -5808,11 +6983,20 @@
         <li><a href="api_reference.html#module-world_models.envs.vector_env">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     world_models.envs.wrappers
 
       <ul>
         <li><a href="api_reference.html#module-world_models.envs.wrappers">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.export
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.export">module</a>
 </li>
       </ul></li>
       <li>
@@ -5855,6 +7039,20 @@
 
       <ul>
         <li><a href="api_reference.html#module-world_models.inference.operators.planet_operator">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.losses.convae_loss
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.losses.convae_loss">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.losses.gmm_loss
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.losses.gmm_loss">module</a>
 </li>
       </ul></li>
       <li>
@@ -5911,6 +7109,13 @@
 
       <ul>
         <li><a href="api_reference.html#module-world_models.models">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.models.controller
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.models.controller">module</a>
 </li>
       </ul></li>
       <li>
@@ -6012,6 +7217,13 @@
 </li>
       </ul></li>
       <li>
+    world_models.models.mdrnn
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.models.mdrnn">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.models.modular_rssm
 
       <ul>
@@ -6047,6 +7259,20 @@
 </li>
       </ul></li>
       <li>
+    world_models.training.train_controller
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.training.train_controller">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.training.train_convvae
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.training.train_convvae">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.training.train_diamond
 
       <ul>
@@ -6075,6 +7301,13 @@
 </li>
       </ul></li>
       <li>
+    world_models.training.train_mdn_rnn
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.training.train_mdn_rnn">module</a>
+</li>
+      </ul></li>
+      <li>
     world_models.training.train_planet
 
       <ul>
@@ -6089,10 +7322,17 @@
 </li>
       </ul></li>
       <li>
-    world_models.transforms.transforms
+    world_models.training.train_world_model
 
       <ul>
-        <li><a href="api_reference.html#module-world_models.transforms.transforms">module</a>
+        <li><a href="api_reference.html#module-world_models.training.train_world_model">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.transforms.image
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.transforms.image">module</a>
 </li>
       </ul></li>
       <li>
@@ -6135,6 +7375,13 @@
 
       <ul>
         <li><a href="api_reference.html#module-world_models.utils.memory_utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.utils.train_utils
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.utils.train_utils">module</a>
 </li>
       </ul></li>
       <li>
@@ -6184,6 +7431,13 @@
 
       <ul>
         <li><a href="api_reference.html#module-world_models.vision.planet_encoder">module</a>
+</li>
+      </ul></li>
+      <li>
+    world_models.vision.VAE.ConvVAE
+
+      <ul>
+        <li><a href="api_reference.html#module-world_models.vision.VAE.ConvVAE">module</a>
 </li>
       </ul></li>
       <li>

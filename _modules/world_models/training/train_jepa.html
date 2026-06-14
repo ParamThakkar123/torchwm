@@ -790,6 +790,16 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">JEPAConfig</span><span class="p">):</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">to_train_dict</span><span class="p">()</span>
 
+    <span class="n">logging_args</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logging&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">logging_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enable_sweep&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">sweep_id</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">sweep</span><span class="p">(</span>
+            <span class="n">logging_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sweep_config&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="n">project</span><span class="o">=</span><span class="n">logging_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wandb_project&quot;</span><span class="p">),</span>
+            <span class="n">entity</span><span class="o">=</span><span class="n">logging_args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wandb_entity&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">wandb</span><span class="o">.</span><span class="n">agent</span><span class="p">(</span><span class="n">sweep_id</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">sweep_train</span><span class="p">)</span>
+        <span class="k">return</span>
+
     <span class="c1"># ----------------------------------------------------------------------- #</span>
     <span class="c1">#  PASSED IN PARAMS FROM CONFIG FILE</span>
     <span class="c1"># ----------------------------------------------------------------------- #</span>

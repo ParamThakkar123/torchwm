@@ -724,7 +724,9 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for world_models.training.train_genie</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Literal</span>
@@ -853,6 +855,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">            Dictionary of losses</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">mask_prob</span> <span class="o">=</span> <span class="p">(</span>
@@ -1049,6 +1052,61 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">return</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">model</span></div>
 
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_genie.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Console entrypoint for Genie trainer setup.</span>
+
+<span class="sd">    The generic ``VideoDataset`` in this module is intentionally abstract, so this</span>
+<span class="sd">    command provides a discoverable entrypoint for inspecting defaults and</span>
+<span class="sd">    constructing a trainer. Use a concrete dataset script, such as</span>
+<span class="sd">    ``scripts/train_genie_tinyworlds.py``, for end-to-end data loading.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Prepare Genie training&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--device&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Device override, for example &#39;cuda&#39; or &#39;cpu&#39;.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--max-steps&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override the default Genie max training steps.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Construct the trainer and print its resolved configuration without training.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">max_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">max_steps</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">device</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">trainer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">create_genie_trainer</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dry_run</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;Created GenieTrainer &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;on </span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2"> with max_steps=</span><span class="si">{</span><span class="n">trainer</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_steps</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="s2">&quot;Genie requires a concrete video dataset; use --dry-run to validate &quot;</span>
+        <span class="s2">&quot;trainer construction or scripts/train_genie_tinyworlds.py for an &quot;</span>
+        <span class="s2">&quot;end-to-end example.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
                 </article>

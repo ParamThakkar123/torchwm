@@ -19,19 +19,22 @@ class VideoTokenizer(nn.Module):
     this uses a Spatiotemporal (ST) Transformer in both encoder and decoder to
     better capture temporal dynamics in videos.
 
-    Architecture:
-        1. Patch Embedding: Convert (B, C, T, H, W) video to patch tokens
-        2. Encoder ST-Transformer: Process spatial-temporal patches
-        3. Vector Quantization: Discretize continuous embeddings to codebook entries
-        4. Decoder ST-Transformer: Reconstruct video from quantized tokens
-        5. Patch Unembedding: Convert tokens back to video frames
+    **Architecture**
 
-    Key Features:
-        - Causal processing: Each frame's encoding only uses previous frames
-        - Discrete tokens: Enables autoregressive prediction with latent actions
-        - Memory efficient: Uses ST-Transformer instead of full ViT to reduce O(n²) complexity
+    1. Patch Embedding: Convert (B, C, T, H, W) video to patch tokens
+    2. Encoder ST-Transformer: Process spatial-temporal patches
+    3. Vector Quantization: Discretize continuous embeddings to codebook entries
+    4. Decoder ST-Transformer: Reconstruct video from quantized tokens
+    5. Patch Unembedding: Convert tokens back to video frames
 
-    Usage with Genie:
+    **Key Features**
+
+    - Causal processing: Each frame's encoding only uses previous frames
+    - Discrete tokens: Enables autoregressive prediction with latent actions
+    - Memory efficient: Uses ST-Transformer instead of full ViT to reduce complexity
+
+    **Usage with Genie**::
+
         tokenizer = VideoTokenizer(
             num_frames=16,
             image_size=64,
@@ -44,11 +47,10 @@ class VideoTokenizer(nn.Module):
         # For discrete token input to dynamics model:
         token_embeddings = tokenizer.decode_indices(indices)
 
-    Training:
-        The tokenizer is trained with VQ-VAE objective:
-        - Reconstruction loss: MSE between input and reconstructed video
-        - VQ loss: Commit to codebook embeddings (encourages learning useful codes)
-        - Commitment loss: Penalizes encoder outputs drifting from codebook
+    The tokenizer is trained with VQ-VAE objective:
+    - Reconstruction loss: MSE between input and reconstructed video
+    - VQ loss: Commit to codebook embeddings
+    - Commitment loss: Penalizes encoder outputs drifting from codebook
 
     Reference:
         Genie: Generative Interactive Environments
@@ -216,7 +218,7 @@ class VideoTokenizer(nn.Module):
         """Decode token indices to embeddings for video frames.
 
         Args:
-            indices: Token indices (B, T, H', W') or (B, T, N) where N = H'*W'
+            indices: Token indices (B, T, H', W') or (B, T, N) where N = H' x W'
 
         Returns:
             z_q: Quantized embeddings (B, T, H', W', embedding_dim)

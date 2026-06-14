@@ -43,9 +43,10 @@ jobs:
       - name: Install documentation dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install sphinx myst-parser sphinx-rtd-theme sphinx-autodoc-typehints sphinxext.opengraph pydata-sphinx-theme sphinx-copybutton sphinxcontrib-mermaid sphinx-thebe attrdict
+          sudo apt-get update && sudo apt-get install -y pandoc
+          pip install sphinx myst-parser sphinx-rtd-theme sphinx-autodoc-typehints sphinxext.opengraph pydata-sphinx-theme sphinx-copybutton sphinxcontrib-mermaid sphinx-thebe nbsphinx matplotlib attrdict
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install numpy gym gymnasium tensorboardX tensorboard plotly pillow tqdm einops pyyaml pygame opencv-python albumentations
+          pip install numpy gym gymnasium tensorboardX tensorboard plotly pillow tqdm einops pyyaml pygame opencv-python albumentations cma
 
       - name: Build HTML docs
         env:

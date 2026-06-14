@@ -163,6 +163,12 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="Unity ML-Agents executables.",
         aliases=("mlagents", "unity_mlagents"),
     ),
+    "world-model": EnvBackendSpec(
+        name="world-model",
+        factory_path="world_models.envs:make_world_model_env",
+        description="Gymnasium-compatible rollouts inside a trained world model.",
+        aliases=("world_model", "model", "wm"),
+    ),
 }
 
 

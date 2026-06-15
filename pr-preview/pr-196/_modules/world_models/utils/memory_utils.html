@@ -26,18 +26,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
     <script src="../../../_static/documentation_options.js?v=ff822928"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
@@ -731,7 +731,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="apply_gradient_checkpointing">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.memory_utils.apply_gradient_checkpointing">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">apply_gradient_checkpointing</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">checkpoint_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_gradient_checkpointing</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">checkpoint_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply gradient checkpointing to reduce memory usage during training.&quot;&quot;&quot;</span>
     <span class="c1"># Some models expose gradient_checkpointing_enable as a callable while</span>
     <span class="c1"># others may have an attribute with the same name that isn&#39;t callable.</span>
@@ -756,13 +758,10 @@ window.runMermaid = runMermaid;</script>
                     <span class="c1"># Torch&#39;s checkpoint API is present at runtime but some stubs</span>
                     <span class="c1"># do not expose it. Ignore attribute errors from type-checker</span>
                     <span class="c1"># here while preserving runtime behavior.</span>
-                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">(</span>
                         <span class="n">orig_forward</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">use_reentrant</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
 
-                <span class="c1"># Assigning a function to an instance method is a runtime pattern</span>
-                <span class="c1"># used to wrap behavior; mypy may complain about assigning to</span>
-                <span class="c1"># a method attribute, so silence that specific check.</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="n">_checkpointed_forward</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
             <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;checkpoint_forward&quot;</span><span class="p">):</span>
                 <span class="c1"># Create a wrapper that calls checkpoint at runtime. Do not</span>
@@ -774,7 +773,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">def</span><span class="w"> </span><span class="nf">_checkpointed_forward2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
                     <span class="c1"># Use a targeted ignore for the missing `checkpoint` attr in</span>
                     <span class="c1"># some torch stubs while preserving runtime behaviour.</span>
-                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">(</span>
                         <span class="n">module</span><span class="o">.</span><span class="n">checkpoint_forward</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">use_reentrant</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
 
@@ -796,7 +795,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="optimize_memory_efficient_ops">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.memory_utils.optimize_memory_efficient_ops">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">optimize_memory_efficient_ops</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimize_memory_efficient_ops</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set PyTorch for memory-efficient operations.&quot;&quot;&quot;</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">False</span>
@@ -832,8 +831,8 @@ window.runMermaid = runMermaid;</script>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
-<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -867,7 +866,7 @@ window.runMermaid = runMermaid;</script>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
 </p></div>
       
     </div>

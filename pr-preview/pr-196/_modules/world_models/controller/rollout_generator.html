@@ -733,6 +733,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">trange</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_grid</span>
@@ -769,17 +770,17 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">env</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
         <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">policy</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_episode_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">episode_gen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">enable_streaming_video</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">streaming_video_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">streaming_video_fps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-        <span class="n">streaming_video_format</span><span class="o">=</span><span class="s2">&quot;mp4&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">episode_gen</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">enable_streaming_video</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">streaming_video_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">streaming_video_fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="n">streaming_video_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mp4&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the RolloutGenerator.</span>
 
 <span class="sd">        Args:</span>
@@ -862,7 +863,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RolloutGenerator.rollout_eval_n">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.rollout_eval_n">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval_n</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform multiple evaluation rollouts with metrics.</span>
 
 <span class="sd">        Args:</span>
@@ -884,21 +885,21 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RolloutGenerator.rollout_eval">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.controller.rollout_generator.RolloutGenerator.rollout_eval">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collect_latents</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rollout_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collect_latents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Policy is None!!&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">episode_gen</span><span class="p">()</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">des</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> Eval Ts&quot;</span>
-        <span class="n">frames</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">latents_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">collect_latents</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">frames</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">latents_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">collect_latents</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_streaming_video</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">streaming_video_path</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">video_writer</span> <span class="o">=</span> <span class="n">StreamingVideoWriter</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">video_writer</span> <span class="o">=</span> <span class="n">StreamingVideoWriter</span><span class="p">(</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">streaming_video_path</span><span class="p">,</span>
                 <span class="n">fps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">streaming_video_fps</span><span class="p">,</span>
                 <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">streaming_video_format</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">rec_losses</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">pred_r</span><span class="p">,</span> <span class="n">act_r</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="n">eps_reward</span> <span class="o">=</span> <span class="mi">0</span>
@@ -916,7 +917,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_writer</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">video_writer</span><span class="o">.</span><span class="n">write_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">collect_latents</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">collect_latents</span> <span class="ow">and</span> <span class="n">latents_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">latents_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                         <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">s</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
                     <span class="p">)</span>

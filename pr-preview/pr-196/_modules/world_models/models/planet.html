@@ -739,6 +739,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">postprocess_img</span><span class="p">,</span>
     <span class="n">TorchImageEnvWrapper</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.memory.planet_memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">Memory</span><span class="p">,</span> <span class="n">Episode</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_planet</span><span class="w"> </span><span class="kn">import</span> <span class="n">train</span> <span class="k">as</span> <span class="n">planet_train</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.export</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExportableAgentMixin</span>
@@ -758,19 +759,19 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">env</span><span class="p">,</span>
-        <span class="n">bit_depth</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">state_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-        <span class="n">latent_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
-        <span class="n">embedding_size</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
-        <span class="n">memory_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-        <span class="n">policy_cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">headless</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">max_episode_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">action_repeats</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">results_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">bit_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">state_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+        <span class="n">memory_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">policy_cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">headless</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">max_episode_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">action_repeats</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">results_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;SDL_VIDEODRIVER&quot;</span><span class="p">,</span> <span class="s2">&quot;dummy&quot;</span><span class="p">)</span>
 
@@ -819,29 +820,29 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="n">memory_size</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">results_dir</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="ow">or</span> <span class="s2">&quot;results/planet&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_wrap_raw_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">,</span> <span class="n">action_repeats</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wrap_raw_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">action_repeats</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">class</span><span class="w"> </span><span class="nc">SimpleEnvWrapper</span><span class="p">:</span>
-            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">,</span> <span class="n">action_repeats</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">action_repeats</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth</span> <span class="o">=</span> <span class="n">bit_depth</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">action_repeats</span> <span class="o">=</span> <span class="n">action_repeats</span>
 
             <span class="nd">@property</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">action_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">action_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">):</span>
                     <span class="k">return</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
             <span class="nd">@property</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">observation_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">observation_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
 
             <span class="nd">@property</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">max_episode_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">max_episode_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;_max_episode_steps&quot;</span><span class="p">)</span>
                     <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">_max_episode_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -853,10 +854,10 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">max_episode_steps</span>
                 <span class="k">return</span> <span class="mi">1000</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">sample_random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">sample_random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                     <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -877,7 +878,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NaN/Inf after preprocessing&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">x</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
                     <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">):</span>
@@ -889,7 +890,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">preprocess_img</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="nf">_get_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">_get_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
                 <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                     <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -904,14 +905,14 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">return</span> <span class="n">canvas</span>
                 <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 
-            <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">SimpleEnvWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">,</span> <span class="n">action_repeats</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Planet.warmup">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.planet.Planet.warmup">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">warmup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_episodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">warmup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect n_episodes of rollouts into memory (used as warmup).&quot;&quot;&quot;</span>
         <span class="n">eps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rollout_gen</span><span class="o">.</span><span class="n">rollout_n</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n_episodes</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="n">random_policy</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span></div>
@@ -921,17 +922,17 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../api_reference.html#world_models.models.planet.Planet.train">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-        <span class="n">steps_per_epoch</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-        <span class="n">H</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-        <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-        <span class="n">save_every</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
-        <span class="n">record_grads</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">results_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">scheduler_type</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span>
-        <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">steps_per_epoch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">H</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">save_every</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span>
+        <span class="n">record_grads</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">results_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">scheduler_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;step&quot;</span><span class="p">,</span>
+        <span class="n">scheduler_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        High-level training loop. Delegates single-step training to the existing `train` function.</span>
 
@@ -987,7 +988,7 @@ window.runMermaid = runMermaid;</script>
             <span class="bp">self</span><span class="o">.</span><span class="n">warmup</span><span class="p">(</span><span class="n">n_episodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
-            <span class="n">metrics</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">epoch_loss</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Track average loss for ReduceLROnPlateau</span>
 
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps_per_epoch</span><span class="p">):</span>

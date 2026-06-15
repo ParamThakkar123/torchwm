@@ -728,6 +728,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">einops</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dit_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiTConfig</span> <span class="k">as</span> <span class="n">Config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.model_io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -753,7 +754,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="sinusoidal_time_embedding">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.sinusoidal_time_embedding">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">timesteps</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create sinusoidal timestep embeddings for diffusion conditioning.</span>
 
 <span class="sd">    This function generates positional-style embeddings for diffusion timesteps,</span>
@@ -817,7 +818,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        tokens = patch_embed(images)  # (B, 64, 256) for 32x32 image with patch_size=4</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">img_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_size</span> <span class="o">=</span> <span class="n">img_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span> <span class="o">=</span> <span class="n">patch_size</span>
@@ -829,7 +832,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="PatchEmbed.forward">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchEmbed.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b c h w -&gt; b (h w) c&quot;</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
@@ -847,7 +850,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    grids and uses transposed convolution to decode spatial outputs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img_size</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">img_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_size</span> <span class="o">=</span> <span class="n">img_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span> <span class="o">=</span> <span class="n">patch_size</span>
@@ -858,7 +863,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="PatchUnEmbed.forward">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.PatchUnEmbed.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">patch_size</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">rearrange</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;b (h w) c -&gt; b c h w&quot;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -876,7 +881,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    residual updates conditioned on timestep embeddings.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">mlp_ratio</span><span class="p">,</span> <span class="n">drop</span><span class="p">,</span> <span class="n">t_dim</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mlp_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">drop</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">t_dim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TransformerBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attn</span> <span class="o">=</span> <span class="n">MultiHeadSelfAttention</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span> <span class="o">=</span> <span class="n">AdaLNNormalization</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">t_dim</span><span class="p">)</span>
@@ -891,7 +898,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="TransformerBlock.forward">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.TransformerBlock.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t_emb</span><span class="p">)</span>
         <span class="n">attn_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">attn_out</span>
@@ -914,15 +921,15 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">img_size</span><span class="p">,</span>
-        <span class="n">patch_size</span><span class="p">,</span>
-        <span class="n">in_channels</span><span class="p">,</span>
-        <span class="n">d_model</span><span class="p">,</span>
-        <span class="n">depth</span><span class="p">,</span>
-        <span class="n">heads</span><span class="p">,</span>
-        <span class="n">drop</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">t_dim</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">img_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">drop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">t_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DiT</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_dim</span> <span class="o">=</span> <span class="n">t_dim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
@@ -952,7 +959,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="DiT.forward">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">t_emb</span> <span class="o">=</span> <span class="n">sinusoidal_time_embedding</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_dim</span><span class="p">)</span>
         <span class="n">t_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mlp</span><span class="p">(</span><span class="n">t_emb</span><span class="p">)</span>
 
@@ -1091,34 +1098,34 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="DiT.train">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.DiT.train">[docs]</a>
-    <span class="nd">@classmethod</span>
+    <span class="nd">@classmethod</span>  <span class="c1"># type: ignore[override]</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">epochs</span><span class="p">,</span>
-        <span class="n">dataset</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
-        <span class="n">lr</span><span class="o">=</span><span class="mf">2e-4</span><span class="p">,</span>
-        <span class="n">img_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-        <span class="n">channels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-        <span class="n">patch</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">width</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
-        <span class="n">depth</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-        <span class="n">heads</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-        <span class="n">drop</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-        <span class="n">timesteps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-        <span class="n">beta_start</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
-        <span class="n">beta_end</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
-        <span class="n">ema</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">ema_decay</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-        <span class="n">workdir</span><span class="o">=</span><span class="s2">&quot;./dit_demo&quot;</span><span class="p">,</span>
-        <span class="n">root_path</span><span class="o">=</span><span class="s2">&quot;./data&quot;</span><span class="p">,</span>
-        <span class="n">image_folder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">crop_size</span><span class="o">=</span><span class="mi">224</span><span class="p">,</span>
-        <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">copy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">subset_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">val_split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dataset</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2e-4</span><span class="p">,</span>
+        <span class="n">img_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">patch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">384</span><span class="p">,</span>
+        <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">drop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">timesteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">beta_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+        <span class="n">beta_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">,</span>
+        <span class="n">ema</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ema_decay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.999</span><span class="p">,</span>
+        <span class="n">workdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./dit_demo&quot;</span><span class="p">,</span>
+        <span class="n">root_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span><span class="p">,</span>
+        <span class="n">image_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">crop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">224</span><span class="p">,</span>
+        <span class="n">download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">copy_data</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">subset_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">val_split</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
             <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1204,7 +1211,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">t_dim</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model Parameters: </span><span class="si">{</span><span class="n">param_count</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">M&quot;</span><span class="p">)</span>
@@ -1217,7 +1224,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">ema_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
                 <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">ema_update</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">ema_m</span><span class="p">,</span> <span class="n">decay</span><span class="o">=</span><span class="n">ema_decay</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">ema_update</span><span class="p">(</span>
+            <span class="n">m</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ema_m</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">decay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">ema_decay</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">ema_m</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
                     <span class="n">q</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">decay</span><span class="p">)</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">decay</span><span class="p">)</span>
@@ -1302,7 +1311,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="create_dit">
 <a class="viewcode-back" href="../../../../api_reference.html#torchwm.create_dit">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_dit</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_dit</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DiT</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.</span>
 
 <span class="sd">    The public factory API works with config objects, while ``DiT`` itself has a</span>

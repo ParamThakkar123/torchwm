@@ -896,7 +896,7 @@ window.runMermaid = runMermaid;</script>
     <span class="p">]</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using AdamW&quot;</span><span class="p">)</span>
-    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">AdamW</span><span class="p">(</span><span class="n">param_groups</span><span class="p">)</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">AdamW</span><span class="p">(</span><span class="n">param_groups</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
     <span class="n">scheduler</span> <span class="o">=</span> <span class="n">WarmupCosineSchedule</span><span class="p">(</span>
         <span class="n">optimizer</span><span class="p">,</span>
         <span class="n">warmup_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">warmup</span> <span class="o">*</span> <span class="n">iterations_per_epoch</span><span class="p">),</span>

@@ -843,7 +843,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    the RSSM to learn states that capture observation information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stoch_size</span><span class="p">,</span> <span class="n">deter_size</span><span class="p">,</span> <span class="n">output_shape</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">stoch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span> <span class="o">=</span> <span class="n">output_shape</span>
@@ -973,16 +980,16 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">stoch_size</span><span class="p">,</span>
-        <span class="n">deter_size</span><span class="p">,</span>
-        <span class="n">output_shape</span><span class="p">,</span>
-        <span class="n">n_layers</span><span class="p">,</span>
-        <span class="n">units</span><span class="p">,</span>
-        <span class="n">activation</span><span class="p">,</span>
-        <span class="n">dist</span><span class="p">,</span>
-        <span class="n">num_buckets</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
-        <span class="n">symlog_range</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">stoch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">dist</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">num_buckets</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">255</span><span class="p">,</span>
+        <span class="n">symlog_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">input_size</span> <span class="o">=</span> <span class="n">stoch_size</span> <span class="o">+</span> <span class="n">deter_size</span>
@@ -1105,16 +1112,16 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">action_size</span><span class="p">,</span>
-        <span class="n">stoch_size</span><span class="p">,</span>
-        <span class="n">deter_size</span><span class="p">,</span>
-        <span class="n">n_layers</span><span class="p">,</span>
-        <span class="n">units</span><span class="p">,</span>
-        <span class="n">activation</span><span class="p">,</span>
-        <span class="n">min_std</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
-        <span class="n">init_std</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="n">mean_scale</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">stoch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">min_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-4</span><span class="p">,</span>
+        <span class="n">init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">mean_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
@@ -1161,7 +1168,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="ActionDecoder.add_exploration">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionDecoder.add_exploration">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_exploration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">action_noise</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_exploration</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">action_noise</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">action_noise</span><span class="p">)</span><span class="o">.</span><span class="n">rsample</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 </div>
 

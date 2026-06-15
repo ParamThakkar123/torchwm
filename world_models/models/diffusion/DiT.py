@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from typing import Any
 from einops import rearrange
 from world_models.configs.dit_config import DiTConfig as Config
 from world_models.models.model_io import (
@@ -25,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 
-def sinusoidal_time_embedding(timesteps, dim):
+def sinusoidal_time_embedding(timesteps: torch.Tensor, dim: int) -> torch.Tensor:
     """Create sinusoidal timestep embeddings for diffusion conditioning.
 
     This function generates positional-style embeddings for diffusion timesteps,
@@ -86,7 +87,9 @@ class PatchEmbed(nn.Module):
         tokens = patch_embed(images)  # (B, 64, 256) for 32x32 image with patch_size=4
     """
 
-    def __init__(self, img_size, patch_size, in_channels, embed_dim):
+    def __init__(
+        self, img_size: int, patch_size: int, in_channels: int, embed_dim: int
+    ) -> None:
         super().__init__()
         self.img_size = img_size
         self.patch_size = patch_size
@@ -96,7 +99,7 @@ class PatchEmbed(nn.Module):
         )
         self.pos = nn.Parameter(torch.randn(1, self.n_patches, embed_dim))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.proj(x)
         x = rearrange(x, "b c h w -> b (h w) c")
         x = x + self.pos
@@ -110,7 +113,9 @@ class PatchUnEmbed(nn.Module):
     grids and uses transposed convolution to decode spatial outputs.
     """
 
-    def __init__(self, img_size, patch_size, embed_dim, out_channels):
+    def __init__(
+        self, img_size: int, patch_size: int, embed_dim: int, out_channels: int
+    ) -> None:
         super().__init__()
         self.img_size = img_size
         self.patch_size = patch_size
@@ -119,7 +124,7 @@ class PatchUnEmbed(nn.Module):
             embed_dim, out_channels, kernel_size=patch_size, stride=patch_size
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         h = w = self.img_size // self.patch_size
         x = rearrange(x, "b (h w) c -> b c h w", h=h, w=w)
         x = self.proj(x)
@@ -133,7 +138,9 @@ class TransformerBlock(nn.Module):
     residual updates conditioned on timestep embeddings.
     """
 
-    def __init__(self, d_model, n_heads, mlp_ratio, drop, t_dim):
+    def __init__(
+        self, d_model: int, n_heads: int, mlp_ratio: float, drop: float, t_dim: int
+    ) -> None:
         super(TransformerBlock, self).__init__()
         self.attn = MultiHeadSelfAttention(d_model, n_heads)
         self.norm1 = AdaLNNormalization(d_model, t_dim)
@@ -146,7 +153,7 @@ class TransformerBlock(nn.Module):
             nn.Dropout(drop),
         )
 
-    def forward(self, x, t_emb):
+    def forward(self, x: torch.Tensor, t_emb: torch.Tensor) -> torch.Tensor:
         h = self.norm1(x, t_emb)
         attn_out = self.attn(h)
         x = x + attn_out
@@ -165,15 +172,15 @@ class DiT(nn.Module):
 
     def __init__(
         self,
-        img_size,
-        patch_size,
-        in_channels,
-        d_model,
-        depth,
-        heads,
-        drop=0.0,
-        t_dim=256,
-    ):
+        img_size: int,
+        patch_size: int,
+        in_channels: int,
+        d_model: int,
+        depth: int,
+        heads: int,
+        drop: float = 0.0,
+        t_dim: int = 256,
+    ) -> None:
         super(DiT, self).__init__()
         self.t_dim = t_dim
         self.config = Config(
@@ -201,7 +208,7 @@ class DiT(nn.Module):
         self.unpatchify = PatchUnEmbed(img_size, patch_size, d_model, in_channels)
         self.out = nn.Identity()
 
-    def forward(self, x, t):
+    def forward(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
         t_emb = sinusoidal_time_embedding(t, self.t_dim)
         t_emb = self.t_mlp(t_emb)
 
@@ -322,34 +329,34 @@ class DiT(nn.Module):
             }
         )
 
-    @classmethod
+    @classmethod  # type: ignore[override]
     def train(
         cls,
-        epochs,
-        dataset,
-        batch_size=128,
-        lr=2e-4,
-        img_size=32,
-        channels=3,
-        patch=4,
-        width=384,
-        depth=6,
-        heads=6,
-        drop=0.1,
-        timesteps=1000,
-        beta_start=1e-4,
-        beta_end=0.02,
-        ema=True,
-        ema_decay=0.999,
-        workdir="./dit_demo",
-        root_path="./data",
-        image_folder=None,
-        crop_size=224,
-        download=True,
-        copy_data=False,
-        subset_file=None,
-        val_split=None,
-    ):
+        epochs: int,
+        dataset: Any,
+        batch_size: int = 128,
+        lr: float = 2e-4,
+        img_size: int = 32,
+        channels: int = 3,
+        patch: int = 4,
+        width: int = 384,
+        depth: int = 6,
+        heads: int = 6,
+        drop: float = 0.1,
+        timesteps: int = 1000,
+        beta_start: float = 1e-4,
+        beta_end: float = 0.02,
+        ema: bool = True,
+        ema_decay: float = 0.999,
+        workdir: str = "./dit_demo",
+        root_path: str = "./data",
+        image_folder: str | None = None,
+        crop_size: int = 224,
+        download: bool = True,
+        copy_data: bool = False,
+        subset_file: str | None = None,
+        val_split: float | None = None,
+    ) -> None:
         if torch.cuda.is_available():
             device = torch.device("cuda")
         else:
@@ -435,7 +442,7 @@ class DiT(nn.Module):
             t_dim=256,
         ).to(device)
 
-        def param_count(model):
+        def param_count(model: nn.Module) -> int:
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
         print(f"Model Parameters: {param_count(model) / 1e6:.2f}M")
@@ -448,7 +455,9 @@ class DiT(nn.Module):
             for p in ema_model.parameters():
                 p.requires_grad = False
 
-        def ema_update(m, ema_m, decay=ema_decay):
+        def ema_update(
+            m: nn.Module, ema_m: nn.Module, decay: float = ema_decay
+        ) -> None:
             with torch.no_grad():
                 for p, q in zip(m.parameters(), ema_m.parameters()):
                     q.data.mul_(decay).add_(p.data, alpha=1 - decay)
@@ -529,7 +538,7 @@ class DiT(nn.Module):
             print(f"Generated samples saved to {workdir}/generated_samples.png")
 
 
-def create_dit(config=None, **overrides):
+def create_dit(config: Any = None, **overrides: Any) -> DiT:
     """Create a :class:`DiT` from a ``DiTConfig`` or keyword overrides.
 
     The public factory API works with config objects, while ``DiT`` itself has a

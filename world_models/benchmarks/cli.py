@@ -25,7 +25,7 @@ def parse_seeds(s: str) -> List[int]:
 
 
 @hydra.main(version_base=None, config_path=None, config_name=None)
-def main(cfg: DictConfig):
+def main(cfg: DictConfig) -> None:
     """Run benchmark for an agent on an environment."""
 
     if not cfg.get("all_agents", False) and not cfg.get("agent"):

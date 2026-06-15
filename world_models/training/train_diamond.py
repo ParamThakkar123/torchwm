@@ -1,3 +1,4 @@
+from typing import Any
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -50,7 +51,7 @@ class DiamondAgent:
     RL agent trained entirely within a diffusion world model.
     """
 
-    def __init__(self, config: DiamondConfig):
+    def __init__(self, config: DiamondConfig) -> None:
         self.config = coerce_config(DiamondConfig, config)
         config = self.config
         self.device = torch.device(
@@ -118,7 +119,7 @@ class DiamondAgent:
     def from_config(
         cls,
         config: DiamondConfig | dict | str | Path | None = None,
-        **overrides,
+        **overrides: Any,
     ) -> "DiamondAgent":
         """Build a DIAMOND agent from a config object, dict, YAML file, or YAML string."""
 
@@ -135,7 +136,7 @@ class DiamondAgent:
         config_filename: str = "config.yaml",
         repo_type: str | None = None,
         revision: str | None = None,
-        **overrides,
+        **overrides: Any,
     ) -> "DiamondAgent":
         """Load a DIAMOND checkpoint from a local path/directory or HF Hub."""
 
@@ -194,7 +195,7 @@ class DiamondAgent:
             }
         )
 
-    def _build_models(self):
+    def _build_models(self) -> None:
         """Initialize all DIAMOND models."""
         self.diffusion_model = DiffusionUNet(
             obs_channels=3,
@@ -697,7 +698,7 @@ class DiamondAgent:
             hidden_state,
         )
 
-    def train(self):
+    def train(self) -> None:
         """Main training loop following Algorithm 1."""
         print(f"Training DIAMOND on {self.config.game}")
         print(f"Device: {self.device}")
@@ -835,7 +836,7 @@ class DiamondAgent:
 
         return (score - random) / (human - random)
 
-    def save_checkpoint(self, path: Optional[Union[str, os.PathLike]] = None):
+    def save_checkpoint(self, path: Optional[Union[str, os.PathLike]] = None) -> None:
         """Save model checkpoint.
 
         Args:
@@ -935,7 +936,7 @@ class DiamondAgent:
 
         torch.save(checkpoint, out_path)
 
-    def load_checkpoint(self, path: Optional[str] = None):
+    def load_checkpoint(self, path: Optional[str] = None) -> None:
         """Load model checkpoint.
 
         Args:
@@ -1052,7 +1053,7 @@ def train_diamond(
     preset: Optional[str] = None,
     device: str | None = None,
     config: DiamondConfig | None = None,
-):
+) -> None:
     """Train DIAMOND on a specific game or a composed experiment config."""
     if config is None:
         config = DiamondConfig()
@@ -1070,7 +1071,7 @@ def train_diamond(
     agent.train()
 
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> Any:
     """Compose DIAMOND config from YAML/dot-list overrides and launch training."""
     args = parse_experiment_args(argv, description="Train DIAMOND on Atari")
     config = instantiate_dataclass(DiamondConfig, args.config, args.overrides)

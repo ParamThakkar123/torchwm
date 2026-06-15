@@ -50,7 +50,10 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:
     # Agents
     if name == "Dreamer":
         from .dreamer import Dreamer

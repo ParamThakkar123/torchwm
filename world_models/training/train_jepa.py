@@ -5,6 +5,7 @@ try:
 except Exception:
     pass
 
+from typing import Any
 import copy
 import logging
 import sys
@@ -51,7 +52,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger()
 
 
-def main(args=None, resume_preempt=False):
+def main(args: Any = None, resume_preempt: bool = False) -> Any:
     """Run JEPA training using a CLI argv, nested dict, or `JEPAConfig` instance.
 
     This entrypoint initializes distributed context, data pipeline, masking,
@@ -469,7 +470,7 @@ def main(args=None, resume_preempt=False):
         save_checkpoint(epoch + 1)
 
 
-def sweep_train():
+def sweep_train() -> None:
     """Function for WandB sweep agent."""
     with wandb.init() as run:
         cfg = JEPAConfig()

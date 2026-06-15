@@ -1,3 +1,4 @@
+from typing import Any
 import pdb
 import torch
 import numpy as np
@@ -25,7 +26,16 @@ from world_models.controller.rssm_policy import RSSMPolicy
 from world_models.controller.rollout_generator import RolloutGenerator
 
 
-def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
+def train(
+    memory: Any,
+    rssm: Any,
+    optimizer: Any,
+    device: torch.device,
+    N: int = 32,
+    H: int = 50,
+    beta: float = 1.0,
+    grads: bool = False,
+) -> dict:
     """
     Training implementation as indicated in:
     Learning Latent Dynamics for Planning from Pixels
@@ -91,7 +101,7 @@ def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
     return metrics
 
 
-def main():
+def main() -> None:
     """Example PlaNet/RSSM training script with rollout collection and evaluation.
 
     Builds environment/model/policy objects, iteratively trains on replayed

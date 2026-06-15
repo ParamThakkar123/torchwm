@@ -24,7 +24,10 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:
     if name in ("Logger", "FreezeParameters", "get_parameters", "compute_return"):
         from .dreamer_utils import (
             Logger,

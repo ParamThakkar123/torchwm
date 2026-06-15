@@ -41,7 +41,7 @@ from world_models.vision.VAE.ConvVAE import ConvVAE
 
 def generate_rollouts(
     data_dir, env_name, num_rollouts=1000, seq_len=1000, num_workers=8
-):
+) -> None:
     """Generate random rollouts from the specified environment.
 
     Args:
@@ -71,7 +71,7 @@ def generate_rollouts(
     print(f"Generated rollouts in {data_dir}")
 
 
-def _generate_worker(args):
+def _generate_worker(args) -> None:
     """Worker function for parallel rollout generation."""
     data_dir, env_name, seq_len, num_rollouts = args
 
@@ -119,7 +119,7 @@ def _generate_worker(args):
     env.close()
 
 
-def run_training_pipeline(args, action_size):
+def run_training_pipeline(args, action_size) -> None:
     """Execute the complete World Model training pipeline."""
 
     vae_config = WMVAEConfig(
@@ -201,7 +201,7 @@ def run_training_pipeline(args, action_size):
     print("=" * 50)
 
 
-def test_trained_model(logdir, env_name, action_size, num_episodes=5):
+def test_trained_model(logdir, env_name, action_size, num_episodes=5) -> None:
     """Test the trained world model with controller in the environment."""
 
     if torch.cuda.is_available():
@@ -280,7 +280,7 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
     env.close()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Train World Model on any Gym environment"
     )

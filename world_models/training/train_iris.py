@@ -40,7 +40,7 @@ class IRISTrainer:
         device: str = "cuda",
         seed: int = 42,
         config: Optional[IRISConfig] = None,
-    ):
+    ) -> None:
         self.game = game
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.seed = seed
@@ -282,7 +282,7 @@ class IRISTrainer:
         )
         return epsilon
 
-    def evaluate(self, num_episodes: int = 100, render: bool = False):
+    def evaluate(self, num_episodes: int = 100, render: bool = False) -> dict | tuple:
         """Evaluate agent performance.
 
         Args:
@@ -379,7 +379,7 @@ class IRISTrainer:
         total_epochs: Optional[int] = None,
         eval_interval: int = 50,
         save_dir: str = "checkpoints/iris",
-    ):
+    ) -> None:
         """Full training loop.
 
         Args:
@@ -444,7 +444,7 @@ class IRISTrainer:
         return self.metrics
 
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> IRISConfig:
     """Run IRIS training with YAML config files and Hydra dot-list overrides."""
     from world_models.experiments import parse_experiment_args
 

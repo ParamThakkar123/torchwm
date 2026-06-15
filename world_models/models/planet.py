@@ -13,6 +13,7 @@ from world_models.utils.utils import (
     postprocess_img,
     TorchImageEnvWrapper,
 )
+from typing import Any
 from world_models.memory.planet_memory import Memory, Episode
 from world_models.training.train_planet import train as planet_train
 from world_models.export import ExportableAgentMixin
@@ -30,19 +31,19 @@ class Planet(ExportableAgentMixin):
 
     def __init__(
         self,
-        env,
-        bit_depth=5,
-        device=None,
-        state_size=200,
-        latent_size=30,
-        embedding_size=1024,
-        memory_size=100,
-        policy_cfg=None,
-        headless=False,
-        max_episode_steps=None,
-        action_repeats=1,
-        results_dir=None,
-    ):
+        env: Any,
+        bit_depth: int = 5,
+        device: torch.device | None = None,
+        state_size: int = 200,
+        latent_size: int = 30,
+        embedding_size: int = 1024,
+        memory_size: int = 100,
+        policy_cfg: dict | None = None,
+        headless: bool = False,
+        max_episode_steps: int | None = None,
+        action_repeats: int = 1,
+        results_dir: str | None = None,
+    ) -> None:
         if headless:
             os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
@@ -91,29 +92,29 @@ class Planet(ExportableAgentMixin):
         )
 
         self.memory = Memory(memory_size)
-        self.summary = None
+        self.summary: Any = None
         self.results_dir = results_dir or "results/planet"
 
-    def _wrap_raw_env(self, env, bit_depth, action_repeats):
+    def _wrap_raw_env(self, env: Any, bit_depth: int, action_repeats: int) -> Any:
         class SimpleEnvWrapper:
-            def __init__(self, env, bit_depth, action_repeats):
+            def __init__(self, env: Any, bit_depth: int, action_repeats: int) -> None:
                 self.env = env
                 self.bit_depth = bit_depth
                 self.action_repeats = action_repeats
 
             @property
-            def action_size(self):
+            def action_size(self) -> int:
                 if hasattr(self.env.action_space, "n"):
                     return 1
                 else:
                     return self.env.action_space.shape[0]
 
             @property
-            def observation_size(self):
+            def observation_size(self) -> tuple:
                 return (3, 64, 64)
 
             @property
-            def max_episode_steps(self):
+            def max_episode_steps(self) -> int:
                 if (
                     hasattr(self.env, "_max_episode_steps")
                     and self.env._max_episode_steps is not None
@@ -125,10 +126,10 @@ class Planet(ExportableAgentMixin):
                     return self.env.spec.max_episode_steps
                 return 1000
 
-            def sample_random_action(self):
+            def sample_random_action(self) -> torch.Tensor:
                 return torch.tensor(self.env.action_space.sample(), dtype=torch.float32)
 
-            def reset(self):
+            def reset(self) -> torch.Tensor:
                 obs = self.env.reset()
                 if isinstance(obs, tuple):
                     obs = obs[0]
@@ -149,7 +150,7 @@ class Planet(ExportableAgentMixin):
                     raise ValueError("NaN/Inf after preprocessing")
                 return x
 
-            def step(self, action):
+            def step(self, action: Any) -> tuple:
                 if isinstance(action, torch.Tensor):
                     action = action.detach().numpy()
                 if hasattr(self.env.action_space, "n"):
@@ -161,7 +162,7 @@ class Planet(ExportableAgentMixin):
                 preprocess_img(x, self.bit_depth)
                 return x, reward, done, info
 
-            def _get_frame(self, obs):
+            def _get_frame(self, obs: Any) -> np.ndarray:
                 frame = self.env.render()
                 if isinstance(frame, tuple):
                     frame = frame[0]
@@ -176,29 +177,29 @@ class Planet(ExportableAgentMixin):
                     return canvas
                 return np.zeros((64, 64, 3), dtype=np.uint8)
 
-            def __getattr__(self, name):
+            def __getattr__(self, name: str) -> Any:
                 return getattr(self.env, name)
 
         return SimpleEnvWrapper(env, bit_depth, action_repeats)
 
-    def warmup(self, n_episodes=1, random_policy=True):
+    def warmup(self, n_episodes: int = 1, random_policy: bool = True) -> None:
         """Collect n_episodes of rollouts into memory (used as warmup)."""
         eps = self.rollout_gen.rollout_n(n=n_episodes, random_policy=random_policy)
         self.memory.append(eps)
 
     def train(
         self,
-        epochs=100,
-        steps_per_epoch=150,
-        batch_size=32,
-        H=50,
-        beta=1.0,
-        save_every=25,
-        record_grads=False,
-        results_dir=None,
-        scheduler_type="step",
-        scheduler_kwargs=None,
-    ):
+        epochs: int = 100,
+        steps_per_epoch: int = 150,
+        batch_size: int = 32,
+        H: int = 50,
+        beta: float = 1.0,
+        save_every: int = 25,
+        record_grads: bool = False,
+        results_dir: str | None = None,
+        scheduler_type: str = "step",
+        scheduler_kwargs: dict | None = None,
+    ) -> str:
         """
         High-level training loop. Delegates single-step training to the existing `train` function.
 
@@ -254,7 +255,7 @@ class Planet(ExportableAgentMixin):
             self.warmup(n_episodes=1, random_policy=True)
 
         for ep in range(epochs):
-            metrics = {}
+            metrics: dict[str, Any] = {}
             epoch_loss = 0  # Track average loss for ReduceLROnPlateau
 
             for _ in range(steps_per_epoch):

@@ -35,12 +35,13 @@ from .wrappers import (
     SelectAction,
 )
 from .dmc import DeepMindControlEnv
+from typing import Any
 import logging as _logging
 
 logger = _logging.getLogger(__name__)
 
 
-def make_env(env_id: str, **kwargs):
+def make_env(env_id: str, **kwargs: Any) -> Any:
     """Compatibility helper: create an environment by delegating to
     package-specific factories when available, falling back to gym.make.
 

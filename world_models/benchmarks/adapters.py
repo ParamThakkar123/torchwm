@@ -13,20 +13,20 @@ from world_models.models.dreamer import DreamerAgent
 
 
 class BaseAdapter:
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
         self.env_spec = env_spec
         self.seed = seed
 
-    def load_checkpoint(self, path: str):
+    def load_checkpoint(self, path: str) -> None:
         raise NotImplementedError
 
-    def evaluate(self, num_episodes: int = 1, render: bool = False):
+    def evaluate(self, num_episodes: int = 1, render: bool = False) -> dict:
         """Return standardized output. Preferred format: dict with key 'episode_returns' -> List[float]"""
         raise NotImplementedError
 
 
 class DiamondAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
         super().__init__(env_spec, seed)
         # env_spec can be a dict with keys like 'game', or a simple string game name
         if isinstance(env_spec, dict):
@@ -47,13 +47,13 @@ class DiamondAdapter(BaseAdapter):
 
         self.agent = DiamondAgent(cfg)
 
-    def load_checkpoint(self, path: str):
+    def load_checkpoint(self, path: str) -> None:
         try:
             self.agent.load_checkpoint(path)
         except Exception:
             raise
 
-    def evaluate(self, num_episodes: int = 1, render: bool = False):
+    def evaluate(self, num_episodes: int = 1, render: bool = False) -> dict:
         # DiamondAgent.evaluate returns a float mean reward per episode by default.
         # To produce per-episode returns we run single-episode evaluations repeatedly.
         episode_returns: List[float] = []
@@ -84,7 +84,7 @@ class DiamondAdapter(BaseAdapter):
 
 
 class IRISAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
         super().__init__(env_spec, seed)
         game = None
         if isinstance(env_spec, dict):
@@ -104,7 +104,7 @@ class IRISAdapter(BaseAdapter):
             game=game or cfg.env, device=device, seed=seed, config=cfg
         )
 
-    def load_checkpoint(self, path: str):
+    def load_checkpoint(self, path: str) -> None:
         # IRIS agent provides save/load on agent; delegate if trainer has agent
         try:
             # IRISAgent implements load(path)
@@ -115,7 +115,7 @@ class IRISAdapter(BaseAdapter):
         except Exception:
             raise
 
-    def evaluate(self, num_episodes: int = 1, render: bool = False):
+    def evaluate(self, num_episodes: int = 1, render: bool = False) -> dict:
         res = self.trainer.evaluate(num_episodes=num_episodes, render=render)
         if render:
             # (episode_returns_array, videos_list, latents_array)
@@ -138,7 +138,7 @@ class IRISAdapter(BaseAdapter):
 
 
 class DreamerAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
         super().__init__(env_spec, seed)
         # env_spec can be dict or string. DreamerConfig expects env_backend and env.
         if isinstance(env_spec, dict):
@@ -179,7 +179,7 @@ class DreamerAdapter(BaseAdapter):
         # Construct DreamerAgent (it will build envs internally)
         self.agent = DreamerAgent(config=cfg)
 
-    def load_checkpoint(self, path: str):
+    def load_checkpoint(self, path: str) -> None:
         try:
             if hasattr(self.agent, "dreamer") and hasattr(
                 self.agent.dreamer, "restore_checkpoint"
@@ -190,7 +190,7 @@ class DreamerAdapter(BaseAdapter):
         except Exception:
             raise
 
-    def evaluate(self, num_episodes: int = 1, render: bool = False):
+    def evaluate(self, num_episodes: int = 1, render: bool = False) -> dict:
         # Configure agent's test episodes
         try:
             self.agent.args.test_episodes = int(num_episodes)

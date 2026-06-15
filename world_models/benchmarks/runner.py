@@ -21,7 +21,7 @@ class BenchmarkRunner:
 
     def __init__(
         self, adapter_cls: Callable[..., adapters.BaseAdapter], out_dir: str = "results"
-    ):
+    ) -> None:
         self.adapter_cls = adapter_cls
         self.out_dir = out_dir
         os.makedirs(self.out_dir, exist_ok=True)
@@ -126,7 +126,7 @@ class MultiAgentBenchmarkRunner:
         self,
         adapter_classes: List[type[adapters.BaseAdapter]],
         out_dir: str = "results",
-    ):
+    ) -> None:
         self.adapter_classes = adapter_classes
         self.out_dir = out_dir
         os.makedirs(self.out_dir, exist_ok=True)
@@ -261,7 +261,7 @@ class MultiAgentBenchmarkRunner:
 
         return checkpoints
 
-    def _export_combined_csv(self, results: Dict[str, Any], filepath: str):
+    def _export_combined_csv(self, results: Dict[str, Any], filepath: str) -> None:
         """Export combined results to CSV."""
         with open(filepath, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)

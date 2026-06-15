@@ -1,3 +1,4 @@
+from typing import Any
 import pdb
 from collections import defaultdict
 from pprint import pprint
@@ -32,14 +33,16 @@ LATENT_SIZE = 30
 EMBEDDING_SIZE = 1024
 
 
-def train_rssm(memory, model, optimizer, record_grads=True):
+def train_rssm(
+    memory: Any, model: Any, optimizer: Any, record_grads: bool = True
+) -> dict:
     """Train an RSSM on replayed trajectories for one optimization phase.
 
     Samples batches from memory, computes reconstruction and KL objectives
     across rollout steps, and returns aggregated loss metrics.
     """
     model.train()
-    metrics = defaultdict(list)
+    metrics: dict[str, Any] = defaultdict(list)
     if record_grads:
         metrics["grads"] = defaultdict(list)
     device = next(model.parameters()).device
@@ -87,7 +90,7 @@ def train_rssm(memory, model, optimizer, record_grads=True):
     return metrics
 
 
-def evaluate(memory, model, path, eps):
+def evaluate(memory: Any, model: Any, path: str, eps: Any) -> None:
     """Run one RSSM reconstruction/prediction evaluation and save visual outputs.
 
     Decodes priors/posteriors for a sampled sequence and writes frame grids
@@ -123,7 +126,7 @@ def evaluate(memory, model, path, eps):
     save_frames(x[0].cpu(), pred1[:, 0].cpu(), pred2[:, 0].cpu(), f"{path}_{eps}")
 
 
-def main():
+def main() -> None:
     """Standalone training loop for RSSM with generated replay fallback support.
 
     Initializes environment/policy/memory, trains over episodes, logs metrics,

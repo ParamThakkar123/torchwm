@@ -7,6 +7,7 @@ experience using trained policies in environments.
 import numpy as np
 import torch
 from collections import defaultdict
+from typing import Any
 
 from tqdm import trange
 from torchvision.utils import make_grid
@@ -41,17 +42,17 @@ class RolloutGenerator:
 
     def __init__(
         self,
-        env,
+        env: Any,
         device: str,
-        policy=None,
+        policy: Any = None,
         max_episode_steps: int | None = None,
-        episode_gen=None,
-        name=None,
-        enable_streaming_video=False,
-        streaming_video_path=None,
-        streaming_video_fps=20,
-        streaming_video_format="mp4",
-    ):
+        episode_gen: Any = None,
+        name: str = "",
+        enable_streaming_video: bool = False,
+        streaming_video_path: str | None = None,
+        streaming_video_fps: int = 20,
+        streaming_video_format: str = "mp4",
+    ) -> None:
         """Initialize the RolloutGenerator.
 
         Args:
@@ -126,7 +127,7 @@ class RolloutGenerator:
             ret.append(self.rollout_once(random_policy=random_policy))
         return ret
 
-    def rollout_eval_n(self, n: int):
+    def rollout_eval_n(self, n: int) -> tuple:
         """Perform multiple evaluation rollouts with metrics.
 
         Args:
@@ -145,21 +146,21 @@ class RolloutGenerator:
                 metrics[k].append(v)
         return episodes, frames, metrics
 
-    def rollout_eval(self, collect_latents=False):
+    def rollout_eval(self, collect_latents: bool = False) -> tuple:
         assert self.policy is not None, "Policy is None!!"
         self.policy.reset()
         eps = self.episode_gen()
         obs = self.env.reset()
         des = f"{self.name} Eval Ts"
-        frames = []
-        latents_list = [] if collect_latents else None
+        frames: list = []
+        latents_list: list | None = [] if collect_latents else None
         if self.enable_streaming_video and self.streaming_video_path:
-            self.video_writer = StreamingVideoWriter(
+            self.video_writer = StreamingVideoWriter(  # type: ignore[no-untyped-call]
                 self.streaming_video_path,
                 fps=self.streaming_video_fps,
                 format=self.streaming_video_format,
             )
-        metrics = {}
+        metrics: dict[str, Any] = {}
         rec_losses = []
         pred_r, act_r = [], []
         eps_reward = 0
@@ -177,7 +178,7 @@ class RolloutGenerator:
                 frames.append(frame)
                 if self.video_writer:
                     self.video_writer.write_frame(frame)
-                if collect_latents:
+                if collect_latents and latents_list is not None:
                     latents_list.append(
                         torch.cat([self.policy.h, self.policy.s], dim=-1).cpu().numpy()
                     )

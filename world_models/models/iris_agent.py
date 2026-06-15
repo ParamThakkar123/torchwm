@@ -70,7 +70,7 @@ class IRISAgent(nn.Module):
         config: IRISConfig,
         action_size: int,
         device: torch.device,
-    ):
+    ) -> None:
         super().__init__()
 
         self.config = coerce_config(IRISConfig, config)
@@ -241,7 +241,7 @@ class IRISAgent(nn.Module):
             }
         )
 
-    def _setup_optimizers(self):
+    def _setup_optimizers(self) -> None:
         """Setup separate optimizers for each component."""
         # Autoencoder optimizer
         self.autoencoder_opt = optim.Adam(
@@ -658,7 +658,7 @@ class IRISAgent(nn.Module):
         self.logger.debug(f"Actor-critic update: {losses}")
         return losses
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         """Save agent state."""
         save_config_next_to_checkpoint(self.config, path)
         torch.save(
@@ -681,7 +681,7 @@ class IRISAgent(nn.Module):
             path,
         )
 
-    def load(self, path: str):
+    def load(self, path: str) -> None:
         """Load agent state."""
         with torch.serialization.safe_globals([IRISConfig]):
             checkpoint = torch.load(

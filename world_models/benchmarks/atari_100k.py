@@ -120,7 +120,7 @@ def compute_aggregate_metrics(results: Dict[str, Dict]) -> Dict[str, Any]:
     }
 
 
-def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, Any]):
+def print_results_table(results: Dict[str, Dict], aggregate: Dict[str, Any]) -> None:
     """Print a formatted table of results."""
     print("\n" + "=" * 100)
     print(f"{'Game':<20} {'Mean Score':>12} {'Std':>8} {'Mean HNS':>10} {'Std HNS':>8}")

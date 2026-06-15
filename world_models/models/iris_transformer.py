@@ -77,7 +77,7 @@ class IRISTransformer(nn.Module):
 
         self._init_weights()
 
-    def _init_weights(self):
+    def _init_weights(self) -> None:
         """Initialize weights with proper scaling."""
         nn.init.normal_(self.token_embedding.weight, std=0.02)
         nn.init.normal_(self.action_embedding.weight, std=0.02)

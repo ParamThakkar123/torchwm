@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader, Dataset
 from typing import Iterator, Optional
 import multiprocessing
 
+
 def create_efficient_dataloader(
     dataset: Dataset,
     batch_size: int,
@@ -26,13 +27,13 @@ def create_efficient_dataloader(
     )
 
 
-def prefetch_iterator(iterator: Iterator, buffer_size: int = 3):
+def prefetch_iterator(iterator: Iterator, buffer_size: int = 3) -> Iterator:
     """Add prefetching to any iterator."""
     from collections import deque
 
     buffer: deque = deque()
 
-    def fill_buffer():
+    def fill_buffer() -> None:
         for item in iterator:
             buffer.append(item)
             if len(buffer) >= buffer_size:

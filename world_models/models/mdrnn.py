@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
+from typing import Any, Tuple
 
 
 class _MDRNNBase(nn.Module):
@@ -28,7 +29,9 @@ class _MDRNNBase(nn.Module):
         gaussians: Number of Gaussian components in GMM output.
     """
 
-    def __init__(self, latents, actions, hiddens, gaussians):
+    def __init__(
+        self, latents: int, actions: int, hiddens: int, gaussians: int
+    ) -> None:
         super().__init__()
         self.latents = latents
         self.actions = actions
@@ -37,7 +40,7 @@ class _MDRNNBase(nn.Module):
 
         self.gmm_linear = nn.Linear(hiddens, (2 * latents + 1) * gaussians + 2)
 
-    def forward(self, *inputs):
+    def forward(self, *inputs: Any) -> Any:
         """Forward pass - to be implemented by subclasses."""
         raise NotImplementedError
 
@@ -63,11 +66,15 @@ class MDRNN(_MDRNNBase):
         >>> # mus.shape = (10, 4, 5, 32)
     """
 
-    def __init__(self, latents, actions, hiddens, gaussians):
+    def __init__(
+        self, latents: int, actions: int, hiddens: int, gaussians: int
+    ) -> None:
         super().__init__(latents, actions, hiddens, gaussians)
         self.rnn = nn.LSTM(latents + actions, hiddens)
 
-    def forward(self, actions, latents):
+    def forward(
+        self, actions: torch.Tensor, latents: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Multi-step forward pass through the MDRNN.
 
         Args:
@@ -126,6 +133,8 @@ class MDRNNCell(_MDRNNBase):
     """MDRNN model for single-step forward prediction.
 
     This model processes a single step of latent state and action,
+
+    This model processes a single step of latent state and action,
     predicting the next latent state using a Gaussian Mixture Model (GMM).
     It also predicts rewards and terminal states. Useful for real-time inference.
 
@@ -143,11 +152,25 @@ class MDRNNCell(_MDRNNBase):
         >>> mus, sigmas, logpi, r, d, next_hidden = cell(action, latent, hidden)
     """
 
-    def __init__(self, latents, actions, hiddens, gaussians):
+    def __init__(
+        self, latents: int, actions: int, hiddens: int, gaussians: int
+    ) -> None:
         super().__init__(latents, actions, hiddens, gaussians)
         self.rnn = nn.LSTMCell(latents + actions, hiddens)
 
-    def forward(self, action, latent, hidden):
+    def forward(
+        self,
+        action: torch.Tensor,
+        latent: torch.Tensor,
+        hidden: Tuple[torch.Tensor, torch.Tensor],
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        Tuple[torch.Tensor, torch.Tensor],
+    ]:
         """Single-step forward pass through the MDRNN cell.
 
         Args:
@@ -190,7 +213,7 @@ class MDRNNCell(_MDRNNBase):
 
         return mus, sigmas, logpi, r, d, next_hidden
 
-    def get_init_hidden(self, batch_size=1):
+    def get_init_hidden(self, batch_size: int = 1) -> Tuple[torch.Tensor, torch.Tensor]:
         device = next(self.parameters()).device
         h = torch.zeros(batch_size, self.hiddens, device=device)
         c = torch.zeros(batch_size, self.hiddens, device=device)

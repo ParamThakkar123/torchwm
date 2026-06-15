@@ -10,6 +10,7 @@ from albumentations.core.composition import Compose
 import glob
 import torch
 from bisect import bisect
+from typing import Any
 
 
 class RolloutDataset(Dataset):
@@ -77,7 +78,7 @@ class RolloutDataset(Dataset):
         self.buffer_idx = 0
         self.buffer_fnames: list[str | None] = [None] * len(self.files)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the total number of samples in the dataset.
 
         Returns:
@@ -85,7 +86,7 @@ class RolloutDataset(Dataset):
         """
         return self.cum_size[-1]
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> dict:
         """Get a single sample from the dataset.
 
         Args:
@@ -102,7 +103,7 @@ class RolloutDataset(Dataset):
         data = self.buffer[file_idx]
         return self._get_data(data, seq_idx)
 
-    def _get_data(self, data, idx):
+    def _get_data(self, data: Any, idx: int) -> dict:
         """Extract and transform a single data point from rollout.
 
         Args:
@@ -127,7 +128,7 @@ class RolloutDataset(Dataset):
 
         return dict(observation=obs, action=action, reward=reward, terminal=terminal)
 
-    def load_next_buffer(self):
+    def load_next_buffer(self) -> None:
         """Load the next batch of rollout files into memory.
 
         This method implements a circular buffer, loading buffer_size files
@@ -163,7 +164,7 @@ class ObservationDataset(RolloutDataset):
         >>> obs = dataset[0]
     """
 
-    def _get_data(self, data, idx: int):
+    def _get_data(self, data: Any, idx: int) -> torch.Tensor:
         """Extract a single observation from rollout data.
 
         Args:
@@ -223,7 +224,7 @@ class SequenceDataset(RolloutDataset):
         super().__init__(root, transform, train, buffer_size, num_test_files)
         self.seq_len = seq_len
 
-    def _get_data(self, data, idx: int):
+    def _get_data(self, data: Any, idx: int) -> tuple:
         """Extract a sequence of data from rollout.
 
         Args:
@@ -284,10 +285,10 @@ class LatentSequenceDataset(Dataset):
         self.seq_len = seq_len
         self.cum_size = list(range(self.start_idx, self.end_idx + 1, seq_len))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cum_size) - 1
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple:
         start = self.cum_size[idx]
         latent_obs = self.latents_arr[start : start + self.seq_len]
         latent_next_obs = self.latents_arr[start + 1 : start + self.seq_len + 1]

@@ -23,7 +23,9 @@ def compute_aggregate_metrics(per_seed_means: Iterable[float]) -> Dict[str, floa
     }
 
 
-def bootstrap_ci(values: List[float], num_samples: int = 1000, alpha: float = 0.05):
+def bootstrap_ci(
+    values: List[float], num_samples: int = 1000, alpha: float = 0.05
+) -> tuple[float, float]:
     """Compute simple bootstrap 1-alpha CI on the mean."""
     if not values:
         return (0.0, 0.0)
@@ -58,7 +60,9 @@ def iqm_of_array(values: Iterable[float]) -> float:
     return float(arr[mask].mean())
 
 
-def bootstrap_iqm_ci(values: List[float], num_samples: int = 1000, alpha: float = 0.05):
+def bootstrap_iqm_ci(
+    values: List[float], num_samples: int = 1000, alpha: float = 0.05
+) -> tuple[float, float]:
     """Bootstrap a confidence interval for the IQM.
 
     Returns (lower, upper) percentiles of the bootstrap IQM distribution.

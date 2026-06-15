@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -5,7 +6,7 @@ import torch.nn.functional as F
 class CNNEncoder(nn.Module):
     """A Convolutional Neural Network (CNN) encoder for processing image inputs."""
 
-    def __init__(self, embedding_size, activation_function="relu"):
+    def __init__(self, embedding_size: int, activation_function: str = "relu") -> None:
         super().__init__()
         self.act_fn = getattr(F, activation_function)
         self.embedding_size = embedding_size
@@ -18,7 +19,7 @@ class CNNEncoder(nn.Module):
         else:
             self.fc = nn.Linear(1024, embedding_size)
 
-    def forward(self, observation):
+    def forward(self, observation: torch.Tensor) -> torch.Tensor:
         hidden = self.act_fn(self.conv1(observation))
         hidden = self.act_fn(self.conv2(hidden))
         hidden = self.act_fn(self.conv3(hidden))

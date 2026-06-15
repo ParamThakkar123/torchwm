@@ -3,7 +3,9 @@ import torch.nn as nn
 from typing import Optional
 
 
-def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5):
+def apply_gradient_checkpointing(
+    model: nn.Module, checkpoint_ratio: float = 0.5
+) -> None:
     """Apply gradient checkpointing to reduce memory usage during training."""
     # Some models expose gradient_checkpointing_enable as a callable while
     # others may have an attribute with the same name that isn't callable.
@@ -28,13 +30,10 @@ def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5
                     # Torch's checkpoint API is present at runtime but some stubs
                     # do not expose it. Ignore attribute errors from type-checker
                     # here while preserving runtime behavior.
-                    return torch.utils.checkpoint.checkpoint(  # type: ignore[attr-defined]
+                    return torch.utils.checkpoint.checkpoint(
                         orig_forward, *args, **kwargs, use_reentrant=False
                     )
 
-                # Assigning a function to an instance method is a runtime pattern
-                # used to wrap behavior; mypy may complain about assigning to
-                # a method attribute, so silence that specific check.
                 setattr(module, "forward", _checkpointed_forward)  # type: ignore[assignment]
             elif hasattr(module, "checkpoint_forward"):
                 # Create a wrapper that calls checkpoint at runtime. Do not
@@ -46,7 +45,7 @@ def apply_gradient_checkpointing(model: nn.Module, checkpoint_ratio: float = 0.5
                 def _checkpointed_forward2(*args: Any, **kwargs: Any) -> Any:
                     # Use a targeted ignore for the missing `checkpoint` attr in
                     # some torch stubs while preserving runtime behaviour.
-                    return torch.utils.checkpoint.checkpoint(  # type: ignore[attr-defined]
+                    return torch.utils.checkpoint.checkpoint(
                         module.checkpoint_forward, *args, **kwargs, use_reentrant=False
                     )
 
@@ -62,7 +61,7 @@ def enable_mixed_precision(
     return scaler
 
 
-def optimize_memory_efficient_ops():
+def optimize_memory_efficient_ops() -> None:
     """Set PyTorch for memory-efficient operations."""
     torch.backends.cudnn.benchmark = True
     torch.backends.cudnn.deterministic = False

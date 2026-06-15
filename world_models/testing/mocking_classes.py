@@ -84,13 +84,15 @@ class MockImageEnv:
     def _observation(self) -> np.ndarray:
         return np.full(self.image_shape, self.steps % 256, dtype=np.uint8)
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None):
+    def reset(
+        self, *, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """Reset the environment and return a Gymnasium-style tuple."""
         del seed, options
         self.steps = 0
         return self._observation(), {}
 
-    def step(self, action: Any):
+    def step(self, action: Any) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
         """Advance one step and return a Gymnasium-style transition."""
         if not self.action_space.contains(action):
             raise ValueError(f"Invalid action for MockImageEnv: {action!r}")

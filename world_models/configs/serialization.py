@@ -7,7 +7,7 @@ from dataclasses import asdict, fields, is_dataclass
 from pathlib import Path
 from typing import Any, TypeVar
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 ConfigT = TypeVar("ConfigT", bound="SerializableConfigMixin")
 

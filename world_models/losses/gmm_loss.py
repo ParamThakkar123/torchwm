@@ -14,7 +14,7 @@ def gmm_loss(
     sigmas: torch.Tensor,
     logpi: torch.Tensor,
     reduce: bool = True,
-):
+) -> torch.Tensor:
     """Compute the negative log-likelihood of a batch under a Gaussian Mixture Model.
 
     This function computes minus the log probability of the batch under the GMM

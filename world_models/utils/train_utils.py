@@ -36,7 +36,13 @@ class EarlyStopping:
         ...         break
     """
 
-    def __init__(self, mode="min", patience=10, threshold=1e-4, threshold_mode="rel"):
+    def __init__(
+        self,
+        mode: str = "min",
+        patience: int = 10,
+        threshold: float = 1e-4,
+        threshold_mode: str = "rel",
+    ) -> None:
         self.patience = patience
         self.mode = mode
         self.threshold = threshold
@@ -49,12 +55,12 @@ class EarlyStopping:
         self._init_is_better(mode, threshold, threshold_mode)
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         """Reset the internal state for a new training run."""
         self.best = self.mode_worse
         self.num_bad_epochs = 0
 
-    def step(self, metrics, epoch=None):
+    def step(self, metrics: float, epoch: int | None = None) -> None:
         """Update early stopping state with new metric value.
 
         Args:
@@ -73,11 +79,13 @@ class EarlyStopping:
             self.num_bad_epochs += 1
 
     @property
-    def stop(self):
+    def stop(self) -> bool:
         """bool: True if training should stop due to no improvement."""
         return self.num_bad_epochs > self.patience
 
-    def _cmp(self, mode, threshold_mode, threshold, a, best):
+    def _cmp(
+        self, mode: str, threshold_mode: str, threshold: float, a: float, best: float
+    ) -> bool:
         """Compare two values based on mode and threshold settings."""
         if mode == "min" and threshold_mode == "rel":
             rel_epsilon = 1.0 - threshold
@@ -90,7 +98,7 @@ class EarlyStopping:
 
         return a > best + threshold
 
-    def _init_is_better(self, mode, threshold, threshold_mode):
+    def _init_is_better(self, mode: str, threshold: float, threshold_mode: str) -> None:
         """Initialize the comparison function."""
         if mode not in {"min", "max"}:
             raise ValueError("mode " + mode + " is unknown!")
@@ -102,7 +110,7 @@ class EarlyStopping:
             self.mode_worse = -float("inf")
         self.is_better = partial(self._cmp, mode, threshold_mode, threshold)
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
         """Get state dictionary for checkpointing.
 
         Returns:
@@ -114,7 +122,7 @@ class EarlyStopping:
             if key not in ("is_better",)
         }
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: dict) -> None:
         """Load state from checkpoint.
 
         Args:
@@ -160,14 +168,14 @@ class ReduceLROnPlateau:
     def __init__(
         self,
         optimizer: Optimizer,
-        mode="min",
-        factor=0.1,
-        patience=10,
-        threshold=1e-4,
-        threshold_mode="rel",
-        min_lr=0,
-        eps=1e-8,
-    ):
+        mode: str = "min",
+        factor: float = 0.1,
+        patience: int = 10,
+        threshold: float = 1e-4,
+        threshold_mode: str = "rel",
+        min_lr: float = 0,
+        eps: float = 1e-8,
+    ) -> None:
         self.optimizer = optimizer
         self.factor = factor
         self.min_lr = min_lr
@@ -184,12 +192,12 @@ class ReduceLROnPlateau:
         self._init_is_better(mode, threshold, threshold_mode)
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         """Reset the internal state for a new training run."""
         self.best = self.mode_worse
         self.num_bad_epochs = 0
 
-    def step(self, metrics, epoch=None):
+    def step(self, metrics: float, epoch: int | None = None) -> None:
         """Update learning rate based on metric value.
 
         Args:
@@ -211,7 +219,7 @@ class ReduceLROnPlateau:
             self._reduce_lr()
             self.num_bad_epochs = 0
 
-    def _reduce_lr(self):
+    def _reduce_lr(self) -> None:
         """Reduce learning rate for all parameter groups."""
         for i, param_group in enumerate(self.optimizer.param_groups):
             old_lr = float(param_group["lr"])
@@ -220,11 +228,13 @@ class ReduceLROnPlateau:
                 param_group["lr"] = new_lr
 
     @property
-    def lr(self):
+    def lr(self) -> list:
         """list: Current learning rates for each parameter group."""
         return [param_group["lr"] for param_group in self.optimizer.param_groups]
 
-    def _cmp(self, mode, threshold_mode, threshold, a, best):
+    def _cmp(
+        self, mode: str, threshold_mode: str, threshold: float, a: float, best: float
+    ) -> bool:
         """Compare two values based on mode and threshold settings."""
         if mode == "min" and threshold_mode == "rel":
             rel_epsilon = 1.0 - threshold
@@ -237,7 +247,7 @@ class ReduceLROnPlateau:
 
         return a > best + threshold
 
-    def _init_is_better(self, mode, threshold, threshold_mode):
+    def _init_is_better(self, mode: str, threshold: float, threshold_mode: str) -> None:
         """Initialize the comparison function."""
         if mode not in {"min", "max"}:
             raise ValueError("mode " + mode + " is unknown!")
@@ -249,7 +259,7 @@ class ReduceLROnPlateau:
             self.mode_worse = -float("inf")
         self.is_better = partial(self._cmp, mode, threshold_mode, threshold)
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
         """Get state dictionary for checkpointing.
 
         Returns:
@@ -261,7 +271,7 @@ class ReduceLROnPlateau:
             if key not in ("is_better",)
         }
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: dict) -> None:
         """Load state from checkpoint.
 
         Args:

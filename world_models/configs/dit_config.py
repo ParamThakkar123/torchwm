@@ -1,4 +1,5 @@
 from dataclasses import dataclass, replace
+from typing import Any
 
 from world_models.configs.serialization import SerializableConfigMixin
 
@@ -56,18 +57,18 @@ class DiTConfig(SerializableConfigMixin):
     WORKDIR: str = "./dit_demo"
     ROOT_PATH: str = "./data"
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         upper = _SNAKE_TO_UPPER.get(name)
         if upper is not None:
             return getattr(self, upper)
         raise AttributeError(f"{type(self).__name__!r} has no attribute {name!r}")
 
-    def __setattr__(self, name: str, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         upper = _SNAKE_TO_UPPER.get(name, name)
         super().__setattr__(upper, value)
 
 
-def get_dit_config(**overrides):
+def get_dit_config(**overrides: Any) -> DiTConfig:
     """
     Returns a DiTConfig instance with default values overridden by the provided keyword arguments.
 

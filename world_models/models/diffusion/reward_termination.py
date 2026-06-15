@@ -161,7 +161,7 @@ class RewardTerminationModel(nn.Module):
 class RewardTerminationLoss(nn.Module):
     """Loss function for reward and termination prediction."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.reward_criterion = nn.CrossEntropyLoss(reduction="mean")
         self.termination_criterion = nn.CrossEntropyLoss(reduction="mean")

@@ -17,7 +17,7 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, TypeVar, cast
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 _omegaconf_module = (
     importlib.import_module("omegaconf")

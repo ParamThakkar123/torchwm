@@ -35,7 +35,7 @@ class SimWorker(mp.Process):
         self.last_obs: List[Any] = []  # Store last obs for done envs
         self.running = True
 
-    def run(self):
+    def run(self) -> None:
         """Main worker loop."""
         # Initialize environments
         self.envs = []
@@ -117,7 +117,7 @@ class SimWorker(mp.Process):
             results.append(frame)
         return results
 
-    def _close_batch(self):
+    def _close_batch(self) -> None:
         """Close all environments."""
         for env in self.envs:
             if hasattr(env, "close"):
@@ -189,7 +189,7 @@ class VectorizedEnv(ABC):
             results.extend(data)
         return results
 
-    def close(self):
+    def close(self) -> None:
         """Shutdown all workers."""
         for q in self.command_queues:
             q.put(("close", None))
@@ -207,11 +207,11 @@ class TorchVectorizedEnv(VectorizedEnv):
     Returns batched tensors suitable for PyTorch training.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._wait_for_workers()
 
-    def _wait_for_workers(self):
+    def _wait_for_workers(self) -> None:
         """Ensure workers are ready by sending a dummy command."""
         # This is a simple way to sync; could be improved
         pass

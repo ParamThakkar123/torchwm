@@ -5,7 +5,7 @@ import csv
 import json
 
 
-def export_csv(results: Dict[str, Any], path: str):
+def export_csv(results: Dict[str, Any], path: str) -> None:
     seeds = results.get("seeds", {})
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -21,7 +21,7 @@ def export_csv(results: Dict[str, Any], path: str):
             )
 
 
-def export_markdown(results: Dict[str, Any], path: str):
+def export_markdown(results: Dict[str, Any], path: str) -> None:
     seeds = results.get("seeds", {})
     lines = []
     lines.append("| seed | mean | std | episode_returns |")
@@ -47,7 +47,7 @@ def export_markdown(results: Dict[str, Any], path: str):
 
 def export_latex(
     results: Dict[str, Any], path: str, caption: str = "Benchmark results"
-):
+) -> None:
     seeds = results.get("seeds", {})
     agg = results.get("aggregate", {})
 

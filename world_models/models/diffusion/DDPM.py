@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,7 +12,7 @@ class DDPM(nn.Module):
     training inputs (`q_sample`) and iterative denoising sampling (`sample`).
     """
 
-    def __init__(self, timesteps, beta_start, beta_end):
+    def __init__(self, timesteps: int, beta_start: float, beta_end: float) -> None:
         super().__init__()
         self.timesteps = timesteps
         betas = torch.linspace(beta_start, beta_end, timesteps)
@@ -31,14 +33,18 @@ class DDPM(nn.Module):
             betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod),
         )
 
-    def q_sample(self, x_start, t, noise=None):
+    def q_sample(
+        self, x_start: torch.Tensor, t: torch.Tensor, noise: torch.Tensor | None = None
+    ) -> torch.Tensor:
         if noise is None:
             noise = torch.randn_like(x_start)
         s1 = self.sqrt_alphas_cumprod[t].view(-1, 1, 1, 1)
         s2 = self.sqrt_one_minus_alphas_cumprod[t].view(-1, 1, 1, 1)
         return s1 * x_start + s2 * noise
 
-    def p_sample(self, model, x_t, t):
+    def p_sample(
+        self, model: nn.Module, x_t: torch.Tensor, t: torch.Tensor
+    ) -> torch.Tensor:
         # Predict noise
         eps = model(x_t, t)
         # Compute x0_hat
@@ -60,7 +66,9 @@ class DDPM(nn.Module):
         return mean + torch.sqrt(var) * noise
 
     @torch.no_grad()
-    def sample(self, model, n, img_size, channels):
+    def sample(
+        self, model: nn.Module, n: int, img_size: int, channels: int
+    ) -> torch.Tensor:
         x = torch.randn(n, channels, img_size, img_size).to(
             next(model.parameters()).device
         )

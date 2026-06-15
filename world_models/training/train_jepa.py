@@ -11,7 +11,7 @@ import logging
 import sys
 import torch.multiprocessing as mp
 import torch.nn.functional as F
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 import numpy as np
 import torch
@@ -161,7 +161,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
     log_file = os.path.join(folder, f"{tag}_r{rank}.csv")
     save_path = os.path.join(folder, f"{tag}" + "-ep{epoch}.pth.tar")
     latest_path = os.path.join(folder, f"{tag}-latest.pth.tar")
-    load_path = None
+    load_path: str | None = None
     if load_model:
         load_path = os.path.join(folder, r_file) if r_file is not None else latest_path
 
@@ -303,7 +303,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
         encoder, predictor, target_encoder, optimizer, scaler, start_epoch = (
             load_checkpoint(
                 device=device,
-                r_path=load_path,
+                r_path=load_path,  # type: ignore[arg-type]
                 encoder=encoder,
                 predictor=predictor,
                 target_encoder=target_encoder,
@@ -317,7 +317,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
             next(momentum_scheduler)
             mask_collator.step()
 
-    def save_checkpoint(epoch):
+    def save_checkpoint(epoch: int) -> None:
         save_dict = {
             "encoder": encoder.state_dict(),
             "predictor": predictor.state_dict(),
@@ -348,7 +348,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
 
         for itr, (udata, masks_enc, masks_pred) in enumerate(unsupervised_loader):
 
-            def load_imgs():
+            def load_imgs() -> tuple:
                 # -- unsupervised imgs
                 imgs = udata[0].to(device, non_blocking=True)
                 masks_1 = [u.to(device, non_blocking=True) for u in masks_enc]
@@ -359,12 +359,12 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
             maskA_meter.update(len(masks_enc[0][0]))
             maskB_meter.update(len(masks_pred[0][0]))
 
-            def train_step():
+            def train_step() -> tuple:
                 _new_lr = scheduler.step()
                 _new_wd = wd_scheduler.step()
                 # --
 
-                def forward_target():
+                def forward_target() -> torch.Tensor:
                     with torch.no_grad():
                         h = target_encoder(imgs)
                         h = F.layer_norm(h, (h.size(-1),))  # normalize over feature-dim
@@ -374,12 +374,12 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
                         h = repeat_interleave_batch(h, B, repeat=len(masks_enc))
                         return h
 
-                def forward_context():
+                def forward_context() -> torch.Tensor:
                     z = encoder(imgs, masks_enc)
                     z = predictor(z, masks_enc, masks_pred)
                     return z
 
-                def loss_fn(z, h):
+                def loss_fn(z: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
                     loss = F.smooth_l1_loss(z, h)
                     loss = AllReduce.apply(loss)
                     return loss
@@ -418,7 +418,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
             loss_meter.update(loss)
             time_meter.update(etime)
 
-            def log_stats():
+            def log_stats() -> None:
                 global_step = epoch * ipe + itr
                 csv_logger.log(
                     global_step,
@@ -481,7 +481,7 @@ def sweep_train() -> None:
         main(cfg.to_train_dict())
 
 
-def main_from_cli(argv: list[str] | None = None):
+def main_from_cli(argv: list[str] | None = None) -> Any:
     """Compose JEPA config from YAML/dot-list overrides and launch training."""
     parsed = parse_experiment_args(argv, description="Train JEPA")
     cfg_dict = load_experiment_config(

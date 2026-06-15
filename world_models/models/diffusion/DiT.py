@@ -329,7 +329,7 @@ class DiT(nn.Module):
             }
         )
 
-    @classmethod  # type: ignore[override]
+    @classmethod
     def train(
         cls,
         epochs: int,
@@ -465,7 +465,7 @@ class DiT(nn.Module):
         opt = torch.optim.AdamW(model.parameters(), lr=lr)
 
         global_step = 0
-        model.train()
+        nn.Module.train(model)
 
         start_time = time.time()
 

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import Any
+
 import gymnasium as gym
 import numpy as np
 from PIL import Image
 
 
-def make_gym_env(env, **kwargs):
+def make_gym_env(env: Any, **kwargs: Any) -> Any:
     """Create a GymImageEnv wrapper for generic Gym/Gymnasium environments.
 
     Args:
@@ -49,7 +51,13 @@ class GymImageEnv:
         max_episode_steps: Maximum steps per episode (default: 1000).
     """
 
-    def __init__(self, env, seed=0, size=(64, 64), render_mode="rgb_array"):
+    def __init__(
+        self,
+        env: Any,
+        seed: int = 0,
+        size: tuple[int, int] = (64, 64),
+        render_mode: str = "rgb_array",
+    ) -> None:
         self._size = (int(size[0]), int(size[1]))
         self._seed = seed
         self._render_mode = render_mode

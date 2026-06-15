@@ -148,7 +148,7 @@ def main() -> None:
     summary = TensorBoardMetrics(f"{res_dir}/")
 
     for i in trange(2, desc="Epoch", leave=False):
-        metrics = {}
+        metrics: dict[str, Any] = {}
         for _ in trange(150, desc="Iter ", leave=False):
             train_metrics = train(mem, rssm_model.train(), optimizer, device)
             for k, v in flatten_dict(train_metrics).items():
@@ -158,7 +158,7 @@ def main() -> None:
                 metrics[f"{k}_mean"] = np.array(metrics[k]).mean()
 
         summary.update(metrics)
-        mem.append(rollout_gen.rollout_once(explore=True))
+        mem.append([rollout_gen.rollout_once(explore=True)])
         eval_episode, eval_frames, eval_metrics = rollout_gen.rollout_eval()
         print("\n===== EVAL FRAME DEBUG =====")
 
@@ -191,7 +191,7 @@ def main() -> None:
 
         print("===== END DEBUG =====\n")
 
-        mem.append(eval_episode)
+        mem.append([eval_episode])
         # normalize frames to (T,H,W,3) float in [0,1] before saving
         safe_frames = normalize_frames_for_saving(eval_frames)
         save_video(safe_frames, res_dir, f"vid_{i + 1}")

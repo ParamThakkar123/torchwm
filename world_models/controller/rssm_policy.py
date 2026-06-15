@@ -9,6 +9,8 @@ Reference:
     https://arxiv.org/abs/1805.11111
 """
 
+from typing import Any
+
 import torch
 from torch.distributions import Normal
 
@@ -59,13 +61,13 @@ class RSSMPolicy:
 
     def __init__(
         self,
-        model,
+        model: Any,
         planning_horizon: int,
         num_candidates: int,
         num_iterations: int,
         top_candidates: int,
-        device: str,
-    ):
+        device: torch.device | str,
+    ) -> None:
         """Initialize the RSSM policy.
 
         Args:
@@ -87,7 +89,7 @@ class RSSMPolicy:
         self.state_size = self.rssm.state_size
         self.latent_size = self.rssm.latent_size
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the policy state.
 
         Initializes the hidden state, latent state, and action to zeros.
@@ -97,7 +99,7 @@ class RSSMPolicy:
         self.s = torch.zeros(1, self.latent_size).to(self.device)
         self.a = torch.zeros(1, self.d).to(self.device)
 
-    def _poll(self, obs):
+    def _poll(self, obs: torch.Tensor) -> None:
         """Perform CEM planning to select actions.
 
         This internal method runs the Cross-Entropy Method optimization

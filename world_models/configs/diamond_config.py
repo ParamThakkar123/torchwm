@@ -62,7 +62,7 @@ class DiamondConfig(SerializableConfigMixin):
     # Preset selection (overrides manual model config if set)
     preset: Optional[str] = None  # "small", "medium", "large", or None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.preset and self.preset in MODEL_PRESETS:
             p = MODEL_PRESETS[self.preset]
             self.diffusion_channels = p.diffusion_channels

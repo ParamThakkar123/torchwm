@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 import time
 import importlib.util
 import numpy as np
@@ -12,6 +13,7 @@ import torch.distributions as distributions
 
 from collections import OrderedDict
 from pathlib import Path
+from typing import Union
 from typing import Any
 
 import world_models.envs.wrappers as env_wrapper
@@ -319,7 +321,14 @@ class Dreamer:
     loss computation, optimization steps, evaluation loops, and checkpoint I/O.
     """
 
-    def __init__(self, args, obs_shape, action_size, device, restore=False) -> None:
+    def __init__(
+        self,
+        args: Any,
+        obs_shape: Any,
+        action_size: int,
+        device: torch.device | str,
+        restore: bool = False,
+    ) -> None:
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
@@ -625,7 +634,13 @@ class Dreamer:
         }
 
     @assert_finite
-    def world_model_loss(self, obs, acs, rews, nonterms) -> torch.Tensor:
+    def world_model_loss(
+        self,
+        obs: torch.Tensor,
+        acs: torch.Tensor,
+        rews: torch.Tensor,
+        nonterms: torch.Tensor,
+    ) -> torch.Tensor:
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
         init_state = self.rssm.init_state(self.args.batch_size, self.device)
@@ -703,7 +718,7 @@ class Dreamer:
 
         self.imag_feat = torch.cat([imag_states["stoch"], imag_states["deter"]], dim=-1)
 
-        with FreezeParameters(self.world_model_modules + self.value_modules):
+        with FreezeParameters(list(self.world_model_modules) + self.value_modules):
             imag_rew_dist = self.reward_model(self.imag_feat)
             imag_val_dist = self.value_model(self.imag_feat)
 
@@ -749,11 +764,11 @@ class Dreamer:
         value_loss = -torch.mean(self.discounts * log_prob)
         return value_loss
 
-    def train_one_batch(self) -> list:
+    def train_one_batch(self) -> list[float]:
         obs, acs, rews, terms = self.data_buffer.sample()
-        obs = torch.tensor(obs, dtype=torch.float32).to(self.device)
-        acs = torch.tensor(acs, dtype=torch.float32).to(self.device)
-        rews = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
+        obs_t = torch.tensor(obs, dtype=torch.float32).to(self.device)
+        acs_t = torch.tensor(acs, dtype=torch.float32).to(self.device)
+        rews_t = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
         nonterms = (
             torch.tensor((1.0 - terms), dtype=torch.float32)
             .to(self.device)
@@ -764,7 +779,7 @@ class Dreamer:
             device_type=getattr(self.device, "type", str(self.device)),
             enabled=self.use_amp,
         ):
-            model_loss = self.world_model_loss(obs, acs, rews, nonterms)
+            model_loss = self.world_model_loss(obs_t, acs_t, rews_t, nonterms)
         self.world_model_opt.zero_grad(set_to_none=True)
         self.world_model_scaler.scale(model_loss).backward()
         self.world_model_scaler.unscale_(self.world_model_opt)
@@ -805,7 +820,11 @@ class Dreamer:
         )
 
     def act_with_world_model(
-        self, obs, prev_state, prev_action, explore=False
+        self,
+        obs: Any,
+        prev_state: Any,
+        prev_action: torch.Tensor,
+        explore: bool = False,
     ) -> tuple:
         obs = obs["image"]
         obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
@@ -818,7 +837,7 @@ class Dreamer:
 
         return posterior, action
 
-    def act_and_collect_data(self, env, collect_steps) -> np.ndarray:
+    def act_and_collect_data(self, env: Any, collect_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
         prev_state = self.rssm.init_state(1, self.device)
@@ -860,11 +879,11 @@ class Dreamer:
 
         return np.array(episode_rewards)
 
-    def evaluate(self, env, eval_episodes, render=False) -> tuple:
+    def evaluate(self, env: Any, eval_episodes: int, render: bool = False) -> tuple:
         episode_rew = np.zeros((eval_episodes))
 
-        video_images = [[] for _ in range(eval_episodes)]
-        latents = [] if render else None
+        video_images: list[list[Any]] = [[] for _ in range(eval_episodes)]
+        latents: list[Any] | None = [] if render else None
 
         for i in range(eval_episodes):
             obs = env.reset()
@@ -902,15 +921,16 @@ class Dreamer:
                             .numpy()
                         )
                 obs = next_obs
+        latents_arr: Any = None
         if latents is not None and len(latents) > 0:
-            latents = np.array(latents)
+            latents_arr = np.array(latents)
         return (
             episode_rew,
             np.array(video_images[: self.args.max_videos_to_save]),
-            latents,
+            latents_arr,
         )
 
-    def collect_random_episodes(self, env, seed_steps) -> np.ndarray:
+    def collect_random_episodes(self, env: Any, seed_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
         seed_episode_rews = [0.0]
@@ -960,7 +980,9 @@ class Dreamer:
             save_path,
         )
 
-    def restore_checkpoint(self, ckpt_path, map_location=None) -> None:
+    def restore_checkpoint(
+        self, ckpt_path: str | Path, map_location: Any = None
+    ) -> None:
         checkpoint = torch.load(ckpt_path, map_location=map_location, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
@@ -982,7 +1004,7 @@ class DreamerAgent(ExportableAgentMixin):
     instantiates `Dreamer`, and exposes simple `train()` / `evaluate()` methods.
     """
 
-    def __init__(self, config=None, **kwargs) -> None:
+    def __init__(self, config: Any = None, **kwargs: Any) -> None:
         self.args = _coerce_dreamer_config(config)
 
         self.last_latents_ref = kwargs.get("last_latents_ref", None)
@@ -1164,7 +1186,7 @@ class DreamerAgent(ExportableAgentMixin):
 
         return self.dreamer.summary()
 
-    def train(self, total_steps=None) -> None:
+    def train(self, total_steps: int | None = None) -> None:
         if total_steps is None:
             total_steps = self.args.total_steps
 

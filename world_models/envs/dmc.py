@@ -32,7 +32,13 @@ class DeepMindControlEnv:
         >>> print(obs.keys())  # dict_keys(['position', 'velocity', 'image'])
     """
 
-    def __init__(self, name, seed, size=(64, 64), camera=None):
+    def __init__(
+        self,
+        name: str,
+        seed: int,
+        size: tuple[int, int] = (64, 64),
+        camera: int | None = None,
+    ) -> None:
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"

@@ -13,7 +13,9 @@ from world_models.models.dreamer import DreamerAgent
 
 
 class BaseAdapter:
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         self.env_spec = env_spec
         self.seed = seed
 
@@ -26,7 +28,9 @@ class BaseAdapter:
 
 
 class DiamondAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         super().__init__(env_spec, seed)
         # env_spec can be a dict with keys like 'game', or a simple string game name
         if isinstance(env_spec, dict):
@@ -84,7 +88,9 @@ class DiamondAdapter(BaseAdapter):
 
 
 class IRISAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         super().__init__(env_spec, seed)
         game = None
         if isinstance(env_spec, dict):
@@ -138,7 +144,9 @@ class IRISAdapter(BaseAdapter):
 
 
 class DreamerAdapter(BaseAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs) -> None:
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         super().__init__(env_spec, seed)
         # env_spec can be dict or string. DreamerConfig expects env_backend and env.
         if isinstance(env_spec, dict):
@@ -210,14 +218,18 @@ class DreamerAdapter(BaseAdapter):
 
 
 class DreamerV1Adapter(DreamerAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         kwargs = dict(kwargs)
         kwargs.setdefault("algo", "dreamerv1")
         super().__init__(env_spec=env_spec, seed=seed, **kwargs)
 
 
 class DreamerV2Adapter(DreamerAdapter):
-    def __init__(self, env_spec: Any | None = None, seed: int = 0, **kwargs):
+    def __init__(
+        self, env_spec: Any | None = None, seed: int = 0, **kwargs: Any
+    ) -> None:
         kwargs = dict(kwargs)
         kwargs.setdefault("algo", "dreamerv2")
         super().__init__(env_spec=env_spec, seed=seed, **kwargs)

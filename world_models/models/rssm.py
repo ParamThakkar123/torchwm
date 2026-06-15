@@ -13,13 +13,13 @@ class RecurrentStateSpaceModel(nn.Module):
 
     def __init__(
         self,
-        action_size,
-        state_size=200,
-        latent_size=30,
-        hidden_size=200,
-        embed_size=1024,
-        activation_function="relu",
-    ):
+        action_size: int,
+        state_size: int = 200,
+        latent_size: int = 30,
+        hidden_size: int = 200,
+        embed_size: int = 1024,
+        activation_function: str = "relu",
+    ) -> None:
         super().__init__()
         self.state_size = state_size
         self.action_size = action_size
@@ -126,7 +126,7 @@ class RecurrentStateSpaceModel(nn.Module):
             latents.append(s_t)
         return torch.stack(states), torch.stack(latents)
 
-    def forward(self, x, u):
+    def forward(self, x: torch.Tensor, u: torch.Tensor) -> list:
         """Forward through the RSSM for a batch of sequences.
 
         Args:

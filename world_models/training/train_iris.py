@@ -441,7 +441,7 @@ class IRISTrainer:
 
         print(f"\nTraining complete! Best eval return: {best_eval_return:.2f}")
 
-        return self.metrics
+        return self.metrics  # type: ignore[return-value]
 
 
 def main(argv: list[str] | None = None) -> IRISConfig:

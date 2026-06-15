@@ -158,7 +158,9 @@ def main() -> None:
     rollout_gen = RolloutGenerator(env, device, policy=policy)
 
     # fallback: if replay files don't exist, generate and save them with rollouts
-    def ensure_memory(path, n_warmup=25, mem_size=1000, random_policy=True):
+    def ensure_memory(
+        path: str, n_warmup: int = 25, mem_size: int = 1000, random_policy: bool = True
+    ) -> Memory:
         if os.path.exists(path):
             return load_memory(path, device)
         print(f"{path} not found → generating {n_warmup} episodes with rollout_gen")

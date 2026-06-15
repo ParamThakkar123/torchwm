@@ -43,7 +43,7 @@ class RolloutGenerator:
     def __init__(
         self,
         env: Any,
-        device: str,
+        device: torch.device | str,
         policy: Any = None,
         max_episode_steps: int | None = None,
         episode_gen: Any = None,
@@ -75,7 +75,7 @@ class RolloutGenerator:
         self.streaming_video_path = streaming_video_path
         self.streaming_video_fps = streaming_video_fps
         self.streaming_video_format = streaming_video_format
-        self.video_writer = None
+        self.video_writer: Any = None
 
     def rollout_once(
         self, random_policy: bool = False, explore: bool = False
@@ -155,7 +155,7 @@ class RolloutGenerator:
         frames: list = []
         latents_list: list | None = [] if collect_latents else None
         if self.enable_streaming_video and self.streaming_video_path:
-            self.video_writer = StreamingVideoWriter(  # type: ignore[no-untyped-call]
+            self.video_writer = StreamingVideoWriter(
                 self.streaming_video_path,
                 fps=self.streaming_video_fps,
                 format=self.streaming_video_format,

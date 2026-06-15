@@ -111,7 +111,7 @@ class GenieTrainer:
 
         return torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda)
 
-    def train_step(self, batch: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def train_step(self, batch: torch.Tensor) -> Dict[str, torch.Tensor | float | None]:
         """Single training step.
 
         Args:

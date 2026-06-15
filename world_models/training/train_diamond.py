@@ -329,7 +329,7 @@ class DiamondAgent:
             device_type=getattr(self.device, "type", str(self.device)),
             enabled=self.use_amp,
         ):
-            model_output = self.diffusion_model(
+            model_output: Any = self.diffusion_model(
                 x=model_input,
                 t=t_cond,
                 obs_history=obs_history,
@@ -391,7 +391,7 @@ class DiamondAgent:
 
     def _update_actor_critic(
         self, batch: Dict[str, torch.Tensor]
-    ) -> Tuple[float, float]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Update actor-critic using imagined rollouts.
 
         This replaces using real dataset trajectories for policy/value updates
@@ -917,7 +917,7 @@ class DiamondAgent:
             # np.savez_compressed will store arrays with the provided keys
             try:
                 np.savez_compressed(replay_file, **rb_state_trim)
-                checkpoint["replay_buffer_file"] = replay_file
+                checkpoint["replay_buffer_file"] = str(replay_file)
             except Exception:
                 # If saving fails, do not embed large Python objects in the
                 # torch checkpoint; simply omit the replay buffer files and
@@ -930,7 +930,7 @@ class DiamondAgent:
                 # Stack into a single array (N, H, W, C)
                 obs_arr = np.stack(self.obs_history_raw)
                 np.save(obs_file, obs_arr)
-                checkpoint["obs_history_file"] = obs_file
+                checkpoint["obs_history_file"] = str(obs_file)
             except Exception:
                 print("Warning: failed to write obs_history file; skipping embedding")
 

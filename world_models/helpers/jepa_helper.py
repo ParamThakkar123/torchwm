@@ -177,5 +177,5 @@ def init_opt(
         final_wd=final_wd,
         T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
     )
-    scaler = torch.cuda.amp.GradScaler("cuda") if use_bfloat16 else None
+    scaler = torch.cuda.amp.GradScaler() if use_bfloat16 else None
     return optimizer, scaler, scheduler, wd_scheduler

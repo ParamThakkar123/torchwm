@@ -35,13 +35,13 @@ except ImportError:
     h5py = None
     logger.warning("h5py not installed. Install with: pip install h5py")
 
-hf_hub_download: Any = None
-list_repo_files: Any = None
 try:
-    from huggingface_hub import hf_hub_download, list_repo_files  # type: ignore
+    from huggingface_hub import hf_hub_download, list_repo_files
 
     HF_AVAILABLE = True
 except ImportError:
+    hf_hub_download = None
+    list_repo_files = None
     HF_AVAILABLE = False
     logger.warning(
         "huggingface_hub not installed. Install with: pip install huggingface_hub"

@@ -235,7 +235,7 @@ def _config_fields(config: Any) -> set[str]:
     if isinstance(config, dict):
         return set(config)
     if is_dataclass(config):
-        return set(config.__dataclass_fields__)  # type: ignore[attr-defined]
+        return set(config.__dataclass_fields__)
     return {key for key in vars(config) if not key.startswith("_")}
 
 
@@ -260,7 +260,7 @@ def _apply_overrides(config: Any, overrides: dict[str, Any]) -> Any:
         updated.update(overrides)
         return updated
     if is_dataclass(config):
-        valid = set(config.__dataclass_fields__)  # type: ignore[attr-defined]
+        valid = set(config.__dataclass_fields__)
         invalid = sorted(set(overrides) - valid)
         if invalid:
             raise ValueError(f"Invalid config override(s): {', '.join(invalid)}")

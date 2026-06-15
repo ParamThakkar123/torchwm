@@ -7,6 +7,7 @@ import pathlib
 import numpy as np
 import glob
 import warnings
+from typing import Any
 
 
 import plotly
@@ -96,7 +97,7 @@ def to_tensor_obs(image):
     return image
 
 
-def postprocess_img(image, depth):
+def postprocess_img(image: np.ndarray, depth: int) -> np.ndarray:
     """
     Postprocess an image observation for storage.
     From float32 numpy array [-0.5, 0.5] to uint8 numpy array [0, 255])
@@ -105,7 +106,7 @@ def postprocess_img(image, depth):
     return np.clip(image * 2 ** (8 - depth), 0, 2**8 - 1).astype(np.uint8)
 
 
-def preprocess_img(image, depth):
+def preprocess_img(image: torch.Tensor, depth: int) -> None:
     """
     Preprocesses an observation inplace.
     From float32 Tensor [0, 255] to [-0.5, 0.5]
@@ -115,7 +116,7 @@ def preprocess_img(image, depth):
     image.add_(torch.randn_like(image).div_(2**depth)).clamp_(-0.5, 0.5)
 
 
-def bottle(func, *tensors):
+def bottle(func: Any, *tensors: torch.Tensor) -> torch.Tensor:
     """
     Evaluates a func that operates in N x D with inputs of shape N x T x D
     """
@@ -125,7 +126,7 @@ def bottle(func, *tensors):
     return out.view(n, t, *out.shape[1:])
 
 
-def get_combined_params(*models):
+def get_combined_params(*models: Any) -> list:
     """
     Returns the combine parameter list of all the models given as input.
     """
@@ -135,7 +136,7 @@ def get_combined_params(*models):
     return params
 
 
-def save_video(frames, path, name):
+def save_video(frames: Any, path: str, name: str) -> None:
     """
     Saves a video containing frames.
 
@@ -289,7 +290,13 @@ def ensure_results_dir_exists(results_dir):
         raise FileNotFoundError(f"Results directory does not exist: {results_dir}")
 
 
-def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
+def save_frames(
+    target: torch.Tensor,
+    pred_prior: torch.Tensor,
+    pred_posterior: torch.Tensor,
+    name: str,
+    n_rows: int = 5,
+) -> None:
     """
     Save side-by-side target, prior-prediction, and posterior-prediction frames.
 
@@ -361,7 +368,7 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     save_image(grid, f"{name}.png")
 
 
-def get_mask(tensor, lengths):
+def get_mask(tensor: Any, lengths: Any) -> torch.Tensor:
     """
     Build a batch-first validity mask from sequence lengths.
 
@@ -440,7 +447,7 @@ def load_memory(path, device, *, trusted=False):
     return memory
 
 
-def flatten_dict(data, sep=".", prefix=""):
+def flatten_dict(data: dict, sep: str = ".", prefix: str = "") -> dict:
     """Flattens a nested dict into a single-level dict.
 
     Example:
@@ -461,7 +468,7 @@ def flatten_dict(data, sep=".", prefix=""):
     return flattened
 
 
-def normalize_frames_for_saving(frames):
+def normalize_frames_for_saving(frames: Any) -> np.ndarray:
     """
     Ensure frames are in shape (T, H, W, 3) with float values in [0,1].
     Handles inputs in (T, C, H, W) or (T, H, W, C), repeats single-channel -> RGB,
@@ -498,7 +505,7 @@ def normalize_frames_for_saving(frames):
 class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
-    def __init__(self, path):
+    def __init__(self, path: str) -> None:
         self.steps = defaultdict(lambda: 0)
         self.summary = {}
 
@@ -522,7 +529,7 @@ def apply_model(model, inputs, ignore_dim=None):
     pass
 
 
-def plot_metrics(metrics, path, prefix):
+def plot_metrics(metrics: dict, path: str, prefix: str) -> None:
     """Render and save line plots for each metric series in a dictionary."""
     os.makedirs(path, exist_ok=True)
     for key, val in metrics.items():
@@ -587,7 +594,9 @@ class TorchImageEnvWrapper:
     Also returns observations in image form.
     """
 
-    def __init__(self, env, bit_depth, observation_shape=None, act_rep=2):
+    def __init__(
+        self, env: Any, bit_depth: int, observation_shape: Any = None, act_rep: int = 2
+    ) -> None:
         if isinstance(env, str):
             try:
                 self.env = gym.make(env, render_mode="rgb_array")

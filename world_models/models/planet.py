@@ -13,7 +13,7 @@ from world_models.utils.utils import (
     postprocess_img,
     TorchImageEnvWrapper,
 )
-from typing import Any
+from typing import Any, Optional
 from world_models.memory.planet_memory import Memory, Episode
 from world_models.training.train_planet import train as planet_train
 from world_models.export import ExportableAgentMixin
@@ -170,7 +170,7 @@ class Planet(ExportableAgentMixin):
                     return frame
                 if isinstance(obs, np.ndarray) and obs.ndim == 1:
                     vals = (obs - obs.min()) / (obs.max() - obs.min() + 1e-8)
-                    canvas = np.zeros((64, 64, 3), dtype=np.uint8)
+                    canvas: np.ndarray = np.zeros((64, 64, 3), dtype=np.uint8)
                     for i, v in enumerate(vals[:8]):
                         band = int(255 * v)
                         canvas[:, i * 8 : (i + 1) * 8, :] = band
@@ -214,7 +214,7 @@ class Planet(ExportableAgentMixin):
         self.summary = TensorBoardMetrics(self.results_dir)
 
         # Initialize learning rate scheduler
-        scheduler = None
+        scheduler: Any = None
         if scheduler_type is not None and scheduler_type.lower() != "none":
             scheduler_kwargs = scheduler_kwargs or {}
 
@@ -256,7 +256,7 @@ class Planet(ExportableAgentMixin):
 
         for ep in range(epochs):
             metrics: dict[str, Any] = {}
-            epoch_loss = 0  # Track average loss for ReduceLROnPlateau
+            epoch_loss: float = 0.0  # Track average loss for ReduceLROnPlateau
 
             for _ in range(steps_per_epoch):
                 train_metrics = planet_train(
@@ -287,9 +287,11 @@ class Planet(ExportableAgentMixin):
 
             # Calculate total loss for ReduceLROnPlateau
             if "losses/kl" in compact and "losses/reconstruction" in compact:
-                epoch_loss = compact["losses/kl"] + compact["losses/reconstruction"]
+                epoch_loss = float(
+                    compact["losses/kl"] + compact["losses/reconstruction"]
+                )
                 if "losses/reward_pred" in compact:
-                    epoch_loss += compact["losses/reward_pred"]
+                    epoch_loss += float(compact["losses/reward_pred"])
 
             # Add current learning rate to metrics
             current_lr = self.optimizer.param_groups[0]["lr"]
@@ -313,9 +315,9 @@ class Planet(ExportableAgentMixin):
                     f"Epoch {ep + 1}: Learning rate changed from {current_lr:.2e} to {new_lr:.2e}"
                 )
 
-            self.memory.append(self.rollout_gen.rollout_once(explore=True))
+            self.memory.append([self.rollout_gen.rollout_once(explore=True)])
             eval_episode, eval_frames, eval_metrics = self.rollout_gen.rollout_eval()
-            self.memory.append(eval_episode)
+            self.memory.append([eval_episode])
             save_video(eval_frames, self.results_dir, f"vid_{ep + 1}")
             self.summary.update(eval_metrics)
 

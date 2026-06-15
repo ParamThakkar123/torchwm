@@ -18,6 +18,7 @@ The script will:
 
 import os
 import argparse
+from typing import Any
 import numpy as np
 import multiprocessing as mp
 from glob import glob
@@ -43,7 +44,11 @@ from world_models.vision.VAE.ConvVAE import ConvVAE
 
 
 def generate_rollouts(
-    data_dir, env_name, num_rollouts=1000, seq_len=1000, num_workers=8
+    data_dir: str,
+    env_name: str,
+    num_rollouts: int = 1000,
+    seq_len: int = 1000,
+    num_workers: int = 8,
 ) -> None:
     """Generate random rollouts from the specified environment.
 
@@ -81,7 +86,7 @@ def generate_rollouts(
         raise
 
 
-def _generate_worker(args) -> None:
+def _generate_worker(args: tuple) -> None:
     """Worker function for parallel rollout generation."""
     data_dir, env_name, seq_len, num_rollouts = args
 
@@ -129,7 +134,7 @@ def _generate_worker(args) -> None:
     env.close()
 
 
-def run_training_pipeline(args, action_size) -> None:
+def run_training_pipeline(args: Any, action_size: int) -> None:
     """Execute the complete World Model training pipeline."""
 
     try:
@@ -221,7 +226,9 @@ def run_training_pipeline(args, action_size) -> None:
         raise  # Re-raise to exit
 
 
-def test_trained_model(logdir, env_name, action_size, num_episodes=5) -> None:
+def test_trained_model(
+    logdir: str, env_name: str, action_size: int, num_episodes: int = 5
+) -> None:
     """Test the trained world model with controller in the environment."""
 
     if torch.cuda.is_available():
@@ -253,10 +260,10 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5) -> None:
     cell_rnn = MDRNNCell(latents=32, actions=action_size, hiddens=256, gaussians=5).to(
         device
     )
-    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)
-    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)
-    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)
-    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)
+    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)  # type: ignore[arg-type]
     cell_rnn.gmm_linear.load_state_dict(batch_rnn.gmm_linear.state_dict())
     cell_rnn.eval()
     del batch_rnn
@@ -270,7 +277,7 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5) -> None:
         env = gym.make(env_name, continuous=True)
     except Exception:
         env = gym.make(env_name)
-    env = GymImageEnv(env=env, size=(64, 64))
+    env = GymImageEnv(env=env, size=(64, 64))  # type: ignore[assignment]
 
     print(f"\nRunning {num_episodes} episodes...")
 
@@ -460,9 +467,9 @@ def main() -> None:
                 temp_env = gym.make(args.env)
 
             if hasattr(temp_env.action_space, "shape"):
-                action_size = temp_env.action_space.shape[0]
+                action_size = (temp_env.action_space.shape or (0,))[0]
             else:
-                action_size = temp_env.action_space.n
+                action_size = getattr(temp_env.action_space, "n", 0)
             temp_env.close()
         except Exception as e:
             print(

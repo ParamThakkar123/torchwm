@@ -106,7 +106,14 @@ class ConvDecoder(nn.Module):
     the RSSM to learn states that capture observation information.
     """
 
-    def __init__(self, stoch_size, deter_size, output_shape, activation, depth=32):
+    def __init__(
+        self,
+        stoch_size: int,
+        deter_size: int,
+        output_shape: tuple[int, ...],
+        activation: str,
+        depth: int = 32,
+    ) -> None:
         super().__init__()
 
         self.output_shape = output_shape
@@ -230,16 +237,16 @@ class DenseDecoder(nn.Module):
 
     def __init__(
         self,
-        stoch_size,
-        deter_size,
-        output_shape,
-        n_layers,
-        units,
-        activation,
-        dist,
-        num_buckets=255,
-        symlog_range=10.0,
-    ):
+        stoch_size: int,
+        deter_size: int,
+        output_shape: tuple[int, ...],
+        n_layers: int,
+        units: int,
+        activation: str,
+        dist: str,
+        num_buckets: int = 255,
+        symlog_range: float = 10.0,
+    ) -> None:
         super().__init__()
 
         self.input_size = stoch_size + deter_size
@@ -341,16 +348,16 @@ class ActionDecoder(nn.Module):
 
     def __init__(
         self,
-        action_size,
-        stoch_size,
-        deter_size,
-        n_layers,
-        units,
-        activation,
-        min_std=1e-4,
-        init_std=5,
-        mean_scale=5,
-    ):
+        action_size: int,
+        stoch_size: int,
+        deter_size: int,
+        n_layers: int,
+        units: int,
+        activation: str,
+        min_std: float = 1e-4,
+        init_std: float = 5,
+        mean_scale: float = 5,
+    ) -> None:
         super().__init__()
 
         self.action_size = action_size
@@ -392,5 +399,7 @@ class ActionDecoder(nn.Module):
         else:
             return dist.rsample()
 
-    def add_exploration(self, action, action_noise=0.3):
+    def add_exploration(
+        self, action: torch.Tensor, action_noise: float = 0.3
+    ) -> torch.Tensor:
         return torch.clamp(Normal(action, action_noise).rsample(), -1, 1)

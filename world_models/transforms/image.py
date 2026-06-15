@@ -9,14 +9,17 @@ logger = getLogger()
 
 
 def make_transforms(
-    crop_size=224,
-    crop_scale=(0.3, 1.0),
-    color_jitter=1.0,
-    horizontal_flip=False,
-    color_distortion=False,
-    gaussian_blur=False,
-    normalization=((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-):
+    crop_size: int = 224,
+    crop_scale: tuple[float, float] = (0.3, 1.0),
+    color_jitter: float = 1.0,
+    horizontal_flip: bool = False,
+    color_distortion: bool = False,
+    gaussian_blur: bool = False,
+    normalization: tuple[tuple[float, ...], tuple[float, ...]] = (
+        (0.485, 0.456, 0.406),
+        (0.229, 0.224, 0.225),
+    ),
+) -> Any:
     """Compose image augmentations and normalization for vision model training.
 
     Supports random crops, optional flip/color distortion/blur, and returns a

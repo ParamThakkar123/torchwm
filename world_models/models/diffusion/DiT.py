@@ -330,7 +330,7 @@ class DiT(nn.Module):
         )
 
     @classmethod
-    def train(
+    def train(  # type: ignore[override]
         cls,
         epochs: int,
         dataset: Any,

@@ -21,7 +21,7 @@ RewardFn = Callable[[Any, Any, np.ndarray, dict[str, Any]], float]
 TerminalFn = Callable[[Any, Any, dict[str, Any]], bool]
 
 
-def _load_mujoco():
+def _load_mujoco() -> Any:
     if "mujoco" in sys.modules:
         return sys.modules["mujoco"]
     if importlib.util.find_spec("mujoco") is None:
@@ -121,7 +121,7 @@ class MuJoCoImageEnv:
         frame_skip: int = 1,
         reset_noise_scale: float = 0.0,
         default_control_range: tuple[float, float] = (-1.0, 1.0),
-    ):
+    ) -> None:
         _validate_model_source(
             xml_path=xml_path,
             xml_string=xml_string,
@@ -197,11 +197,11 @@ class MuJoCoImageEnv:
         return gym.spaces.Box(low=low, high=high, dtype=np.float32)
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.spaces.Box:
         return self._action_space
 
     def _render_chw(self) -> np.ndarray:
@@ -222,7 +222,7 @@ class MuJoCoImageEnv:
             image = image[..., :3]
         return image.astype(np.uint8, copy=False).transpose(2, 0, 1).copy()
 
-    def reset(self, seed: int | None = None):
+    def reset(self, seed: int | None = None) -> dict[str, np.ndarray]:
         if seed is not None:
             self._rng = np.random.default_rng(seed)
         self._mujoco.mj_resetData(self.model, self.data)
@@ -238,7 +238,9 @@ class MuJoCoImageEnv:
         self._mujoco.mj_forward(self.model, self.data)
         return {"image": self._render_chw()}
 
-    def step(self, action):
+    def step(
+        self, action: Any
+    ) -> tuple[dict[str, np.ndarray], float, bool, dict[str, Any]]:
         action_arr = np.asarray(action, dtype=np.float32).reshape(
             self.action_space.shape
         )
@@ -264,10 +266,10 @@ class MuJoCoImageEnv:
         )
         return {"image": self._render_chw()}, reward, done, info
 
-    def render(self):
+    def render(self) -> Any:
         return self._render_chw().transpose(1, 2, 0).copy()
 
-    def close(self):
+    def close(self) -> None:
         if self._closed:
             return
         self._closed = True
@@ -284,8 +286,8 @@ def make_mujoco_env(
     size: tuple[int, int] = (64, 64),
     render_mode: str = "rgb_array",
     gym_kwargs: dict[str, Any] | None = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> GymImageEnv | MuJoCoImageEnv:
     """Create one MuJoCo image environment factory for tasks and MJCF/MJB models.
 
     Args:

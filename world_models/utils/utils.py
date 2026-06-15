@@ -88,7 +88,7 @@ def load_yml_config(path):
         return dictionary
 
 
-def to_tensor_obs(image):
+def to_tensor_obs(image: np.ndarray) -> torch.Tensor:
     """
     Converts the input np img to channel first 64x64 dim torch img.
     """
@@ -397,7 +397,7 @@ def get_mask(tensor: Any, lengths: Any) -> torch.Tensor:
     return mask
 
 
-def load_memory(path, device, *, trusted=False):
+def load_memory(path: str, device: torch.device, *, trusted: bool = False) -> Any:
     """
     Loads an experience replay buffer.
 
@@ -844,7 +844,7 @@ class TorchImageEnvWrapper:
         return 1000
 
 
-def apply_masks(x, masks):
+def apply_masks(x: torch.Tensor, masks: list[torch.Tensor]) -> torch.Tensor:
     """Gather token subsets from patch sequences using index masks.
 
     Each mask selects token positions from `x`; selected groups are concatenated
@@ -966,7 +966,9 @@ class StreamingVideoWriter:
         format: 'mp4' or 'avi'
     """
 
-    def __init__(self, path, fps=20, frame_shape=None, format="mp4"):
+    def __init__(
+        self, path: str, fps: int = 20, frame_shape: Any = None, format: str = "mp4"
+    ) -> None:
         self.path = path
         self.fps = fps
         self.frame_shape = frame_shape

@@ -58,27 +58,36 @@ def train(
         states.append(h_t)
         priors.append(rssm.state_prior(h_t))
         posteriors.append(rssm.state_posterior(h_t, e_t[i + 1]))
-        posterior_samples.append(Normal(*posteriors[-1]).rsample())
+        m, s = posteriors[-1]
+        posterior_samples.append(Normal(m, s).rsample())
         s_t = posterior_samples[-1]
 
-    prior_dist = Normal(*map(torch.stack, zip(*priors)))
-    posterior_dist = Normal(*map(torch.stack, zip(*posteriors)))
-    states = torch.stack(states)
-    posterior_samples = torch.stack(posterior_samples)
+    prior_mean = torch.stack([p[0] for p in priors])
+    prior_std = torch.stack([p[1] for p in priors])
+    posterior_mean = torch.stack([p[0] for p in posteriors])
+    posterior_std = torch.stack([p[1] for p in posteriors])
+    prior_dist = Normal(prior_mean, prior_std)
+    posterior_dist = Normal(posterior_mean, posterior_std)
+    states_stacked = torch.stack(states)
+    posterior_samples_stacked = torch.stack(posterior_samples)
 
     rec_loss = (
         F.mse_loss(
-            bottle(rssm.decoder, states, posterior_samples), x[1:], reduction="none"
+            bottle(rssm.decoder, states_stacked, posterior_samples_stacked),
+            x[1:],
+            reduction="none",
         )
         .sum((2, 3, 4))
         .mean()
     )
 
-    kld_loss = torch.max(
-        kl_divergence(posterior_dist, prior_dist).sum(-1), free_nats
-    ).mean()
+    kld_loss = (
+        kl_divergence(posterior_dist, prior_dist).sum(-1).clamp(min=free_nats).mean()
+    )
 
-    rew_loss = F.mse_loss(bottle(rssm.pred_reward, states, posterior_samples), r)
+    rew_loss = F.mse_loss(
+        bottle(rssm.pred_reward, states_stacked, posterior_samples_stacked), r
+    )
 
     optimizer.zero_grad()
     loss = beta * kld_loss + rec_loss + rew_loss
@@ -107,7 +116,7 @@ def main() -> None:
     Builds environment/model/policy objects, iteratively trains on replayed
     episodes, and periodically saves videos and checkpoints.
     """
-    env = None
+    env: Any = None
     try:
         env = RolloutGenerator
     except Exception:

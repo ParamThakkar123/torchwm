@@ -6,18 +6,18 @@ logger = getLogger()
 
 
 def make_cifar10(
-    transform,
-    batch_size,
-    collator=None,
-    pin_mem=True,
-    num_workers=8,
-    world_size=1,
-    rank=0,
-    root_path=None,
-    drop_last=True,
-    train=True,
-    download=False,
-):
+    transform: Any,
+    batch_size: int,
+    collator: Any = None,
+    pin_mem: bool = True,
+    num_workers: int = 8,
+    world_size: int = 1,
+    rank: int = 0,
+    root_path: str | None = None,
+    drop_last: bool = True,
+    train: bool = True,
+    download: bool = False,
+) -> Any:
     """Create CIFAR-10 dataset and distributed dataloader.
 
     Factory function that creates a CIFAR-10 dataset with the provided transforms

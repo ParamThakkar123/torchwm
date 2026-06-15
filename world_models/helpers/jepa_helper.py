@@ -162,7 +162,7 @@ def init_opt(
     ]
 
     logger.info("Using AdamW")
-    optimizer = torch.optim.AdamW(param_groups)
+    optimizer = torch.optim.AdamW(param_groups)  # type: ignore[arg-type]
     scheduler = WarmupCosineSchedule(
         optimizer,
         warmup_steps=int(warmup * iterations_per_epoch),

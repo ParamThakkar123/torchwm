@@ -61,13 +61,13 @@ def train_rssm(
         iloss = (((x[:, 0] - rx) ** 2).sum((1, 2, 3))).mean()
         # KL Divergence
         kl = kl_div(prior_dists[0], posterior_dists[0]).sum(-1)
-        kloss = torch.max(FREE_NATS, kl).mean()
+        kloss = kl.clamp(min=FREE_NATS).mean()
         mask = get_mask(u[..., 0], lens).T
         for i in range(1, len(states)):
             rx = model.decoder(states[i], posterior_samples[i])
             iloss += (((x[:, i] - rx) ** 2).sum((1, 2, 3)) * mask[i]).mean()
             kl = kl_div(prior_dists[i], posterior_dists[i]).sum(-1)
-            kloss += (torch.max(FREE_NATS, kl) * mask[i]).mean()
+            kloss += (kl.clamp(min=FREE_NATS) * mask[i]).mean()
 
         kloss /= len(states)
         iloss /= len(states)
@@ -138,7 +138,7 @@ def main() -> None:
     else:
         device = torch.device("cpu")
         print("WARNING: CUDA not available, using CPU")
-    FREE_NATS = torch.full((1,), FREE_NATS).to(device)
+    free_nats_tensor = torch.full((1,), FREE_NATS).to(device)
     rssm = RecurrentStateSpaceModel(1, STATE_SIZE, LATENT_SIZE, EMBEDDING_SIZE).to(
         device
     )

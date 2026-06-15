@@ -40,8 +40,6 @@ try:
 
     HF_AVAILABLE = True
 except ImportError:
-    hf_hub_download = None
-    list_repo_files = None
     HF_AVAILABLE = False
     logger.warning(
         "huggingface_hub not installed. Install with: pip install huggingface_hub"

@@ -5,7 +5,7 @@ import numpy as np
 import moviepy as mpy
 import cv2
 
-from typing import Iterable
+from typing import Any, Iterable
 from torch.nn import Module
 
 from types import ModuleType
@@ -163,18 +163,18 @@ class Logger:
 
     def __init__(
         self,
-        log_dir,
-        enable_wandb=False,
-        wandb_api_key="",
-        wandb_project="torchwm",
-        wandb_entity="",
-        video_format="gif",
-        video_fps=20,
-        enable_tensorboard=False,
-        enable_console=True,
-        enable_jsonl=True,
-        jsonl_filename="metrics.jsonl",
-    ):
+        log_dir: str,
+        enable_wandb: bool = False,
+        wandb_api_key: str = "",
+        wandb_project: str = "torchwm",
+        wandb_entity: str = "",
+        video_format: str = "gif",
+        video_fps: int = 20,
+        enable_tensorboard: bool = False,
+        enable_console: bool = True,
+        enable_jsonl: bool = True,
+        jsonl_filename: str = "metrics.jsonl",
+    ) -> None:
         self._log_dir = log_dir
         self._logger = get_package_logger("dreamer")
         self._logger.info("logging outputs to %s", log_dir)
@@ -199,13 +199,18 @@ class Logger:
     def log_scalar(self, scalar, name, step_):
         self.metrics.log({name: scalar}, step_)
 
-    def log_scalars(self, scalar_dict, step):
+    def log_scalars(self, scalar_dict: dict[str, Any], step: int) -> None:
         self.metrics.log(scalar_dict, step)
         self.dump_scalars_to_pickle(scalar_dict, step)
 
     def log_videos(
-        self, videos, step, max_videos_to_save=1, fps=None, video_title="video"
-    ):
+        self,
+        videos: Any,
+        step: int,
+        max_videos_to_save: int = 1,
+        fps: int | None = None,
+        video_title: str = "video",
+    ) -> None:
         if fps is None:
             fps = self.video_fps
         format = self.video_format
@@ -248,18 +253,26 @@ class Logger:
                 video_array = np.array(videos[i])
                 self.metrics.log_video(f"{video_title}_{i}", video_array, step, fps=fps)
 
-    def dump_scalars_to_pickle(self, metrics, step, log_title=None):
+    def dump_scalars_to_pickle(
+        self, metrics: dict[str, Any], step: int, log_title: str | None = None
+    ) -> None:
         log_path = os.path.join(
             self._log_dir, "scalar_data.pkl" if log_title is None else log_title
         )
         with open(log_path, "ab") as f:
             pickle.dump({"step": step, **dict(metrics)}, f)
 
-    def flush(self):
+    def flush(self) -> None:
         self.metrics.flush()
 
 
-def compute_return(rewards, values, discounts, td_lam, last_value):
+def compute_return(
+    rewards: torch.Tensor,
+    values: torch.Tensor,
+    discounts: torch.Tensor,
+    td_lam: float,
+    last_value: torch.Tensor,
+) -> torch.Tensor:
     """Compute TD(lambda) returns from imagined rewards, values, and discounts.
 
     Implements backward recursion used by Dreamer actor/value objectives.

@@ -114,7 +114,7 @@ class MDRNN(_MDRNNBase):
 
         return mus, sigmas, logpi, rs, ds
 
-    def get_init_hidden(self, batch_size=1):
+    def get_init_hidden(self, batch_size: int = 1) -> tuple[torch.Tensor, torch.Tensor]:
         """Return initial hidden state for the LSTM.
 
         Args:

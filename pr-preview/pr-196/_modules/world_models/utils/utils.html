@@ -733,6 +733,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">plotly</span>
@@ -833,7 +834,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="postprocess_img">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.postprocess_img">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">postprocess_img</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">postprocess_img</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Postprocess an image observation for storage.</span>
 <span class="sd">    From float32 numpy array [-0.5, 0.5] to uint8 numpy array [0, 255])</span>
@@ -845,7 +846,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="preprocess_img">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.preprocess_img">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_img</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_img</span><span class="p">(</span><span class="n">image</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Preprocesses an observation inplace.</span>
 <span class="sd">    From float32 Tensor [0, 255] to [-0.5, 0.5]</span>
@@ -858,7 +859,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="bottle">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.bottle">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">bottle</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">tensors</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bottle</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="n">tensors</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaluates a func that operates in N x D with inputs of shape N x T x D</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -871,7 +872,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="get_combined_params">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.get_combined_params">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_combined_params</span><span class="p">(</span><span class="o">*</span><span class="n">models</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_combined_params</span><span class="p">(</span><span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the combine parameter list of all the models given as input.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -884,7 +885,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="save_video">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.save_video">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_video</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_video</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Saves a video containing frames.</span>
 
@@ -1047,7 +1048,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="save_frames">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.save_frames">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_frames</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">pred_prior</span><span class="p">,</span> <span class="n">pred_posterior</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">n_rows</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_frames</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">pred_prior</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">pred_posterior</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">n_rows</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save side-by-side target, prior-prediction, and posterior-prediction frames.</span>
 
@@ -1122,7 +1129,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="get_mask">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.get_mask">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_mask</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">lengths</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mask</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">lengths</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a batch-first validity mask from sequence lengths.</span>
 
@@ -1207,7 +1214,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="flatten_dict">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.flatten_dict">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flattens a nested dict into a single-level dict.</span>
 
 <span class="sd">    Example:</span>
@@ -1231,7 +1238,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="normalize_frames_for_saving">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.normalize_frames_for_saving">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">normalize_frames_for_saving</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_frames_for_saving</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Ensure frames are in shape (T, H, W, 3) with float values in [0,1].</span>
 <span class="sd">    Handles inputs in (T, C, H, W) or (T, H, W, C), repeats single-channel -&gt; RGB,</span>
@@ -1271,7 +1278,7 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">TensorBoardMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plots and (optionally) stores metrics for an experiment.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -1307,7 +1314,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="plot_metrics">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.utils.plot_metrics">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Render and save line plots for each metric series in a dictionary.&quot;&quot;&quot;</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1378,7 +1385,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Also returns observations in image form.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">,</span> <span class="n">observation_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">act_rep</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">observation_shape</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">act_rep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">render_mode</span><span class="o">=</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>

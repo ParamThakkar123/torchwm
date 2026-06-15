@@ -193,7 +193,7 @@ class IRISAgent(nn.Module):
             torch.device(device) if device is not None else torch.device("cpu")
         )
         checkpoint = torch.load(
-            checkpoint_path, map_location=map_location, weights_only=False
+            checkpoint_path, map_location=map_location, weights_only=True
         )
         checkpoint_config = checkpoint.get("config")
         if config is None and isinstance(checkpoint_config, IRISConfig):

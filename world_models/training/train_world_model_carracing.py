@@ -221,17 +221,17 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
 
     print("\nLoading trained models...")
 
-    vae_state = torch.load(vae_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
     vae = ConvVAE(img_channels=3, latent_size=32).to(device)
     vae.load_state_dict(vae_state["state_dict"])
     vae.eval()
 
-    rnn_state = torch.load(rnn_file, map_location=device)
+    rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
     rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5).to(device)
     rnn.load_state_dict(rnn_state["state_dict"])
     rnn.eval()
 
-    ctrl_state = torch.load(ctrl_file, map_location=device)
+    ctrl_state = torch.load(ctrl_file, map_location=device, weights_only=True)
     ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
     ctrl.load_state_dict(ctrl_state["state_dict"])
     ctrl.eval()

@@ -50,7 +50,7 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
     assert exists(vae_file), "No trained VAE found. Train VAE first."
 
     print("Loading VAE for latent encoding...")
-    vae_state = torch.load(vae_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
     vae = ConvVAE(img_channels=3, latent_size=mdrnn_config.latent_size).to(device)
     vae.load_state_dict(vae_state["state_dict"])
     vae.eval()
@@ -67,7 +67,7 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
 
     with torch.no_grad():
         for fpath in tqdm(rollout_files):
-            data = np.load(fpath)
+            data = np.load(fpath, allow_pickle=False)
             observations = data["observations"]
             actions = data["actions"]
             rewards = data["rewards"]
@@ -408,7 +408,7 @@ def train_mdn_rnn(
     vae = None
     if use_precomputed_latents and exists(latent_file):
         print(f"Loading pre-computed latents from {latent_file}")
-        latent_data = np.load(latent_file)
+        latent_data = np.load(latent_file, allow_pickle=False)
         latents = latent_data["latents"]
         all_actions = latent_data["actions"]
         all_rewards = latent_data["rewards"]
@@ -417,7 +417,7 @@ def train_mdn_rnn(
         if use_precomputed_latents:
             print("Pre-computing latents...")
             precompute_latents(vae_config, mdrnn_config)
-            latent_data = np.load(latent_file)
+            latent_data = np.load(latent_file, allow_pickle=False)
             latents = latent_data["latents"]
             all_actions = latent_data["actions"]
             all_rewards = latent_data["rewards"]
@@ -425,7 +425,7 @@ def train_mdn_rnn(
         else:
             vae_file = join(vae_config.logdir, "vae", "best.tar")
             assert exists(vae_file), "No trained VAE in the logdir..."
-            vae_state = torch.load(vae_file, map_location=device)
+            vae_state = torch.load(vae_file, map_location=device, weights_only=True)
             print(
                 "Loading VAE at epoch {} with test error {}".format(
                     vae_state["epoch"], vae_state["precision"]
@@ -463,7 +463,7 @@ def train_mdn_rnn(
 
     rnn_file = join(rnn_dir, "best.tar")
     if not mdrnn_config.noreload and exists(rnn_file):
-        rnn_state = torch.load(rnn_file, map_location=device)
+        rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
         print(
             "Loading MDRNN at epoch {} with test error {}".format(
                 rnn_state["epoch"], rnn_state["precision"]

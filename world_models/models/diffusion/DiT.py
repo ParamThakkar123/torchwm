@@ -24,8 +24,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-cfg = Config()
-
 
 def sinusoidal_time_embedding(timesteps, dim):
     """Create sinusoidal timestep embeddings for diffusion conditioning.
@@ -56,7 +54,7 @@ def sinusoidal_time_embedding(timesteps, dim):
     freqs = torch.exp(
         torch.linspace(math.log(1.0), math.log(10000.0), half, device=timesteps.device)
     )
-    args = timesteps.float().unsqueeze(1) / cfg.TIMESTEPS * freqs.unsqueeze(0)
+    args = timesteps.float().unsqueeze(1) * freqs.unsqueeze(0)
     embedding = torch.cat([torch.sin(args), torch.cos(args)], dim=-1)
     if dim % 2 == 1:
         embedding = F.pad(embedding, (0, 1))
@@ -263,7 +261,9 @@ class DiT(nn.Module):
             raise FileNotFoundError(
                 f"Could not find a DiT checkpoint for {pretrained_model_name_or_path!r}."
             )
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )
@@ -419,8 +419,10 @@ class DiT(nn.Module):
             )
 
         ddpm = DDPM(
-            timesteps=timesteps, beta_start=beta_start, beta_end=beta_end, device=device
-        )
+            timesteps=timesteps,
+            beta_start=beta_start,
+            beta_end=beta_end,
+        ).to(device)
 
         model = cls(
             img_size=img_size,

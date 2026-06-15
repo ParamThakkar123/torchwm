@@ -1,29 +1,34 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 
-class DDPM:
-    """Utility class implementing forward and reverse DDPM diffusion steps.
+class DDPM(nn.Module):
+    """Utility module implementing forward and reverse DDPM diffusion steps.
 
     Precomputes diffusion schedule terms and exposes helpers for noising
     training inputs (`q_sample`) and iterative denoising sampling (`sample`).
     """
 
-    def __init__(self, timesteps, beta_start, beta_end, device):
+    def __init__(self, timesteps, beta_start, beta_end):
+        super().__init__()
         self.timesteps = timesteps
-        betas = torch.linspace(beta_start, beta_end, timesteps).to(device)
+        betas = torch.linspace(beta_start, beta_end, timesteps)
         alphas = 1.0 - betas
         alphas_cumprod = torch.cumprod(alphas, dim=0)
         alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value=1.0)
 
-        self.betas = betas
-        self.alphas = alphas
-        self.alphas_cumprod = alphas_cumprod
-        self.alphas_cumprod_prev = alphas_cumprod_prev
-        self.sqrt_alphas_cumprod = torch.sqrt(alphas_cumprod)
-        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1.0 - alphas_cumprod)
-        self.posterior_variance = (
-            betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod)
+        self.register_buffer("betas", betas)
+        self.register_buffer("alphas", alphas)
+        self.register_buffer("alphas_cumprod", alphas_cumprod)
+        self.register_buffer("alphas_cumprod_prev", alphas_cumprod_prev)
+        self.register_buffer("sqrt_alphas_cumprod", torch.sqrt(alphas_cumprod))
+        self.register_buffer(
+            "sqrt_one_minus_alphas_cumprod", torch.sqrt(1.0 - alphas_cumprod)
+        )
+        self.register_buffer(
+            "posterior_variance",
+            betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod),
         )
 
     def q_sample(self, x_start, t, noise=None):

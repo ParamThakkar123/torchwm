@@ -68,7 +68,7 @@ class RolloutDataset(Dataset):
 
         self.cum_size = [0]
         for f in self.files:
-            with np.load(f) as data:
+            with np.load(f, allow_pickle=False) as data:
                 size = len(data["observations"])
             self.cum_size.append(self.cum_size[-1] + size)
 
@@ -97,7 +97,7 @@ class RolloutDataset(Dataset):
         file_idx = bisect(self.cum_size, idx) - 1
         seq_idx = idx - self.cum_size[file_idx]
         if self.buffer[file_idx] is None:
-            self.buffer[file_idx] = np.load(self.files[file_idx])
+            self.buffer[file_idx] = np.load(self.files[file_idx], allow_pickle=False)
             self.buffer_fnames[file_idx] = self.files[file_idx]
         data = self.buffer[file_idx]
         return self._get_data(data, seq_idx)
@@ -142,7 +142,7 @@ class RolloutDataset(Dataset):
 
         for i in range(start_idx, end_idx):
             if self.buffer[i] is None or self.buffer_fnames[i] != self.files[i]:
-                self.buffer[i] = np.load(self.files[i])
+                self.buffer[i] = np.load(self.files[i], allow_pickle=False)
                 self.buffer_fnames[i] = self.files[i]
 
         self.buffer_idx = end_idx % len(self.files)

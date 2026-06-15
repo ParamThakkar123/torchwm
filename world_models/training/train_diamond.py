@@ -155,7 +155,7 @@ class DiamondAgent:
                 "Could not find a DIAMOND checkpoint for "
                 f"{pretrained_model_name_or_path!r}."
             )
-        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
         if config is None and isinstance(checkpoint.get("config"), dict):
             args = DiamondConfig.from_dict(checkpoint["config"])
         elif config is None:

@@ -541,7 +541,9 @@ class Dreamer:
                 f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
             )
 
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )
@@ -1121,7 +1123,9 @@ class DreamerAgent(ExportableAgentMixin):
                 f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
             )
 
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )

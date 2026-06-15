@@ -62,8 +62,8 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
     vae_file = join(logdir, "vae", "best.tar")
     rnn_file = join(logdir, "mdrnn", "best.tar")
 
-    vae_state = torch.load(vae_file, map_location=device)
-    rnn_state = torch.load(rnn_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
+    rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
     latent_size = 32
 
     vae = ConvVAE(img_channels=3, latent_size=latent_size).to(device)
@@ -223,7 +223,7 @@ def train_controller(config: WMControllerConfig) -> None:
     ctrl_file = join(ctrl_dir, "best.tar")
     print("Attempting to load previous best...")
     if exists(ctrl_file):
-        state = torch.load(ctrl_file, map_location={"cuda:0": "cpu"})
+        state = torch.load(ctrl_file, map_location={"cuda:0": "cpu"}, weights_only=True)
         cur_best = -state["reward"]
         controller.load_state_dict(state["state_dict"])
         print(f"Previous best was {-cur_best}...")

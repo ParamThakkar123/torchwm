@@ -233,12 +233,7 @@ class DiscreteAutoencoder(nn.Module):
         """
         z_q, indices, vq_loss = self.encoder(x)
 
-        # Decode (use detached z_q to stop gradient through decoder for VQ loss)
-        self.decoder(
-            z_q.detach() + z_q - z_q
-        )  # identity with gradient stop for z_q part
-
-        # Actually, we want gradients to flow through reconstruction path
+        # Decode with gradients flowing through reconstruction path
         reconstruction_st = self.decoder(z_q)
 
         # Compute reconstruction loss

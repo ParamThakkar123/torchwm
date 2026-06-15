@@ -26,7 +26,9 @@ def load_checkpoint(
     and optional AMP scaler, returning the resumed epoch for training restart.
     """
     try:
-        checkpoint = torch.load(r_path, map_location=torch.device("cpu"))
+        checkpoint = torch.load(
+            r_path, map_location=torch.device("cpu"), weights_only=True
+        )
         epoch = checkpoint["epoch"]
 
         # -- loading encoder

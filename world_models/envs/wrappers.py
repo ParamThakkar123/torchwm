@@ -135,6 +135,9 @@ class OneHotAction:
     def __init__(self, env):
         assert isinstance(env.action_space, gym.spaces.Discrete)
         self._env = env
+        import numpy as np
+
+        self._random = np.random.RandomState()
 
     def __getattr__(self, name):
         return getattr(self._env, name)
@@ -221,7 +224,7 @@ class ResizeImage:
         try:
             return getattr(self._env, name)
         except AttributeError:
-            raise ValueError(name)
+            raise AttributeError(name)
 
     @property
     def obs_space(self):
@@ -268,7 +271,7 @@ class RenderImage:
         try:
             return getattr(self._env, name)
         except AttributeError:
-            raise ValueError(name)
+            raise AttributeError(name)
 
     @property
     def obs_space(self):

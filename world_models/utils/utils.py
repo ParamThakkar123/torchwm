@@ -8,9 +8,6 @@ import numpy as np
 import glob
 import warnings
 
-if not hasattr(np, "bool8"):
-    # Some NumPy builds don't expose `bool8` as an attribute; set it safely
-    setattr(np, "bool8", np.bool_)
 
 import plotly
 from plotly.graph_objs import Scatter, Line
@@ -72,10 +69,6 @@ class AttrDict(dict):
 
     def __delattr__(self, name):
         del self[name]
-
-
-for type_name in collections.abc.__all__:
-    setattr(collections, type_name, getattr(collections.abc, type_name))
 
 
 def load_yml_config(path):

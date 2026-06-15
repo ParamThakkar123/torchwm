@@ -116,11 +116,9 @@ class MDRNN(_MDRNNBase):
         Returns:
             Tuple of (h, c) with shapes (batch_size, hiddens).
         """
-        h = torch.zeros(batch_size, self.hiddens)
-        c = torch.zeros(batch_size, self.hiddens)
-        if next(self.parameters()).is_cuda:
-            h = h.cuda()
-            c = c.cuda()
+        device = next(self.parameters()).device
+        h = torch.zeros(batch_size, self.hiddens, device=device)
+        c = torch.zeros(batch_size, self.hiddens, device=device)
         return h, c
 
 
@@ -193,9 +191,7 @@ class MDRNNCell(_MDRNNBase):
         return mus, sigmas, logpi, r, d, next_hidden
 
     def get_init_hidden(self, batch_size=1):
-        h = torch.zeros(batch_size, self.hiddens)
-        c = torch.zeros(batch_size, self.hiddens)
-        if next(self.parameters()).is_cuda:
-            h = h.cuda()
-            c = c.cuda()
+        device = next(self.parameters()).device
+        h = torch.zeros(batch_size, self.hiddens, device=device)
+        c = torch.zeros(batch_size, self.hiddens, device=device)
         return h, c

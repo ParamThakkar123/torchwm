@@ -124,7 +124,6 @@ class RecurrentStateSpaceModel(nn.Module):
             s_t = self.state_prior(h_t)
             states.append(h_t)
             latents.append(s_t)
-            Normal(*map(torch.stack, zip(*s_t)))
         return torch.stack(states), torch.stack(latents)
 
     def forward(self, x, u):

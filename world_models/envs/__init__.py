@@ -35,10 +35,9 @@ from .wrappers import (
     SelectAction,
 )
 from .dmc import DeepMindControlEnv
-import gym
-import logging
+import logging as _logging
 
-logger = logging.getLogger(__name__)
+logger = _logging.getLogger(__name__)
 
 
 def make_env(env_id: str, **kwargs):
@@ -94,8 +93,10 @@ def make_env(env_id: str, **kwargs):
     except Exception:
         logger.debug("make_bsuite_env could not create %s", env_id, exc_info=True)
 
-    # Fall back to gym.
-    return gym.make(env_id, **kwargs)
+    # Fall back to gymnasium (formerly gym).
+    import gymnasium
+
+    return gymnasium.make(env_id, **kwargs)
 
 
 __all__ = [

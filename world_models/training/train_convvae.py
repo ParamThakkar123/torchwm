@@ -192,7 +192,7 @@ def train_convae(config: WMVAEConfig) -> None:
     if not config.noreload:
         reload_file = join(vae_dir, "best.tar")
         if exists(reload_file):
-            state = torch.load(reload_file)
+            state = torch.load(reload_file, weights_only=True)
             print(
                 "Reloading model at epoch {}, with test error {}".format(
                     state["epoch"], state["precision"]

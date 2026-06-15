@@ -264,7 +264,7 @@ class NumPyDataset(VideoDatasetBase):
         data_path = Path(data_source)
 
         if data_path.suffix == ".npz":
-            self.npz_data = np.load(data_path, allow_pickle=True)
+            self.npz_data = np.load(data_path, allow_pickle=False)
             if self.key is None:
                 self.key = list(self.npz_data.keys())[0]
             data = self.npz_data[self.key]
@@ -272,7 +272,7 @@ class NumPyDataset(VideoDatasetBase):
             self.is_5d = len(data.shape) == 5
         else:
             self.npz_data = None
-            data = np.load(data_path, allow_pickle=True)
+            data = np.load(data_path, allow_pickle=False)
             self.num_samples = data.shape[0] if len(data.shape) >= 4 else 1
             self.is_5d = len(data.shape) == 5
 
@@ -286,7 +286,7 @@ class NumPyDataset(VideoDatasetBase):
         if self.npz_data is not None:
             data = self.npz_data[self.key]
         else:
-            data = np.load(str(self.data_source), allow_pickle=True)
+            data = np.load(str(self.data_source), allow_pickle=False)
 
         if self.is_5d:
             video = data[idx]
@@ -341,10 +341,10 @@ class RLEnvironmentDataset(VideoDatasetBase):
 
     def _load_video(self, idx: int) -> torch.Tensor:
         if hasattr(self, "single_file") and self.single_file:
-            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=False)
             observations = data[self.obs_key]
         else:
-            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=False)
             observations = data[self.obs_key]
 
         if isinstance(observations, dict):

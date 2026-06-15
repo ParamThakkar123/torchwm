@@ -1,5 +1,5 @@
 import os
-import pickle
+import pickle  # noqa: S403  # restricted unpickler loaded separately
 import torch
 import numpy as np
 import moviepy as mpy

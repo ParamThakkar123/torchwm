@@ -7,7 +7,7 @@ from typing import Any, Optional, Tuple, Dict, Literal
 from world_models.vision.video_tokenizer import VideoTokenizer
 from world_models.models.latent_action_model import LatentActionModel
 from world_models.models.dynamics_model import DynamicsModel, MaskGITSampler
-from world_models.configs.genie_config import GenieConfig
+from world_models.configs.genie_config import GenieConfig, GenieSmallConfig
 from world_models.models.model_io import (
     apply_config_overrides,
     coerce_config,
@@ -143,12 +143,20 @@ class Genie(nn.Module):
     @classmethod
     def from_config(
         cls,
-        config: GenieConfig | dict[str, Any] | str | Path | None = None,
+        config: GenieConfig
+        | GenieSmallConfig
+        | dict[str, Any]
+        | str
+        | Path
+        | None = None,
         **overrides: Any,
     ) -> "Genie":
         """Build Genie from a config object, dict, YAML file, or YAML string."""
 
-        args = apply_config_overrides(coerce_config(GenieConfig, config), overrides)
+        if isinstance(config, GenieSmallConfig):
+            args = apply_config_overrides(config, overrides)
+        else:
+            args = apply_config_overrides(coerce_config(GenieConfig, config), overrides)
         return cls(
             num_frames=args.num_frames,
             image_size=args.image_size,
@@ -200,7 +208,9 @@ class Genie(nn.Module):
             raise FileNotFoundError(
                 f"Could not find a Genie checkpoint for {pretrained_model_name_or_path!r}."
             )
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )

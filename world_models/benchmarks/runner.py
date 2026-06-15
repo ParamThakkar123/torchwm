@@ -9,12 +9,6 @@ import torch
 import numpy as np
 
 from world_models.benchmarks import adapters, metrics, reporting
-from world_models.benchmarks.adapters import IRISAdapter
-from world_models.training.train_iris import IRISTrainer
-from world_models.training.train_diamond import DiamondAgent
-from world_models.configs.diamond_config import DiamondConfig
-from world_models.models.dreamer import DreamerAgent
-from world_models.configs.dreamer_config import DreamerConfig
 
 
 class BenchmarkRunner:
@@ -225,11 +219,16 @@ class MultiAgentBenchmarkRunner:
             agent: Any = None
 
             if adapter_name == "iris":
+                from world_models.training.train_iris import IRISTrainer
+
                 trainer = IRISTrainer(game=env_spec["game"], device=device)
                 save_dir = f"checkpoints/{adapter_name}"
                 trainer.train(total_epochs=train_epochs, save_dir=save_dir)
                 checkpoint_path = f"{save_dir}/checkpoint_{train_epochs - 1}.pt"
             elif adapter_name == "diamond":
+                from world_models.configs.diamond_config import DiamondConfig
+                from world_models.training.train_diamond import DiamondAgent
+
                 config = DiamondConfig(
                     game=env_spec["game"], preset=preset, device=device
                 )
@@ -240,6 +239,9 @@ class MultiAgentBenchmarkRunner:
                     f"checkpoints/{adapter_name}/checkpoint_{train_epochs}.pt"
                 )
             elif adapter_name in ["dreamerv1", "dreamerv2"]:
+                from world_models.configs.dreamer_config import DreamerConfig
+                from world_models.models.dreamer import DreamerAgent
+
                 config = DreamerConfig()
                 config.env = env_spec["game"]
                 config.env_backend = "gym"
@@ -279,6 +281,8 @@ class MultiAgentBenchmarkRunner:
 
 if __name__ == "__main__":
     # example quick-run with mocks (user should use CLI)
+    from world_models.benchmarks.adapters import IRISAdapter
+
     runner = BenchmarkRunner(adapter_cls=IRISAdapter, out_dir="results/bench")
     res = runner.run(env_spec={"game": "ALE/Pong-v5"}, seeds=[0], num_episodes=2)
     print(res)

@@ -539,7 +539,7 @@ class DiamondAgent:
             total_loss = policy_loss + value_loss
 
         self.actor_opt.zero_grad(set_to_none=True)
-        self.actor_scaler.scale(total_loss).backward()  # type: ignore[no-untyped-call]
+        self.actor_scaler.scale(total_loss).backward()
         self.actor_scaler.step(self.actor_opt)
         self.actor_scaler.update()
 
@@ -661,7 +661,7 @@ class DiamondAgent:
             )
 
             # predict reward/termination from the sampled frame [B, C, H, W]
-            reward, done, hidden_state = self.reward_model.predict(  # type: ignore[assignment]
+            reward, done, hidden_state = self.reward_model.predict(
                 obs=sampled,
                 actions=actions_current[:, -1],
                 hidden_state=hidden_state,
@@ -803,7 +803,7 @@ class DiamondAgent:
                 obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
                 # pass batched observation [1, C, H, W]
-                action, policy_hidden = self.actor_critic.get_action(  # type: ignore[assignment]
+                action, policy_hidden = self.actor_critic.get_action(
                     obs_tensor[:, -1],
                     policy_hidden,
                     deterministic=True,
@@ -912,7 +912,7 @@ class DiamondAgent:
             # np.savez_compressed will store arrays with the provided keys
             try:
                 np.savez_compressed(replay_file, **rb_state_trim)
-                checkpoint["replay_buffer_file"] = str(replay_file)  # type: ignore[assignment]
+                checkpoint["replay_buffer_file"] = str(replay_file)
             except Exception:
                 # If saving fails, do not embed large Python objects in the
                 # torch checkpoint; simply omit the replay buffer files and
@@ -925,7 +925,7 @@ class DiamondAgent:
                 # Stack into a single array (N, H, W, C)
                 obs_arr = np.stack(self.obs_history_raw)
                 np.save(obs_file, obs_arr)
-                checkpoint["obs_history_file"] = str(obs_file)  # type: ignore[assignment]
+                checkpoint["obs_history_file"] = str(obs_file)
             except Exception:
                 print("Warning: failed to write obs_history file; skipping embedding")
 

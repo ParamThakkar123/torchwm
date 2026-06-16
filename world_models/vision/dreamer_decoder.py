@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 import torch.nn as nn
 from torch.distributions import Normal, TransformedDistribution, Bernoulli
@@ -47,30 +49,30 @@ class TanhBijector(distributions.Transform):
         Building a Scalable Deep RL Library by Learning from Mistakes, Haarnoja et al.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.bijective = True
         self.domain = constraints.real
         self.codomain = constraints.interval(-1.0, 1.0)
 
     @property
-    def sign(self):
-        return 1.0
+    def sign(self) -> int:
+        return 1
 
-    def _call(self, x):
+    def _call(self, x: torch.Tensor) -> torch.Tensor:
         return torch.tanh(x)
 
-    def atanh(self, x):
+    def atanh(self, x: torch.Tensor) -> torch.Tensor:
         return 0.5 * torch.log((1 + x) / (1 - x))
 
-    def _inverse(self, y: torch.Tensor):
+    def _inverse(self, y: torch.Tensor) -> torch.Tensor:
         y = torch.where(
             (torch.abs(y) <= 1.0), torch.clamp(y, -0.99999997, 0.99999997), y
         )
-        y = self.atanh(y)
+        y = self.atanh(y)  # type: ignore[no-untyped-call]
         return y
 
-    def log_abs_det_jacobian(self, x, y):
+    def log_abs_det_jacobian(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         return 2.0 * (np.log(2) - x - F.softplus(-2.0 * x))
 
 
@@ -123,7 +125,7 @@ class ConvDecoder(nn.Module):
 
         self.dense = nn.Linear(stoch_size + deter_size, 32 * self.depth)
 
-        layers = []
+        layers: list[nn.Module] = []
         for i, kernel_size in enumerate(self.kernels):
             in_ch = (
                 32 * self.depth
@@ -141,7 +143,7 @@ class ConvDecoder(nn.Module):
 
         self.convtranspose = nn.Sequential(*layers)
 
-    def forward(self, features):
+    def forward(self, features: torch.Tensor) -> Independent:
         out_batch_shape = features.shape[:-1]
         out = self.dense(features)
         out = torch.reshape(out, [-1, 32 * self.depth, 1, 1])
@@ -161,7 +163,9 @@ class _TwoHotDistribution:
     :func:`dreamer_utils.symexp` to invert the symlog transform.
     """
 
-    def __init__(self, logits, num_buckets, symlog_range):
+    def __init__(
+        self, logits: torch.Tensor, num_buckets: int, symlog_range: float
+    ) -> None:
         self.logits = logits
         self.num_buckets = int(num_buckets)
         self.symlog_range = float(symlog_range)
@@ -170,12 +174,12 @@ class _TwoHotDistribution:
         )
         self._centers = centers.to(logits.device)
 
-    def log_prob(self, target):
+    def log_prob(self, target: torch.Tensor) -> torch.Tensor:
         if target.shape[-1] != self.num_buckets:
             return self._log_prob_symlog(target)
         return torch.log_softmax(self.logits, dim=-1) * target
 
-    def _log_prob_symlog(self, target):
+    def _log_prob_symlog(self, target: torch.Tensor) -> torch.Tensor:
         from world_models.utils.dreamer_utils import TwoHotEncoder
 
         encoder = TwoHotEncoder(
@@ -184,7 +188,7 @@ class _TwoHotDistribution:
         encoded = encoder.encode(target)
         return (torch.log_softmax(self.logits, dim=-1) * encoded).sum(-1)
 
-    def mean(self):
+    def mean(self) -> torch.Tensor:
         from world_models.utils.dreamer_utils import symexp
 
         probs = torch.softmax(self.logits, dim=-1)
@@ -258,7 +262,7 @@ class DenseDecoder(nn.Module):
         self.num_buckets = int(num_buckets)
         self.symlog_range = float(symlog_range)
 
-        layers = []
+        layers: list[nn.Module] = []
 
         for i in range(self.n_layers):
             in_ch = self.input_size if i == 0 else self.units
@@ -275,7 +279,7 @@ class DenseDecoder(nn.Module):
 
         self.model = nn.Sequential(*layers)
 
-    def forward(self, features):
+    def forward(self, features: torch.Tensor) -> Any:
         out = self.model(features)
 
         if self.dist == "normal":
@@ -301,22 +305,22 @@ class SampleDist:
     distributions where analytic forms may be inconvenient.
     """
 
-    def __init__(self, dist, samples=100):
+    def __init__(self, dist: Any, samples: int = 100) -> None:
         self._dist = dist
         self._samples = samples
 
     @property
-    def name(self):
+    def name(self) -> str:
         return "SampleDist"
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._dist, name)
 
-    def mean(self):
+    def mean(self) -> torch.Tensor:
         sample = self._dist.rsample(self._samples)
         return torch.mean(sample, 0)
 
-    def mode(self):
+    def mode(self) -> torch.Tensor:
         dist = self._dist.expand((self._samples, *self._dist.batch_shape))
         sample = dist.rsample()
         logprob = dist.log_prob(sample)
@@ -329,13 +333,13 @@ class SampleDist:
         )
         return torch.gather(sample, 0, indices).squeeze(0)
 
-    def entropy(self):
+    def entropy(self) -> torch.Tensor:
         dist = self._dist.expand((self._samples, *self._dist.batch_shape))
         sample = dist.rsample()
         logprob = dist.log_prob(sample)
         return -torch.mean(logprob, 0)
 
-    def sample(self):
+    def sample(self) -> torch.Tensor:
         return self._dist.sample()
 
 
@@ -371,7 +375,7 @@ class ActionDecoder(nn.Module):
         self._init_std = init_std
         self._mean_scale = mean_scale
 
-        layers = []
+        layers: list[nn.Module] = []
         for i in range(self.n_layers):
             in_ch = self.stoch_size + self.deter_size if i == 0 else self.units
             out_ch = self.units
@@ -381,7 +385,7 @@ class ActionDecoder(nn.Module):
         layers.append(nn.Linear(self.units, 2 * self.action_size))
         self.action_model = nn.Sequential(*layers)
 
-    def forward(self, features, deter=False):
+    def forward(self, features: torch.Tensor, deter: bool = False) -> torch.Tensor:
         out = self.action_model(features)
         mean, std = torch.chunk(out, 2, dim=-1)
 

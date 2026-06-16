@@ -66,16 +66,16 @@ def make_imagenet1k(
             - sampler: DistributedSampler instance
     """
     # Annotate as Any because we may wrap the ImageNet with ImageNetSubset
-    dataset: Any = ImageNet(  # type: ignore[no-untyped-call]
-        root=root_path,
-        image_folder=image_folder,
+    dataset: Any = ImageNet(
+        root=root_path,  # type: ignore[arg-type]
+        image_folder=image_folder,  # type: ignore[arg-type]
         transform=transform,
         train=training,
         copy_data=copy_data,
         index_targets=False,
     )
     if subset_file is not None:
-        dataset = ImageNetSubset(dataset, subset_file)  # type: ignore[no-untyped-call]
+        dataset = ImageNetSubset(dataset, subset_file)
     logger.info("ImageNet dataset created")
     # Explicitly annotate the distributed sampler variable for mypy.
     dist_sampler: torch.utils.data.distributed.DistributedSampler
@@ -156,16 +156,16 @@ class ImageNet(torchvision.datasets.ImageFolder):
         logger.info("Initialized ImageNet")
 
         if index_targets:
-            self.targets = []
+            self.targets: list[int] = []
             for sample in self.samples:
                 self.targets.append(sample[1])
-            self.targets = np.array(self.targets)
-            self.samples = np.array(self.samples)
+            self.targets_arr = np.array(self.targets)
+            self.samples_arr = np.array(self.samples)
 
             mint = None
             self.target_indices = []
             for t in range(len(self.classes)):
-                indices = np.squeeze(np.argwhere(self.targets == t)).tolist()
+                indices = np.squeeze(np.argwhere(self.targets_arr == t)).tolist()
                 self.target_indices.append(indices)
                 mint = len(indices) if mint is None else min(mint, len(indices))
                 logger.debug(f"num-labeled target {t} {len(indices)}")

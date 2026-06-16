@@ -39,7 +39,7 @@ def is_moved_mujoco_error(exc: BaseException) -> bool:
     return _MOVED_MUJOCO_MESSAGE in str(exc).lower()
 
 
-def register_gymnasium_robotics_envs():
+def register_gymnasium_robotics_envs() -> Any:
     """Import Gymnasium Robotics so its environments are registered with Gymnasium.
 
     Gymnasium moved legacy MuJoCo v2/v3 task registrations into the external
@@ -94,8 +94,8 @@ def make_gymnasium_env_with_robotics_fallback(
     *,
     render_mode: str = "rgb_array",
     gym_kwargs: dict[str, Any] | None = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Any:
     """Create a Gymnasium env and retry after Robotics registration if needed."""
     env_kwargs = dict(gym_kwargs or {})
     env_kwargs.update(kwargs)
@@ -120,8 +120,8 @@ def make_robotics_env(
     size: tuple[int, int] = (64, 64),
     render_mode: str = "rgb_array",
     gym_kwargs: dict[str, Any] | None = None,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> GymImageEnv:
     """Create a TorchWM image wrapper for a Gymnasium Robotics environment.
 
     Args:

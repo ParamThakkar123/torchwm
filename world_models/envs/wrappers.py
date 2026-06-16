@@ -1,8 +1,12 @@
-import gymnasium as gym
-from PIL import Image
-import numpy as np
+from __future__ import annotations
+
 import datetime
 import uuid
+from typing import Any
+
+import gymnasium as gym
+import numpy as np
+from PIL import Image
 
 
 class TimeLimit:

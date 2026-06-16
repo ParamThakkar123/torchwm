@@ -345,7 +345,7 @@ def make_mujoco_env(
     env_kwargs = dict(gym_kwargs or {})
     env_kwargs.update(kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
-        register_gymnasium_robotics_envs()  # type: ignore[no-untyped-call]
+        register_gymnasium_robotics_envs()
     env = make_gymnasium_env_with_robotics_fallback(
         str(model),
         render_mode=render_mode,

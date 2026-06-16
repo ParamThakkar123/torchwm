@@ -7,7 +7,7 @@ import pathlib
 import numpy as np
 import glob
 import warnings
-from typing import Any
+from typing import Any, Optional, Dict, List
 
 
 import plotly
@@ -20,7 +20,7 @@ from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
 
-import yaml  # type: ignore[import]
+import yaml
 
 import collections
 import collections.abc
@@ -50,7 +50,7 @@ class _RestrictedReplayUnpickler(pickle.Unpickler):
         ("world_models.memory.planet_memory", "_identity"),
     }
 
-    def find_class(self, module, name):
+    def find_class(self, module: str, name: str) -> type:
         if (module, name) in self._ALLOWED_GLOBALS:
             return super().find_class(module, name)
         raise pickle.UnpicklingError(
@@ -59,20 +59,20 @@ class _RestrictedReplayUnpickler(pickle.Unpickler):
 
 
 class AttrDict(dict):
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         try:
             return self[name]
         except KeyError:
             raise AttributeError(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         self[name] = value
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         del self[name]
 
 
-def load_yml_config(path):
+def load_yml_config(path: str) -> AttrDict | None:
     with open(path) as fileStream:
         loaded = yaml.safe_load(fileStream)
         keys = list(loaded.keys())
@@ -93,8 +93,8 @@ def to_tensor_obs(image: np.ndarray) -> torch.Tensor:
     Converts the input np img to channel first 64x64 dim torch img.
     """
     image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
-    image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-    return image
+    tensor: torch.Tensor = torch.from_numpy(image).float().permute(2, 0, 1)
+    return tensor
 
 
 def postprocess_img(image: np.ndarray, depth: int) -> np.ndarray:
@@ -136,7 +136,7 @@ def get_combined_params(*models: Any) -> list:
     return params
 
 
-def save_video(frames: Any, path: str, name: str) -> None:
+def save_video(frames: Any, path: str, name: str) -> str:
     """
     Saves a video containing frames.
 
@@ -178,15 +178,16 @@ def save_video(frames: Any, path: str, name: str) -> None:
 
     first = frames_u8[0]
     ch = first.shape[-1]
-    stats = {"min": [], "max": [], "mean": []}
+    stats: Dict[str, List[Any]] = {"min": [], "max": [], "mean": []}
     for c in range(ch):
         stats["min"].append(int(first[..., c].min()))
         stats["max"].append(int(first[..., c].max()))
         stats["mean"].append(float(first[..., c].mean()))
-    equal_ch = False
+    equal_ch: bool = False
     if ch >= 3:
-        equal_ch = np.all(first[..., 0] == first[..., 1]) and np.all(
-            first[..., 1] == first[..., 2]
+        equal_ch = bool(
+            np.all(first[..., 0] == first[..., 1])
+            and np.all(first[..., 1] == first[..., 2])
         )
 
     out_dir = pathlib.Path(path)
@@ -215,7 +216,7 @@ def save_video(frames: Any, path: str, name: str) -> None:
     else:
         raise RuntimeError("Unexpected frames_u8 shape after conversion")
 
-    writer = cv2.VideoWriter(
+    writer = cv2.VideoWriter(  # type: ignore[attr-defined]
         str(out_dir / f"{name}.mp4"),
         cv2.VideoWriter_fourcc(*"mp4v"),
         25.0,
@@ -235,8 +236,12 @@ def save_video(frames: Any, path: str, name: str) -> None:
 
 
 def combine_videos(
-    video_dir, output_name="combined.mp4", pattern="vid_*.mp4", fps=25, resize=True
-):
+    video_dir: str,
+    output_name: str = "combined.mp4",
+    pattern: str = "vid_*.mp4",
+    fps: int = 25,
+    resize: bool = True,
+) -> str:
     """
     Combine all videos matching `pattern` in `video_dir` into a single MP4 file.
     Returns the output filepath (string).
@@ -257,7 +262,7 @@ def combine_videos(
     height = int(cap0.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap0.release()
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
     out_path = str(pathlib.Path(video_dir) / output_name)
     writer = cv2.VideoWriter(out_path, fourcc, float(fps), (width, height), True)
 
@@ -281,7 +286,7 @@ def combine_videos(
     return out_path
 
 
-def ensure_results_dir_exists(results_dir):
+def ensure_results_dir_exists(results_dir: str) -> None:
     """
     Simple helper to validate a results directory exists.
     Raises FileNotFoundError if not present.
@@ -305,7 +310,7 @@ def save_frames(
     concatenation and values are normalized to ``[0, 1]`` when needed.
     """
 
-    def ensure_time_dim(x):
+    def ensure_time_dim(x: torch.Tensor | np.ndarray) -> torch.Tensor:
         if not torch.is_tensor(x):
             x = torch.tensor(x)
         if x.dim() == 3:
@@ -333,7 +338,7 @@ def save_frames(
 
         H, W = tf.shape[1], tf.shape[2]
 
-        def match_size(img, H, W):
+        def match_size(img: torch.Tensor, H: int, W: int) -> torch.Tensor:
             img4 = img.unsqueeze(0)
             if img4.shape[2] != H or img4.shape[3] != W:
                 img4 = F.interpolate(
@@ -345,7 +350,7 @@ def save_frames(
         pr = match_size(pr, H, W)
         ppr = match_size(ppr, H, W)
 
-        def clamp01(x):
+        def clamp01(x: torch.Tensor) -> torch.Tensor:
             if x.min() < 0 or x.max() > 1:
                 return (x - x.min()) / (x.max() - x.min() + 1e-8)
             return x
@@ -454,7 +459,7 @@ def flatten_dict(data: dict, sep: str = ".", prefix: str = "") -> dict:
       {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
     """
 
-    def build_key(parent, child):
+    def build_key(parent: str, child: str) -> str:
         return f"{parent}{sep}{child}" if parent else str(child)
 
     flattened = {}
@@ -506,13 +511,13 @@ class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
     def __init__(self, path: str) -> None:
-        self.steps = defaultdict(lambda: 0)
-        self.summary = {}
+        self.steps: defaultdict[str, int] = defaultdict(lambda: 0)
+        self.summary: dict[str, Any] = {}
 
-    def assign_type(self, key, val):
+    def assign_type(self, key: str, val: Any) -> None:
         pass
 
-    def update(self, metrics: dict):
+    def update(self, metrics: dict) -> None:
         metrics = flatten_dict(metrics)
         for key_dots, val in metrics.items():
             key = key_dots.replace(".", "/")
@@ -521,7 +526,7 @@ class TensorBoardMetrics:
             self.steps[key] += 1
 
 
-def apply_model(model, inputs, ignore_dim=None):
+def apply_model(model: Any, inputs: Any, ignore_dim: Any = None) -> None:
     """Placeholder helper for generic model application across input structures.
 
     Currently not implemented; kept as an extension hook for future utility code.
@@ -536,7 +541,13 @@ def plot_metrics(metrics: dict, path: str, prefix: str) -> None:
         lineplot(np.arange(len(val)), val, f"{prefix}{key}", path)
 
 
-def lineplot(xs, ys, title, path="", xaxis="episode"):
+def lineplot(
+    xs: np.ndarray | list,
+    ys: Any,
+    title: str,
+    path: str = "",
+    xaxis: str = "episode",
+) -> None:
     """Create a Plotly line plot for scalar, dict, or ensemble-series data.
 
     Supports uncertainty-band plotting when `ys` is a 2D array.
@@ -620,7 +631,7 @@ class TorchImageEnvWrapper:
         self.bit_depth = bit_depth
         self.action_repeats = act_rep
 
-    def _get_frame(self, last_obs=None):
+    def _get_frame(self, last_obs: Any = None) -> np.ndarray | None:
         """Call env.render robustly across gym versions. Returns ndarray frame or None.
         If rendering fails (OverflowError / pygame Surface) fallback to last_obs or a
         synthesized image from the observation vector.
@@ -677,7 +688,7 @@ class TorchImageEnvWrapper:
 
         return frame
 
-    def _obs_to_frame(self, obs):
+    def _obs_to_frame(self, obs: Any) -> np.ndarray | None:
         """Convert common observation formats to an HWC image when possible."""
         if isinstance(obs, tuple):
             obs = obs[0]
@@ -728,7 +739,7 @@ class TorchImageEnvWrapper:
 
         return None
 
-    def reset(self):
+    def reset(self) -> torch.Tensor:
         ret = self.env.reset()
         obs = ret[0] if isinstance(ret, tuple) else ret
         frame = self._obs_to_frame(obs)
@@ -743,7 +754,7 @@ class TorchImageEnvWrapper:
         preprocess_img(x, self.bit_depth)
         return x
 
-    def step(self, u):
+    def step(self, u: torch.Tensor | np.ndarray | list | float | int) -> tuple:
         if isinstance(u, torch.Tensor):
             u_t = u.cpu().detach()
         else:
@@ -789,18 +800,18 @@ class TorchImageEnvWrapper:
         preprocess_img(x, self.bit_depth)
         return x, rwds, last_d, last_i
 
-    def render(self):
+    def render(self) -> None:
         self.env.render()
 
-    def close(self):
+    def close(self) -> None:
         self.env.close()
 
     @property
-    def observation_size(self):
+    def observation_size(self) -> tuple[int, int, int]:
         return (3, 64, 64)
 
     @property
-    def action_size(self):
+    def action_size(self) -> int:
         space = getattr(self.env, "action_space", None)
         if space is None:
             return 1
@@ -825,11 +836,11 @@ class TorchImageEnvWrapper:
         except Exception:
             return 1
 
-    def sample_random_action(self):
+    def sample_random_action(self) -> torch.Tensor:
         return torch.tensor(self.env.action_space.sample())
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         """Return environment max episode steps (compatible with TimeLimit/spec)."""
         if (
             hasattr(self.env, "_max_episode_steps")
@@ -857,7 +868,12 @@ def apply_masks(x: torch.Tensor, masks: list[torch.Tensor]) -> torch.Tensor:
     return torch.cat(all_x, dim=0)
 
 
-def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
+def visualize_latent_tsne(
+    latents: torch.Tensor | np.ndarray,
+    labels: np.ndarray | None = None,
+    save_path: str | None = None,
+    perplexity: int = 30,
+) -> plotly.graph_objs.Figure:
     """
     Visualize latent representations using t-SNE.
 
@@ -906,7 +922,12 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
     return fig
 
 
-def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
+def visualize_latent_umap(
+    latents: torch.Tensor | np.ndarray,
+    labels: np.ndarray | None = None,
+    save_path: str | None = None,
+    n_neighbors: int = 15,
+) -> plotly.graph_objs.Figure:
     """
     Visualize latent representations using UMAP.
 
@@ -975,7 +996,7 @@ class StreamingVideoWriter:
         self.format = format.lower()
         self.writer = None
 
-    def write_frame(self, frame):
+    def write_frame(self, frame: np.ndarray) -> None:
         """
         Write a single frame to the video.
 
@@ -1000,7 +1021,7 @@ class StreamingVideoWriter:
             frame = frame[..., ::-1]
         self.writer.write(frame)
 
-    def close(self):
+    def close(self) -> None:
         if self.writer is not None:
             self.writer.release()
             self.writer = None

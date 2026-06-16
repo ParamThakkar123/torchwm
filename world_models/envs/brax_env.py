@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 
 
-def make_brax_env(env, **kwargs):
+def make_brax_env(env: str | Any, **kwargs: Any) -> BraxImageEnv:
     """Create a TorchWM image wrapper for Brax environments.
 
     Args:
@@ -41,7 +41,7 @@ class BraxImageEnv:
 
     def __init__(
         self,
-        env,
+        env: str | Any,
         seed: int = 0,
         size: tuple[int, int] = (64, 64),
         backend: str | None = None,
@@ -104,12 +104,12 @@ class BraxImageEnv:
 
     def _make_env(
         self,
-        env,
+        env: str | Any,
         backend: str | None,
         episode_length: int | None,
         auto_reset: bool,
         env_kwargs: dict[str, Any],
-    ):
+    ) -> Any:
         if not isinstance(env, str):
             return env
 
@@ -129,29 +129,29 @@ class BraxImageEnv:
         )
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.Space:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.Space:
         return self._action_space
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         for name in ("episode_length", "eps_length", "_episode_length"):
             value = getattr(self._env, name, None)
             if value is not None:
                 return int(value)
         return 1000
 
-    def _split_key(self):
+    def _split_key(self) -> Any:
         self._rng, key = self._jax.random.split(self._rng)
         return key
 
-    def _to_numpy(self, value):
+    def _to_numpy(self, value: Any) -> np.ndarray:
         return np.asarray(self._jax.device_get(value))
 
-    def _vector_to_image(self, vector):
+    def _vector_to_image(self, vector: Any) -> np.ndarray:
         vec = np.asarray(vector, dtype=np.float32).reshape(-1)
         if vec.size == 0:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
@@ -176,7 +176,7 @@ class BraxImageEnv:
             image[:, start:end, :] = int(255.0 * float(vec[i]))
         return image
 
-    def _obs_to_hwc_image(self, obs):
+    def _obs_to_hwc_image(self, obs: Any) -> np.ndarray:
         arr = self._to_numpy(obs)
         if arr.ndim == 1:
             image = self._vector_to_image(arr)
@@ -201,7 +201,7 @@ class BraxImageEnv:
                 image = image.clip(0, 255).astype(np.uint8)
         return image
 
-    def _to_chw_uint8_image(self, obs):
+    def _to_chw_uint8_image(self, obs: Any) -> np.ndarray:
         image = self._obs_to_hwc_image(obs)
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
@@ -211,10 +211,10 @@ class BraxImageEnv:
             )
         return image.transpose(2, 0, 1).copy()
 
-    def _state_to_obs(self, state):
+    def _state_to_obs(self, state: Any) -> dict[str, Any]:
         return {"image": self._to_chw_uint8_image(state.obs)}
 
-    def _metrics_to_info(self, state):
+    def _metrics_to_info(self, state: Any) -> dict[str, Any]:
         info = {}
         for source_name in ("metrics", "info"):
             source = getattr(state, source_name, None)
@@ -226,11 +226,11 @@ class BraxImageEnv:
                         info[key] = value
         return info
 
-    def reset(self):
+    def reset(self) -> dict[str, Any]:
         self._state = self._reset_fn(self._split_key())
         return self._state_to_obs(self._state)
 
-    def step(self, action):
+    def step(self, action: Any) -> tuple[dict[str, Any], float, bool, dict[str, Any]]:
         if self._state is None:
             raise RuntimeError("Must call reset() before step().")
 
@@ -250,18 +250,18 @@ class BraxImageEnv:
         info["vector_observation"] = self._to_numpy(self._state.obs).copy()
         return self._state_to_obs(self._state), reward, done, info
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> np.ndarray:
         if self._state is None:
             raise RuntimeError("No frame available. Call reset() before render().")
         return self._to_chw_uint8_image(self._state.obs).transpose(1, 2, 0).copy()
 
-    def close(self):
+    def close(self) -> None:
         self._state = None
 
 
 def _require_module(
     module_name: str, install_hint: str, *, suppress_warp_warnings: bool = False
-):
+) -> Any:
     parent_name = module_name.split(".", 1)[0]
     if importlib.util.find_spec(parent_name) is None:
         raise ImportError(

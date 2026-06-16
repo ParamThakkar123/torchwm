@@ -25,7 +25,7 @@ from world_models.datasets.wm_dataset import SequenceDataset, LatentSequenceData
 from world_models.utils.train_utils import EarlyStopping, ReduceLROnPlateau
 
 
-def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
+def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig) -> None:
     """Pre-compute and save VAE latents to disk for memory-efficient RNN training.
 
     This function encodes all observations using the VAE and saves the latent
@@ -112,7 +112,9 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
     print(f"Saved pre-computed latents to {latent_file}")
 
 
-def save_checkpoint(state, is_best, filename, best_filename):
+def save_checkpoint(
+    state: Any, is_best: bool, filename: str, best_filename: str
+) -> None:
     """Save model checkpoint.
 
     Args:
@@ -126,7 +128,13 @@ def save_checkpoint(state, is_best, filename, best_filename):
         torch.save(state, best_filename)
 
 
-def to_latent(vae, obs, next_obs, device, red_size=64):
+def to_latent(
+    vae: ConvVAE,
+    obs: torch.Tensor,
+    next_obs: torch.Tensor,
+    device: torch.device,
+    red_size: int = 64,
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Transform observations to latent space using VAE encoder.
 
     This function encodes observations into the latent space using the VAE's
@@ -166,15 +174,15 @@ def to_latent(vae, obs, next_obs, device, red_size=64):
 
 
 def get_loss(
-    mdrnn,
-    latent_obs,
-    action,
-    reward,
-    terminal,
-    latent_next_obs,
-    include_reward,
-    latent_size,
-):
+    mdrnn: MDRNN,
+    latent_obs: torch.Tensor,
+    action: torch.Tensor,
+    reward: torch.Tensor,
+    terminal: torch.Tensor,
+    latent_next_obs: torch.Tensor,
+    include_reward: bool,
+    latent_size: int,
+) -> dict[str, torch.Tensor]:
     """Compute MDRNN loss.
 
     Computes the combined loss for the MDRNN model:

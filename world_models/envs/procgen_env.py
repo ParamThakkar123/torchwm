@@ -34,7 +34,7 @@ PROCGEN_ENVS = [
 ]
 
 
-def _require_procgen_env_class():
+def _require_procgen_env_class() -> type[Any]:
     """Return ``procgen.ProcgenEnv`` with a helpful optional-dependency error."""
     try:
         package_spec = importlib.util.find_spec(_PROCGEN_PACKAGE)
@@ -101,9 +101,7 @@ class _ProcgenActionSpace(gym.spaces.Box):
 
     def __init__(self, n: int):
         self.n = int(n)
-        super().__init__(
-            low=-1.0, high=1.0, shape=(self.n,), dtype=np.float32
-        )
+        super().__init__(low=-1.0, high=1.0, shape=(self.n,), dtype=np.float32)
 
     def sample(self, mask: Any = None, probability: Any = None) -> NDArray[np.float32]:
         del mask, probability
@@ -187,18 +185,18 @@ class ProcgenImageEnv:
         self._max_episode_steps = max_episode_steps
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> _ProcgenActionSpace:
         return self._action_space
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         return self._max_episode_steps
 
-    def _to_native_action(self, action):
+    def _to_native_action(self, action: Any) -> tuple[int, NDArray[np.float32]]:
         vec = np.asarray(action, dtype=np.float32).reshape(-1)
         if vec.size == self._discrete_n and vec.size > 1:
             idx = int(np.argmax(vec))
@@ -211,7 +209,7 @@ class ProcgenImageEnv:
         encoded[idx] = 1.0
         return idx, encoded
 
-    def _extract_rgb(self, obs):
+    def _extract_rgb(self, obs: Any) -> np.ndarray:
         if isinstance(obs, tuple):
             obs = obs[0]
         if isinstance(obs, dict):
@@ -245,7 +243,7 @@ class ProcgenImageEnv:
             image = image.clip(0, 255).astype(np.uint8)
         return image
 
-    def _to_chw_uint8_image(self, obs):
+    def _to_chw_uint8_image(self, obs: Any) -> NDArray[np.uint8]:
         image = self._extract_rgb(obs)
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
@@ -255,14 +253,16 @@ class ProcgenImageEnv:
             )
         return image.transpose(2, 0, 1).copy()
 
-    def reset(self):
+    def reset(self) -> dict[str, NDArray[np.uint8]]:
         obs = self._env.reset()
         self._last_obs = obs
         image = self._to_chw_uint8_image(obs)
         self._last_image = image
         return {"image": image}
 
-    def step(self, action):
+    def step(
+        self, action: Any
+    ) -> tuple[dict[str, NDArray[np.uint8]], float, bool, dict[str, Any]]:
         native_action, model_action = self._to_native_action(action)
         action_batch = np.asarray([native_action], dtype=np.int32)
         obs, reward, done, info = self._env.step(action_batch)
@@ -279,11 +279,11 @@ class ProcgenImageEnv:
         self._last_image = image
         return {"image": image}, reward_value, done_value, info_value
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> NDArray[np.uint8]:
         if self._last_image is None:
             raise RuntimeError("No frame available. Call reset() before render().")
         return self._last_image.transpose(1, 2, 0).copy()
 
-    def close(self):
+    def close(self) -> None:
         if hasattr(self._env, "close"):
             self._env.close()

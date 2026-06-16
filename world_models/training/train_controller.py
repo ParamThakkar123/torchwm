@@ -46,7 +46,14 @@ def load_parameters(params: Any, controller: Any) -> None:
         pointer += size
 
 
-def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device):
+def _run_rollout(
+    ctrl_params: np.ndarray,
+    logdir: str,
+    env_name: str,
+    action_size: int,
+    time_limit: int,
+    device: torch.device,
+) -> float:
     """Run a single rollout with given controller parameters.
 
     Args:

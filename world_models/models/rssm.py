@@ -57,7 +57,7 @@ class RecurrentStateSpaceModel(nn.Module):
             s_tp1 = self.state_posterior(h_t, enc, sample=True)
         else:
             s_tp1, _ = self.state_posterior(h_t, enc)
-        return h_tp1, s_tp1
+        return h_tp1, s_tp1  # type: ignore[return-value]
 
     def deterministic_state_fwd(
         self, h_t: torch.Tensor, s_t: torch.Tensor, a_t: torch.Tensor
@@ -136,7 +136,7 @@ class RecurrentStateSpaceModel(nn.Module):
         states, latents = [], []
         for a_t in torch.unbind(act, dim=0):
             h_t = self.deterministic_state_fwd(h_t, s_t, a_t)
-            s_t = self.state_prior(h_t)
+            s_t = self.state_prior(h_t)  # type: ignore[assignment]
             states.append(h_t)
             latents.append(s_t)
         return torch.stack(states), torch.stack(latents)

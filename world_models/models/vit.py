@@ -68,7 +68,7 @@ def get_1d_sincos_pos_embed_from_grid(embed_dim: int, pos: np.ndarray) -> np.nda
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=float)
     omega /= embed_dim / 2.0
-    omega = 1.0 / (10000**omega)  # type: ignore[assignment]
+    omega = 1.0 / (10000**omega)
 
     pos = pos.reshape(-1)
     out = np.einsum("m,d->md", pos, omega)

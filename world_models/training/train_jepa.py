@@ -303,7 +303,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
         encoder, predictor, target_encoder, optimizer, scaler, start_epoch = (
             load_checkpoint(
                 device=device,
-                r_path=load_path,  # type: ignore[arg-type]
+                r_path=load_path,
                 encoder=encoder,
                 predictor=predictor,
                 target_encoder=target_encoder,
@@ -380,9 +380,9 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
                     return z
 
                 def loss_fn(z: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
-                    loss = F.smooth_l1_loss(z, h)
-                    loss: Any = AllReduce.apply(loss)
-                    return loss
+                    loss_val = F.smooth_l1_loss(z, h)
+                    loss_val = AllReduce.apply(loss_val)  # type: ignore[no-untyped-call]
+                    return loss_val
 
                 # Step 1. Forward
                 with torch.cuda.amp.autocast(

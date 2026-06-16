@@ -106,7 +106,7 @@ class VideoFolderDataset(VideoDatasetBase):
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(cast(Union[str, Path], self.data_source))
+        data_path = Path(cast(Union[str, Path], self.data_source))  # type: ignore[redundant-cast]
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -518,7 +518,7 @@ def create_video_dataloader(
     num_workers: int = 4,
     shuffle: bool = True,
     pin_memory: bool = True,
-    **kwargs,
+    **kwargs: Any,
 ) -> Tuple[Dataset, DataLoader]:
     """Factory function to create video dataloaders.
 

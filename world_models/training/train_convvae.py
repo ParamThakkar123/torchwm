@@ -6,7 +6,7 @@ for world model learning.
 
 import os
 from os.path import join, exists
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import torch
 import torch.utils.data
@@ -20,7 +20,9 @@ from world_models.losses.convae_loss import conv_vae_loss_fn
 from world_models.utils.train_utils import EarlyStopping, ReduceLROnPlateau
 
 
-def save_checkpoint(state, is_best, filename, best_filename):
+def save_checkpoint(
+    state: dict, is_best: bool, filename: str, best_filename: str
+) -> None:
     """Save model checkpoint.
 
     Args:
@@ -34,7 +36,12 @@ def save_checkpoint(state, is_best, filename, best_filename):
         torch.save(state, best_filename)
 
 
-def test_epoch(model, test_loader, device, loss_fn):
+def test_epoch(
+    model: ConvVAE,
+    test_loader: torch.utils.data.DataLoader,
+    device: torch.device,
+    loss_fn: Any,
+) -> float:
     """Run one epoch of validation.
 
     Args:

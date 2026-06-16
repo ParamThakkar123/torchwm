@@ -216,7 +216,7 @@ class PPOTrainer:
 
                 # Policy loss
                 dist = Categorical(logits=new_logits)
-                new_log_probs: Any = dist.log_prob(batch_actions)
+                new_log_probs: Any = dist.log_prob(batch_actions)  # type: ignore[no-untyped-call]
                 ratio = torch.exp(new_log_probs - batch_old_log_probs)
                 surr1 = ratio * batch_advantages
                 surr2 = (
@@ -229,7 +229,7 @@ class PPOTrainer:
                 value_loss = F.mse_loss(new_values, batch_returns)
 
                 # Entropy bonus
-                entropy: Any = dist.entropy().mean()
+                entropy: Any = dist.entropy().mean()  # type: ignore[no-untyped-call]
 
                 # Total loss
                 loss = (
@@ -273,7 +273,7 @@ def create_rl_harness_example() -> None:
     """
     from world_models.envs.gym_env import make_gym_env
 
-    def env_factory():
+    def env_factory() -> Any:
         return make_gym_env("CartPole-v1", size=(64, 64))
 
     vec_env = TorchVectorizedEnv(

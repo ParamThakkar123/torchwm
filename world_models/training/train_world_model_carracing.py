@@ -250,7 +250,7 @@ def test_trained_model(
     except Exception:
         env = gym.make(env_name)
 
-    env = GymImageEnv(env=env, size=(64, 64))  # type: ignore[assignment]
+    env = GymImageEnv(env=env, size=(64, 64))
 
     print(f"\nRunning {num_episodes} episodes...")
 
@@ -274,14 +274,14 @@ def test_trained_model(
                 action = ctrl(h, z).cpu().numpy().flatten()
 
                 mus, sigmas, logpi, _, _ = rnn(action, z)
-                h = rnn.get_init_hidden(1)  # type: ignore[assignment]
+                h = rnn.get_init_hidden(1)
                 h = (
                     h[0] + torch.randn_like(h[0]) * 0.1
                     if isinstance(h, tuple)
                     else h + torch.randn_like(h) * 0.1
                 )
 
-                next_obs, reward, done, _ = env.step(action)  # type: ignore[misc]
+                next_obs, reward, done, _ = env.step(action)
                 total_reward += float(reward)
                 obs = next_obs
 

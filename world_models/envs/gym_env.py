@@ -86,7 +86,7 @@ class GymImageEnv:
             self._action_space = gym.spaces.Box(
                 low=-1.0, high=1.0, shape=(self._discrete_n,), dtype=np.float32
             )
-            self._action_space.sample = self._sample_discrete_action
+            self._action_space.sample = self._sample_discrete_action  # type: ignore[assignment, method-assign]
 
         self._seed_spaces(seed)
 
@@ -101,7 +101,7 @@ class GymImageEnv:
             }
         )
 
-    def _make_env_from_id(self, env_id, render_mode):
+    def _make_env_from_id(self, env_id: str, render_mode: str) -> Any:
         # Prefer gymnasium if available, then fallback to gym.
         try:
             import gymnasium as gymnasium
@@ -130,15 +130,15 @@ class GymImageEnv:
                 return gym.make(env_id)
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.spaces.Box:
         return self._action_space
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         if (
             hasattr(self._env, "_max_episode_steps")
             and self._env._max_episode_steps is not None
@@ -151,7 +151,7 @@ class GymImageEnv:
             return int(self._env.spec.max_episode_steps)
         return 1000
 
-    def _seed_spaces(self, seed):
+    def _seed_spaces(self, seed: int | None) -> None:
         if seed is None:
             return
         for space in (
@@ -165,13 +165,13 @@ class GymImageEnv:
                 except Exception:
                     pass
 
-    def _sample_discrete_action(self):
+    def _sample_discrete_action(self) -> np.ndarray:
         idx = int(self._rng.integers(0, self._discrete_n))
         action = -np.ones((self._discrete_n,), dtype=np.float32)
         action[idx] = 1.0
         return action
 
-    def _vector_to_image(self, vector):
+    def _vector_to_image(self, vector: Any) -> np.ndarray:
         vec = np.asarray(vector, dtype=np.float32).reshape(-1)
         if vec.size == 0:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
@@ -191,7 +191,7 @@ class GymImageEnv:
             image[:, start:end, :] = int(255.0 * float(vec[i]))
         return image
 
-    def _obs_to_hwc_image(self, obs):
+    def _obs_to_hwc_image(self, obs: Any) -> np.ndarray | None:
         if isinstance(obs, tuple):
             obs = obs[0]
 
@@ -232,7 +232,7 @@ class GymImageEnv:
                 image = image.clip(0, 255).astype(np.uint8)
         return image
 
-    def _render_hwc_image(self, last_obs=None):
+    def _render_hwc_image(self, last_obs: Any = None) -> np.ndarray | None:
         frame = None
         try:
             frame = self._env.render()
@@ -256,7 +256,7 @@ class GymImageEnv:
             return self._obs_to_hwc_image(last_obs)
         return None
 
-    def _to_chw_uint8_image(self, obs):
+    def _to_chw_uint8_image(self, obs: Any) -> np.ndarray:
         image = self._obs_to_hwc_image(obs)
         if image is None:
             image = self._render_hwc_image(last_obs=obs)
@@ -273,7 +273,9 @@ class GymImageEnv:
             )
         return image.transpose(2, 0, 1).copy()
 
-    def _to_native_action(self, action):
+    def _to_native_action(
+        self, action: Any
+    ) -> tuple[np.ndarray, np.ndarray] | tuple[int, np.ndarray]:
         if self._discrete_n is None:
             action = np.asarray(action, dtype=np.float32)
             low = np.asarray(self._env.action_space.low, dtype=np.float32)
@@ -293,7 +295,7 @@ class GymImageEnv:
         encoded[idx] = 1.0
         return idx, encoded
 
-    def reset(self):
+    def reset(self) -> dict[str, Any]:
         if not self._seed_applied:
             try:
                 result = self._env.reset(seed=self._seed)
@@ -309,7 +311,7 @@ class GymImageEnv:
         self._last_image = image
         return {"image": image}
 
-    def step(self, action):
+    def step(self, action: Any) -> tuple[dict[str, Any], float, bool, dict[str, Any]]:
         native_action, model_action = self._to_native_action(action)
         result = self._env.step(native_action)
 
@@ -332,7 +334,7 @@ class GymImageEnv:
         self._last_image = image
         return {"image": image}, float(reward), done, info
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> np.ndarray:
         frame = self._render_hwc_image(last_obs=self._last_obs)
         if frame is None:
             if self._last_image is None:
@@ -340,6 +342,6 @@ class GymImageEnv:
             return self._last_image.transpose(1, 2, 0).copy()
         return frame
 
-    def close(self):
+    def close(self) -> None:
         if hasattr(self._env, "close"):
             self._env.close()

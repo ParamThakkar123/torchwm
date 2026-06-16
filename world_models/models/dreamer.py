@@ -75,7 +75,7 @@ def get_available_memory() -> int:
 
         memory_status = MEMORYSTATUSEX()
         memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
         if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
             raise OSError("Failed to get memory status")
         return memory_status.ullAvailPhys
@@ -190,7 +190,7 @@ def make_env(args: Any) -> Any:
             raise ValueError(
                 "unity_file_name must be provided when env_backend='unity_mlagents'."
             )
-        env = UnityMLAgentsEnv(
+        env = UnityMLAgentsEnv(  # type: ignore[no-untyped-call]
             file_name=unity_file_name,
             behavior_name=getattr(args, "unity_behavior_name", None),
             seed=args.seed,
@@ -208,11 +208,11 @@ def make_env(args: Any) -> Any:
             "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
-    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))  # type: ignore[no-untyped-call]
-    env = env_wrapper.NormalizeActions(env)  # type: ignore[no-untyped-call]
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
+    env = env_wrapper.NormalizeActions(env)
     repeat = max(1, int(args.action_repeat))
     duration = max(1, int(args.time_limit) // repeat)
-    env = env_wrapper.TimeLimit(env, duration)  # type: ignore[no-untyped-call]
+    env = env_wrapper.TimeLimit(env, duration)
     return env
 
 
@@ -643,7 +643,7 @@ class Dreamer:
     ) -> torch.Tensor:
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
-        init_state = self.rssm.init_state(self.args.batch_size, self.device)  # type: ignore[arg-type]
+        init_state = self.rssm.init_state(self.args.batch_size, self.device)
         prior, self.posterior = self.rssm.observe_rollout(
             obs_embed, acs[:-1], nonterms[:-1], init_state, self.args.train_seq_len - 1
         )
@@ -842,7 +842,7 @@ class Dreamer:
     def act_and_collect_data(self, env: Any, collect_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
-        prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
+        prev_state = self.rssm.init_state(1, self.device)
         prev_action = torch.zeros(1, self.action_size).to(self.device)
 
         episode_rewards = [0.0]
@@ -866,7 +866,7 @@ class Dreamer:
             if done:
                 obs = env.reset()
                 done = False
-                prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
+                prev_state = self.rssm.init_state(1, self.device)
                 if i != collect_steps - 1:
                     episode_rewards.append(0.0)
             else:
@@ -889,7 +889,7 @@ class Dreamer:
         for i in range(eval_episodes):
             obs = env.reset()
             done = False
-            prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
+            prev_state = self.rssm.init_state(1, self.device)
             prev_action = torch.zeros(1, self.action_size).to(self.device)
 
             while not done:

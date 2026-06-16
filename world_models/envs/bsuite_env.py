@@ -48,7 +48,9 @@ class _BSuiteDiscreteActionSpace(gym.spaces.Box):
         self.n = int(n)
         super().__init__(low=-1.0, high=1.0, shape=(self.n,), dtype=np.float32)
 
-    def sample(self, mask: Any | None = None, probability: Any | None = None):
+    def sample(
+        self, mask: Any | None = None, probability: Any | None = None
+    ) -> np.ndarray:
         del mask, probability
         action: np.ndarray = np.full((self.n,), -1.0, dtype=np.float32)
         action[np.random.randint(self.n)] = 1.0
@@ -91,7 +93,7 @@ class BSuiteImageEnv:
         )
 
     @staticmethod
-    def _load_bsuite_env(bsuite_id: str):
+    def _load_bsuite_env(bsuite_id: str) -> Any:
         if importlib.util.find_spec("bsuite") is None:
             raise ImportError(
                 "BSuite support requires the optional 'bsuite' package. "
@@ -101,18 +103,18 @@ class BSuiteImageEnv:
         return bsuite.load_from_id(bsuite_id)
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.Space:
         return self._action_space
 
     @property
     def max_episode_steps(self) -> int:
         return int(getattr(self._env, "bsuite_num_episodes", 0) or 1000)
 
-    def reset(self, seed: int | None = None):
+    def reset(self, seed: int | None = None) -> dict[str, np.ndarray]:
         # BSuite seeds are encoded in the bsuite_id/settings. Accepting seed keeps
         # this wrapper compatible with Gym-style callers.
         if seed is not None:
@@ -121,7 +123,9 @@ class BSuiteImageEnv:
         self._last_time_step = time_step
         return self._time_step_to_obs(time_step)
 
-    def step(self, action):
+    def step(
+        self, action: Any
+    ) -> tuple[dict[str, np.ndarray], float, bool, dict[str, Any]]:
         native_action = self._to_native_action(action)
         time_step = self._env.step(native_action)
         self._last_time_step = time_step
@@ -138,19 +142,19 @@ class BSuiteImageEnv:
         }
         return obs, reward, done, info
 
-    def render(self, *args: Any, **kwargs: Any):
+    def render(self, *args: Any, **kwargs: Any) -> np.ndarray:
         if kwargs.get("mode", "rgb_array") != "rgb_array":
             raise ValueError("Only render mode 'rgb_array' is supported.")
         if self._last_time_step is None:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
         return self._obs_to_hwc_image(self._last_time_step.observation)
 
-    def close(self):
+    def close(self) -> None:
         close = getattr(self._env, "close", None)
         if callable(close):
             close()
 
-    def _make_action_space(self, action_spec: Any):
+    def _make_action_space(self, action_spec: Any) -> gym.Space:
         num_values = getattr(action_spec, "num_values", None)
         if num_values is not None:
             n = int(num_values)
@@ -165,7 +169,7 @@ class BSuiteImageEnv:
         self._discrete_n = None
         return gym.spaces.Box(low=minimum, high=maximum, shape=shape, dtype=np.float32)
 
-    def _to_native_action(self, action):
+    def _to_native_action(self, action: Any) -> int | np.ndarray:
         if self._discrete_n is None:
             return np.asarray(action, dtype=np.float32)
         vec = np.asarray(action, dtype=np.float32).reshape(-1)
@@ -173,7 +177,7 @@ class BSuiteImageEnv:
             return 0
         return int(np.argmax(vec[: self._discrete_n]))
 
-    def _one_hot_action(self, action: int):
+    def _one_hot_action(self, action: int | np.ndarray) -> np.ndarray:
         if self._discrete_n is None:
             return np.asarray(action, dtype=np.float32)
         out: np.ndarray = np.full((self._discrete_n,), -1.0, dtype=np.float32)

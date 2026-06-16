@@ -160,8 +160,8 @@ def gpu_timer(closure: Any, log_timings: bool = True) -> Tuple[Any, float]:
     elapsed_time = -1.0
 
     if log_timings:
-        start: Any = torch.cuda.Event(enable_timing=True)
-        end: Any = torch.cuda.Event(enable_timing=True)
+        start: Any = torch.cuda.Event(enable_timing=True)  # type: ignore[no-untyped-call]
+        end: Any = torch.cuda.Event(enable_timing=True)  # type: ignore[no-untyped-call]
         start.record()
 
     result = closure()

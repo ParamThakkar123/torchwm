@@ -246,10 +246,11 @@ class ReduceLROnPlateau:
             raise ValueError("mode " + mode + " is unknown!")
         if threshold_mode not in {"rel", "abs"}:
             raise ValueError("threshold mode " + threshold_mode + " is unknown!")
+        self.mode_worse: float
         if mode == "min":
-            self.mode_worse: float = float("inf")
+            self.mode_worse = float("inf")
         else:
-            self.mode_worse: float = -float("inf")
+            self.mode_worse = -float("inf")
         self.is_better: Any = partial(self._cmp, mode, threshold_mode, threshold)
 
     def state_dict(self) -> dict:

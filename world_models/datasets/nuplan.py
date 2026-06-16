@@ -279,10 +279,10 @@ def _polygon_to_mask(
     pts = points(np.stack([xx.ravel(), yy.ravel()], axis=1))
     prepare(geom)
     mask = contains(geom, pts).reshape(len(ys), len(xs))
-    rows: Any
-    cols: Any
-    rows, cols = np.where(mask)
-    return (rows + min_y, cols + min_x)
+    rows: Any  # type: ignore[no-redef]
+    cols: Any  # type: ignore[no-redef]
+    rows, cols = np.where(mask)  # type: ignore[assignment]
+    return (rows + min_y, cols + min_x)  # type: ignore[operator]
 
 
 def _extract_ego(

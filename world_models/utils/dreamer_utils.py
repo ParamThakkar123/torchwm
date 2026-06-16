@@ -7,6 +7,7 @@ import cv2
 
 from typing import Any, Iterable
 from torch.nn import Module
+from torch.nn.parameter import Parameter
 
 from types import ModuleType
 from typing import Optional
@@ -112,7 +113,7 @@ class TwoHotEncoder:
         return symexp(expectation)
 
 
-def get_parameters(modules: Iterable[Module]):
+def get_parameters(modules: Iterable[Module]) -> list[Parameter]:
     """
     Given a list of torch modules, returns a list of their parameters.
     :param modules: iterable of modules
@@ -145,11 +146,16 @@ class FreezeParameters:
         self.modules = modules
         self.param_states = [p.requires_grad for p in get_parameters(self.modules)]
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         for param in get_parameters(self.modules):
             param.requires_grad = False
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
+    ) -> None:
         for i, param in enumerate(get_parameters(self.modules)):
             param.requires_grad = self.param_states[i]
 
@@ -196,7 +202,7 @@ class Logger:
         )
         self._wandb_run = self.metrics._wandb_run
 
-    def log_scalar(self, scalar, name, step_):
+    def log_scalar(self, scalar: Any, name: str, step_: int) -> None:
         self.metrics.log({name: scalar}, step_)
 
     def log_scalars(self, scalar_dict: dict[str, Any], step: int) -> None:
@@ -237,7 +243,7 @@ class Logger:
                 new_video_title = video_title + "{}_{}".format(step, i) + ".mp4"
                 filename = os.path.join(self._log_dir, new_video_title)
                 height, width = video_u8.shape[1], video_u8.shape[2]
-                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
                 out = cv2.VideoWriter(filename, fourcc, fps, (width, height))
                 for frame in video_u8:
                     out.write(frame)

@@ -552,7 +552,7 @@ class IRISAgent(nn.Module):
 
         # Update
         self.transformer_opt.zero_grad(set_to_none=True)
-        self.transformer_scaler.scale(loss).backward()
+        self.transformer_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
         self.transformer_scaler.unscale_(self.transformer_opt)
         nn.utils.clip_grad_norm_(
             self.transformer.parameters(), self.config.grad_clip_norm
@@ -635,7 +635,7 @@ class IRISAgent(nn.Module):
 
         # Update
         self.ac_opt.zero_grad(set_to_none=True)
-        self.ac_scaler.scale(loss).backward()
+        self.ac_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
         self.ac_scaler.unscale_(self.ac_opt)
         nn.utils.clip_grad_norm_(
             list(self.cnn.parameters())

@@ -341,11 +341,11 @@ class DiamondAgent:
             loss = F.mse_loss(model_output, target)
 
         self.diffusion_opt.zero_grad(set_to_none=True)
-        self.diffusion_scaler.scale(loss).backward()
+        self.diffusion_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
         self.diffusion_scaler.step(self.diffusion_opt)
         self.diffusion_scaler.update()
 
-        return loss.detach()
+        return loss.detach().item()
 
     def _update_reward_model(self, batch: Dict[str, torch.Tensor]) -> float:
         """Update reward/termination model."""
@@ -539,7 +539,7 @@ class DiamondAgent:
             total_loss = policy_loss + value_loss
 
         self.actor_opt.zero_grad(set_to_none=True)
-        self.actor_scaler.scale(total_loss).backward()
+        self.actor_scaler.scale(total_loss).backward()  # type: ignore[no-untyped-call]
         self.actor_scaler.step(self.actor_opt)
         self.actor_scaler.update()
 
@@ -661,7 +661,7 @@ class DiamondAgent:
             )
 
             # predict reward/termination from the sampled frame [B, C, H, W]
-            reward, done, hidden_state = self.reward_model.predict(
+            reward, done, hidden_state = self.reward_model.predict(  # type: ignore[assignment]
                 obs=sampled,
                 actions=actions_current[:, -1],
                 hidden_state=hidden_state,
@@ -758,15 +758,10 @@ class DiamondAgent:
 
             if epoch % self.config.log_interval == 0:
                 print(f"\nEpoch {epoch}:")
-                diffusion_mean, reward_mean, policy_mean, value_mean = (
-                    torch.stack(losses).mean().detach().cpu()
-                    for losses in (
-                        diffusion_losses,
-                        reward_losses,
-                        policy_losses,
-                        value_losses,
-                    )
-                )
+                diffusion_mean = torch.tensor(diffusion_losses).mean().detach().cpu()
+                reward_mean = torch.tensor(reward_losses).mean().detach().cpu()
+                policy_mean = torch.stack(policy_losses).mean().detach().cpu()
+                value_mean = torch.stack(value_losses).mean().detach().cpu()
                 print(f"  Diffusion loss: {float(diffusion_mean):.4f}")
                 print(f"  Reward loss: {float(reward_mean):.4f}")
                 print(f"  Policy loss: {float(policy_mean):.4f}")
@@ -808,7 +803,7 @@ class DiamondAgent:
                 obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
                 # pass batched observation [1, C, H, W]
-                action, policy_hidden = self.actor_critic.get_action(
+                action, policy_hidden = self.actor_critic.get_action(  # type: ignore[assignment]
                     obs_tensor[:, -1],
                     policy_hidden,
                     deterministic=True,
@@ -917,7 +912,7 @@ class DiamondAgent:
             # np.savez_compressed will store arrays with the provided keys
             try:
                 np.savez_compressed(replay_file, **rb_state_trim)
-                checkpoint["replay_buffer_file"] = str(replay_file)
+                checkpoint["replay_buffer_file"] = str(replay_file)  # type: ignore[assignment]
             except Exception:
                 # If saving fails, do not embed large Python objects in the
                 # torch checkpoint; simply omit the replay buffer files and
@@ -930,7 +925,7 @@ class DiamondAgent:
                 # Stack into a single array (N, H, W, C)
                 obs_arr = np.stack(self.obs_history_raw)
                 np.save(obs_file, obs_arr)
-                checkpoint["obs_history_file"] = str(obs_file)
+                checkpoint["obs_history_file"] = str(obs_file)  # type: ignore[assignment]
             except Exception:
                 print("Warning: failed to write obs_history file; skipping embedding")
 

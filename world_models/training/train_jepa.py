@@ -381,7 +381,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
 
                 def loss_fn(z: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
                     loss = F.smooth_l1_loss(z, h)
-                    loss = AllReduce.apply(loss)
+                    loss: Any = AllReduce.apply(loss)
                     return loss
 
                 # Step 1. Forward
@@ -398,7 +398,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
                     scaler.step(optimizer)
                     scaler.update()
                 else:
-                    loss.backward()
+                    loss.backward()  # type: ignore[no-untyped-call]
                     optimizer.step()
                 enc_for_log = encoder.module if is_distributed else encoder
                 grad_stats = grad_logger(enc_for_log.named_parameters())

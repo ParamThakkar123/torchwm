@@ -284,7 +284,7 @@ def test_trained_model(
     try:
         for episode in range(num_episodes):
             obs, _ = env.reset()
-            total_reward = 0
+            total_reward = 0.0
             h, c = cell_rnn.get_init_hidden(1)
             h, c = h.to(device), c.to(device)
 
@@ -306,8 +306,8 @@ def test_trained_model(
                     action_t = torch.tensor(action).float().to(device)
                     _, _, _, _, _, (h, c) = cell_rnn(action_t, z, (h, c))
 
-                    next_obs, reward, done, _ = env.step(action)
-                    total_reward += reward
+                    next_obs, reward, done, _ = env.step(action)  # type: ignore[misc]
+                    total_reward += float(reward)
                     obs = next_obs
 
                     if done:

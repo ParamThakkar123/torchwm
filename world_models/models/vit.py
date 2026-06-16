@@ -19,7 +19,7 @@ def get_2d_sincos_pos_embed(
     """
     grid_h = np.arange(grid_size, dtype=float)
     grid_w = np.arange(grid_size, dtype=float)
-    grid = np.meshgrid(grid_w, grid_h)
+    grid: Any = np.meshgrid(grid_w, grid_h)
     grid = np.stack(grid, axis=0)
     grid = grid.reshape([2, 1, grid_size, grid_size])
 
@@ -68,7 +68,7 @@ def get_1d_sincos_pos_embed_from_grid(embed_dim: int, pos: np.ndarray) -> np.nda
     assert embed_dim % 2 == 0
     omega = np.arange(embed_dim // 2, dtype=float)
     omega /= embed_dim / 2.0
-    omega = 1.0 / (10000**omega)
+    omega = 1.0 / (10000**omega)  # type: ignore[assignment]
 
     pos = pos.reshape(-1)
     out = np.einsum("m,d->md", pos, omega)
@@ -286,8 +286,8 @@ class ConvEmbed(nn.Module):
                 )
             ]
             if batch_norm:
-                stem += [nn.BatchNorm2d(channels[i + 1])]
-            stem += [nn.ReLU()]
+                stem += [nn.BatchNorm2d(channels[i + 1])]  # type: ignore[list-item]
+            stem += [nn.ReLU()]  # type: ignore[list-item]
         stem += [
             nn.Conv2d(channels[-2], channels[-1], kernel_size=1, stride=strides[-1])
         ]
@@ -295,7 +295,7 @@ class ConvEmbed(nn.Module):
 
         # Comptute the number of patches
         stride_prod = int(np.prod(strides))
-        self.num_patches = (img_size[0] // stride_prod) ** 2
+        self.num_patches = (int(img_size[0]) // stride_prod) ** 2  # type: ignore[index]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         p = self.stem(x)
@@ -368,8 +368,8 @@ class VisionTransformerPredictor(nn.Module):
             param.div_(math.sqrt(2.0 * layer_id))
 
         for layer_id, layer in enumerate(self.predictor_blocks):
-            rescale(layer.attn.proj.weight.data, layer_id + 1)
-            rescale(layer.mlp.fc2.weight.data, layer_id + 1)
+            rescale(layer.attn.proj.weight.data, layer_id + 1)  # type: ignore[arg-type, union-attr]
+            rescale(layer.mlp.fc2.weight.data, layer_id + 1)  # type: ignore[arg-type, union-attr]
 
     def _init_weights(self, m: nn.Module) -> None:
         if isinstance(m, nn.Linear):
@@ -510,8 +510,8 @@ class VisionTransformer(nn.Module):
             param.div_(math.sqrt(2.0 * layer_id))
 
         for layer_id, layer in enumerate(self.blocks):
-            rescale(layer.attn.proj.weight.data, layer_id + 1)
-            rescale(layer.mlp.fc2.weight.data, layer_id + 1)
+            rescale(layer.attn.proj.weight.data, layer_id + 1)  # type: ignore[arg-type, union-attr]
+            rescale(layer.mlp.fc2.weight.data, layer_id + 1)  # type: ignore[arg-type, union-attr]
 
     def _init_weights(self, m: nn.Module) -> None:
         if isinstance(m, nn.Linear):
@@ -578,12 +578,15 @@ class VisionTransformer(nn.Module):
 def vit_predictor(**kwargs: Any) -> VisionTransformerPredictor:
     """Factory for a JEPA predictor transformer with sensible defaults."""
     model = VisionTransformerPredictor(
-        mlp_ratio=4, qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs
+        mlp_ratio=4,
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
+        **kwargs,
     )
     return model
 
 
-def vit_tiny(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_tiny(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a tiny Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -592,13 +595,13 @@ def vit_tiny(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=3,
         mlp_ratio=4,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model
 
 
-def vit_small(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_small(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a small Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -607,13 +610,13 @@ def vit_small(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=6,
         mlp_ratio=4,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model
 
 
-def vit_base(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_base(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a base Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -622,13 +625,13 @@ def vit_base(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=12,
         mlp_ratio=4,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model
 
 
-def vit_large(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_large(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a large Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -637,13 +640,13 @@ def vit_large(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=16,
         mlp_ratio=4,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model
 
 
-def vit_huge(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_huge(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a huge Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -652,13 +655,13 @@ def vit_huge(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=16,
         mlp_ratio=4,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model
 
 
-def vit_giant(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
+def vit_giant(patch_size: int = 16, **kwargs: Any) -> Any:
     """Factory for a giant Vision Transformer encoder backbone."""
     model = VisionTransformer(
         patch_size=patch_size,
@@ -667,7 +670,7 @@ def vit_giant(patch_size: int = 16, **kwargs: Any) -> VisionTransformer:
         num_heads=16,
         mlp_ratio=48 / 11,
         qkv_bias=True,
-        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),  # type: ignore[arg-type]
         **kwargs,
     )
     return model

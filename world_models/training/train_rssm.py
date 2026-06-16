@@ -168,7 +168,8 @@ def main() -> None:
         mem.append(eps)
         with open(path, "wb") as f:
             pickle.dump(mem, f)
-        mem.device = device
+        mem.device = device  # type: ignore[attr-defined]
+
         return mem
 
     test_data = ensure_memory("test_exp_replay.pth", n_warmup=10, random_policy=True)

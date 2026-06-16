@@ -9,6 +9,7 @@ Reference:
     https://arxiv.org/abs/1805.11111
 """
 
+from typing import Any
 import sys
 from os.path import join, exists
 from os import mkdir, unlink, listdir, getpid
@@ -28,11 +29,11 @@ from world_models.configs.wm_config import WMControllerConfig
 from world_models.envs.gym_env import GymImageEnv
 
 
-def flatten_parameters(parameters):
+def flatten_parameters(parameters: Any) -> np.ndarray:
     return np.concatenate([p.data.cpu().numpy().flatten() for p in parameters])
 
 
-def load_parameters(params, controller):
+def load_parameters(params: Any, controller: Any) -> None:
     pointer = 0
     for param in controller.parameters():
         param_shape = param.shape
@@ -128,7 +129,9 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
     return total_reward
 
 
-def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
+def slave_routine(
+    p_queue: Any, r_queue: Any, e_queue: Any, p_index: int, config: Any, time_limit: int
+) -> None:
     """Worker process routine for parallel rollout evaluation.
 
     Args:
@@ -161,7 +164,9 @@ def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
             r_queue.put((s_id, reward))
 
 
-def evaluate(solutions, results, rollouts, p_queue, r_queue):
+def evaluate(
+    solutions: Any, results: Any, rollouts: int, p_queue: Any, r_queue: Any
+) -> Any:
     """Evaluate current controller."""
     index_min = np.argmin(results)
     best_guess = solutions[index_min]

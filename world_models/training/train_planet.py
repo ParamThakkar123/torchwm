@@ -91,7 +91,7 @@ def train(
 
     optimizer.zero_grad()
     loss = beta * kld_loss + rec_loss + rew_loss
-    loss.backward()
+    loss.backward()  # type: ignore[no-untyped-call]
     nn.utils.clip_grad_norm_(rssm.parameters(), 1000.0, norm_type=2)
     optimizer.step()
 

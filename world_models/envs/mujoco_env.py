@@ -63,7 +63,7 @@ def _infer_model_source(model: str | Path) -> dict[str, str | Path]:
     return {"xml_path": model}
 
 
-def make_mujoco_env_from_config(args, size: tuple[int, int]):
+def make_mujoco_env_from_config(args: Any, size: tuple[int, int]) -> Any:
     """Build a MuJoCo image environment from a DreamerConfig-like object."""
     native_kwargs = {
         "seed": args.seed,
@@ -345,7 +345,7 @@ def make_mujoco_env(
     env_kwargs = dict(gym_kwargs or {})
     env_kwargs.update(kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
-        register_gymnasium_robotics_envs()
+        register_gymnasium_robotics_envs()  # type: ignore[no-untyped-call]
     env = make_gymnasium_env_with_robotics_fallback(
         str(model),
         render_mode=render_mode,

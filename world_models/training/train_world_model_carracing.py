@@ -256,7 +256,7 @@ def test_trained_model(
 
     for episode in range(num_episodes):
         obs, _ = env.reset()
-        total_reward = 0
+        total_reward = 0.0
         h = torch.zeros(1, 256).to(device)
 
         for step in range(1000):
@@ -274,15 +274,15 @@ def test_trained_model(
                 action = ctrl(h, z).cpu().numpy().flatten()
 
                 mus, sigmas, logpi, _, _ = rnn(action, z)
-                h = rnn.get_init_hidden(1)  # type: ignore[union-attr]
+                h = rnn.get_init_hidden(1)  # type: ignore[assignment]
                 h = (
                     h[0] + torch.randn_like(h[0]) * 0.1
                     if isinstance(h, tuple)
                     else h + torch.randn_like(h) * 0.1
                 )
 
-                next_obs, reward, done, _ = env.step(action)
-                total_reward += reward
+                next_obs, reward, done, _ = env.step(action)  # type: ignore[misc]
+                total_reward += float(reward)
                 obs = next_obs
 
                 if done:

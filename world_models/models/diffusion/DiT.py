@@ -481,7 +481,7 @@ class DiT(nn.Module):
                 loss = F.mse_loss(pred, noise)
 
                 opt.zero_grad(set_to_none=True)
-                loss.backward()
+                loss.backward()  # type: ignore[no-untyped-call]
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 opt.step()
 

@@ -60,7 +60,7 @@ class ActorCritic(nn.Module):
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Sample action from policy."""
         logits, value = self(obs)
-        dist = Categorical(logits=logits)
+        dist: Any = Categorical(logits=logits)
         action = dist.sample()
         log_prob = dist.log_prob(action)
         return action, log_prob, value
@@ -179,7 +179,7 @@ class PPOTrainer:
 
         return advantages
 
-    def train_step(self, trajectories: Dict[str, torch.Tensor]):
+    def train_step(self, trajectories: Dict[str, torch.Tensor]) -> None:
         """Perform one training step using PPO."""
         obs = trajectories["obs"].view(
             -1, *self.vec_env.observation_space["image"].shape
@@ -216,7 +216,7 @@ class PPOTrainer:
 
                 # Policy loss
                 dist = Categorical(logits=new_logits)
-                new_log_probs = dist.log_prob(batch_actions)
+                new_log_probs: Any = dist.log_prob(batch_actions)
                 ratio = torch.exp(new_log_probs - batch_old_log_probs)
                 surr1 = ratio * batch_advantages
                 surr2 = (
@@ -229,7 +229,7 @@ class PPOTrainer:
                 value_loss = F.mse_loss(new_values, batch_returns)
 
                 # Entropy bonus
-                entropy = dist.entropy().mean()
+                entropy: Any = dist.entropy().mean()
 
                 # Total loss
                 loss = (
@@ -246,7 +246,7 @@ class PPOTrainer:
                 )
                 self.optimizer.step()
 
-    def train(self, total_timesteps: int, log_interval: int = 1000):
+    def train(self, total_timesteps: int, log_interval: int = 1000) -> None:
         """Main training loop."""
         logger.info(f"Starting training for {total_timesteps} timesteps")
 
@@ -266,7 +266,7 @@ class PPOTrainer:
                 logger.info(f"Timestep {timestep}: Training step completed")
 
 
-def create_rl_harness_example():
+def create_rl_harness_example() -> None:
     """
     Example function to create and run the RL harness.
     Usage: Call this with your environment factory.

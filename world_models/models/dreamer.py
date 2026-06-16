@@ -13,7 +13,7 @@ import torch.distributions as distributions
 
 from collections import OrderedDict
 from pathlib import Path
-from typing import Union
+from typing import Dict, Union
 from typing import Any
 
 import world_models.envs.wrappers as env_wrapper
@@ -75,7 +75,7 @@ def get_available_memory() -> int:
 
         memory_status = MEMORYSTATUSEX()
         memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
             raise OSError("Failed to get memory status")
         return memory_status.ullAvailPhys
@@ -120,7 +120,7 @@ def make_env(args: Any) -> Any:
 
     env_instance = getattr(args, "env_instance", None)
     if env_instance is not None:
-        env = GymImageEnv(
+        env: Any = GymImageEnv(
             env_instance,
             seed=args.seed,
             size=size,
@@ -208,11 +208,11 @@ def make_env(args: Any) -> Any:
             "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
-    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
-    env = env_wrapper.NormalizeActions(env)
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))  # type: ignore[no-untyped-call]
+    env = env_wrapper.NormalizeActions(env)  # type: ignore[no-untyped-call]
     repeat = max(1, int(args.action_repeat))
     duration = max(1, int(args.time_limit) // repeat)
-    env = env_wrapper.TimeLimit(env, duration)
+    env = env_wrapper.TimeLimit(env, duration)  # type: ignore[no-untyped-call]
     return env
 
 
@@ -400,7 +400,7 @@ class Dreamer:
             activation=self.args.cnn_activation_function,
         ).to(self.device)
         head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
-        head_kwargs = {}
+        head_kwargs: Dict[str, Any] = {}
         if head_dist == "symlog_twohot":
             head_kwargs = {
                 "num_buckets": getattr(self.args, "num_buckets", 255),
@@ -643,7 +643,7 @@ class Dreamer:
     ) -> torch.Tensor:
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
-        init_state = self.rssm.init_state(self.args.batch_size, self.device)
+        init_state = self.rssm.init_state(self.args.batch_size, self.device)  # type: ignore[arg-type]
         prior, self.posterior = self.rssm.observe_rollout(
             obs_embed, acs[:-1], nonterms[:-1], init_state, self.args.train_seq_len - 1
         )
@@ -718,7 +718,9 @@ class Dreamer:
 
         self.imag_feat = torch.cat([imag_states["stoch"], imag_states["deter"]], dim=-1)
 
-        with FreezeParameters(list(self.world_model_modules) + self.value_modules):
+        with FreezeParameters(
+            list(self.world_model_modules) + list(self.value_modules)
+        ):
             imag_rew_dist = self.reward_model(self.imag_feat)
             imag_val_dist = self.value_model(self.imag_feat)
 
@@ -840,7 +842,7 @@ class Dreamer:
     def act_and_collect_data(self, env: Any, collect_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
-        prev_state = self.rssm.init_state(1, self.device)
+        prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
         prev_action = torch.zeros(1, self.action_size).to(self.device)
 
         episode_rewards = [0.0]
@@ -864,8 +866,7 @@ class Dreamer:
             if done:
                 obs = env.reset()
                 done = False
-                prev_state = self.rssm.init_state(1, self.device)
-                prev_action = torch.zeros(1, self.action_size).to(self.device)
+                prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
                 if i != collect_steps - 1:
                     episode_rewards.append(0.0)
             else:
@@ -888,7 +889,7 @@ class Dreamer:
         for i in range(eval_episodes):
             obs = env.reset()
             done = False
-            prev_state = self.rssm.init_state(1, self.device)
+            prev_state = self.rssm.init_state(1, self.device)  # type: ignore[arg-type]
             prev_action = torch.zeros(1, self.action_size).to(self.device)
 
             while not done:

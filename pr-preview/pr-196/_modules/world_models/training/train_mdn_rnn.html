@@ -753,7 +753,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="precompute_latents">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_mdn_rnn.precompute_latents">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">precompute_latents</span><span class="p">(</span><span class="n">vae_config</span><span class="p">:</span> <span class="n">WMVAEConfig</span><span class="p">,</span> <span class="n">mdrnn_config</span><span class="p">:</span> <span class="n">WMMDNRNNConfig</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">precompute_latents</span><span class="p">(</span><span class="n">vae_config</span><span class="p">:</span> <span class="n">WMVAEConfig</span><span class="p">,</span> <span class="n">mdrnn_config</span><span class="p">:</span> <span class="n">WMMDNRNNConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pre-compute and save VAE latents to disk for memory-efficient RNN training.</span>
 
 <span class="sd">    This function encodes all observations using the VAE and saves the latent</span>
@@ -843,7 +843,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="save_checkpoint">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_mdn_rnn.save_checkpoint">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">is_best</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">best_filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">is_best</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">best_filename</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model checkpoint.</span>
 
 <span class="sd">    Args:</span>
@@ -860,7 +862,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="to_latent">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_mdn_rnn.to_latent">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">to_latent</span><span class="p">(</span><span class="n">vae</span><span class="p">,</span> <span class="n">obs</span><span class="p">,</span> <span class="n">next_obs</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">red_size</span><span class="o">=</span><span class="mi">64</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_latent</span><span class="p">(</span>
+    <span class="n">vae</span><span class="p">:</span> <span class="n">ConvVAE</span><span class="p">,</span>
+    <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">next_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">red_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform observations to latent space using VAE encoder.</span>
 
 <span class="sd">    This function encodes observations into the latent space using the VAE&#39;s</span>
@@ -903,15 +911,15 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="get_loss">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_mdn_rnn.get_loss">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_loss</span><span class="p">(</span>
-    <span class="n">mdrnn</span><span class="p">,</span>
-    <span class="n">latent_obs</span><span class="p">,</span>
-    <span class="n">action</span><span class="p">,</span>
-    <span class="n">reward</span><span class="p">,</span>
-    <span class="n">terminal</span><span class="p">,</span>
-    <span class="n">latent_next_obs</span><span class="p">,</span>
-    <span class="n">include_reward</span><span class="p">,</span>
-    <span class="n">latent_size</span><span class="p">,</span>
-<span class="p">):</span>
+    <span class="n">mdrnn</span><span class="p">:</span> <span class="n">MDRNN</span><span class="p">,</span>
+    <span class="n">latent_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">reward</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">terminal</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">latent_next_obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">include_reward</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute MDRNN loss.</span>
 
 <span class="sd">    Computes the combined loss for the MDRNN model:</span>

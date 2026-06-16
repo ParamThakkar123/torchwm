@@ -1031,7 +1031,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">encoder</span><span class="p">,</span> <span class="n">predictor</span><span class="p">,</span> <span class="n">target_encoder</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">scaler</span><span class="p">,</span> <span class="n">start_epoch</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">load_checkpoint</span><span class="p">(</span>
                 <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
-                <span class="n">r_path</span><span class="o">=</span><span class="n">load_path</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="n">r_path</span><span class="o">=</span><span class="n">load_path</span><span class="p">,</span>
                 <span class="n">encoder</span><span class="o">=</span><span class="n">encoder</span><span class="p">,</span>
                 <span class="n">predictor</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span>
                 <span class="n">target_encoder</span><span class="o">=</span><span class="n">target_encoder</span><span class="p">,</span>
@@ -1108,9 +1108,9 @@ window.runMermaid = runMermaid;</script>
                     <span class="k">return</span> <span class="n">z</span>
 
                 <span class="k">def</span><span class="w"> </span><span class="nf">loss_fn</span><span class="p">(</span><span class="n">z</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-                    <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">smooth_l1_loss</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
-                    <span class="n">loss</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">AllReduce</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="n">loss</span>
+                    <span class="n">loss_val</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">smooth_l1_loss</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+                    <span class="n">loss_val</span> <span class="o">=</span> <span class="n">AllReduce</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">loss_val</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+                    <span class="k">return</span> <span class="n">loss_val</span>
 
                 <span class="c1"># Step 1. Forward</span>
                 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span>

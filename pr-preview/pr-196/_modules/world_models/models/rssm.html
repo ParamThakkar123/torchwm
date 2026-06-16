@@ -787,7 +787,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">s_tp1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_posterior</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">enc</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">s_tp1</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_posterior</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">enc</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">h_tp1</span><span class="p">,</span> <span class="n">s_tp1</span></div>
+        <span class="k">return</span> <span class="n">h_tp1</span><span class="p">,</span> <span class="n">s_tp1</span>  <span class="c1"># type: ignore[return-value]</span></div>
 
 
 <div class="viewcode-block" id="RecurrentStateSpaceModel.deterministic_state_fwd">
@@ -881,7 +881,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">states</span><span class="p">,</span> <span class="n">latents</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">a_t</span> <span class="ow">in</span> <span class="n">torch</span><span class="o">.</span><span class="n">unbind</span><span class="p">(</span><span class="n">act</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
             <span class="n">h_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deterministic_state_fwd</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">s_t</span><span class="p">,</span> <span class="n">a_t</span><span class="p">)</span>
-            <span class="n">s_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_prior</span><span class="p">(</span><span class="n">h_t</span><span class="p">)</span>
+            <span class="n">s_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_prior</span><span class="p">(</span><span class="n">h_t</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
             <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h_t</span><span class="p">)</span>
             <span class="n">latents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s_t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">latents</span><span class="p">)</span></div>

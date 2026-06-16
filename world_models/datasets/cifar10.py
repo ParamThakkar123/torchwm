@@ -1,3 +1,5 @@
+from typing import Any
+
 import torch
 from torchvision.datasets import CIFAR10
 from logging import getLogger
@@ -59,8 +61,10 @@ def make_cifar10(
         download=download,
         transform=transform,
     )
-    dist_sampler = torch.utils.data.distributed.DistributedSampler(
-        dataset=dataset, num_replicas=world_size, rank=rank
+    dist_sampler: torch.utils.data.distributed.DistributedSampler = (
+        torch.utils.data.distributed.DistributedSampler(
+            dataset=dataset, num_replicas=world_size, rank=rank
+        )
     )
     data_loader = torch.utils.data.DataLoader(
         dataset,

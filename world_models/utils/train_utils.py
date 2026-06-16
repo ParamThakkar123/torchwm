@@ -4,6 +4,7 @@ This module provides utility classes for training neural networks including
 early stopping and learning rate scheduling.
 """
 
+from typing import Any
 from functools import partial
 from torch.optim import Optimizer
 
@@ -47,18 +48,14 @@ class EarlyStopping:
         self.mode = mode
         self.threshold = threshold
         self.threshold_mode = threshold_mode
-        self.best = None
-        self.num_bad_epochs = None
-        self.mode_worse = None
-        self.is_better = None
         self.last_epoch = -1
         self._init_is_better(mode, threshold, threshold_mode)
         self._reset()
 
     def _reset(self) -> None:
         """Reset the internal state for a new training run."""
-        self.best = self.mode_worse
-        self.num_bad_epochs = 0
+        self.best: float = self.mode_worse
+        self.num_bad_epochs: int = 0
 
     def step(self, metrics: float, epoch: int | None = None) -> None:
         """Update early stopping state with new metric value.
@@ -184,18 +181,14 @@ class ReduceLROnPlateau:
         self.patience = patience
         self.threshold = threshold
         self.threshold_mode = threshold_mode
-        self.best = None
-        self.num_bad_epochs = None
-        self.mode_worse = None
-        self.is_better = None
         self.last_epoch = -1
         self._init_is_better(mode, threshold, threshold_mode)
         self._reset()
 
     def _reset(self) -> None:
         """Reset the internal state for a new training run."""
-        self.best = self.mode_worse
-        self.num_bad_epochs = 0
+        self.best: float = self.mode_worse
+        self.num_bad_epochs: int = 0
 
     def step(self, metrics: float, epoch: int | None = None) -> None:
         """Update learning rate based on metric value.
@@ -254,10 +247,10 @@ class ReduceLROnPlateau:
         if threshold_mode not in {"rel", "abs"}:
             raise ValueError("threshold mode " + threshold_mode + " is unknown!")
         if mode == "min":
-            self.mode_worse = float("inf")
+            self.mode_worse: float = float("inf")
         else:
-            self.mode_worse = -float("inf")
-        self.is_better = partial(self._cmp, mode, threshold_mode, threshold)
+            self.mode_worse: float = -float("inf")
+        self.is_better: Any = partial(self._cmp, mode, threshold_mode, threshold)
 
     def state_dict(self) -> dict:
         """Get state dictionary for checkpointing.

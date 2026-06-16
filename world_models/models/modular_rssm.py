@@ -747,7 +747,7 @@ def create_modular_rssm(
     embed_size: int = 1024,
     hidden_size: int = 200,
     activation: str = "elu",
-    **kwargs,
+    **kwargs: Any,
 ) -> ModularRSSM:
     """Factory function to create a modular RSSM with specified components.
 

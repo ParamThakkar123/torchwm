@@ -138,8 +138,9 @@ class RSSM(nn.Module):
         Returns:
             Independent Normal distribution with given parameters
         """
-        distribution = distributions.Normal(mean, std)
-        distribution = distributions.independent.Independent(distribution, 1)
+        distribution: distributions.Independent = distributions.independent.Independent(
+            distributions.Normal(mean, std), 1
+        )
         return distribution
 
     def _gru_input(
@@ -163,7 +164,7 @@ class RSSM(nn.Module):
         prev_state: dict,
         prev_action: torch.Tensor,
         obs_embed: torch.Tensor,
-        nonterm: torch.Tensor = 1.0,
+        nonterm: torch.Tensor = torch.tensor(1.0),
     ) -> Tuple[dict, dict]:
         """Update state using actual observation (observe mode).
 
@@ -195,7 +196,10 @@ class RSSM(nn.Module):
         return posterior_state, prior
 
     def imagine_step(
-        self, prev_state: dict, prev_action: torch.Tensor, nonterm: torch.Tensor = 1.0
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
     ) -> dict:
         """Predict next state without observation (imagine mode).
 
@@ -223,21 +227,11 @@ class RSSM(nn.Module):
         return dict(mean=mean, std=std, stoch=sample, deter=prior_deter)
 
     def get_prior(
-        self, prev_state: dict, prev_action: torch.Tensor, nonterm: torch.Tensor = 1.0
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
     ) -> dict:
-        """Compute prior distribution over stochastic state.
-
-        The prior represents the model's belief about the stochastic state
-        before observing the actual outcome.
-
-        Args:
-            prev_state: Previous state dictionary
-            prev_action: Previous action
-            nonterm: Termination mask
-
-        Returns:
-            Dictionary with prior state (no observation information)
-        """
         return self.imagine_step(prev_state, prev_action, nonterm)
 
     def get_posterior(
@@ -245,7 +239,7 @@ class RSSM(nn.Module):
         prev_state: dict,
         prev_action: torch.Tensor,
         obs_embed: torch.Tensor,
-        nonterm: torch.Tensor = 1.0,
+        nonterm: torch.Tensor = torch.tensor(1.0),
     ) -> dict:
         """Compute posterior distribution over stochastic state.
 

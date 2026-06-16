@@ -15,23 +15,30 @@ class DDPM(nn.Module):
     def __init__(self, timesteps: int, beta_start: float, beta_end: float) -> None:
         super().__init__()
         self.timesteps = timesteps
-        betas = torch.linspace(beta_start, beta_end, timesteps)
-        alphas = 1.0 - betas
-        alphas_cumprod = torch.cumprod(alphas, dim=0)
-        alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value=1.0)
+        self.betas: torch.Tensor = torch.linspace(beta_start, beta_end, timesteps)
+        alphas = 1.0 - self.betas
+        self.alphas: torch.Tensor = alphas
+        self.alphas_cumprod: torch.Tensor = torch.cumprod(alphas, dim=0)
+        self.alphas_cumprod_prev: torch.Tensor = F.pad(
+            self.alphas_cumprod[:-1], (1, 0), value=1.0
+        )
 
-        self.register_buffer("betas", betas)
-        self.register_buffer("alphas", alphas)
-        self.register_buffer("alphas_cumprod", alphas_cumprod)
-        self.register_buffer("alphas_cumprod_prev", alphas_cumprod_prev)
-        self.register_buffer("sqrt_alphas_cumprod", torch.sqrt(alphas_cumprod))
-        self.register_buffer(
-            "sqrt_one_minus_alphas_cumprod", torch.sqrt(1.0 - alphas_cumprod)
+        self.register_buffer("betas", self.betas)
+        self.register_buffer("alphas", self.alphas)
+        self.register_buffer("alphas_cumprod", self.alphas_cumprod)
+        self.register_buffer("alphas_cumprod_prev", self.alphas_cumprod_prev)
+        self.sqrt_alphas_cumprod: torch.Tensor = torch.sqrt(self.alphas_cumprod)
+        self.register_buffer("sqrt_alphas_cumprod", self.sqrt_alphas_cumprod)
+        self.sqrt_one_minus_alphas_cumprod: torch.Tensor = torch.sqrt(
+            1.0 - self.alphas_cumprod
         )
         self.register_buffer(
-            "posterior_variance",
-            betas * (1.0 - alphas_cumprod_prev) / (1.0 - alphas_cumprod),
+            "sqrt_one_minus_alphas_cumprod", self.sqrt_one_minus_alphas_cumprod
         )
+        self.posterior_variance: torch.Tensor = (
+            self.betas * (1.0 - self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
+        )
+        self.register_buffer("posterior_variance", self.posterior_variance)
 
     def q_sample(
         self, x_start: torch.Tensor, t: torch.Tensor, noise: torch.Tensor | None = None
@@ -72,7 +79,7 @@ class DDPM(nn.Module):
         x = torch.randn(n, channels, img_size, img_size).to(
             next(model.parameters()).device
         )
-        for t in reversed(range(self.timesteps)):
-            t = torch.full((n,), t, dtype=torch.long).to(x.device)
+        for i in reversed(range(self.timesteps)):
+            t = torch.full((n,), i, dtype=torch.long).to(x.device)
             x = self.p_sample(model, x, t)
         return x.clamp(-1.0, 1.0)

@@ -200,7 +200,7 @@ class ImageFolderDataset(VideoDatasetBase):
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(cast(Union[str, Path], self.data_source))
+        data_path = Path(self.data_source)
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -451,7 +451,7 @@ class HDF5Dataset(VideoDatasetBase):
     def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         return list(range(self.num_samples))
 
-    def _open_h5(self):
+    def _open_h5(self) -> Any:
         if self._h5_file is None:
             self._h5_file = h5py.File(self.data_source, "r" if self.memmap else "r")
         return self._h5_file
@@ -504,7 +504,7 @@ class HDF5Dataset(VideoDatasetBase):
     def __len__(self) -> int:
         return self.num_samples
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._h5_file is not None:
             self._h5_file.close()
 

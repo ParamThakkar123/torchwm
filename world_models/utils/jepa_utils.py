@@ -160,8 +160,8 @@ def gpu_timer(closure: Any, log_timings: bool = True) -> Tuple[Any, float]:
     elapsed_time = -1.0
 
     if log_timings:
-        start = torch.cuda.Event(enable_timing=True)
-        end = torch.cuda.Event(enable_timing=True)
+        start: Any = torch.cuda.Event(enable_timing=True)
+        end: Any = torch.cuda.Event(enable_timing=True)
         start.record()
 
     result = closure()
@@ -232,15 +232,17 @@ class AverageMeter(object):
     """Track running statistics (`val`, `avg`, `min`, `max`, `sum`, `count`) for metrics."""
 
     def __init__(self) -> None:
+        self.first_layer: float | None = None
+        self.last_layer: float | None = None
         self.reset()
 
     def reset(self) -> None:
-        self.val = 0
-        self.avg = 0
+        self.val: float = 0.0
+        self.avg: float = 0.0
         self.max = float("-inf")
         self.min = float("inf")
-        self.sum = 0
-        self.count = 0
+        self.sum: float = 0.0
+        self.count: int = 0
 
     def update(self, val: float, n: int = 1) -> None:
         self.val = val
@@ -260,8 +262,6 @@ def grad_logger(named_params: Any) -> AverageMeter:
     Also exposes first/last qkv-layer gradient norms when available.
     """
     stats = AverageMeter()
-    stats.first_layer = None
-    stats.last_layer = None
     for n, p in named_params:
         if (p.grad is not None) and not (n.endswith(".bias") or len(p.shape) == 1):
             grad_norm = float(torch.norm(p.grad.data))

@@ -132,7 +132,6 @@ def main() -> None:
     Initializes environment/policy/memory, trains over episodes, logs metrics,
     and periodically evaluates and checkpoints the model.
     """
-    global FREE_NATS
     if torch.cuda.is_available():
         device = torch.device("cuda:0")
     else:

@@ -382,6 +382,8 @@ class IRISPolicy(nn.Module):
         """Sample action from policy."""
         return self.actor.get_action(frame, temperature, deterministic)
 
-    def init_hidden(self, batch_size: int, device: torch.device):
+    def init_hidden(
+        self, batch_size: int, device: torch.device
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Initialize hidden state."""
         return self.actor.init_hidden_state(batch_size, device)

@@ -1,8 +1,7 @@
 from typing import Any
+from collections import deque
 
 import numpy as np
-
-from collections import deque
 from numpy.random import choice
 
 
@@ -38,10 +37,10 @@ class Episode:
     """
 
     def __init__(self, postprocess_fn: Any = None) -> None:
-        self.x = []
-        self.u = []
-        self.t = []
-        self.r = []
+        self.x: Any = []
+        self.u: Any = []
+        self.t: Any = []
+        self.r: Any = []
         self.postprocess_fn = _identity if postprocess_fn is None else postprocess_fn
         self._size = 0
 
@@ -100,8 +99,8 @@ class Memory(deque):
                 creates unbounded deques for pickle compatibility.
         """
         maxlen = size if size is not None else None
-        self.episodes = deque(maxlen=maxlen)
-        self.eps_lengths = deque(maxlen=maxlen)
+        self.episodes: deque[Any] = deque(maxlen=maxlen)
+        self.eps_lengths: deque[Any] = deque(maxlen=maxlen)
         if size is not None:
             print(f"Creating memory with len {size} episodes.")
 

@@ -3,7 +3,7 @@ import math
 from multiprocessing import Value
 
 from logging import getLogger
-from typing import Any
+from typing import Any, Optional
 
 import torch
 
@@ -20,15 +20,15 @@ class MaskCollator(object):
 
     def __init__(
         self,
-        input_size=(224, 224),
-        patch_size=16,
-        enc_mask_scale=(0.2, 0.8),
-        pred_mask_scale=(0.5, 1.0),
-        aspect_ratio=(0.3, 3.0),
-        nenc=1,
-        npred=2,
-        min_keep=4,
-        allow_overlap=False,
+        input_size: tuple[int, int] = (224, 224),
+        patch_size: int = 16,
+        enc_mask_scale: tuple[float, float] = (0.2, 0.8),
+        pred_mask_scale: tuple[float, float] = (0.5, 1.0),
+        aspect_ratio: tuple[float, float] = (0.3, 3.0),
+        nenc: int = 1,
+        npred: int = 2,
+        min_keep: int = 4,
+        allow_overlap: bool = False,
     ) -> None:
         super(MaskCollator, self).__init__()
         if not isinstance(input_size, tuple):
@@ -142,7 +142,7 @@ class MaskCollator(object):
                 min_keep_pred = min(min_keep_pred, len(mask))
             collated_masks_pred.append(masks_p)
 
-            acceptable_regions = masks_C
+            acceptable_regions: Any = masks_C
             try:
                 if self.allow_overlap:
                     acceptable_regions = None

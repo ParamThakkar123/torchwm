@@ -116,7 +116,7 @@ class RSSMPolicy:
         )
         for _ in range(self.T):
             rwds = torch.zeros(self.N).to(self.device)
-            actions = Normal(self.mu, self.stddev).sample((self.N,))
+            actions: Any = Normal(self.mu, self.stddev).sample((self.N,))
             h_t = self.h.clone().expand(self.N, -1)
             s_t = self.s.clone().expand(self.N, -1)
             for a_t in torch.unbind(actions, dim=1):

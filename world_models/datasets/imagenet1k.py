@@ -66,7 +66,7 @@ def make_imagenet1k(
             - sampler: DistributedSampler instance
     """
     # Annotate as Any because we may wrap the ImageNet with ImageNetSubset
-    dataset: Any = ImageNet(
+    dataset: Any = ImageNet(  # type: ignore[no-untyped-call]
         root=root_path,
         image_folder=image_folder,
         transform=transform,
@@ -75,7 +75,7 @@ def make_imagenet1k(
         index_targets=False,
     )
     if subset_file is not None:
-        dataset = ImageNetSubset(dataset, subset_file)
+        dataset = ImageNetSubset(dataset, subset_file)  # type: ignore[no-untyped-call]
     logger.info("ImageNet dataset created")
     # Explicitly annotate the distributed sampler variable for mypy.
     dist_sampler: torch.utils.data.distributed.DistributedSampler
@@ -113,16 +113,16 @@ class ImageNet(torchvision.datasets.ImageFolder):
 
     def __init__(
         self,
-        root,
-        image_folder="imagenet_full_size/061417/",
-        tar_file="imagenet_full_size-061417.tar.gz",
-        transform=None,
-        train=True,
-        job_id=None,
-        local_rank=None,
-        copy_data=True,
-        index_targets=False,
-    ):
+        root: str,
+        image_folder: str = "imagenet_full_size/061417/",
+        tar_file: str = "imagenet_full_size-061417.tar.gz",
+        transform: Any = None,
+        train: bool = True,
+        job_id: str | None = None,
+        local_rank: int | None = None,
+        copy_data: bool = True,
+        index_targets: bool = False,
+    ) -> None:
         """Initialize ImageNet dataset.
 
         Args:
@@ -179,7 +179,7 @@ class ImageNetSubset(object):
     kept while preserving transforms and label mapping from the base dataset.
     """
 
-    def __init__(self, dataset, subset_file):
+    def __init__(self, dataset: Any, subset_file: str) -> None:
         """
         ImageNetSubset
 
@@ -190,7 +190,7 @@ class ImageNetSubset(object):
         self.subset_file = subset_file
         self.filter_dataset_(subset_file)
 
-    def filter_dataset_(self, subset_file):
+    def filter_dataset_(self, subset_file: str) -> None:
         """Filter self.dataset to a subset"""
         root = self.dataset.root
         class_to_idx = self.dataset.class_to_idx
@@ -206,13 +206,13 @@ class ImageNetSubset(object):
         self.samples = new_samples
 
     @property
-    def classes(self):
+    def classes(self) -> Any:
         return self.dataset.classes
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Any:
         path, target = self.samples[index]
         img = self.dataset.loader(path)
         if self.dataset.transform is not None:
@@ -223,13 +223,13 @@ class ImageNetSubset(object):
 
 
 def copy_imgnt_locally(
-    root,
-    suffix,
-    image_folder="imagenet_full_size/061417/",
-    tar_file="imagenet_full_size-061417.tar.gz",
-    job_id=None,
-    local_rank=None,
-):
+    root: str,
+    suffix: str,
+    image_folder: str = "imagenet_full_size/061417/",
+    tar_file: str = "imagenet_full_size-061417.tar.gz",
+    job_id: str | None = None,
+    local_rank: int | None = None,
+) -> str | None:
     """Copy and extract ImageNet archives to per-job local scratch storage.
 
     In SLURM environments this reduces network filesystem pressure by unpacking

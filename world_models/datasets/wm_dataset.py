@@ -136,7 +136,7 @@ class RolloutDataset(Dataset):
         """
         if self.buffer is None:
             self.buffer = [None] * len(self.files)
-        self.buffer_fnames: list[str | None] = [None] * len(self.files)
+        self.buffer_fnames = [None] * len(self.files)
 
         start_idx = self.buffer_idx
         end_idx = min(start_idx + self.buffer_size, len(self.files))
@@ -164,16 +164,7 @@ class ObservationDataset(RolloutDataset):
         >>> obs = dataset[0]
     """
 
-    def _get_data(self, data: Any, idx: int) -> torch.Tensor:
-        """Extract a single observation from rollout data.
-
-        Args:
-            data: Dictionary containing rollout data arrays.
-            idx: Index of the observation to extract.
-
-        Returns:
-            torch.Tensor: Processed observation tensor.
-        """
+    def _get_data(self, data: Any, idx: int) -> torch.Tensor:  # type: ignore[override]
         obs = data["observations"][idx]
         if self.transform:
             transformed = self.transform(image=obs)
@@ -224,16 +215,7 @@ class SequenceDataset(RolloutDataset):
         super().__init__(root, transform, train, buffer_size, num_test_files)
         self.seq_len = seq_len
 
-    def _get_data(self, data: Any, idx: int) -> tuple:
-        """Extract a sequence of data from rollout.
-
-        Args:
-            data: Dictionary containing rollout data arrays.
-            idx: Starting index of the sequence.
-
-        Returns:
-            Tuple of (observations, actions, rewards, terminals, next_observations).
-        """
+    def _get_data(self, data: Any, idx: int) -> tuple:  # type: ignore[override]
         obs_data = data["observations"][idx : idx + self.seq_len]
         if self.transform:
             transformed = [self.transform(image=obs) for obs in obs_data]

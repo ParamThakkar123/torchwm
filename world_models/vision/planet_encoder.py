@@ -14,10 +14,9 @@ class CNNEncoder(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 4, stride=2)
         self.conv3 = nn.Conv2d(64, 128, 4, stride=2)
         self.conv4 = nn.Conv2d(128, 256, 4, stride=2)
-        if embedding_size == 1024:
-            self.fc = nn.Identity()
-        else:
-            self.fc = nn.Linear(1024, embedding_size)
+        self.fc: nn.Linear | nn.Identity = (
+            nn.Identity() if embedding_size == 1024 else nn.Linear(1024, embedding_size)
+        )
 
     def forward(self, observation: torch.Tensor) -> torch.Tensor:
         hidden = self.act_fn(self.conv1(observation))

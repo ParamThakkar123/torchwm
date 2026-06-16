@@ -56,7 +56,7 @@ class ConvEncoder(nn.Module):
 
         self.embed_size = embed_size
 
-        layers = []
+        layers: list[nn.Module] = []
         for i, kernel_size in enumerate(self.kernels):
             in_ch = input_shape[0] if i == 0 else self.depth * (2 ** (i - 1))
             out_ch = self.depth * (2**i)

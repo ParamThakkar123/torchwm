@@ -279,6 +279,8 @@ def _polygon_to_mask(
     pts = points(np.stack([xx.ravel(), yy.ravel()], axis=1))
     prepare(geom)
     mask = contains(geom, pts).reshape(len(ys), len(xs))
+    rows: Any
+    cols: Any
     rows, cols = np.where(mask)
     return (rows + min_y, cols + min_x)
 
@@ -294,7 +296,7 @@ def _extract_ego(
         num_steps=future_horizon, time_horizon=future_horizon * 0.1
     )
 
-    def _pack(states, n: int) -> torch.Tensor:
+    def _pack(states: Any, n: int) -> torch.Tensor:
         if not states:
             return torch.zeros(n, 6)
         arr = np.array(

@@ -68,7 +68,7 @@ class SimWorker(mp.Process):
                     results = self._reset_batch()
                     self.result_queue.put(("reset_result", results))
                 elif cmd_type == "render":
-                    results = self._render_batch()
+                    results: Any = self._render_batch()
                     self.result_queue.put(("render_result", results))
                 elif cmd_type == "close":
                     self._close_batch()

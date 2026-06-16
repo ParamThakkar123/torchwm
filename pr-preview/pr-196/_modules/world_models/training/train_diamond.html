@@ -1081,11 +1081,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">model_output</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">diffusion_opt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_reward_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update reward/termination model.&quot;&quot;&quot;</span>
@@ -1279,7 +1279,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">total_loss</span> <span class="o">=</span> <span class="n">policy_loss</span> <span class="o">+</span> <span class="n">value_loss</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
@@ -1401,7 +1401,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
 
             <span class="c1"># predict reward/termination from the sampled frame [B, C, H, W]</span>
-            <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">hidden_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+            <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">hidden_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>  <span class="c1"># type: ignore[assignment]</span>
                 <span class="n">obs</span><span class="o">=</span><span class="n">sampled</span><span class="p">,</span>
                 <span class="n">actions</span><span class="o">=</span><span class="n">actions_current</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                 <span class="n">hidden_state</span><span class="o">=</span><span class="n">hidden_state</span><span class="p">,</span>
@@ -1500,15 +1500,10 @@ window.runMermaid = runMermaid;</script>
 
             <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">log_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-                <span class="n">diffusion_mean</span><span class="p">,</span> <span class="n">reward_mean</span><span class="p">,</span> <span class="n">policy_mean</span><span class="p">,</span> <span class="n">value_mean</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
-                    <span class="k">for</span> <span class="n">losses</span> <span class="ow">in</span> <span class="p">(</span>
-                        <span class="n">diffusion_losses</span><span class="p">,</span>
-                        <span class="n">reward_losses</span><span class="p">,</span>
-                        <span class="n">policy_losses</span><span class="p">,</span>
-                        <span class="n">value_losses</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">diffusion_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">diffusion_losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                <span class="n">reward_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">reward_losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                <span class="n">policy_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">policy_losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
+                <span class="n">value_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">value_losses</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Diffusion loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">diffusion_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Reward loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">reward_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Policy loss: </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">policy_mean</span><span class="p">)</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1553,7 +1548,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">obs_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obs_np</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
                 <span class="c1"># pass batched observation [1, C, H, W]</span>
-                <span class="n">action</span><span class="p">,</span> <span class="n">policy_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span>
+                <span class="n">action</span><span class="p">,</span> <span class="n">policy_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span>  <span class="c1"># type: ignore[assignment]</span>
                     <span class="n">obs_tensor</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                     <span class="n">policy_hidden</span><span class="p">,</span>
                     <span class="n">deterministic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1665,7 +1660,7 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># np.savez_compressed will store arrays with the provided keys</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">savez_compressed</span><span class="p">(</span><span class="n">replay_file</span><span class="p">,</span> <span class="o">**</span><span class="n">rb_state_trim</span><span class="p">)</span>
-                <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;replay_buffer_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">replay_file</span><span class="p">)</span>
+                <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;replay_buffer_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">replay_file</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="c1"># If saving fails, do not embed large Python objects in the</span>
                 <span class="c1"># torch checkpoint; simply omit the replay buffer files and</span>
@@ -1678,7 +1673,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># Stack into a single array (N, H, W, C)</span>
                 <span class="n">obs_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_history_raw</span><span class="p">)</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">obs_file</span><span class="p">,</span> <span class="n">obs_arr</span><span class="p">)</span>
-                <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;obs_history_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obs_file</span><span class="p">)</span>
+                <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;obs_history_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obs_file</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: failed to write obs_history file; skipping embedding&quot;</span><span class="p">)</span>
 

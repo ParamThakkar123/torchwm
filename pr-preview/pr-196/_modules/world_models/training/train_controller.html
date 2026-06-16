@@ -735,6 +735,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    https://arxiv.org/abs/1805.11111</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="kn">import</span> <span class="n">mkdir</span><span class="p">,</span> <span class="n">unlink</span><span class="p">,</span> <span class="n">listdir</span><span class="p">,</span> <span class="n">getpid</span>
@@ -756,14 +757,14 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="flatten_parameters">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_controller.flatten_parameters">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">flatten_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">flatten_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">])</span></div>
 
 
 
 <div class="viewcode-block" id="load_parameters">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_controller.load_parameters">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_parameters</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">controller</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_parameters</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">controller</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">pointer</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">controller</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
         <span class="n">param_shape</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span>
@@ -862,7 +863,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="slave_routine">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_controller.slave_routine">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">slave_routine</span><span class="p">(</span><span class="n">p_queue</span><span class="p">,</span> <span class="n">r_queue</span><span class="p">,</span> <span class="n">e_queue</span><span class="p">,</span> <span class="n">p_index</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">time_limit</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">slave_routine</span><span class="p">(</span>
+    <span class="n">p_queue</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">r_queue</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">e_queue</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">p_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">time_limit</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Worker process routine for parallel rollout evaluation.</span>
 
 <span class="sd">    Args:</span>
@@ -898,7 +901,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="evaluate">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_controller.evaluate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="n">solutions</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">rollouts</span><span class="p">,</span> <span class="n">p_queue</span><span class="p">,</span> <span class="n">r_queue</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span>
+    <span class="n">solutions</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">rollouts</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p_queue</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">r_queue</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate current controller.&quot;&quot;&quot;</span>
     <span class="n">index_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
     <span class="n">best_guess</span> <span class="o">=</span> <span class="n">solutions</span><span class="p">[</span><span class="n">index_min</span><span class="p">]</span>

@@ -793,7 +793,7 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample action from policy.&quot;&quot;&quot;</span>
         <span class="n">logits</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-        <span class="n">dist</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">)</span>
+        <span class="n">dist</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">)</span>
         <span class="n">action</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
         <span class="n">log_prob</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_prob</span><span class="p">,</span> <span class="n">value</span></div>
@@ -924,7 +924,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="PPOTrainer.train_step">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.rl_harness.PPOTrainer.train_step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">train_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectories</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform one training step using PPO.&quot;&quot;&quot;</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">trajectories</span><span class="p">[</span><span class="s2">&quot;obs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span>
             <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">vec_env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
@@ -961,7 +961,7 @@ window.runMermaid = runMermaid;</script>
 
                 <span class="c1"># Policy loss</span>
                 <span class="n">dist</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">new_logits</span><span class="p">)</span>
-                <span class="n">new_log_probs</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">batch_actions</span><span class="p">)</span>
+                <span class="n">new_log_probs</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">batch_actions</span><span class="p">)</span>
                 <span class="n">ratio</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">new_log_probs</span> <span class="o">-</span> <span class="n">batch_old_log_probs</span><span class="p">)</span>
                 <span class="n">surr1</span> <span class="o">=</span> <span class="n">ratio</span> <span class="o">*</span> <span class="n">batch_advantages</span>
                 <span class="n">surr2</span> <span class="o">=</span> <span class="p">(</span>
@@ -974,7 +974,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">value_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">new_values</span><span class="p">,</span> <span class="n">batch_returns</span><span class="p">)</span>
 
                 <span class="c1"># Entropy bonus</span>
-                <span class="n">entropy</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="n">entropy</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
                 <span class="c1"># Total loss</span>
                 <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span>
@@ -994,7 +994,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="PPOTrainer.train">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.rl_harness.PPOTrainer.train">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_timesteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">log_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_timesteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">log_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Main training loop.&quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting training for </span><span class="si">{</span><span class="n">total_timesteps</span><span class="si">}</span><span class="s2"> timesteps&quot;</span><span class="p">)</span>
 
@@ -1018,7 +1018,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="create_rl_harness_example">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.rl_harness.create_rl_harness_example">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_rl_harness_example</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_rl_harness_example</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Example function to create and run the RL harness.</span>
 <span class="sd">    Usage: Call this with your environment factory.</span>

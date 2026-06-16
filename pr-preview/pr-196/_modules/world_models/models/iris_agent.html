@@ -1309,7 +1309,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="c1"># Update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transformer_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transformer_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transformer_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transformer_scaler</span><span class="o">.</span><span class="n">unscale_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transformer_opt</span><span class="p">)</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">grad_clip_norm</span>
@@ -1395,7 +1395,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="c1"># Update</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ac_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ac_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ac_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ac_scaler</span><span class="o">.</span><span class="n">unscale_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ac_opt</span><span class="p">)</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span>
             <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cnn</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>

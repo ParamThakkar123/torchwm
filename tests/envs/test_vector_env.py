@@ -3,7 +3,7 @@ import pytest
 import torch
 from gym import spaces
 
-from world_models.envs.vector_env import SimWorker, TorchVectorizedEnv
+from world_models.envs.vector_env import SimWorker, TorchVectorizedEnv, WorkerError
 from world_models.training.rl_harness import PPOTrainer
 
 
@@ -46,6 +46,17 @@ class CountingImageEnv:
 
 def make_counting_env():
     return CountingImageEnv()
+
+
+class FailingStepEnv(CountingImageEnv):
+    """Env that raises once its step method is called."""
+
+    def step(self, action):
+        raise RuntimeError("intentional step failure")
+
+
+def make_failing_step_env():
+    return FailingStepEnv()
 
 
 @pytest.fixture
@@ -172,6 +183,34 @@ class TestTorchVectorizedEnv:
         assert len(frames) == 4
         assert all(frame.shape == (64, 64, 3) for frame in frames)
         assert [int(frame[0, 0, 0]) for frame in frames] == [10, 11, 12, 13]
+
+    def test_worker_errors_include_traceback_and_restart_for_recovery(self):
+        env = TorchVectorizedEnv(
+            make_failing_step_env,
+            num_workers=1,
+            envs_per_worker=1,
+            seed=5,
+        )
+        try:
+            env.reset_batch()
+
+            with pytest.raises(WorkerError) as exc_info:
+                env.step_batch(torch.tensor([0], dtype=torch.long))
+
+            message = str(exc_info.value)
+            assert "Worker 0 failed during step" in message
+            assert "RuntimeError: intentional step failure" in message
+            assert "Traceback" in message
+
+            # The failed process is replaced so callers can recover with a reset.
+            assert env.workers[0].is_alive()
+            reset = env.reset_batch()
+            torch.testing.assert_close(
+                reset["obs"]["image"][:, 0, 0, 0],
+                torch.tensor([5], dtype=torch.float32) / 255.0,
+            )
+        finally:
+            env.close()
 
 
 class TestPPOTrainerVectorizedHarness:

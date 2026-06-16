@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 import multiprocessing as mp
+import queue
+import traceback
 from multiprocessing import Queue
 import numpy as np
 import torch
 from typing import List, Dict, Any, Callable, Optional
 from abc import ABC, abstractmethod
+
+
+class WorkerError(RuntimeError):
+    """Raised when a vectorized environment worker reports or exits with an error."""
 
 
 class SimWorker(mp.Process):
@@ -37,7 +43,49 @@ class SimWorker(mp.Process):
 
     def run(self):
         """Main worker loop."""
-        # Initialize environments
+        try:
+            self._init_envs()
+        except Exception as exc:
+            self._report_error("init", exc)
+            return
+
+        while self.running:
+            try:
+                command = self.command_queue.get(timeout=1.0)
+            except queue.Empty:
+                continue
+            except Exception as exc:
+                self._report_error("queue_get", exc)
+                break
+
+            if command is None:  # Shutdown signal
+                break
+
+            try:
+                cmd_type, data = command
+                if cmd_type == "step":
+                    results = self._step_batch(data)
+                    self.result_queue.put(("step_result", results))
+                elif cmd_type == "reset":
+                    results = self._reset_batch()
+                    self.result_queue.put(("reset_result", results))
+                elif cmd_type == "render":
+                    results = self._render_batch()
+                    self.result_queue.put(("render_result", results))
+                elif cmd_type == "close":
+                    self._close_batch()
+                    self.result_queue.put(("close_result", None))
+                    break
+                else:
+                    raise ValueError(f"Unknown worker command: {cmd_type!r}")
+            except Exception as exc:
+                self._report_error(cmd_type if "cmd_type" in locals() else "unknown", exc)
+                break
+
+        self._close_batch()
+
+    def _init_envs(self):
+        """Initialize worker environments with deterministic per-env seeds."""
         self.envs = []
         self.last_obs = []
         for i in range(self.num_envs):
@@ -53,31 +101,19 @@ class SimWorker(mp.Process):
             # Initial obs will be set in reset
             self.last_obs.append(None)
 
-        while self.running:
-            try:
-                command = self.command_queue.get(timeout=1.0)
-                if command is None:  # Shutdown signal
-                    break
-
-                cmd_type, data = command
-                if cmd_type == "step":
-                    actions = data
-                    results = self._step_batch(actions)
-                    self.result_queue.put(("step_result", results))
-                elif cmd_type == "reset":
-                    results = self._reset_batch()
-                    self.result_queue.put(("reset_result", results))
-                elif cmd_type == "render":
-                    results = self._render_batch()
-                    self.result_queue.put(("render_result", results))
-                elif cmd_type == "close":
-                    self._close_batch()
-                    self.result_queue.put(("close_result", None))
-                    break
-            except Exception:
-                continue  # Timeout or error, keep running
-
-        self._close_batch()
+    def _report_error(self, command: str, exc: BaseException):
+        """Send structured exception details to the parent before exiting."""
+        error = {
+            "worker_id": self.worker_id,
+            "command": command,
+            "error_type": type(exc).__name__,
+            "message": str(exc),
+            "traceback": traceback.format_exc(),
+        }
+        try:
+            self.result_queue.put(("worker_error", error))
+        except Exception:
+            pass
 
     def _step_batch(self, actions: List[np.ndarray]) -> List[Dict[str, Any]]:
         """Step all environments in batch."""
@@ -148,18 +184,8 @@ class VectorizedEnv(ABC):
         self.result_queues: List[Queue] = [Queue() for _ in range(num_workers)]
 
         # Start workers
-        self.workers = []
         for i in range(num_workers):
-            worker = SimWorker(
-                worker_id=i,
-                env_factory=env_factory,
-                num_envs=envs_per_worker,
-                command_queue=self.command_queues[i],
-                result_queue=self.result_queues[i],
-                seed=seed,
-            )
-            worker.start()
-            self.workers.append(worker)
+            self._start_worker(i)
 
         # Cache observation and action spaces from a dummy env
         dummy_env = env_factory()
@@ -167,6 +193,70 @@ class VectorizedEnv(ABC):
         self.action_space = dummy_env.action_space
         if hasattr(dummy_env, "close"):
             dummy_env.close()
+
+    def _start_worker(self, worker_id: int):
+        """Start one worker process and store it in worker-id order."""
+        worker = SimWorker(
+            worker_id=worker_id,
+            env_factory=self.env_factory,
+            num_envs=self.envs_per_worker,
+            command_queue=self.command_queues[worker_id],
+            result_queue=self.result_queues[worker_id],
+            seed=self.seed,
+        )
+        worker.start()
+        if not hasattr(self, "workers"):
+            self.workers = [None] * self.num_workers
+        self.workers[worker_id] = worker
+
+    def _restart_worker(self, worker_id: int):
+        """Restart a failed worker process so future calls can recover."""
+        worker = self.workers[worker_id]
+        if worker.is_alive():
+            worker.terminate()
+        worker.join(timeout=5.0)
+        self._start_worker(worker_id)
+
+    def _raise_worker_error(self, error: Dict[str, Any]):
+        """Restart the failed process and raise a parent-side exception."""
+        worker_id = error["worker_id"]
+        self._restart_worker(worker_id)
+        message = (
+            f"Worker {worker_id} failed during {error['command']}: "
+            f"{error['error_type']}: {error['message']}\n"
+            f"{error['traceback']}"
+        )
+        raise WorkerError(message)
+
+    def _collect_worker_results(self, expected_result: str) -> List[Any]:
+        """Collect one result per worker, propagating failures with tracebacks."""
+        results_by_worker = []
+        for worker_id, result_queue in enumerate(self.result_queues):
+            try:
+                cmd, data = result_queue.get(timeout=30.0)
+            except queue.Empty as exc:
+                if not self.workers[worker_id].is_alive():
+                    exitcode = self.workers[worker_id].exitcode
+                    self._restart_worker(worker_id)
+                    raise WorkerError(
+                        f"Worker {worker_id} exited with code "
+                        f"{exitcode} while waiting for "
+                        f"{expected_result}."
+                    ) from exc
+                raise WorkerError(
+                    f"Timed out waiting for worker {worker_id} to return "
+                    f"{expected_result}."
+                ) from exc
+
+            if cmd == "worker_error":
+                self._raise_worker_error(data)
+            if cmd != expected_result:
+                raise WorkerError(
+                    f"Worker {worker_id} returned {cmd!r}; expected "
+                    f"{expected_result!r}."
+                )
+            results_by_worker.append(data)
+        return results_by_worker
 
     @abstractmethod
     def step_batch(self, actions: torch.Tensor) -> Dict[str, Any]:
@@ -184,8 +274,7 @@ class VectorizedEnv(ABC):
             q.put(("render", None))
 
         results = []
-        for q in self.result_queues:
-            cmd, data = q.get()
+        for data in self._collect_worker_results("render_result"):
             results.extend(data)
         return results
 
@@ -241,8 +330,7 @@ class TorchVectorizedEnv(VectorizedEnv):
         all_dones = []
         all_infos = []
 
-        for q in self.result_queues:
-            cmd, results = q.get()
+        for results in self._collect_worker_results("step_result"):
             for result in results:
                 all_obs.append(result["obs"])
                 all_rewards.append(result["reward"])
@@ -273,8 +361,7 @@ class TorchVectorizedEnv(VectorizedEnv):
             q.put(("reset", None))
 
         all_obs = []
-        for q in self.result_queues:
-            cmd, results = q.get()
+        for results in self._collect_worker_results("reset_result"):
             for result in results:
                 all_obs.append(result["obs"])
 

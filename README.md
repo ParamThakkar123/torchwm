@@ -58,6 +58,29 @@ agent.train()
 - Environment integrations for Gym/Gymnasium, Unity ML-Agents, MuJoCo, Brax, and robotics extras
 - Optional logging, visualization, development, and documentation extras
 
+
+### Visualization Trackers
+
+Project RSSM latent trajectories and JEPA/ViT embeddings to 2D or 3D for quick
+inspection in notebooks or saved Plotly HTML reports:
+
+```python
+import numpy as np
+import torchwm
+
+states = np.random.default_rng(0).normal(size=(2, 6, 32))
+projection = torchwm.project_latent_trajectories(states, method="pca")
+torchwm.plot_projection(projection, output_path="rssm_latents.html")
+
+embeddings = np.random.default_rng(1).normal(size=(128, 768))
+labels = np.array(["cat"] * 64 + ["dog"] * 64)
+projection = torchwm.project_representation_embeddings(embeddings, labels=labels)
+torchwm.plot_projection(projection, output_path="jepa_embeddings.html")
+```
+
+See `docs/source/visualization.md` and
+`examples/visualization_trackers_example.py` for complete examples.
+
 ## Supported Algorithms
 
 | Algorithm | Description | Key Features |

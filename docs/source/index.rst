@@ -19,6 +19,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    operators_guide
    training_guide
    inference_guide
+   visualization
    environments_guide
    environments/index
    cli

@@ -15,6 +15,10 @@ __all__ = [
     "get_parameters",
     "compute_return",
     "preprocess_obs",
+    "ProjectionResult",
+    "plot_projection",
+    "project_latent_trajectories",
+    "project_representation_embeddings",
     "MetricsLogger",
     "assert_finite",
     "assert_finite_values",
@@ -49,6 +53,20 @@ def __getattr__(name):
             collect_system_stats,
             get_package_logger,
             setup_logging,
+        )
+
+        return locals()[name]
+    if name in (
+        "ProjectionResult",
+        "plot_projection",
+        "project_latent_trajectories",
+        "project_representation_embeddings",
+    ):
+        from .visualization import (
+            ProjectionResult,
+            plot_projection,
+            project_latent_trajectories,
+            project_representation_embeddings,
         )
 
         return locals()[name]

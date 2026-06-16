@@ -801,7 +801,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_batch</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s2">&quot;reset_result&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">))</span>
                 <span class="k">elif</span> <span class="n">cmd_type</span> <span class="o">==</span> <span class="s2">&quot;render&quot;</span><span class="p">:</span>
-                    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_batch</span><span class="p">()</span>
+                    <span class="n">results</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_batch</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="s2">&quot;render_result&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">))</span>
                 <span class="k">elif</span> <span class="n">cmd_type</span> <span class="o">==</span> <span class="s2">&quot;close&quot;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_close_batch</span><span class="p">()</span>

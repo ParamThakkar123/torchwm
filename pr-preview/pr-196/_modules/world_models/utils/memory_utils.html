@@ -726,7 +726,7 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for world_models.utils.memory_utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
 
 <div class="viewcode-block" id="apply_gradient_checkpointing">
@@ -750,8 +750,6 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># torch.utils.checkpoint.checkpoint. We capture the original</span>
                 <span class="c1"># method to avoid recursive lookup and assign a plain</span>
                 <span class="c1"># function to the instance attribute (allowed at runtime).</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
-
                 <span class="n">orig_forward</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">forward</span>  <span class="c1"># capture</span>
 
                 <span class="k">def</span><span class="w"> </span><span class="nf">_checkpointed_forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -762,14 +760,12 @@ window.runMermaid = runMermaid;</script>
                         <span class="n">orig_forward</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">use_reentrant</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
 
-                <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="n">_checkpointed_forward</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="n">_checkpointed_forward</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;checkpoint_forward&quot;</span><span class="p">):</span>
                 <span class="c1"># Create a wrapper that calls checkpoint at runtime. Do not</span>
                 <span class="c1"># call checkpoint here (that would execute the function and</span>
                 <span class="c1"># assign a Tensor to `forward`). Some torch stubs do not</span>
                 <span class="c1"># expose `utils.checkpoint`, so silence attribute checks.</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-
                 <span class="k">def</span><span class="w"> </span><span class="nf">_checkpointed_forward2</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
                     <span class="c1"># Use a targeted ignore for the missing `checkpoint` attr in</span>
                     <span class="c1"># some torch stubs while preserving runtime behaviour.</span>
@@ -777,7 +773,7 @@ window.runMermaid = runMermaid;</script>
                         <span class="n">module</span><span class="o">.</span><span class="n">checkpoint_forward</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">use_reentrant</span><span class="o">=</span><span class="kc">False</span>
                     <span class="p">)</span>
 
-                <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="n">_checkpointed_forward2</span><span class="p">)</span>  <span class="c1"># type: ignore[assignment]</span></div>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;forward&quot;</span><span class="p">,</span> <span class="n">_checkpointed_forward2</span><span class="p">)</span></div>
 
 
 
@@ -785,7 +781,7 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.memory_utils.enable_mixed_precision">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">enable_mixed_precision</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">scaler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Enable mixed precision training.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">scaler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">()</span>

@@ -208,11 +208,11 @@ def make_env(args: Any) -> Any:
             "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
-    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
-    env = env_wrapper.NormalizeActions(env)
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))  # type: ignore[no-untyped-call]
+    env = env_wrapper.NormalizeActions(env)  # type: ignore[no-untyped-call]
     repeat = max(1, int(args.action_repeat))
     duration = max(1, int(args.time_limit) // repeat)
-    env = env_wrapper.TimeLimit(env, duration)
+    env = env_wrapper.TimeLimit(env, duration)  # type: ignore[no-untyped-call]
     return env
 
 
@@ -332,7 +332,7 @@ class Dreamer:
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
-        self.device = device
+        self.device = torch.device(device)
         self.restore = args.restore
         self.restore_path = args.checkpoint_path
 

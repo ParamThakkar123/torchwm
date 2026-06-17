@@ -539,7 +539,7 @@ class DiamondAgent:
             total_loss = policy_loss + value_loss
 
         self.actor_opt.zero_grad(set_to_none=True)
-        self.actor_scaler.scale(total_loss).backward()
+        self.actor_scaler.scale(total_loss).backward()  # type: ignore[no-untyped-call]
         self.actor_scaler.step(self.actor_opt)
         self.actor_scaler.update()
 
@@ -661,7 +661,7 @@ class DiamondAgent:
             )
 
             # predict reward/termination from the sampled frame [B, C, H, W]
-            reward, done, hidden_state = self.reward_model.predict(
+            reward, done, hidden_state = self.reward_model.predict(  # type: ignore[assignment]
                 obs=sampled,
                 actions=actions_current[:, -1],
                 hidden_state=hidden_state,
@@ -803,7 +803,7 @@ class DiamondAgent:
                 obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
                 # pass batched observation [1, C, H, W]
-                action, policy_hidden = self.actor_critic.get_action(
+                action, policy_hidden = self.actor_critic.get_action(  # type: ignore[assignment]
                     obs_tensor[:, -1],
                     policy_hidden,
                     deterministic=True,
@@ -863,9 +863,9 @@ class DiamondAgent:
         # avoid saving large Python objects inside the torch checkpoint. This
         # reduces checkpoint size and avoids unsafe pickle/unpickle usage when
         # restoring Python lists/containers.
-        rb_state_trim = None
-        replay_file = None
-        obs_file = None
+        rb_state_trim: dict[str, Any] | None = None
+        replay_file: str | None = None
+        obs_file: str | None = None
         try:
             rb_state = self.replay_buffer.state_dict()
             n = int(self.replay_buffer.size)
@@ -889,7 +889,7 @@ class DiamondAgent:
         # in the torch checkpoint but save large numpy arrays to separate files
         # with a common basename derived from the output path.
         save_config_next_to_checkpoint(self.config, out_path)
-        checkpoint = {
+        checkpoint: dict[str, Any] = {
             "config": self.config.to_dict(),
             "diffusion_model": self.diffusion_model.state_dict(),
             "reward_model": self.reward_model.state_dict(),

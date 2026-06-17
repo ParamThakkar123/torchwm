@@ -300,6 +300,7 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
     start_epoch = 0
     # -- load training checkpoint
     if load_model:
+        assert load_path is not None
         encoder, predictor, target_encoder, optimizer, scaler, start_epoch = (
             load_checkpoint(
                 device=device,

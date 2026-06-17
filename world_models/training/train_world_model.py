@@ -260,10 +260,10 @@ def test_trained_model(
     cell_rnn = MDRNNCell(latents=32, actions=action_size, hiddens=256, gaussians=5).to(
         device
     )
-    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)
-    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)
-    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)
-    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)
+    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)  # type: ignore[arg-type]
     cell_rnn.gmm_linear.load_state_dict(batch_rnn.gmm_linear.state_dict())
     cell_rnn.eval()
     del batch_rnn
@@ -274,7 +274,7 @@ def test_trained_model(
     ctrl.eval()
 
     try:
-        env = gym.make(env_name, continuous=True)
+        env: Any = gym.make(env_name, continuous=True)
     except Exception:
         env = gym.make(env_name)
     env = GymImageEnv(env=env, size=(64, 64))
@@ -306,11 +306,11 @@ def test_trained_model(
                     action_t = torch.tensor(action).float().to(device)
                     _, _, _, _, _, (h, c) = cell_rnn(action_t, z, (h, c))
 
-                    next_obs, reward, done, _ = env.step(action)
+                    next_obs, reward, terminated, truncated, _ = env.step(action)
                     total_reward += float(reward)
                     obs = next_obs
 
-                    if done:
+                    if terminated or truncated:
                         break
 
             print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")

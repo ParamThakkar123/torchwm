@@ -246,7 +246,7 @@ def test_trained_model(
     ctrl.eval()
 
     try:
-        env = gym.make(env_name, continuous=True)
+        env: Any = gym.make(env_name, continuous=True)
     except Exception:
         env = gym.make(env_name)
 
@@ -274,18 +274,18 @@ def test_trained_model(
                 action = ctrl(h, z).cpu().numpy().flatten()
 
                 mus, sigmas, logpi, _, _ = rnn(action, z)
-                h = rnn.get_init_hidden(1)
+                h0 = rnn.get_init_hidden(1)
                 h = (
-                    h[0] + torch.randn_like(h[0]) * 0.1
-                    if isinstance(h, tuple)
-                    else h + torch.randn_like(h) * 0.1
+                    h0[0] + torch.randn_like(h0[0]) * 0.1
+                    if isinstance(h0, tuple)
+                    else h0 + torch.randn_like(h0) * 0.1
                 )
 
-                next_obs, reward, done, _ = env.step(action)
+                next_obs, reward, terminated, truncated, _ = env.step(action)
                 total_reward += float(reward)
                 obs = next_obs
 
-                if done:
+                if terminated or truncated:
                     break
 
         print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")

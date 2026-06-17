@@ -44,6 +44,33 @@ Commands
   `--config PATH`, `--print-config`, and OmegaConf/Hydra-style dot-list
   overrides such as `total_epochs=100` or `optimization.lr=3e-4`.
 
+- `eval --model <NAME> --checkpoint <PATH> [options]` - Evaluate a trained world
+  model with FID, FVD, LPIPS, and PSNR metrics. Metrics compare real trajectories
+  (collected from the environment) against generated trajectories (from the
+  model). See {doc}`evaluation_guide` for details and interpretation.
+
+  Key options:
+  - `--model`, `-m` — model type (currently `diamond`)
+  - `--checkpoint`, `-c` — path to checkpoint
+  - `--game`, `-g` — environment name
+  - `--num-videos` — number of trajectories (default 256)
+  - `--metrics` — comma-separated metrics, e.g. `fid,fvd,lpips,psnr`
+  - `--record PATH` — save real and generated videos
+  - `--output`, `-o` — save results JSON
+
+- `play --model <NAME> --checkpoint <PATH> [options]` - Interactively play
+  inside a trained world model. Two modes toggled by `TAB`: **REAL** (env
+  stepping) and **DREAM** (model imagination). Press arrow keys / WASD to
+  override the agent's actions.
+
+  Key options:
+  - `--model`, `-m` — model type (currently `diamond`)
+  - `--checkpoint`, `-c` — path to checkpoint
+  - `--game`, `-g` — environment name
+  - `--deterministic` / `--stochastic` — action selection (default deterministic)
+  - `--record PATH` — save gameplay video
+  - `--record-fps` — video framerate (default 20)
+
 - `models list` - Print the known training entrypoints and (when available)
   exported model names from `world_models.models`.
 
@@ -107,6 +134,18 @@ torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimizat
 
 ```bash
 torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=3
+```
+
+- Example: evaluate a DIAMOND checkpoint
+
+```bash
+torchwm eval --model diamond --checkpoint checkpoints/diamond/checkpoint.pt --game Breakout-v5
+```
+
+- Example: interactively play inside a DIAMOND world model
+
+```bash
+torchwm play --model diamond --checkpoint checkpoints/diamond/checkpoint.pt --game Breakout-v5 --record gameplay.mp4
 ```
 
 Maintaining this page

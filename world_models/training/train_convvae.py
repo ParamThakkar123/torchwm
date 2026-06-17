@@ -57,7 +57,7 @@ def test_epoch(
     test_loss = 0.0
     total_batches = len(test_loader)
     print(
-        f"Test epoch: {total_batches} batches, dataset size: {len(test_loader.dataset)}"
+        f"Test epoch: {total_batches} batches, dataset size: {len(test_loader.dataset)}"  # type: ignore[arg-type]
     )
 
     with torch.no_grad():
@@ -72,22 +72,22 @@ def test_epoch(
                     f"Test batch {batch_idx}/{total_batches}, loss: {loss.item():.4f}"
                 )
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_loader.dataset)  # type: ignore[arg-type]
     print("---> Test set loss: {:.4f}".format(test_loss))
     return test_loss
 
 
 def train_epoch(
     epoch: int,
-    model,
-    optimizer,
-    train_loader,
-    device,
-    train_dataset,
-    loss_fn,
+    model: Any,
+    optimizer: Any,
+    train_loader: Any,
+    device: Any,
+    train_dataset: Any,
+    loss_fn: Any,
     use_amp: bool = False,
     scaler: Optional["torch.cuda.amp.GradScaler"] = None,
-):
+) -> float:
     """Run one epoch of training.
 
     Args:
@@ -136,6 +136,7 @@ def train_epoch(
             epoch, train_loss / len(train_loader.dataset)
         )
     )
+    return train_loss
 
 
 def train_convae(config: WMVAEConfig) -> None:

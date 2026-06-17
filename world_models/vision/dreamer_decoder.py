@@ -53,7 +53,7 @@ class TanhBijector(distributions.Transform):
         super().__init__()
         self.bijective = True
         self.domain = constraints.real
-        self.codomain = constraints.interval(-1.0, 1.0)
+        self.codomain = constraints.interval(-1.0, 1.0)  # type: ignore[no-untyped-call]
 
     @property
     def sign(self) -> int:
@@ -69,7 +69,7 @@ class TanhBijector(distributions.Transform):
         y = torch.where(
             (torch.abs(y) <= 1.0), torch.clamp(y, -0.99999997, 0.99999997), y
         )
-        y = self.atanh(y)  # type: ignore[no-untyped-call]
+        y = self.atanh(y)
         return y
 
     def log_abs_det_jacobian(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -393,10 +393,10 @@ class ActionDecoder(nn.Module):
         action_mean = self._mean_scale * torch.tanh(mean / self._mean_scale)
         action_std = F.softplus(std + raw_init_std) + self._min_std
 
-        dist = Normal(action_mean, action_std)
-        dist = TransformedDistribution(dist, TanhBijector())
-        dist = Independent(dist, 1)
-        dist = SampleDist(dist)
+        raw_dist = Normal(action_mean, action_std)
+        transformed = TransformedDistribution(raw_dist, TanhBijector())
+        independent = Independent(transformed, 1)
+        dist = SampleDist(independent)
 
         if deter:
             return dist.mode()

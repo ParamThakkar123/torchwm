@@ -224,20 +224,27 @@ def get_loss(
 
 
 def data_pass(
-    epoch,
-    mdrnn,
-    vae,
-    train_loader,
-    test_loader,
-    optimizer,
-    device,
-    include_reward,
-    latent_size,
-    batch_size,
-    train=True,
-    use_amp=False,
-    scaler=None,
-):
+    epoch: int,
+    mdrnn: Any,
+    vae: Any,
+    train_loader: Any,
+    test_loader: Any,
+    optimizer: Any,
+    device: Any,
+    include_reward: bool,
+    test_every: int = 10,
+    epochs: int = 1,
+    use_amp: bool = False,
+    scaler: Any = None,
+    latent_size: int = 32,
+    max_seq_len: int = 50,
+    log_wandb: bool = False,
+    prev_val_loss: float = 1e6,
+    early_stop: Any = None,
+    lr_scheduler: Any = None,
+    batch_size: int = 50,
+    train: bool = True,
+) -> float:
     """Run one epoch of training or validation.
 
     Args:
@@ -265,13 +272,13 @@ def data_pass(
         mdrnn.eval()
         loader = test_loader
 
+    cum_loss: float = 0.0
+    cum_gmm: float = 0.0
+    cum_bce: float = 0.0
+    cum_mse: float = 0.0
+
     if hasattr(loader.dataset, "load_next_buffer"):
         loader.dataset.load_next_buffer()
-
-    cum_loss = 0
-    cum_gmm = 0
-    cum_bce = 0
-    cum_mse = 0
 
     use_precomputed = vae is None
 
@@ -321,7 +328,7 @@ def data_pass(
                     latent_size,
                 )
                 optimizer.zero_grad()
-                losses["loss"].backward()
+                losses["loss"].backward()  # type: ignore[no-untyped-call]
                 optimizer.step()
         else:
             with torch.no_grad():
@@ -352,15 +359,16 @@ def data_pass(
         cum_loss += losses["loss"].item()
         cum_gmm += losses["gmm"].item()
         cum_bce += losses["bce"].item()
-        cum_mse += (
+        mse_val = float(
             losses["mse"].item() if hasattr(losses["mse"], "item") else losses["mse"]
         )
+        cum_mse += mse_val
 
         pbar.set_postfix_str(
             "loss={loss:10.6f} bce={bce:10.6f} gmm={gmm:10.6f} mse={mse:10.6f}".format(
                 loss=cum_loss / (i + 1),
                 bce=cum_bce / (i + 1),
-                gmm=cum_gmm / latent_size / (i + 1),
+                gmm=cum_gmm / max(latent_size, 1) / (i + 1),
                 mse=cum_mse / (i + 1),
             )
         )
@@ -519,7 +527,7 @@ def train_mdn_rnn(
         )
     else:
 
-        def transform(x):
+        def transform(x: Any) -> torch.Tensor:
             return torch.tensor(x).float() / 255.0
 
         train_dataset = SequenceDataset(

@@ -248,7 +248,7 @@ class ProcgenImageEnv:
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image.transpose(2, 0, 1).copy()

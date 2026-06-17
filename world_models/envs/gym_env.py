@@ -69,8 +69,8 @@ class GymImageEnv:
         else:
             self._env = env
 
-        self._last_obs = None
-        self._last_image = None
+        self._last_obs: Any = None
+        self._last_image: Any = None
 
         action_space = getattr(self._env, "action_space", None)
         if action_space is None:
@@ -159,26 +159,28 @@ class GymImageEnv:
             getattr(self._env, "action_space", None),
             getattr(self._env, "observation_space", None),
         ):
-            if hasattr(space, "seed"):
+            if space is not None and hasattr(space, "seed"):
                 try:
                     space.seed(seed)
                 except Exception:
                     pass
 
     def _sample_discrete_action(self) -> np.ndarray:
+        assert self._discrete_n is not None
         idx = int(self._rng.integers(0, self._discrete_n))
         action = -np.ones((self._discrete_n,), dtype=np.float32)
         action[idx] = 1.0
         return action
 
     def _vector_to_image(self, vector: Any) -> np.ndarray:
-        vec = np.asarray(vector, dtype=np.float32).reshape(-1)
+        vec: np.ndarray = np.asarray(vector, dtype=np.float32).reshape(-1)
         if vec.size == 0:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
         vmin = float(vec.min())
         vmax = float(vec.max())
         if vmax > vmin:
-            vec = (vec - vmin) / (vmax - vmin)
+            vec_norm = (vec - vmin) / (vmax - vmin)
+            vec = vec_norm
         else:
             vec = np.zeros_like(vec)
 
@@ -268,7 +270,7 @@ class GymImageEnv:
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image.transpose(2, 0, 1).copy()

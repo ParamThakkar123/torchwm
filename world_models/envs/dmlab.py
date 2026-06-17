@@ -128,7 +128,7 @@ class DMLabEnv:
             lab_config.update({str(key): str(value) for key, value in config.items()})
         self._config = lab_config
 
-        deepmind_lab = _require_deepmind_lab()  # type: ignore[no-untyped-call]
+        deepmind_lab = _require_deepmind_lab()
         self._env = deepmind_lab.Lab(
             self._level,
             self._observations,
@@ -139,10 +139,10 @@ class DMLabEnv:
         self._last_obs: dict[str, np.ndarray] | None = None
 
         self._action_space = _OneHotActionSpace(self._action_set.shape[0])
-        self._observation_space = self._build_observation_space()  # type: ignore[no-untyped-call]
+        self._observation_space = self._build_observation_space()
 
     def _build_observation_space(self) -> gym.spaces.Dict:
-        spaces = {
+        spaces: dict[str, gym.spaces.Space[Any]] = {
             "image": gym.spaces.Box(
                 low=0,
                 high=255,
@@ -181,11 +181,13 @@ class DMLabEnv:
                 )
                 np_dtype = np.dtype(dtype)
                 if np.issubdtype(np_dtype, np.integer):
-                    info = np.iinfo(np_dtype)
-                    low, high = info.min, info.max
+                    info = np.iinfo(np_dtype)  # type: ignore[type-var]
+                    low: float = int(info.min)
+                    high: float = int(info.max)
                 else:
                     low, high = -np.inf, np.inf
-                spaces[name] = gym.spaces.Box(low, high, tuple(shape), dtype=np_dtype)
+                shape_t = tuple(shape) if shape is not None else ()
+                spaces[name] = gym.spaces.Box(low, high, shape_t, dtype=np_dtype.type)
         return gym.spaces.Dict(spaces)
 
     @property
@@ -283,7 +285,7 @@ class DMLabEnv:
         if image.shape[:2] != self._size:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image.transpose(2, 0, 1).copy()

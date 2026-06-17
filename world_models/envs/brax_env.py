@@ -49,8 +49,8 @@ class BraxImageEnv:
         auto_reset: bool = False,
         jit: bool = True,
         suppress_warp_warnings: bool = True,
-        **env_kwargs,
-    ):
+        **env_kwargs: Any,
+    ) -> None:
         self._size = (int(size[0]), int(size[1]))
         self._seed = int(seed)
         self._jit = bool(jit)
@@ -152,7 +152,7 @@ class BraxImageEnv:
         return np.asarray(self._jax.device_get(value))
 
     def _vector_to_image(self, vector: Any) -> np.ndarray:
-        vec = np.asarray(vector, dtype=np.float32).reshape(-1)
+        vec: np.ndarray = np.asarray(vector, dtype=np.float32).reshape(-1)
         if vec.size == 0:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
         finite = np.isfinite(vec)
@@ -161,7 +161,8 @@ class BraxImageEnv:
         vmin = float(vec.min())
         vmax = float(vec.max())
         if vmax > vmin:
-            vec = (vec - vmin) / (vmax - vmin)
+            vec_norm = (vec - vmin) / (vmax - vmin)
+            vec = vec_norm
         else:
             vec = np.zeros_like(vec)
 
@@ -206,7 +207,7 @@ class BraxImageEnv:
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image.transpose(2, 0, 1).copy()

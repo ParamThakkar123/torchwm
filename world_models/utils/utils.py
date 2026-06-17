@@ -75,16 +75,7 @@ class AttrDict(dict):
 def load_yml_config(path: str) -> AttrDict | None:
     with open(path) as fileStream:
         loaded = yaml.safe_load(fileStream)
-        keys = list(loaded.keys())
-
-        dictionary = None
-
-        for i, key in enumerate(keys):
-            if i == 0:
-                dictionary = AttrDict({key: loaded[key]})
-            else:
-                dictionary += AttrDict({key: loaded[key]})
-
+        dictionary = AttrDict(loaded)
         return dictionary
 
 
@@ -216,9 +207,9 @@ def save_video(frames: Any, path: str, name: str) -> str:
     else:
         raise RuntimeError("Unexpected frames_u8 shape after conversion")
 
-    writer = cv2.VideoWriter(  # type: ignore[attr-defined]
+    writer = cv2.VideoWriter(
         str(out_dir / f"{name}.mp4"),
-        cv2.VideoWriter_fourcc(*"mp4v"),
+        cv2.VideoWriter.fourcc(*"mp4v"),
         25.0,
         (W, H),
         True,
@@ -262,7 +253,7 @@ def combine_videos(
     height = int(cap0.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap0.release()
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
+    fourcc = cv2.VideoWriter.fourcc(*"mp4v")
     out_path = str(pathlib.Path(video_dir) / output_name)
     writer = cv2.VideoWriter(out_path, fourcc, float(fps), (width, height), True)
 
@@ -608,6 +599,7 @@ class TorchImageEnvWrapper:
     def __init__(
         self, env: Any, bit_depth: int, observation_shape: Any = None, act_rep: int = 2
     ) -> None:
+        self.env: Any
         if isinstance(env, str):
             try:
                 self.env = gym.make(env, render_mode="rgb_array")
@@ -632,13 +624,9 @@ class TorchImageEnvWrapper:
         self.action_repeats = act_rep
 
     def _get_frame(self, last_obs: Any = None) -> np.ndarray | None:
-        """Call env.render robustly across gym versions. Returns ndarray frame or None.
-        If rendering fails (OverflowError / pygame Surface) fallback to last_obs or a
-        synthesized image from the observation vector.
-        """
         frame = None
         try:
-            out = self.env.render()
+            out: Any = self.env.render()
         except Exception:
             out = None
         # gym may return (frame, info)
@@ -756,22 +744,22 @@ class TorchImageEnvWrapper:
 
     def step(self, u: torch.Tensor | np.ndarray | list | float | int) -> tuple:
         if isinstance(u, torch.Tensor):
-            u_t = u.cpu().detach()
+            u_t: Any = u.cpu().detach()
         else:
             u_t = u
         if getattr(self.env.action_space, "n", None) is not None:
-            n = int(self.env.action_space.n)
+            n = int(getattr(self.env.action_space, "n", 1))
             arr = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
             arr = arr.reshape(-1)
             if arr.size > 1:
-                action = int(np.argmax(arr))
+                action: Any = int(np.argmax(arr))
             else:
                 val = float(arr[0]) if arr.size else 0.0
                 action = int(np.clip(int(round(val)), 0, n - 1))
         else:
             action = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
 
-        rwds = 0
+        rwds: float = 0.0
         last_d = False
         last_i = {}
         last_obs = None
@@ -851,7 +839,9 @@ class TorchImageEnvWrapper:
             getattr(self.env, "spec", None) is not None
             and getattr(self.env.spec, "max_episode_steps", None) is not None
         ):
-            return int(self.env.spec.max_episode_steps)
+            steps = self.env.spec.max_episode_steps
+            assert steps is not None
+            return int(steps)
         return 1000
 
 
@@ -994,7 +984,7 @@ class StreamingVideoWriter:
         self.fps = fps
         self.frame_shape = frame_shape
         self.format = format.lower()
-        self.writer = None
+        self.writer: cv2.VideoWriter | None = None
 
     def write_frame(self, frame: np.ndarray) -> None:
         """
@@ -1007,9 +997,9 @@ class StreamingVideoWriter:
             if self.frame_shape is None:
                 self.frame_shape = frame.shape[:2][::-1]  # (W, H)
             if self.format == "mp4":
-                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                fourcc = cv2.VideoWriter.fourcc(*"mp4v")
             elif self.format == "avi":
-                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+                fourcc = cv2.VideoWriter.fourcc(*"XVID")
             else:
                 raise ValueError("Unsupported format")
             self.writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.frame_shape)
@@ -1019,6 +1009,7 @@ class StreamingVideoWriter:
             frame = (frame * 255).astype(np.uint8)
         if frame.shape[-1] == 3:  # RGB to BGR
             frame = frame[..., ::-1]
+        assert self.writer is not None
         self.writer.write(frame)
 
     def close(self) -> None:

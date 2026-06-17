@@ -58,7 +58,7 @@ class DeepMindControlEnv:
 
     @property
     def observation_space(self) -> gym.spaces.Dict:
-        spaces = {}
+        spaces: dict[str, gym.spaces.Space[Any]] = {}
         for key, value in self._env.observation_spec().items():
             spaces[key] = gym.spaces.Box(-np.inf, np.inf, value.shape, dtype=np.float32)
         spaces["image"] = gym.spaces.Box(0, 255, (3,) + self._size, dtype=np.uint8)

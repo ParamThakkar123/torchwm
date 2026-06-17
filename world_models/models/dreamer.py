@@ -75,7 +75,7 @@ def get_available_memory() -> int:
 
         memory_status = MEMORYSTATUSEX()
         memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
             raise OSError("Failed to get memory status")
         return memory_status.ullAvailPhys
@@ -190,7 +190,7 @@ def make_env(args: Any) -> Any:
             raise ValueError(
                 "unity_file_name must be provided when env_backend='unity_mlagents'."
             )
-        env = UnityMLAgentsEnv(  # type: ignore[no-untyped-call]
+        env = UnityMLAgentsEnv(
             file_name=unity_file_name,
             behavior_name=getattr(args, "unity_behavior_name", None),
             seed=args.seed,
@@ -208,11 +208,11 @@ def make_env(args: Any) -> Any:
             "robotics, procgen, bsuite, brax, unity_mlagents."
         )
 
-    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))  # type: ignore[no-untyped-call]
-    env = env_wrapper.NormalizeActions(env)  # type: ignore[no-untyped-call]
+    env = env_wrapper.ActionRepeat(env, int(args.action_repeat))
+    env = env_wrapper.NormalizeActions(env)
     repeat = max(1, int(args.action_repeat))
     duration = max(1, int(args.time_limit) // repeat)
-    env = env_wrapper.TimeLimit(env, duration)  # type: ignore[no-untyped-call]
+    env = env_wrapper.TimeLimit(env, duration)
     return env
 
 

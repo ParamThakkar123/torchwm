@@ -36,14 +36,16 @@ Commands
 
 - `train <model> [extra args...] [--inproc]` - Launch an existing training
   entrypoint. The CLI maps simple model names to modules in
-  `world_models.training` (e.g. `iris`, `planet`, `jepa`, `rssm`, `genie`,
-  `diamond`). By default `train` spawns a subprocess running
+  `world_models.training` (e.g. `diamond`, `iris`, `planet`, `jepa`, `rssm`,
+  `genie`). By default `train` spawns a subprocess running
   `python -m world_models.training.<name>` and forwards any extra args. Use
   `--inproc` to attempt running the training entrypoint in-process (calls the
-  module's `main()` if available).
+  module's `main()` if available). DIAMOND, IRIS, and JEPA accept
+  `--config PATH`, `--print-config`, and OmegaConf/Hydra-style dot-list
+  overrides such as `total_epochs=100` or `optimization.lr=3e-4`.
 
 - `eval --model <NAME> --checkpoint <PATH> [options]` - Evaluate a trained world
-  model with FID, FVD, and LPIPS metrics. Metrics compare real trajectories
+  model with FID, FVD, LPIPS, and PSNR metrics. Metrics compare real trajectories
   (collected from the environment) against generated trajectories (from the
   model). See {doc}`evaluation_guide` for details and interpretation.
 
@@ -52,7 +54,7 @@ Commands
   - `--checkpoint`, `-c` — path to checkpoint
   - `--game`, `-g` — environment name
   - `--num-videos` — number of trajectories (default 256)
-  - `--metrics` — comma-separated metrics, e.g. `fid,fvd,lpips`
+  - `--metrics` — comma-separated metrics, e.g. `fid,fvd,lpips,psnr`
   - `--record PATH` — save real and generated videos
   - `--output`, `-o` — save results JSON
 
@@ -116,10 +118,22 @@ torchwm datasets convert data/my_dataset.h5 --out-dir /tmp/videos
 torchwm collect --env ALE/Pong-v5 --steps 1000 --out pong.npz
 ```
 
-- Example: run training for the `iris` entrypoint in a subprocess
+- Example: run IRIS training with a library YAML config and a dot-list override
 
 ```bash
-torchwm train iris -- --config configs/iris.yaml
+torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100
+```
+
+- Example: inspect a composed JEPA config without starting training
+
+```bash
+torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimization.epochs=50 --print-config
+```
+
+- Example: launch a DIAMOND preset from the unified training CLI
+
+```bash
+torchwm train diamond --config world_models/configs/experiments/diamond.yaml preset=small seed=3
 ```
 
 - Example: evaluate a DIAMOND checkpoint

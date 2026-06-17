@@ -12,9 +12,14 @@
 <meta property="og:url" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-188/world_models_guide.html" />
 <meta property="og:site_name" content="TorchWM Documentation" />
 <meta property="og:description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="https://paramthakkar123.github.io/torchwm/pr-preview/pr-188/_images/social_previews/summary_world_models_guide_3b519017.png" />
+<meta property="og:image:alt" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
 <meta name="description" content="This page is a conceptual and practical map of the model families implemented in TorchWM. It is written as a study guide: start with the shared vocabulary, then compare the model families, then use..." />
+<meta name="twitter:card" content="summary_large_image" />
 
-    <title>World Models Study Guide &#8212; TorchWM 0.4.0 documentation</title>
+    <title>World Models Study Guide &#8212; TorchWM 0.4.2 documentation</title>
   
   
   
@@ -33,33 +38,470 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=ff822928"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=3a14cefc"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}, "processEscapes": true, "processEnvironments": true}, "options": {"skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "packages": {"[+]": ["ams"]}, "processEnvironments": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area", "skipHtmlTags": ["script", "noscript", "style", "textarea", "pre", "code"]}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'world_models_guide';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <script src="_static/fix_navbar.js?v=92322e29"></script>
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/pr-preview/pr-188/world_models_guide.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Dreamer: Model-Based RL with Latent Dynamics" href="dreamer.html" />
+    <link rel="next" title="Tutorial: Plug TorchWM world models into RL libraries" href="tutorials/world_model_env_rl_libraries.html" />
     <link rel="prev" title="Package Overview" href="package_overview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -131,7 +573,7 @@
   
   
   
-    <p class="title logo__title">TorchWM 0.4.0 documentation</p>
+    <p class="title logo__title">TorchWM 0.4.2 documentation</p>
   
 </a></div>
     
@@ -272,13 +714,15 @@
 <li class="toctree-l1"><a class="reference internal" href="cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">World Models Study Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="dreamer.html">Dreamer: Model-Based RL with Latent Dynamics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -363,7 +807,16 @@
  + \mathcal{L}_{\text{policy}}.
 \end{aligned}\end{split}\]</div>
 <p>The exact terms change by family: Dreamer and PlaNet emphasize latent state-space dynamics, IRIS and Genie emphasize discrete token dynamics, JEPA emphasizes representation prediction without pixel reconstruction, and DiT/DIAMOND emphasize diffusion-based generation.</p>
-</section>
+<pre  class="mermaid">
+        graph LR
+    A[&quot;Observation&quot;] --&gt; B[&quot;Encoder or tokenizer&quot;]
+    B --&gt; C[&quot;Latent state&quot;]
+    D[&quot;Action&quot;] --&gt; E[&quot;Dynamics model&quot;]
+    C --&gt; E
+    E --&gt; F[&quot;Predicted next latent state&quot;]
+    F --&gt; G[&quot;Decoder reward and value heads&quot;]
+    G --&gt; H[&quot;Planning policy learning or generation&quot;]
+    </pre></section>
 <section id="quick-model-chooser">
 <h2>Quick model chooser<a class="headerlink" href="#quick-model-chooser" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -439,7 +892,18 @@
 <p>Dreamer learns a Recurrent State-Space Model (RSSM), then trains an actor-critic in latent imagination. The library exposes high-level training through <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code> and the core neural components through <code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">RSSM</span></code>, Dreamer encoders/decoders, replay memory, and utilities.</p>
 <section id="mental-model">
 <h3>Mental model<a class="headerlink" href="#mental-model" title="Link to this heading">#</a></h3>
-</section>
+<pre  class="mermaid">
+        graph TD
+    A[&quot;Image observation&quot;] --&gt; B[&quot;Convolutional encoder&quot;]
+    B --&gt; C[&quot;RSSM posterior&quot;]
+    D[&quot;Previous latent and action&quot;] --&gt; E[&quot;RSSM prior&quot;]
+    C --&gt; F[&quot;Decoder reward and discount heads&quot;]
+    E --&gt; G[&quot;Imagination rollout&quot;]
+    G --&gt; H[&quot;Actor&quot;]
+    G --&gt; I[&quot;Critic&quot;]
+    I --&gt; J[&quot;Return targets&quot;]
+    J --&gt; H
+    </pre></section>
 <section id="what-to-study">
 <h3>What to study<a class="headerlink" href="#what-to-study" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -502,7 +966,17 @@
 <section id="iris">
 <h2>IRIS<a class="headerlink" href="#iris" title="Link to this heading">#</a></h2>
 <p>IRIS represents frames as discrete tokens and trains an autoregressive transformer world model. An actor-critic then learns from imagined token rollouts. This model family is useful for studying the connection between language-model-style sequence prediction and model-based RL.</p>
-<section id="important-ideas">
+<pre  class="mermaid">
+        graph TD
+    A[&quot;Frame&quot;] --&gt; B[&quot;Discrete autoencoder&quot;]
+    B --&gt; C[&quot;Token sequence&quot;]
+    C --&gt; D[&quot;Autoregressive transformer&quot;]
+    E[&quot;Action&quot;] --&gt; D
+    D --&gt; F[&quot;Next tokens&quot;]
+    D --&gt; G[&quot;Reward and terminal heads&quot;]
+    F --&gt; H[&quot;Imagined frame or state&quot;]
+    H --&gt; I[&quot;Actor critic&quot;]
+    </pre><section id="important-ideas">
 <h3>Important ideas<a class="headerlink" href="#important-ideas" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Vector quantization:</strong> Continuous encoder outputs are mapped to codebook entries.</p></li>
@@ -558,12 +1032,189 @@ q(x_t \mid x_0)
 <p>Use diffusion when high-quality generative rollouts matter and you can afford more expensive sampling. Use transformer diffusion (<code class="docutils literal notranslate"><span class="pre">DiT</span></code>) when patch-token modeling and scalable attention are central to the experiment.</p>
 </section>
 </section>
+<section id="world-models-ha-schmidhuber-2018">
+<h2>World Models (Ha &amp; Schmidhuber, 2018)<a class="headerlink" href="#world-models-ha-schmidhuber-2018" title="Link to this heading">#</a></h2>
+<p>This family follows the three-component architecture from the <em>World Models</em> paper:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\text{V:}\quad &amp; z_t \sim \text{VAE}(x_t) \\
+\text{M:}\quad &amp; p(z_{t+1} \mid a_t, z_t, h_t) = \sum_k \pi_k\,\mathcal{N}(\mu_k, \sigma_k) \\
+\text{C:}\quad &amp; a_t = W_c\,[z_t, h_t] + b_c
+\end{aligned}\end{split}\]</div>
+<section id="id5">
+<h3>Mental model<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<pre  class="mermaid">
+        graph LR
+    A[&quot;Raw pixels&quot;] --&gt; B[&quot;V: ConvVAE encoder&quot;]
+    B --&gt; C[&quot;Latent vector z&quot;]
+    C --&gt; D[&quot;M: MDN-RNN&quot;]
+    D --&gt; E[&quot;Hidden state h + predicted next z&quot;]
+    C --&gt; F[&quot;C: Linear controller&quot;]
+    E --&gt; F
+    F --&gt; G[&quot;Action a&quot;]
+    G --&gt; H[&quot;Environment&quot;]
+    H --&gt; A
+    </pre></section>
+<section id="three-stage-pipeline">
+<h3>Three-stage pipeline<a class="headerlink" href="#three-stage-pipeline" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Stage</p></th>
+<th class="head"><p>Component</p></th>
+<th class="head"><p>Training</p></th>
+<th class="head"><p>File</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>V — Vision (ConvVAE)</strong></p></td>
+<td><p>Unsupervised reconstruction on random rollouts. Encodes 64×64 RGB frames → latent <code class="docutils literal notranslate"><span class="pre">z</span></code> (typically 32-d).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.vision.VAE.ConvVAE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>M — Memory (MDN-RNN)</strong></p></td>
+<td><p>Predicts next latent <code class="docutils literal notranslate"><span class="pre">z_{t+1}</span></code> as a Gaussian mixture conditioned on <code class="docutils literal notranslate"><span class="pre">(a_t,</span> <span class="pre">z_t,</span> <span class="pre">h_t)</span></code>. Also predicts rewards and terminal flags.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.mdrnn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>C — Controller (Linear)</strong></p></td>
+<td><p>Maps <code class="docutils literal notranslate"><span class="pre">(z_t,</span> <span class="pre">h_t)</span></code> → <code class="docutils literal notranslate"><span class="pre">a_t</span></code>. Trained with CMA-ES (not backprop) to maximize cumulative reward.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.controller</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="key-ideas">
+<h3>Key ideas<a class="headerlink" href="#key-ideas" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Latent-space planning</strong>: The controller operates on compressed <code class="docutils literal notranslate"><span class="pre">z</span></code> + <code class="docutils literal notranslate"><span class="pre">h</span></code>, not raw pixels. This makes CMA-ES tractable (only ~10³ params).</p></li>
+<li><p><strong>Memory via hidden state</strong>: The RNN hidden state <code class="docutils literal notranslate"><span class="pre">h_t</span></code> encodes temporal context. The paper shows removing it drops CarRacing score from 906→632.</p></li>
+<li><p><strong>Dream training</strong>: The trained M can serve as a differentiable simulator. The controller can be trained entirely inside M’s hallucinated latent rollouts and then transferred back to the real environment.</p></li>
+<li><p><strong>Temperature annealing</strong>: During dream training, increasing M’s sampling temperature <code class="docutils literal notranslate"><span class="pre">τ</span></code> makes the dream environment harder, preventing the controller from exploiting model imperfections.</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>When to use it<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<p>Use the Ha &amp; Schmidhuber world model when you want:</p>
+<ul class="simple">
+<li><p>A didactic, minimal world model implementation to study how latent-dynamics + evolution works</p></li>
+<li><p>To quickly train a policy on a continuous-control task without GPU-heavy RL backprop</p></li>
+<li><p>A baseline to compare model-based RL (Dreamer/PlaNet) with evolution-based controller training</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>TorchWM pieces<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Module</p></th>
+<th class="head"><p>Key classes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VAE</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.vision.VAE.ConvVAE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConvVAE</span></code>, <code class="docutils literal notranslate"><span class="pre">ConvVAEEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">ConvVAEDecoder</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dynamics</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.mdrnn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MDRNN</span></code>, <code class="docutils literal notranslate"><span class="pre">MDRNNCell</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Policy</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.models.controller</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Controller</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Configs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.configs.wm_config</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WMVAEConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WMMDNRNNConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">WMControllerConfig</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Datasets</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.datasets.wm_dataset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">ObservationDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code>, <code class="docutils literal notranslate"><span class="pre">LatentSequenceDataset</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Losses</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.losses.convae_loss</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">conv_vae_loss_fn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.losses.gmm_loss</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gmm_loss</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Training</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_world_model</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">run_training_pipeline</span></code>, <code class="docutils literal notranslate"><span class="pre">generate_rollouts</span></code>, <code class="docutils literal notranslate"><span class="pre">test_trained_model</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_convvae</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_convae</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_mdn_rnn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_mdn_rnn</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">world_models.training.train_controller</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">train_controller</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="quick-start-example">
+<h3>Quick-start example<a class="headerlink" href="#quick-start-example" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.wm_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">WMVAEConfig</span><span class="p">,</span> <span class="n">WMMDNRNNConfig</span><span class="p">,</span> <span class="n">WMControllerConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_convvae</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_convae</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_mdn_rnn</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_mdn_rnn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_controller</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_controller</span>
+
+<span class="c1"># Stage 1: Train VAE</span>
+<span class="n">vae_config</span> <span class="o">=</span> <span class="n">WMVAEConfig</span><span class="p">({</span>
+    <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+    <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./data/carracing&quot;</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_convae</span><span class="p">(</span><span class="n">vae_config</span><span class="p">)</span>
+
+<span class="c1"># Stage 2: Train MDN-RNN</span>
+<span class="n">mdrnn_config</span> <span class="o">=</span> <span class="n">WMMDNRNNConfig</span><span class="p">({</span>
+    <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+    <span class="s2">&quot;gmm_components&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./data/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span> <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_mdn_rnn</span><span class="p">(</span><span class="n">vae_config</span><span class="p">,</span> <span class="n">mdrnn_config</span><span class="p">)</span>
+
+<span class="c1"># Stage 3: Train Controller with CMA-ES</span>
+<span class="n">ctrl_config</span> <span class="o">=</span> <span class="n">WMControllerConfig</span><span class="p">({</span>
+    <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span> <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;env_name&quot;</span><span class="p">:</span> <span class="s2">&quot;CarRacing-v2&quot;</span><span class="p">,</span> <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pop_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;target_return&quot;</span><span class="p">:</span> <span class="mf">950.0</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="n">train_controller</span><span class="p">(</span><span class="n">ctrl_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-a-trained-model">
+<h3>Testing a trained model<a class="headerlink" href="#testing-a-trained-model" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.training.train_world_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_trained_model</span>
+
+<span class="n">test_trained_model</span><span class="p">(</span>
+    <span class="n">logdir</span><span class="o">=</span><span class="s2">&quot;./results/carracing&quot;</span><span class="p">,</span>
+    <span class="n">env_name</span><span class="o">=</span><span class="s2">&quot;CarRacing-v2&quot;</span><span class="p">,</span>
+    <span class="n">action_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">num_episodes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="practical-study-path">
 <h2>Practical study path<a class="headerlink" href="#practical-study-path" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p><strong>Start with RSSMs:</strong> understand deterministic and stochastic latent state.</p></li>
 <li><p><strong>Study Dreamer:</strong> connect latent dynamics to actor-critic learning.</p></li>
 <li><p><strong>Study PlaNet:</strong> compare planning against learned policies.</p></li>
+<li><p><strong>Study World Models (Ha &amp; Schmidhuber):</strong> see how VAE + MDN-RNN + CMA-ES controller forms the simplest complete pipeline.</p></li>
 <li><p><strong>Study token world models:</strong> IRIS and Genie show how discrete visual tokens enable transformer dynamics.</p></li>
 <li><p><strong>Study representation-only prediction:</strong> JEPA clarifies why not every useful world model must reconstruct pixels.</p></li>
 <li><p><strong>Study diffusion:</strong> compare likelihood-style denoising rollouts against autoregressive and RSSM rollouts.</p></li>
@@ -603,11 +1254,11 @@ q(x_t \mid x_0)
       </div>
     </a>
     <a class="right-next"
-       href="dreamer.html"
+       href="tutorials/world_model_env_rl_libraries.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Dreamer: Model-Based RL with Latent Dynamics</p>
+        <p class="prev-next-title">Tutorial: Plug TorchWM world models into RL libraries</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -668,6 +1319,16 @@ q(x_t \mid x_0)
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">When to use it</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#world-models-ha-schmidhuber-2018">World Models (Ha &amp; Schmidhuber, 2018)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Mental model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#three-stage-pipeline">Three-stage pipeline</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#key-ideas">Key ideas</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">When to use it</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">TorchWM pieces</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start-example">Quick-start example</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-a-trained-model">Testing a trained model</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#practical-study-path">Practical study path</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-failure-modes">Common failure modes</a></li>
 </ul>
@@ -695,8 +1356,8 @@ q(x_t \mid x_0)
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -730,7 +1391,7 @@ q(x_t \mid x_0)
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
 </p></div>
       
     </div>

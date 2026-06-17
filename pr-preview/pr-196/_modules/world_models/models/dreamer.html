@@ -939,11 +939,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">&quot;robotics, procgen, bsuite, brax, unity_mlagents.&quot;</span>
         <span class="p">)</span>
 
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">NormalizeActions</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">NormalizeActions</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="n">repeat</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">time_limit</span><span class="p">)</span> <span class="o">//</span> <span class="n">repeat</span><span class="p">)</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">TimeLimit</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">TimeLimit</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
     <span class="k">return</span> <span class="n">env</span></div>
 
 
@@ -1069,7 +1069,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">restore</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">restore_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">checkpoint_path</span>
 

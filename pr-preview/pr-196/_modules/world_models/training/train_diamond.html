@@ -1279,7 +1279,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">total_loss</span> <span class="o">=</span> <span class="n">policy_loss</span> <span class="o">+</span> <span class="n">value_loss</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
@@ -1401,7 +1401,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
 
             <span class="c1"># predict reward/termination from the sampled frame [B, C, H, W]</span>
-            <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">hidden_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+            <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">hidden_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>  <span class="c1"># type: ignore[assignment]</span>
                 <span class="n">obs</span><span class="o">=</span><span class="n">sampled</span><span class="p">,</span>
                 <span class="n">actions</span><span class="o">=</span><span class="n">actions_current</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                 <span class="n">hidden_state</span><span class="o">=</span><span class="n">hidden_state</span><span class="p">,</span>
@@ -1548,7 +1548,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">obs_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obs_np</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
                 <span class="c1"># pass batched observation [1, C, H, W]</span>
-                <span class="n">action</span><span class="p">,</span> <span class="n">policy_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span>
+                <span class="n">action</span><span class="p">,</span> <span class="n">policy_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">get_action</span><span class="p">(</span>  <span class="c1"># type: ignore[assignment]</span>
                     <span class="n">obs_tensor</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
                     <span class="n">policy_hidden</span><span class="p">,</span>
                     <span class="n">deterministic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -1611,9 +1611,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># avoid saving large Python objects inside the torch checkpoint. This</span>
         <span class="c1"># reduces checkpoint size and avoids unsafe pickle/unpickle usage when</span>
         <span class="c1"># restoring Python lists/containers.</span>
-        <span class="n">rb_state_trim</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">replay_file</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">obs_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">rb_state_trim</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">replay_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">obs_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">rb_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
             <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
@@ -1637,7 +1637,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># in the torch checkpoint but save large numpy arrays to separate files</span>
         <span class="c1"># with a common basename derived from the output path.</span>
         <span class="n">save_config_next_to_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span>
-        <span class="n">checkpoint</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">checkpoint</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
             <span class="s2">&quot;diffusion_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s2">&quot;reward_model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>

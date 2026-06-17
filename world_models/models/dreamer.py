@@ -75,7 +75,7 @@ def get_available_memory() -> int:
 
         memory_status = MEMORYSTATUSEX()
         memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore
         if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
             raise OSError("Failed to get memory status")
         return memory_status.ullAvailPhys

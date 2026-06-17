@@ -15,9 +15,15 @@ We welcome contributions to TorchWM! This guide covers how to get started.
    uv sync --dev
    ```
 
+   If you are not using `uv`, use the equivalent editable install:
+
+   ```bash
+   python -m pip install -e ".[dev]"
+   ```
+
 3. **Install pre-commit hooks**
    ```bash
-   pre-commit install
+   uv run pre-commit install
    ```
 
 ## Code Style
@@ -31,16 +37,16 @@ We use:
 Run checks:
 ```bash
 # Format code
-black .
+uv run black .
 
 # Lint
-ruff check .
+uv run ruff check .
 
 # Type check
-mypy .
+uv run mypy .
 
 # All checks
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ## Testing
@@ -78,7 +84,7 @@ Open `docs/build/html/index.html` in your browser.
 from torchwm import OperatorABC
 
 class NewOperator(OperatorABC):
-    def process(self, inputs):
+    def preprocess(self, inputs):
         # Your preprocessing logic
         return processed_tensors
 ```
@@ -109,8 +115,8 @@ Add to `__init__.py` and create tests.
 3. **Make your changes**
 4. **Run tests and checks**
    ```bash
-   pre-commit run --all-files
-   pytest
+   uv run pre-commit run --all-files
+   uv run pytest
    ```
 5. **Update documentation** if needed
 6. **Commit your changes**

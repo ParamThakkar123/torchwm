@@ -1,5 +1,6 @@
 """Tests for the evals package (FID, FVD, LPIPS metrics)."""
 
+import math
 import pytest
 import torch
 import numpy as np
@@ -7,6 +8,7 @@ import numpy as np
 from evals.fid import FID, _frechet_distance, _compute_statistics
 from evals.fvd import FVD, _sample_clips, VideoFeatureExtractor
 from evals.lpips import LPIPS, VGGFeatureExtractor
+from evals.psnr import PSNR
 
 
 class TestFIDInternals:
@@ -132,6 +134,55 @@ class TestLPIPSInternals:
             pytest.skip(f"LPIPS test skipped (model unavailable): {e}")
 
 
+class TestPSNR:
+    def test_psnr_identical_images(self):
+        images = torch.rand(8, 3, 64, 64)
+        psnr = PSNR()
+        score = psnr(images, images)
+        assert score == 80.0, (
+            f"PSNR on identical images should be ~80 (1e-8 epsilon), got {score}"
+        )
+
+    def test_psnr_different_images(self):
+        real = torch.rand(8, 3, 64, 64)
+        gen = torch.rand(8, 3, 64, 64) + 0.5
+        psnr = PSNR()
+        score = psnr(real, gen)
+        assert score > 0.0
+
+    def test_psnr_video_frames(self):
+        videos = torch.rand(4, 3, 16, 64, 64)
+        psnr = PSNR()
+        score = psnr(videos, videos)
+        assert score > 75.0
+
+    def test_psnr_shape_mismatch(self):
+        real = torch.rand(8, 3, 64, 64)
+        gen = torch.rand(8, 3, 32, 32)
+        psnr = PSNR()
+        try:
+            psnr(real, gen)
+            assert False, "Should have raised ValueError"
+        except ValueError:
+            pass
+
+    def test_psnr_repr(self):
+        psnr = PSNR()
+        assert "PSNR" in repr(psnr)
+
+    def test_psnr_known_value(self):
+        half = torch.ones(2, 3, 4, 4) * 0.5
+        zero = torch.ones(2, 3, 4, 4) * 0.0
+        psnr = PSNR()
+        # identical
+        assert psnr(half, half) == 80.0
+        # 0.5 vs 0: MSE = 0.25
+        mse = 0.25
+        expected_db = 10.0 * math.log10(1.0 / (mse + 1e-8))
+        score = psnr(half, zero)
+        assert abs(score - expected_db) < 1e-4
+
+
 class TestEvalUtils:
     def test_generate_trajectories_imports(self):
         """Tests that evals.diamond_utils imports correctly."""
@@ -143,11 +194,12 @@ class TestEvalUtils:
 
     def test_evals_package_imports(self):
         """Tests that the evals package exposes named exports."""
-        from evals import FID, FVD, LPIPS
+        from evals import FID, FVD, LPIPS, PSNR
 
         assert FID is not None
         assert FVD is not None
         assert LPIPS is not None
+        assert PSNR is not None
 
     def test_fid_repr(self):
         fid = FID(device=torch.device("cpu"))

@@ -1,6 +1,6 @@
 [project]
 name = "torchwm"
-version = "0.4.2"
+dynamic = ["version"]
 description = "A Modular Pytorch Based library for training world models"
 readme = "README.md"
 authors = [
@@ -15,26 +15,34 @@ classifiers = [
 ]
 
 dependencies = [
+    "albumentations>=2.0.8",
+    "ale-py>=0.11.2",
+    "cma>=4.4.2",
     "torch>=2.1.0",
     "torchvision>=0.16.0",
     "torchaudio>=2.1.0",
     "einops>=0.8.2",
     "pyyaml>=6.0.3",
+    "omegaconf>=2.3.0",
+    "hydra-core>=1.3.2",
     "tqdm>=4.67.1",
     "opencv-python>=4.12.0.88",
     "requests>=2.32.0",
     "click>=8.0.0",
     "gym>=0.26.2",
-    "gymnasium>=1.2.2",
+    "gymnasium[box2d]>=1.2.2",
+    "mlagents-envs>=0.28.0",
     "moviepy>=2.2.1",
     "h5py>=3.11.0",
     "plotly>=6.5.0",
-    "ale-py>=0.11.2",
     "selenium>=4.41.0",
     "scikit-learn>=1.8.0",
     "umap-learn>=0.5.11",
     "huggingface-hub>=1.14.0",
     "playwright>=1.60.0",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
+    "python-dotenv>=1.2.2",
 ]
 
 [project.urls]
@@ -45,6 +53,7 @@ Changelog = "https://github.com/paramthakkar123/torchwm/releases"
 
 [project.scripts]
 torchwm = "tools.cli:run"
+torchwm-train = "tools.cli:run_train"
 
 [project.optional-dependencies]
 gym = [
@@ -76,6 +85,8 @@ viz = [
     "uvicorn>=0.35.0",
     "myst-parser>=2.0.0,<5.0.0",
     "nbsphinx>=0.9.8",
+    "python-multipart>=0.0.27",
+    "starlette>=1.0.1",
 ]
 ml = [
     "tensorboard>=2.20.0",
@@ -83,10 +94,12 @@ ml = [
     "wandb>=0.16.0",
 ]
 dev = [
-    "pytest>=9.0.2",
+    "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
+    "pytest-timeout>=2.3.1",
     "pre-commit>=4.5.0",
     "mypy>=1.19.1",
+    "gitpython>=3.1.49",
 ]
 all = [
     "torchwm[gym,viz,ml,ml-agents,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
@@ -95,6 +108,7 @@ docs = [
     "sphinx>=8.0.0,<9.0.0",
     "sphinx-autodoc-typehints<1.26.0",
     "sphinx-copybutton>=0.5.2",
+    "pydata-sphinx-theme>=0.15.0",
     "sphinx-rtd-theme>=3.1.0",
     "sphinxcontrib-bibtex>=2.6.5",
     "sphinxcontrib-mermaid>=0.9.0",
@@ -102,12 +116,28 @@ docs = [
     "sphinxext-opengraph>=0.13.0",
     "myst-parser>=2.0.0,<5.0.0",
     "nbsphinx>=0.9.8",
+    "mistune>=3.2.1",
+    "nbconvert>=7.17.1",
 ]
 
+[tool.setuptools.package-data]
+torchwm = ["py.typed", "__init__.pyi"]
+
+[tool.uv]
+index-url = "https://download.pytorch.org/whl/cu121"
+extra-index-url = ["https://pypi.org/simple"]
+index-strategy = "unsafe-best-match"
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu121"
+default = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "build"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "world_models._version.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

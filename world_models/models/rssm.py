@@ -53,12 +53,11 @@ class RecurrentStateSpaceModel(nn.Module):
         return h_tp1, s_tp1
 
     def deterministic_state_fwd(self, h_t, s_t, a_t):
-        """
-        Deterministic transition update that accepts:
-          - a_t shaped [B, action_size]
-          - a_t shaped [action_size] (unbatched) -> expanded to [B, action_size]
-          - a_t shaped [B] or scalar -> reshaped appropriately
+        """Deterministic transition update.
+
         Ensures a_t is 2D and matches batch dimension of h_t before concatenation.
+        Accepts a_t shaped [B, action_size], [action_size] (expanded to [B, action_size]),
+        or [B]/scalar (reshaped appropriately).
         """
         # ensure torch tensor
         if not isinstance(a_t, torch.Tensor):
@@ -129,11 +128,12 @@ class RecurrentStateSpaceModel(nn.Module):
         return torch.stack(states), torch.stack(latents)
 
     def forward(self, x, u):
-        """
-        Forward through the RSSM for a batch of sequences.
-        Inputs:
+        """Forward through the RSSM for a batch of sequences.
+
+        Args:
             x: Tensor [B, T+1, C, H, W]  (observations including initial frame)
             u: Tensor [B, T, action_size] (actions for T steps)
+
         Returns:
             states: list[T] of tensors [B, state_size]
             priors: list[T] of tuples (mean, std) each [B, latent_size]

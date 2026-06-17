@@ -1,5 +1,5 @@
 import torch.nn as nn
-from world_models.layers.RMSNorm import RMSNorm
+from world_models.layers.rms_norm import RMSNorm
 
 
 class AdaLNNormalization(nn.Module):

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import Literal
 
+from world_models.configs.serialization import SerializableConfigMixin
+
 
 @dataclass
-class GenieConfig:
+class GenieConfig(SerializableConfigMixin):
     """Configuration for Genie model."""
 
     num_frames: int = 8
@@ -44,7 +46,7 @@ class GenieConfig:
 
 
 @dataclass
-class GenieSmallConfig:
+class GenieSmallConfig(SerializableConfigMixin):
     """Small configuration for development/testing."""
 
     num_frames: int = 16
@@ -82,7 +84,7 @@ class GenieSmallConfig:
 
 
 @dataclass
-class STTransformerConfig:
+class STTransformerConfig(SerializableConfigMixin):
     """Configuration for Spatiotemporal Transformer."""
 
     num_frames: int = 16
@@ -98,7 +100,7 @@ class STTransformerConfig:
 
 
 @dataclass
-class VideoTokenizerConfig:
+class VideoTokenizerConfig(SerializableConfigMixin):
     """Configuration for Video Tokenizer."""
 
     num_frames: int = 16
@@ -118,7 +120,7 @@ class VideoTokenizerConfig:
 
 
 @dataclass
-class LatentActionModelConfig:
+class LatentActionModelConfig(SerializableConfigMixin):
     """Configuration for Latent Action Model."""
 
     num_frames: int = 16
@@ -136,7 +138,7 @@ class LatentActionModelConfig:
 
 
 @dataclass
-class DynamicsModelConfig:
+class DynamicsModelConfig(SerializableConfigMixin):
     """Configuration for Dynamics Model."""
 
     num_frames: int = 16

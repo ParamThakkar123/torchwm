@@ -8,6 +8,7 @@ class DreamerOperator(OperatorABC):
     """Operator for Dreamer model preprocessing: normalizes observations and encodes actions."""
 
     def __init__(self, image_size: int = 64, action_dim: int = 6):
+        super().__init__()
         self.image_size = image_size
         self.action_dim = action_dim
         self.transform = T.Compose(
@@ -18,7 +19,7 @@ class DreamerOperator(OperatorABC):
             ]
         )
 
-    def process(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def preprocess(self, inputs: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Process Dreamer inputs: image observation and action.
 

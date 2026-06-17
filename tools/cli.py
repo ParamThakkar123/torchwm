@@ -23,12 +23,14 @@ logger = logging.getLogger("torchwm.cli")
 # Keep this mapping cheap to import so ``torchwm models list`` and validation do
 # not pull PyTorch or environment packages into every CLI process.
 TRAINING_MODULES = {
-    "iris": "world_models.training.train_iris",
-    "planet": "world_models.training.train_planet",
-    "jepa": "world_models.training.train_jepa",
-    "rssm": "world_models.training.train_rssm",
-    "genie": "world_models.training.train_genie",
     "diamond": "world_models.training.train_diamond",
+    "dreamer": "world_models.training.train_dreamer",
+    "genie": "world_models.training.train_genie",
+    "iris": "world_models.training.train_iris",
+    "jepa": "world_models.training.train_jepa",
+    "planet": "world_models.training.train_planet",
+    "rssm": "world_models.training.train_rssm",
+    "world-model": "world_models.training.train_world_model",
 }
 
 EVAL_MODULES = {
@@ -588,7 +590,7 @@ def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
 @click.option(
     "--metrics",
     default="fid,fvd,lpips",
-    help="Comma-separated metrics to compute (fid,fvd,lpips)",
+    help="Comma-separated metrics to compute (fid,fvd,lpips,psnr)",
 )
 @click.option(
     "--record",
@@ -695,7 +697,12 @@ def play_command(
     help="Run training in-process instead of spawning subprocess.",
 )
 def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
-    """Launch an existing ``world_models.training`` entrypoint."""
+    """Launch a training entrypoint with optional YAML/OmegaConf overrides.
+
+    Examples:
+        torchwm train iris --config world_models/configs/experiments/iris.yaml total_epochs=100
+        torchwm train jepa optimization.epochs=50 data.batch_size=128
+    """
     key = model.strip().lower()
     if key not in TRAINING_MODULES:
         _echo_error(
@@ -743,6 +750,16 @@ def main(*args: Any, **kwargs: Any) -> Any:
 def run() -> None:
     """Console-script entrypoint used by the installed ``torchwm`` command."""
     app(prog_name="torchwm")
+
+
+def run_train() -> None:
+    """Console-script entrypoint used by the installed ``torchwm-train`` command.
+
+    This is equivalent to ``torchwm train MODEL [ARGS...]`` and dispatches via
+    ``TRAINING_MODULES`` so new training modules only need to be added to that
+    mapping instead of registering another packaging entry point.
+    """
+    train.main(prog_name="torchwm-train")
 
 
 if __name__ == "__main__":

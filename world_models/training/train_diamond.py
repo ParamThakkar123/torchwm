@@ -8,12 +8,22 @@ from typing import Dict, List, Optional, Tuple, Union
 from tqdm import tqdm
 import os
 from pathlib import Path
-import argparse
-
+from world_models.models.model_io import (
+    apply_config_overrides,
+    coerce_config,
+    module_summary,
+    resolve_pretrained_file,
+    save_config_next_to_checkpoint,
+)
 from world_models.configs.diamond_config import (
     DiamondConfig,
     HUMAN_SCORES,
     RANDOM_SCORES,
+)
+from world_models.experiments import (
+    dump_config,
+    instantiate_dataclass,
+    parse_experiment_args,
 )
 from world_models.envs.diamond_atari import make_diamond_atari_env
 from gym.spaces import Discrete, Box
@@ -41,7 +51,8 @@ class DiamondAgent:
     """
 
     def __init__(self, config: DiamondConfig):
-        self.config = config
+        self.config = coerce_config(DiamondConfig, config)
+        config = self.config
         self.device = torch.device(
             config.device if torch.cuda.is_available() else "cpu"
         )
@@ -78,6 +89,11 @@ class DiamondAgent:
                     f"Unsupported action_space type: {type(self.env.action_space)}"
                 )
 
+        self.use_amp = bool(
+            getattr(config, "use_amp", True)
+            and getattr(self.device, "type", str(self.device)) == "cuda"
+        )
+
         self._build_models()
 
         self.replay_buffer = ReplayBuffer(
@@ -99,6 +115,86 @@ class DiamondAgent:
         self.last_reward_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
         # policy hidden state maintained across collection steps for temporal consistency
         self.collect_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+
+    @classmethod
+    def from_config(
+        cls,
+        config: DiamondConfig | dict | str | Path | None = None,
+        **overrides,
+    ) -> "DiamondAgent":
+        """Build a DIAMOND agent from a config object, dict, YAML file, or YAML string."""
+
+        args = apply_config_overrides(coerce_config(DiamondConfig, config), overrides)
+        return cls(args)
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: DiamondConfig | dict | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        **overrides,
+    ) -> "DiamondAgent":
+        """Load a DIAMOND checkpoint from a local path/directory or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("checkpoint.pt", "model.pt", "diamond.pt", "pytorch_model.bin")
+        )
+        checkpoint_path = resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                "Could not find a DIAMOND checkpoint for "
+                f"{pretrained_model_name_or_path!r}."
+            )
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        if config is None and isinstance(checkpoint.get("config"), dict):
+            args = DiamondConfig.from_dict(checkpoint["config"])
+        elif config is None:
+            config_path = resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "diamond_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = DiamondConfig.from_yaml(config_path)
+        else:
+            args = coerce_config(DiamondConfig, config)
+        agent = cls(apply_config_overrides(args, overrides))
+        agent.load_checkpoint(str(checkpoint_path))
+        return agent
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        return sum(
+            param.numel()
+            for module in (self.diffusion_model, self.reward_model, self.actor_critic)
+            for param in module.parameters()
+            if not trainable_only or param.requires_grad
+        )
+
+    def summary(self) -> dict:
+        return module_summary(
+            {
+                "diffusion_model": self.diffusion_model,
+                "reward_model": self.reward_model,
+                "actor_critic": self.actor_critic,
+            }
+        )
 
     def _build_models(self):
         """Initialize all DIAMOND models."""
@@ -177,6 +273,21 @@ class DiamondAgent:
             eps=self.config.adam_epsilon,
             weight_decay=self.config.weight_decay_actor,
         )
+        self.diffusion_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.reward_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+        self.actor_scaler = torch.amp.GradScaler("cuda", enabled=self.use_amp)
+
+    def _move_batch_to_device(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> Dict[str, torch.Tensor]:
+        return {
+            key: (
+                value.to(self.device, non_blocking=True)
+                if torch.is_tensor(value)
+                else value
+            )
+            for key, value in batch.items()
+        }
 
     def _update_diffusion_model(self, batch: Dict[str, torch.Tensor]) -> float:
         """Update diffusion world model."""
@@ -215,23 +326,27 @@ class DiamondAgent:
                 f"DEBUG SHAPES: obs_seq={getattr(obs_seq, 'shape', None)}, obs_history={getattr(obs_history, 'shape', None)}, target_obs={getattr(target_obs, 'shape', None)}"
             )
 
-        model_output = self.diffusion_model(
-            x=model_input,
-            t=t_cond,
-            obs_history=obs_history,
-            actions=action_seq[:, -self.config.num_conditioning_frames :],
-        )
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            model_output = self.diffusion_model(
+                x=model_input,
+                t=t_cond,
+                obs_history=obs_history,
+                actions=action_seq[:, -self.config.num_conditioning_frames :],
+            )
 
-        target = (next_obs - precond["c_skip"] * noisy_target) / precond["c_out"]
+            target = (next_obs - precond["c_skip"] * noisy_target) / precond["c_out"]
 
-        loss = F.mse_loss(model_output, target)
+            loss = F.mse_loss(model_output, target)
 
-        self.diffusion_opt.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.diffusion_model.parameters(), max_norm=1.0)
-        self.diffusion_opt.step()
+        self.diffusion_opt.zero_grad(set_to_none=True)
+        self.diffusion_scaler.scale(loss).backward()
+        self.diffusion_scaler.step(self.diffusion_opt)
+        self.diffusion_scaler.update()
 
-        return loss.item()
+        return loss.detach().item()
 
     def _update_reward_model(self, batch: Dict[str, torch.Tensor]) -> float:
         """Update reward/termination model."""
@@ -244,32 +359,36 @@ class DiamondAgent:
 
         B, T, C, H, W = obs_seq.shape
 
-        reward_logits, term_logits, _ = self.reward_model(
-            obs=obs_seq,
-            actions=action_seq,
-        )
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            reward_logits, term_logits, _ = self.reward_model(
+                obs=obs_seq,
+                actions=action_seq,
+            )
 
-        # Align target sequence lengths: reward_logits has same temporal length as obs_seq
-        # We predict next-step rewards for all but the last conditioning frame.
-        # Align rewards/dones length with reward_logits[:, :-1]
-        T_logits = reward_logits.shape[1]
-        target_len = max(0, T_logits - 1)
-        rewards_target = rewards[:, :target_len]
-        dones_target = dones[:, :target_len]
+            # Align target sequence lengths: reward_logits has same temporal length as obs_seq
+            # We predict next-step rewards for all but the last conditioning frame.
+            # Align rewards/dones length with reward_logits[:, :-1]
+            T_logits = reward_logits.shape[1]
+            target_len = max(0, T_logits - 1)
+            rewards_target = rewards[:, :target_len]
+            dones_target = dones[:, :target_len]
 
-        total_loss, reward_loss, term_loss = self.reward_loss_fn(
-            reward_logits=reward_logits[:, :-1],
-            termination_logits=term_logits[:, :-1],
-            rewards=rewards_target,
-            terminated=dones_target,
-        )
+            total_loss, reward_loss, term_loss = self.reward_loss_fn(
+                reward_logits=reward_logits[:, :-1],
+                termination_logits=term_logits[:, :-1],
+                rewards=rewards_target,
+                terminated=dones_target,
+            )
 
-        self.reward_opt.zero_grad()
-        total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.reward_model.parameters(), max_norm=1.0)
-        self.reward_opt.step()
+        self.reward_opt.zero_grad(set_to_none=True)
+        self.reward_scaler.scale(total_loss).backward()
+        self.reward_scaler.step(self.reward_opt)
+        self.reward_scaler.update()
 
-        return total_loss.item()
+        return total_loss.detach()
 
     def _update_actor_critic(
         self, batch: Dict[str, torch.Tensor]
@@ -388,42 +507,46 @@ class DiamondAgent:
         # Compute policy logits and values for imagined observations using the
         # same initial policy hidden state used during imagination so the
         # logits align with the sampled actions.
-        policy_logits, values, _ = self.actor_critic(obs_imag, policy_hidden_init)
+        with torch.amp.autocast(
+            device_type=getattr(self.device, "type", str(self.device)),
+            enabled=self.use_amp,
+        ):
+            policy_logits, values, _ = self.actor_critic(obs_imag, policy_hidden_init)
 
-        # values: [B, H, 1] -> squeeze to [B, H]
-        values_squeezed = values.squeeze(-1)
-        # append bootstrap last value to make [B, H+1]
-        values_with_bootstrap = torch.cat(
-            [values_squeezed, values_squeezed[:, -1:].detach()], dim=1
-        )
+            # values: [B, H, 1] -> squeeze to [B, H]
+            values_squeezed = values.squeeze(-1)
+            # append bootstrap last value to make [B, H+1]
+            values_with_bootstrap = torch.cat(
+                [values_squeezed, values_squeezed[:, -1:].detach()], dim=1
+            )
 
-        # lambda-returns on imagined rewards
-        lambda_returns = self.rl_loss_fn.compute_lambda_returns(
-            rewards=rewards_imag,
-            values=values_with_bootstrap,
-            dones=dones_imag,
-        )
+            # lambda-returns on imagined rewards
+            lambda_returns = self.rl_loss_fn.compute_lambda_returns(
+                rewards=rewards_imag,
+                values=values_with_bootstrap,
+                dones=dones_imag,
+            )
 
-        policy_loss = self.rl_loss_fn.policy_loss(
-            policy_logits=policy_logits,
-            actions=policy_actions_imag,
-            lambda_returns=lambda_returns,
-            values=values_with_bootstrap,
-        )
+            policy_loss = self.rl_loss_fn.policy_loss(
+                policy_logits=policy_logits,
+                actions=policy_actions_imag,
+                lambda_returns=lambda_returns,
+                values=values_with_bootstrap,
+            )
 
-        value_loss = self.rl_loss_fn.value_loss(
-            values=values_with_bootstrap.unsqueeze(-1),
-            lambda_returns=lambda_returns,
-        )
+            value_loss = self.rl_loss_fn.value_loss(
+                values=values_with_bootstrap.unsqueeze(-1),
+                lambda_returns=lambda_returns,
+            )
 
-        total_loss = policy_loss + value_loss
+            total_loss = policy_loss + value_loss
 
-        self.actor_opt.zero_grad()
-        total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor_critic.parameters(), max_norm=1.0)
-        self.actor_opt.step()
+        self.actor_opt.zero_grad(set_to_none=True)
+        self.actor_scaler.scale(total_loss).backward()
+        self.actor_scaler.step(self.actor_opt)
+        self.actor_scaler.update()
 
-        return policy_loss.item(), value_loss.item()
+        return policy_loss.detach(), value_loss.detach()
 
     def _collect_experience(self, num_steps: int) -> List[float]:
         """Collect experience from the real environment."""
@@ -604,11 +727,16 @@ class DiamondAgent:
                 + self.config.imagination_horizon,
                 burn_in=self.config.burn_in_length,
             )
+            num_workers = getattr(self.config, "data_loader_num_workers", 4)
             dataloader = DataLoader(
                 dataset,
                 batch_size=self.config.batch_size,
                 shuffle=True,
-                num_workers=0,
+                num_workers=num_workers,
+                pin_memory=getattr(self.config, "pin_memory", True)
+                and self.device.type == "cuda",
+                persistent_workers=getattr(self.config, "persistent_workers", True)
+                and num_workers > 0,
             )
 
             diffusion_losses = []
@@ -635,7 +763,7 @@ class DiamondAgent:
                     data_iter = iter(dataloader)
                     batch = next(data_iter)
 
-                batch = to_device(batch)
+                batch = self._move_batch_to_device(batch)
 
                 diffusion_loss = self._update_diffusion_model(batch)
                 diffusion_losses.append(diffusion_loss)
@@ -649,10 +777,19 @@ class DiamondAgent:
 
             if epoch % self.config.log_interval == 0:
                 print(f"\nEpoch {epoch}:")
-                print(f"  Diffusion loss: {np.mean(diffusion_losses):.4f}")
-                print(f"  Reward loss: {np.mean(reward_losses):.4f}")
-                print(f"  Policy loss: {np.mean(policy_losses):.4f}")
-                print(f"  Value loss: {np.mean(value_losses):.4f}")
+                diffusion_mean, reward_mean, policy_mean, value_mean = (
+                    torch.stack(losses).mean().detach().cpu()
+                    for losses in (
+                        diffusion_losses,
+                        reward_losses,
+                        policy_losses,
+                        value_losses,
+                    )
+                )
+                print(f"  Diffusion loss: {float(diffusion_mean):.4f}")
+                print(f"  Reward loss: {float(reward_mean):.4f}")
+                print(f"  Policy loss: {float(policy_mean):.4f}")
+                print(f"  Value loss: {float(value_mean):.4f}")
                 print(f"  Collected reward: {np.mean(collected_rewards):.2f}")
 
             if epoch % self.config.eval_interval == 0:
@@ -775,8 +912,9 @@ class DiamondAgent:
         # Prepare checkpoint (model weights + metadata). We keep hidden states
         # in the torch checkpoint but save large numpy arrays to separate files
         # with a common basename derived from the output path.
+        save_config_next_to_checkpoint(self.config, out_path)
         checkpoint = {
-            "config": self.config.__dict__,
+            "config": self.config.to_dict(),
             "diffusion_model": self.diffusion_model.state_dict(),
             "reward_model": self.reward_model.state_dict(),
             "actor_critic": self.actor_critic.state_dict(),
@@ -841,13 +979,11 @@ class DiamondAgent:
                 else:
                     raise FileNotFoundError(f"Checkpoint not found at {path} or {alt}")
 
-        # Use full (unsafe) load to restore Python objects (numpy arrays, lists)
-        # required for replay buffer and obs history restoration.
-        # Load the torch checkpoint (weights + metadata). This file should be
-        # safe to load because it contains only tensor state dicts and small
-        # metadata fields. Larger numpy arrays may be stored separately and
-        # are loaded below when present.
-        checkpoint = torch.load(fpath, map_location=self.device, weights_only=False)
+        # The checkpoint stores tensor state_dicts and primitive metadata only;
+        # larger replay/observation arrays are loaded from separate npz/npy
+        # files below. Keep torch deserialization in weights-only mode to avoid
+        # executing arbitrary pickle payloads from untrusted checkpoints.
+        checkpoint = torch.load(fpath, map_location=self.device, weights_only=True)
         self.diffusion_model.load_state_dict(checkpoint["diffusion_model"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
         self.actor_critic.load_state_dict(checkpoint["actor_critic"])
@@ -931,41 +1067,38 @@ class DiamondAgent:
 
 
 def train_diamond(
-    game: str,
-    seed: int = 0,
+    game: str | None = None,
+    seed: int | None = None,
     preset: Optional[str] = None,
-    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    device: str | None = None,
+    config: DiamondConfig | None = None,
 ):
-    """Train DIAMOND on a specific game."""
-    config = DiamondConfig(
-        game=game,
-        seed=seed,
-        preset=preset if preset else None,
-        device=device,
-    )
+    """Train DIAMOND on a specific game or a composed experiment config."""
+    if config is None:
+        config = DiamondConfig()
+        if game is not None:
+            config.game = game
+        if seed is not None:
+            config.seed = seed
+        if preset is not None:
+            config.preset = preset
+            config.__post_init__()
+        if device is not None:
+            config.device = device
 
     agent = DiamondAgent(config)
     agent.train()
 
 
-def main(args: Optional[list[str]] = None) -> None:
-    """Entrypoint for ``torchwm train diamond --inproc``.
-
-    Args:
-        args: Command-line argument list (e.g. ``["--game", "Breakout-v5"]``).
-            If ``None``, ``sys.argv`` is read.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--game", type=str, default="Breakout-v5")
-    parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument(
-        "--preset", type=str, default=None, choices=["small", "medium", "large"]
-    )
-    parser.add_argument(
-        "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
-    )
-    parsed = parser.parse_args(args)
-    train_diamond(parsed.game, parsed.seed, parsed.preset, parsed.device)
+def main(argv: list[str] | None = None):
+    """Compose DIAMOND config from YAML/dot-list overrides and launch training."""
+    args = parse_experiment_args(argv, description="Train DIAMOND on Atari")
+    config = instantiate_dataclass(DiamondConfig, args.config, args.overrides)
+    if args.print_config:
+        print(dump_config(config.__dict__))
+        return config
+    train_diamond(config=config)
+    return config
 
 
 if __name__ == "__main__":

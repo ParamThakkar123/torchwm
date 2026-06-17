@@ -6,6 +6,7 @@ import pickle
 import pathlib
 import numpy as np
 import glob
+import warnings
 
 if not hasattr(np, "bool8"):
     # Some NumPy builds don't expose `bool8` as an attribute; set it safely
@@ -30,6 +31,33 @@ from sklearn.manifold import TSNE
 import umap
 
 HAS_VIZ = True
+
+
+class _RestrictedReplayUnpickler(pickle.Unpickler):
+    """Unpickler that only resolves classes needed by replay buffers."""
+
+    _ALLOWED_GLOBALS = {
+        ("builtins", "dict"),
+        ("builtins", "list"),
+        ("builtins", "set"),
+        ("builtins", "slice"),
+        ("builtins", "tuple"),
+        ("collections", "deque"),
+        ("numpy", "dtype"),
+        ("numpy", "ndarray"),
+        ("numpy.core.multiarray", "_reconstruct"),
+        ("numpy._core.multiarray", "_reconstruct"),
+        ("world_models.memory.planet_memory", "Episode"),
+        ("world_models.memory.planet_memory", "Memory"),
+        ("world_models.memory.planet_memory", "_identity"),
+    }
+
+    def find_class(self, module, name):
+        if (module, name) in self._ALLOWED_GLOBALS:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError(
+            f"global '{module}.{name}' is not allowed in replay buffers"
+        )
 
 
 class AttrDict(dict):
@@ -369,13 +397,28 @@ def get_mask(tensor, lengths):
     return mask
 
 
-def load_memory(path, device):
+def load_memory(path, device, *, trusted=False):
     """
-    Loads an experience replay buffer (backwards-compatible with older pickle formats).
+    Loads an experience replay buffer.
+
+    Pickle can execute arbitrary code during unrestricted deserialization, so
+    user-supplied replay buffers are always loaded with a restricted unpickler
+    that only allows the replay buffer classes and numpy containers required by
+    historical buffers. The ``trusted`` argument is retained for backwards
+    compatibility, but it no longer enables unrestricted pickle loading.
+
     Converts legacy list/.data formats into the current Memory(episodes) object.
     """
+    if trusted:
+        warnings.warn(
+            "load_memory(trusted=True) is deprecated and no longer enables "
+            "unrestricted pickle loading.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     with open(path, "rb") as f:
-        memory = pickle.load(f)
+        memory = _RestrictedReplayUnpickler(f).load()
 
     # If file contains a plain list of Episode objects -> wrap into Memory
     if isinstance(memory, list):

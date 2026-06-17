@@ -1,11 +1,16 @@
 # Genie: Generative Interactive Environment
 
 Genie is a generative model trained from video-only data that can be used as an
-interactive environment for reinforcement learning and decision-making tasks.
+interactive environment for reinforcement learning and decision-making tasks,
+without requiring any action labels.
 
-Based on paper: [Genie: Generative Interactive Environments](https://arxiv.org/abs/2406.15114) (Bruce et al., 2024)
+Based on paper: [Genie: Generative Interactive Environments](https://arxiv.org/abs/2402.15391) (Bruce et al., 2024)
 
-## Key Idea
+```{contents} Contents
+:depth: 3
+```
+
+## Overview
 
 Genie learns to understand world dynamics from unlabeled videos by learning:
 
@@ -16,7 +21,23 @@ Genie learns to understand world dynamics from unlabeled videos by learning:
 This enables agents to imagine and plan in a learned latent action space without
 needing explicit action labels.
 
+```{mermaid}
+graph TD
+    subgraph "Genie"
+        J["Video frames"] --> K["Video tokenizer"]
+        K --> L["Video tokens"]
+        M["Frame pairs (xₜ, xₜ₊₁)"] --> N["Latent action model"]
+        N --> O["Latent action âₜ"]
+        L --> P["Dynamics model"]
+        O --> P
+        P --> Q["Next video tokens"]
+        Q --> K --> R["Interactive generation"]
+    end
+```
+
 ## Architecture
+
+### High-level diagram
 
 <div class="architecture-diagram" aria-label="Genie architecture diagram">
   <section class="diagram-section">
@@ -41,59 +62,74 @@ needing explicit action labels.
       <span class="diagram-arrow">→</span>
       <span class="diagram-node success">Dynamics model</span>
     </div>
-  </section>
+  </div>
 </div>
-
-## Components
 
 ### 1. Video Tokenizer
 
-Converts raw video frames into discrete tokens using a VQ-VAE approach:
+Converts raw video frames into discrete tokens using a VQ-VAE approach with
+spatio-temporal downsampling:
 
-- Encoder processes frames into latent representations
-- Quantization layer maps latents to discrete codebook indices
-- Decoder reconstructs video from discrete tokens
+```python
+Input:  (3, 16, 64, 64) video clip
+  └─ 3D convolutions (spatio-temporal downsampling)
+  └─ VQ layer (codebook size: 1024)
+Output: (16, 16, 16) discrete token grid
+```
 
-```
-Input: (B, C, T, H, W) → Tokens: (B, T, H/patch, W/patch)
-```
+Total tokens per frame: `(64/4) × (64/4) = 16 × 16 = 256` tokens.
 
 ### 2. Latent Action Model (LAM)
 
-Learns to infer latent actions from video帧 transitions:
+Learns to infer discrete latent actions from frame-to-frame transitions
+without any supervision:
 
-- Encodes pairs of consecutive frames
-- Predicts discrete latent action tokens
-- Uses VQ commitment loss for stable training
+```python
+Input:  frame_t, frame_t+1
+  └─ Encoder: process both frames
+  └─ VQ layer: quantize to action token
+Output: latent action index (e.g., {0, ..., 7})
+```
 
+**Training loss:**
+
+```{math}
+\mathcal{L}_{\text{LAM}} =
+\underbrace{\|x_{t+1} - \hat{x}_{t+1}(x_t, \hat{a}_t)\|^2}_{\text{reconstruction}}
++ \underbrace{\|\text{sg}[z_e] - e_k\|^2}_{\text{codebook}}
++ \beta \cdot \underbrace{\|z_e - \text{sg}[e_k]\|^2}_{\text{commitment}}
 ```
-Input: (Frame_t, Frame_t+1) → Latent Action Index ∈ {0, ..., V-1}
-```
+
+The key insight: the action that best explains the frame transition is the one
+that minimizes the reconstruction error of the next frame.
 
 ### 3. Dynamics Model
 
-Transformer-based model that predicts future tokens:
+Transformer-based model that predicts future video tokens conditioned on past
+tokens and latent actions:
 
-- Autoregressive generation of video tokens
-- Conditioned on latent actions
-- Uses MaskGIT for efficient sampling
+```python
+Input:  past video tokens + latent action
+  └─ Transformer (causal masking)
+  └─ Token prediction head
+Output: next video tokens (as logits)
+```
+
+**Training loss**: Cross-entropy on predicted vs. actual tokens.
+
+During generation, the dynamics model uses **MaskGIT** sampling — an iterative
+refinement strategy that is faster than autoregressive decoding:
+
+```python
+# MaskGIT sampling (25 steps)
+mask = all_masked
+for step in range(maskgit_steps):
+    logits = dynamics_model(tokens, mask, latent_action)
+    tokens = sample_top_k(logits, mask)
+    mask = update_mask(step)  # gradually unmask
+```
 
 ## Training
-
-```python :class: thebe
-from torchwm import create_genie_small
-from torchwm import GenieConfig
-# Use your training loop or the TorchWM training CLI for full Genie runs.
-
-cfg = GenieConfig()
-cfg.num_frames = 16
-cfg.image_size = 64
-cfg.epochs = 100
-
-model = create_genie_small(num_frames=16, image_size=64)
-# trainer = GenieTrainer(model, cfg)
-# trainer.train()
-```
 
 ### Training Losses
 
@@ -109,8 +145,6 @@ Total Loss = L_tokenizer + λ₁·L_action + λ₂·L_dynamics
 
 ### Data Format
 
-Prepare videos as a dataset with the following structure:
-
 ```
 Dataset/
 ├── videos/
@@ -119,15 +153,14 @@ Dataset/
 │   └── ...
 ```
 
-Each video should contain at least `num_frames` frames. The tokenizer will sample
-frames uniformly from each video during training.
+Each video should contain at least `num_frames` frames.
 
 ### Key Hyperparameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `num_frames` | 8 | Number of frames per video |
-| `image_size` | 32 | Input image size (height/width) |
+| `image_size` | 32 | Input image size |
 | `tokenizer_vocab_size` | 1024 | Video token vocabulary size |
 | `action_vocab_size` | 8 | Latent action vocabulary size |
 | `dynamics_dim` | 512 | Transformer hidden dimension |
@@ -139,7 +172,20 @@ frames uniformly from each video during training.
 | `warmup_steps` | 5000 | Learning rate warmup steps |
 | `max_steps` | 125000 | Total training steps |
 
-## Usage
+## Usage in TorchWM
+
+### Quick start
+
+```python
+from torchwm import GenieConfig, create_genie_small
+
+cfg = GenieConfig()
+cfg.num_frames = 16
+cfg.image_size = 64
+cfg.epochs = 100
+
+model = create_genie_small(num_frames=16, image_size=64)
+```
 
 ### Generation
 
@@ -156,7 +202,7 @@ Step through the environment using inferred or specified actions:
 
 ```python
 current_frame = torch.randn(1, 3, 64, 64)
-action = torch.tensor([3])  # Latent action index (tensor)
+action = torch.tensor([3])  # Latent action index
 next_frame = model.play(current_frame, action)
 ```
 
@@ -169,20 +215,51 @@ frames = torch.randn(1, 3, 16, 64, 64)
 actions = model.infer_actions(frames)
 ```
 
+### CLI
+
+```bash
+torchwm train genie --config path/to/genie_config.yaml
+```
+
+## Config Reference
+
+```python
+from torchwm import GenieConfig, create_genie_small
+
+cfg = GenieConfig()
+cfg.num_frames = 16
+cfg.image_size = 64
+cfg.epochs = 100
+
+# Create model
+model = create_genie_small(num_frames=16, image_size=64)
+
+# Key hyperparameters
+cfg.tokenizer_vocab_size = 1024   # Video token codebook
+cfg.action_vocab_size = 8         # Latent action codebook
+cfg.dynamics_dim = 512            # Transformer hidden size
+cfg.dynamics_depth = 8            # Transformer layers
+cfg.maskgit_steps = 25            # MaskGIT refinement steps
+```
+
 ## Model Variants
 
-| Model | Parameters | Use Case |
-|-------|------------|----------|
-| `create_genie_small` | ~50M | Development/testing |
-| `create_genie_large` | ~11B | Production/research |
+| Variant | Params | Use Case |
+|---------|--------|----------|
+| `create_genie_small` | ~50M | Development, debugging |
+| `create_genie_large` | ~11B | Production, research |
 
-## Comparison to Other Methods
+## Comparison: IRIS vs Genie
 
-| Method | Input | Output | Use Case |
-|--------|-------|--------|----------|
-| JEPA | Images | Latent predictions | Representation learning |
-| IRIS | Images | Token sequences | World modeling |
-| Genie | Videos | Interactive env | RL agent training |
+| Aspect | IRIS | Genie |
+|--------|------|-------|
+| Actions | Provided by environment (known) | Inferred from video (latent) |
+| Tokenizer | Per-frame VQ-VAE | Spatio-temporal VQ-VAE |
+| Tokens per frame | 16 | 256 (typically) |
+| Dynamics | Autoregressive (GPT) | Autoregressive + MaskGIT |
+| Policy | Actor-critic (REINFORCE) | N/A (interactive gen.) |
+| Data requirement | ~100k env steps | ~50k+ videos |
+| Use case | Model-based RL | Video world modeling |
 
 ## Related Components
 
@@ -199,6 +276,35 @@ Genie is built from several core components in this library:
 3. **Generalizable**: Learns from diverse video data
 4. **Latent action space**: Enables efficient planning
 
+## Common Pitfalls
+
+### Codebook collapse
+
+Most codebook entries go unused.
+
+**Fixes:**
+- Use EMA codebook updates (default in Genie)
+- Lower commitment loss weight
+- Increase codebook dimension
+
+### Transformer memory
+
+Sequence: 256 × 16 = 4096 tokens.
+
+**Fixes:**
+- Use gradient checkpointing
+- Use sparse attention patterns
+
+### Latent action disentanglement
+
+The LAM might learn trivial actions.
+
+**Fixes:**
+- Increase action codebook size
+- Add entropy regularization on action distribution
+
 ## References
 
-- Bruce, J., et al. (2024). Genie: Generative Interactive Environments.
+- Bruce, J., et al. (2024). Genie: Generative Interactive Environments. *arXiv:2402.15391.*
+- Van Den Oord, A., & Vinyals, O. (2017). Neural Discrete Representation Learning. *NeurIPS 2017.*
+- Chang, H., et al. (2022). MaskGIT: Masked Generative Image Transformer. *CVPR 2022.*

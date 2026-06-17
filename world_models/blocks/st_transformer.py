@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 from typing import Optional
 
 
@@ -9,18 +11,18 @@ class STSpatialAttention(nn.Module):
     Processes video tokens by attending over spatial positions (H*W) within
     each time step independently. Captures within-frame spatial relationships.
 
-    Input: (B, T, N, C) - B batches, T time steps, N spatial positions (H*W), C channels
-    Output: (B, T, N, C) - Same shape, spatially attended features
+    - Input: (B, T, N, C) -- B batches, T time steps, N spatial positions (H*W), C channels
+    - Output: (B, T, N, C) -- Same shape, spatially attended features
 
-    Architecture:
-        QKV projection: Linear(dim, dim*3)
-        Reshape to multi-head attention format
-        Attention: softmax(Q @ K^T / sqrt(d_k)) @ V
-        Output projection
+    **Architecture**
 
-    Usage in ST-Transformer:
-        Applied to video tokens of shape (B, T, N, C) to capture
-        within-frame spatial structure (e.g., object positions).
+    - QKV projection: Linear(dim, dim*3)
+    - Reshape to multi-head attention format
+    - Fused scaled dot-product attention (FlashAttention on supported GPUs)
+    - Output projection
+
+    Applied to video tokens of shape (B, T, N, C) to capture within-frame
+    spatial structure (e.g., object positions).
     """
 
     def __init__(
@@ -44,7 +46,7 @@ class STSpatialAttention(nn.Module):
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.dropout_p = attn_drop
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
 
@@ -65,11 +67,14 @@ class STSpatialAttention(nn.Module):
         q = self.q_norm(q)
         k = self.k_norm(k)
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(2, 3).reshape(B, T, N, C)
+        x = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            dropout_p=self.dropout_p if self.training else 0.0,
+            scale=self.scale,
+        )
+        x = x.transpose(2, 3).reshape(B, T, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -82,18 +87,19 @@ class STTemporalAttention(nn.Module):
     positions. Uses causal masking to ensure each frame only attends to previous
     frames (important for autoregressive video generation).
 
-    Input: (B, T, N, C) - B batches, T time steps, N spatial positions, C channels
-    Output: (B, T, N, C) - Same shape, temporally attended features
+    - Input: (B, T, N, C) -- B batches, T time steps, N spatial positions, C channels
+    - Output: (B, T, N, C) -- Same shape, temporally attended features
 
-    Key Feature: Causal masking
-        - Frame t can only attend to frames 0...t-1
-        - Prevents information leakage from future frames
-        - Essential for autoregressive video generation models
+    **Causal masking**
 
-    Usage in Genie VideoTokenizer:
-        Applied after STSpatialAttention to model temporal dynamics.
-        The causal mask ensures generation is autoregressive.
+    - Frame t can only attend to frames 0...t-1
+    - Prevents information leakage from future frames
+    - Essential for autoregressive video generation models
+
+    Applied after STSpatialAttention to model temporal dynamics in the Genie VideoTokenizer.
     """
+
+    causal_mask: torch.Tensor
 
     def __init__(
         self,
@@ -116,9 +122,15 @@ class STTemporalAttention(nn.Module):
         self.q_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
         self.k_norm = nn.LayerNorm(head_dim, elementwise_affine=False, eps=1e-6)
 
-        self.attn_drop = nn.Dropout(attn_drop)
+        self.dropout_p = attn_drop
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
+
+        self.register_buffer(
+            "causal_mask",
+            torch.empty(0, 0, dtype=torch.bool),
+            persistent=False,
+        )
 
     def forward(self, x: torch.Tensor, causal: bool = True) -> torch.Tensor:
         """
@@ -138,18 +150,25 @@ class STTemporalAttention(nn.Module):
         q = self.q_norm(q)
         k = self.k_norm(k)
 
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-
-        if causal:
-            mask = torch.triu(
+        # Prefer the fused SDPA path (FlashAttention on supported GPUs).  The
+        # cached mask is kept for callers/backends that need an explicit mask,
+        # but SDPA's is_causal path avoids rebuilding a T x T tensor every call.
+        if causal and (
+            self.causal_mask.shape != (T, T) or self.causal_mask.device != x.device
+        ):
+            self.causal_mask = torch.triu(
                 torch.ones(T, T, device=x.device, dtype=torch.bool), diagonal=1
             )
-            attn = attn.masked_fill(mask, float("-inf"))
 
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(1, 3).reshape(B, T, N, C)
+        x = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            dropout_p=self.dropout_p if self.training else 0.0,
+            is_causal=causal,
+            scale=self.scale,
+        )
+        x = x.transpose(1, 3).reshape(B, T, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -187,9 +206,10 @@ class STTransformerBlock(nn.Module):
     """Combined spatiotemporal transformer block with interleaved attention.
 
     A single block applies:
-        1. Spatial attention (within each time frame)
-        2. Temporal attention (across frames with causal mask)
-        3. MLP projection
+
+    1. Spatial attention (within each time frame)
+    2. Temporal attention (across frames with causal mask)
+    3. MLP projection
 
     The order is: x -> + SpatialAttn -> + TemporalAttn -> + MLP -> x
 
@@ -204,11 +224,12 @@ class STTransformerBlock(nn.Module):
         drop_path: Stochastic depth rate for drop path regularization
         norm_layer: Normalization layer class (default: nn.LayerNorm)
 
-    Usage in Genie:
+    **Usage in Genie**::
+
         # VideoTokenizer encoder (12 layers)
         encoder = STTransformer(
             num_frames=16,
-            num_patches_per_frame=256,  # 16x16 for 64x64 images with patch_size=4
+            num_patches_per_frame=256,
             dim=512,
             depth=12,
             num_heads=16
@@ -339,12 +360,14 @@ class STTransformer(nn.Module):
         attn_drop_rate: float = 0.0,
         drop_path_rate: float = 0.0,
         norm_layer: type[nn.Module] = nn.LayerNorm,
+        gradient_checkpointing: bool = False,
     ):
         super().__init__()
         self.num_frames = num_frames
         self.num_patches_per_frame = num_patches_per_frame
+        self.gradient_checkpointing = gradient_checkpointing
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
+        dpr = torch.linspace(0, drop_path_rate, depth).tolist()
 
         self.blocks = nn.ModuleList(
             [
@@ -379,7 +402,10 @@ class STTransformer(nn.Module):
         x = x.reshape(B, T, N, C)
 
         for blk in self.blocks:
-            x = blk(x)
+            if self.gradient_checkpointing and self.training:
+                x = checkpoint(blk, x, use_reentrant=False)
+            else:
+                x = blk(x)
 
         x = self.norm(x)
 
@@ -401,6 +427,7 @@ def create_st_transformer(
     drop_rate: float = 0.0,
     attn_drop_rate: float = 0.0,
     drop_path_rate: float = 0.0,
+    gradient_checkpointing: bool = False,
 ) -> STTransformer:
     """Factory function to create an ST-Transformer."""
     num_patches_per_frame = (img_size // patch_size) ** 2
@@ -416,4 +443,5 @@ def create_st_transformer(
         drop_rate=drop_rate,
         attn_drop_rate=attn_drop_rate,
         drop_path_rate=drop_path_rate,
+        gradient_checkpointing=gradient_checkpointing,
     )

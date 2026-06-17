@@ -1,3 +1,6 @@
+import re
+
+import torchwm
 from click.testing import CliRunner
 from tools import cli
 
@@ -6,7 +9,8 @@ def test_version_shows_package_version():
     runner = CliRunner()
     res = runner.invoke(cli.app, ["version"])
     assert res.exit_code == 0
-    assert "0.4.0" in res.output
+    assert re.search(r"\d+\.\d+\.\d+", res.output)
+    assert torchwm.__version__ in res.output
 
 
 def test_envs_list_outputs_backends():
@@ -129,6 +133,10 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
 
 def test_console_entrypoint_run_is_exported():
     assert callable(cli.run)
+
+
+def test_train_lists_diamond_entrypoint():
+    assert cli.TRAINING_MODULES["diamond"] == "world_models.training.train_diamond"
 
 
 def test_dmlab_registered_in_backend_specs():

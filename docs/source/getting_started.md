@@ -156,7 +156,8 @@ result = op(inputs)
 
 ### Integration with Configs
 
-Operators use parameters from config classes:
+Operators can reuse matching config fields, but operator-only parameters such as
+action dimensions should be supplied from the target environment:
 
 ```python :class: thebe
 import torchwm
@@ -164,8 +165,8 @@ import torchwm
 cfg = torchwm.create_config("dreamer")
 op = torchwm.get_operator(
     "dreamer",
-    image_size=cfg.operator_image_size,
-    action_dim=cfg.operator_action_dim,
+    image_size=cfg.image_size[0],
+    action_dim=6,
 )
 ```
 
@@ -180,7 +181,21 @@ op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75
 processed = op.process({"images": [pil_image]})
 ```
 
-## Environment Backends
+Train a complete world model pipeline (VAE + MDNRNN + Controller) on any Gym environment:
+
+```bash
+# Train on CarRacing
+python -m world_models.training.train_world_model --env CarRacing-v2
+
+# Train on Pendulum
+python -m world_models.training.train_world_model --env Pendulum-v1
+
+# Test trained model
+python -m world_models.training.train_world_model --env CarRacing-v2 --test
+
+# Specify action size manually for environments with missing dependencies
+python -m world_models.training.train_world_model --env BipedalWalker-v3 --action_size 4
+```
 
 Dreamer supports multiple backends through `DreamerConfig.env_backend`; the
 top-level `torchwm.make_env()` helper uses the same backend names for standalone

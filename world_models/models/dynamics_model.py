@@ -93,6 +93,7 @@ class DynamicsModel(nn.Module):
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
         drop_path_rate: float = 0.0,
+        gradient_checkpointing: bool = True,
     ):
         super().__init__()
         self.num_frames = num_frames
@@ -126,6 +127,7 @@ class DynamicsModel(nn.Module):
             drop_rate=drop_rate,
             attn_drop_rate=attn_drop_rate,
             drop_path_rate=drop_path_rate,
+            gradient_checkpointing=gradient_checkpointing,
         )
 
         self.output_proj = nn.Linear(dim, vocab_size)

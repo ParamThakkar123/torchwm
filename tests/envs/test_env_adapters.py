@@ -685,6 +685,66 @@ def test_make_env_robotics_backend(
     )
 
 
+def test_catalog_queries_gymnasium_registry_at_runtime(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    import world_models.catalog as catalog
+
+    fake_gym = SimpleNamespace(
+        envs=SimpleNamespace(
+            registry={
+                "CartPole-v1": SimpleNamespace(
+                    id="CartPole-v1",
+                    entry_point="gymnasium.envs.classic_control.cartpole:CartPoleEnv",
+                    namespace=None,
+                ),
+                "ExampleControl-v9": SimpleNamespace(
+                    id="ExampleControl-v9",
+                    entry_point="example_package:ExampleEnv",
+                    namespace=None,
+                ),
+                "ALE/Pong-v5": SimpleNamespace(
+                    id="ALE/Pong-v5",
+                    entry_point="ale_py.env:PongEnv",
+                    namespace="ALE",
+                ),
+                "FetchReachDense-v4": SimpleNamespace(
+                    id="FetchReachDense-v4",
+                    entry_point="gymnasium_robotics.envs.fetch.reach:MujocoFetchReachEnv",
+                    namespace=None,
+                ),
+            }
+        )
+    )
+    monkeypatch.setitem(sys.modules, "gymnasium", fake_gym)
+
+    assert catalog._list_available_gymnasium_envs() == [
+        "CartPole-v1",
+        "ExampleControl-v9",
+    ]
+
+
+def test_environment_catalog_uses_runtime_gymnasium_envs(monkeypatch):
+    import world_models.catalog as catalog
+
+    monkeypatch.setattr(
+        catalog, "_list_available_gymnasium_envs", lambda: ["DynamicEnv-v9"]
+    )
+    monkeypatch.setattr(
+        catalog, "_list_available_robotics_envs", lambda: ["FetchReach-v4"]
+    )
+    monkeypatch.setattr(catalog, "_list_available_atari_envs", lambda: ["ALE/Pong-v5"])
+
+    envs_by_model = catalog._build_env_catalog()
+
+    assert "DynamicEnv-v9" in envs_by_model["dreamer"]
+    assert "DynamicEnv-v9" in envs_by_model["planet"]
+    assert "DynamicEnv-v9" not in envs_by_model["iris"]
+    assert "ALE/Pong-v5" in envs_by_model["iris"]
+    assert "FetchReach-v4" in envs_by_model["diamond"]
+
+
 class _FakeDeepMindLabInstance:
     def __init__(self, level, observations, config=None, renderer="hardware", **kwargs):
         self.level = level

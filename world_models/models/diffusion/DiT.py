@@ -4,16 +4,25 @@ import torch.nn.functional as F
 import math
 from einops import rearrange
 from world_models.configs.dit_config import DiTConfig as Config
-from world_models.layers.AdaLNNorm import AdaLNNormalization
+from world_models.models.model_io import (
+    apply_config_overrides,
+    coerce_config,
+    module_summary,
+    resolve_pretrained_file,
+    save_config_next_to_checkpoint,
+)
+from world_models.layers.ada_ln_norm import AdaLNNormalization
 from world_models.blocks.mhsa import MultiHeadSelfAttention
 from world_models.models.diffusion.DDPM import DDPM
 from world_models.datasets.cifar10 import make_cifar10
 from world_models.datasets.imagenet1k import make_imagenet1k, make_imagefolder
 from torchvision.transforms import RandomHorizontalFlip, Compose, ToTensor
-from world_models.transforms.transforms import make_transforms
+from world_models.transforms.image import make_transforms
 import time
 from torchvision.utils import save_image
 import os
+from pathlib import Path
+from typing import Any
 
 cfg = Config()
 
@@ -169,6 +178,15 @@ class DiT(nn.Module):
     ):
         super(DiT, self).__init__()
         self.t_dim = t_dim
+        self.config = Config(
+            IMG_SIZE=img_size,
+            CHANNELS=in_channels,
+            PATCH=patch_size,
+            WIDTH=d_model,
+            DEPTH=depth,
+            HEADS=heads,
+            DROP=drop,
+        )
         self.t_mlp = nn.Sequential(
             nn.Linear(t_dim, t_dim),
             nn.GELU(),
@@ -195,6 +213,114 @@ class DiT(nn.Module):
         x = self.unpatchify(x)
         x = self.out(x)
         return x
+
+    @classmethod
+    def from_config(
+        cls,
+        config: Config | dict[str, Any] | str | Path | None = None,
+        **overrides: Any,
+    ) -> "DiT":
+        """Build DiT from a config object, dict, YAML file, or YAML string."""
+
+        args = apply_config_overrides(coerce_config(Config, config), overrides)
+        return cls(
+            img_size=args.IMG_SIZE,
+            patch_size=args.PATCH,
+            in_channels=args.CHANNELS,
+            d_model=args.WIDTH,
+            depth=args.DEPTH,
+            heads=args.HEADS,
+            drop=args.DROP,
+        )
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        pretrained_model_name_or_path: str | Path,
+        *,
+        config: Config | dict[str, Any] | str | Path | None = None,
+        checkpoint_filename: str | None = None,
+        config_filename: str = "config.yaml",
+        repo_type: str | None = None,
+        revision: str | None = None,
+        map_location: str | torch.device | None = None,
+        **overrides: Any,
+    ) -> "DiT":
+        """Load DiT weights from a local path/directory or HF Hub."""
+
+        checkpoint_candidates = (
+            (checkpoint_filename,)
+            if checkpoint_filename is not None
+            else ("dit_model.pth", "model.pt", "pytorch_model.bin", "checkpoint.pt")
+        )
+        checkpoint_path = resolve_pretrained_file(
+            pretrained_model_name_or_path,
+            checkpoint_candidates,
+            repo_type=repo_type,
+            revision=revision,
+        )
+        if checkpoint_path is None:
+            raise FileNotFoundError(
+                f"Could not find a DiT checkpoint for {pretrained_model_name_or_path!r}."
+            )
+        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint_config = (
+            checkpoint.get("config") if isinstance(checkpoint, dict) else None
+        )
+        if config is None and isinstance(checkpoint_config, dict):
+            args = Config.from_dict(checkpoint_config)
+        elif config is None:
+            config_path = resolve_pretrained_file(
+                pretrained_model_name_or_path,
+                (config_filename, "dit_config.yaml", "config.yml"),
+                repo_type=repo_type,
+                revision=revision,
+            )
+            if config_path is None:
+                raise FileNotFoundError(
+                    "No config was provided and no config YAML was found beside "
+                    f"{pretrained_model_name_or_path!r}."
+                )
+            args = Config.from_yaml(config_path)
+        else:
+            args = coerce_config(Config, config)
+        model = cls.from_config(apply_config_overrides(args, overrides))
+        state_dict = checkpoint
+        if isinstance(checkpoint, dict):
+            state_dict = checkpoint.get(
+                "model_state_dict", checkpoint.get("state_dict", checkpoint)
+            )
+        model.load_state_dict(state_dict)
+        return model
+
+    def save_pretrained(self, path: str | Path) -> None:
+        """Save DiT weights and config in a from_pretrained-compatible format."""
+
+        checkpoint_path = Path(path)
+        if checkpoint_path.suffix == "":
+            checkpoint_path = checkpoint_path / "dit_model.pth"
+        save_config_next_to_checkpoint(self.config, checkpoint_path)
+        torch.save(
+            {"config": self.config.to_dict(), "model_state_dict": self.state_dict()},
+            checkpoint_path,
+        )
+
+    def parameter_count(self, trainable_only: bool = False) -> int:
+        return sum(
+            param.numel()
+            for param in self.parameters()
+            if not trainable_only or param.requires_grad
+        )
+
+    def summary(self) -> dict[str, Any]:
+        return module_summary(
+            {
+                "t_mlp": self.t_mlp,
+                "patchify": self.patchify,
+                "transformer_blocks": self.transformer_blocks,
+                "unpatchify": self.unpatchify,
+            }
+        )
 
     @classmethod
     def train(
@@ -224,7 +350,11 @@ class DiT(nn.Module):
         subset_file=None,
         val_split=None,
     ):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            print("WARNING: CUDA not available, using CPU")
 
         if dataset.lower() == "cifar10":
             transform = Compose([RandomHorizontalFlip(), ToTensor()])
@@ -360,8 +490,30 @@ class DiT(nn.Module):
         os.makedirs(workdir, exist_ok=True)
 
         model_to_save = ema_model if ema_model is not None else model
-        torch.save(model_to_save.state_dict(), f"{workdir}/dit_model.pth")
-        print(f"Model saved to {workdir}/dit_model.pth")
+        checkpoint_path = Path(workdir) / "dit_model.pth"
+        train_config = Config(
+            DATASET=dataset,
+            BATCH=batch_size,
+            EPOCHS=epochs,
+            LR=lr,
+            IMG_SIZE=img_size,
+            CHANNELS=channels,
+            PATCH=patch,
+            WIDTH=width,
+            DEPTH=depth,
+            HEADS=heads,
+            DROP=drop,
+            BETA_START=beta_start,
+            BETA_END=beta_end,
+            TIMESTEPS=timesteps,
+            EMA=ema,
+            EMA_DECAY=ema_decay,
+            WORKDIR=workdir,
+            ROOT_PATH=root_path,
+        )
+        save_config_next_to_checkpoint(train_config, checkpoint_path)
+        torch.save(model_to_save.state_dict(), checkpoint_path)
+        print(f"Model saved to {checkpoint_path}")
 
         # Generate new Images
         model_to_sample = ema_model if ema_model is not None else model

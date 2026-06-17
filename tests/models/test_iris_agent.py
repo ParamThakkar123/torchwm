@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 import torch
 
@@ -110,3 +112,61 @@ class TestIRISAgentImagineRollout:
         assert "actor_loss" in metrics
         assert "value_loss" in metrics
         assert "total_loss" in metrics
+
+
+class TestIRISAgentCheckpointSecurity:
+    @pytest.fixture
+    def config(self):
+        config = IRISConfig()
+        config.vocab_size = 32
+        config.tokens_per_frame = 16
+        config.token_embedding_dim = 128
+        config.frame_channels = 3
+        config.encoder_channels = 32
+        config.decoder_channels = 32
+        config.frame_shape = (3, 64, 64)
+        config.transformer_layers = 2
+        config.transformer_heads = 4
+        config.transformer_embed_dim = 128
+        return config
+
+    @pytest.fixture
+    def agent(self, config):
+        return IRISAgent(config, action_size=4, device=torch.device("cpu"))
+
+    def test_save_stores_config_as_weights_only_safe_dict(self, agent, tmp_path):
+        path = tmp_path / "iris.pt"
+
+        agent.save(str(path))
+        checkpoint = torch.load(path, map_location="cpu", weights_only=True)
+
+        assert isinstance(checkpoint["config"], dict)
+
+    def test_load_uses_weights_only_deserialization(self, agent):
+        checkpoint = {
+            "encoder": agent.encoder.state_dict(),
+            "decoder": agent.decoder.state_dict(),
+            "transformer": agent.transformer.state_dict(),
+            "cnn": agent.cnn.state_dict(),
+            "lstm": agent.lstm.state_dict(),
+            "actor_head": agent.actor_head.state_dict(),
+            "critic_head": agent.critic_head.state_dict(),
+            "autoencoder_opt": agent.autoencoder_opt.state_dict(),
+            "transformer_opt": agent.transformer_opt.state_dict(),
+            "ac_opt": agent.ac_opt.state_dict(),
+            "global_step": 7,
+            "epoch": 3,
+        }
+
+        with patch(
+            "world_models.models.iris_agent.torch.load", return_value=checkpoint
+        ) as mock_load:
+            agent.load("checkpoint.pt")
+
+        mock_load.assert_called_once_with(
+            "checkpoint.pt",
+            map_location=agent.device,
+            weights_only=True,
+        )
+        assert agent.global_step == 7
+        assert agent.current_epoch == 3

@@ -226,7 +226,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         done_seq_np = self.replay_buffer.dones[indices[:-1]]
         next_obs_np = self.replay_buffer.next_observations[indices[-1]]
 
-        # stay on CPU; let the training loop batch then transfer to GPU
+        # stay on CPU; the training loop batches and transfers to GPU
         obs_seq = torch.from_numpy(obs_seq_np).float() / 255.0
         # (T, H, W, C) -> (T, C, H, W)
         if obs_seq.ndim == 4:

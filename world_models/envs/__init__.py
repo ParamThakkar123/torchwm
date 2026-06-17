@@ -11,6 +11,7 @@ from .mujoco_env import (
     make_mujoco_env_from_config,
 )
 from .gym_env import GymImageEnv, make_gym_env
+from .world_model_env import WorldModelEnv, make_world_model_env
 from .procgen_env import (
     PROCGEN_ENVS,
     ProcgenImageEnv,
@@ -35,6 +36,9 @@ from .wrappers import (
 )
 from .dmc import DeepMindControlEnv
 import gym
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def make_env(env_id: str, **kwargs):
@@ -50,6 +54,8 @@ def make_env(env_id: str, **kwargs):
         return make_bsuite_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
         return make_robotics_env(env_id, **kwargs)
+    if backend in {"world-model", "world_model", "model", "wm"}:
+        return make_world_model_env(env_id, **kwargs)
     if backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
         return make_dmlab_env(env_id, **kwargs)
     if backend in {"procgen", "coinrun"}:
@@ -59,32 +65,34 @@ def make_env(env_id: str, **kwargs):
     try:
         return make_gym_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_gym_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_robotics_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_robotics_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_atari_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_atari_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_procgen_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_procgen_env could not create %s", env_id, exc_info=True)
 
     try:
         return make_unity_mlagents_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug(
+            "make_unity_mlagents_env could not create %s", env_id, exc_info=True
+        )
 
     try:
         return make_bsuite_env(env_id, **kwargs)
     except Exception:
-        pass
+        logger.debug("make_bsuite_env could not create %s", env_id, exc_info=True)
 
     # Fall back to gym.
     return gym.make(env_id, **kwargs)
@@ -102,6 +110,8 @@ __all__ = [
     "register_gymnasium_robotics_envs",
     "GymImageEnv",
     "make_gym_env",
+    "WorldModelEnv",
+    "make_world_model_env",
     "PROCGEN_ENVS",
     "ProcgenImageEnv",
     "list_procgen_envs",

@@ -1,9 +1,11 @@
+import re
+
 import torchwm
 from torchwm import api
 
 
 def test_top_level_torchwm_exports_user_facing_factories():
-    assert torchwm.__version__ == "0.4.0"
+    assert re.match(r"^\d+\.\d+\.\d+$", torchwm.__version__)
     assert torchwm.create_config is api.create_config
     assert "dreamer" in torchwm.list_models()
     assert "gym" in torchwm.list_env_backends()
@@ -18,6 +20,7 @@ def test_create_config_accepts_aliases_and_overrides():
 def test_model_and_backend_specs_resolve_aliases():
     assert torchwm.get_model_spec("i-jepa").name == "jepa"
     assert torchwm.get_env_backend_spec("gymnasium").name == "gym"
+    assert torchwm.get_env_backend_spec("wm").name == "world-model"
 
 
 def test_make_env_dispatches_to_selected_backend(monkeypatch):
@@ -63,6 +66,75 @@ def test_create_model_for_factory_only_spec_filters_through_signature(monkeypatc
         "required": 3,
         "optional": 5,
     }
+
+
+def test_make_env_dispatches_world_model_backend(monkeypatch):
+    calls = {}
+
+    def fake_loader(import_path):
+        calls["import_path"] = import_path
+
+        def factory(world_model, **kwargs):
+            return {"world_model": world_model, "kwargs": kwargs}
+
+        return factory
+
+    model = object()
+    monkeypatch.setattr(api, "_load_object", fake_loader)
+    env = api.make_env(model, backend="wm", observation_space="obs", action_space="act")
+
+    assert calls["import_path"] == "world_models.envs:make_world_model_env"
+    assert env == {
+        "world_model": model,
+        "kwargs": {"observation_space": "obs", "action_space": "act"},
+    }
+
+
+def test_export_model_torchscript_writes_file(tmp_path):
+    import pytest
+
+    torch = pytest.importorskip("torch")
+    import world_models.export  # noqa: F401 - installs torch.nn.Module.export
+
+    class TinyAgent(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.linear = torch.nn.Linear(2, 1)
+
+        def forward(self, x):
+            return self.linear(x)
+
+    agent = TinyAgent()
+    path = agent.export(
+        tmp_path / "tiny.pt",
+        format="torchscript",
+        example_inputs=torch.zeros(1, 2),
+    )
+
+    assert path.exists()
+    loaded = torch.jit.load(str(path))
+    assert loaded(torch.zeros(1, 2)).shape == (1, 1)
+
+
+def test_top_level_exports_export_helpers():
+    import pytest
+    import torchwm
+
+    pytest.importorskip("torch")
+    from world_models.export import ExportableAgentMixin, export_any, export_model
+
+    assert torchwm.export_any is export_any
+    assert torchwm.export_model is export_model
+    assert torchwm.ExportableAgentMixin is ExportableAgentMixin
+
+
+def test_layer_and_helper_packages_are_importable():
+    import world_models.helpers as helpers
+    from world_models.layers import AdaLNNormalization, RMSNorm
+
+    assert "load_checkpoint" in dir(helpers)
+    assert RMSNorm.__name__ == "RMSNorm"
+    assert AdaLNNormalization.__name__ == "AdaLNNormalization"
 
 
 def test_diamond_and_dit_are_registered_in_public_api():

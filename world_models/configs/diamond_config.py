@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+
 import torch
+
+from world_models.configs.serialization import SerializableConfigMixin
 
 
 def get_default_device() -> str:
@@ -11,7 +14,7 @@ def get_default_device() -> str:
 
 
 @dataclass
-class ModelPreset:
+class ModelPreset(SerializableConfigMixin):
     """Model architecture preset for different hardware tiers."""
 
     diffusion_channels: List[int]
@@ -55,7 +58,7 @@ MODEL_PRESETS = {
 
 
 @dataclass
-class DiamondConfig:
+class DiamondConfig(SerializableConfigMixin):
     # Preset selection (overrides manual model config if set)
     preset: Optional[str] = None  # "small", "medium", "large", or None
 
@@ -119,6 +122,9 @@ class DiamondConfig:
     batch_size: int = 32
     environment_steps_per_epoch: int = 100
     epsilon_greedy: float = 0.01
+    data_loader_num_workers: int = 4
+    pin_memory: bool = True
+    persistent_workers: bool = True
 
     # RL hyperparameters
     imagination_horizon: int = 15
@@ -132,6 +138,7 @@ class DiamondConfig:
     weight_decay_diffusion: float = 1e-2
     weight_decay_reward: float = 1e-2
     weight_decay_actor: float = 0.0
+    use_amp: bool = True
 
     # Device
     device: str = field(default_factory=get_default_device)

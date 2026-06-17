@@ -26,7 +26,7 @@ from world_models.models.diffusion.diamond_diffusion import (
 )
 from world_models.envs.diamond_atari import make_diamond_atari_env
 
-from evals import FID, FVD, LPIPS
+from evals import FID, FVD, LPIPS, PSNR
 from evals.diamond_utils import (
     generate_trajectories,
     collect_real_trajectories_from_env,
@@ -238,6 +238,14 @@ def run_eval(
         results["LPIPS"] = lpips_score
         print(f"  LPIPS: {lpips_score:.4f}  ({time.time() - t0:.1f}s)")
 
+    if "psnr" in metrics:
+        print("\nComputing PSNR...")
+        t0 = time.time()
+        psnr = PSNR(batch_size=batch_size)
+        psnr_score = psnr(real_frames_flat, gen_frames_flat)
+        results["PSNR"] = psnr_score
+        print(f"  PSNR: {psnr_score:.2f} dB  ({time.time() - t0:.1f}s)")
+
     if "fvd" in metrics:
         print("\nComputing FVD...")
         t0 = time.time()
@@ -267,7 +275,7 @@ def run_eval(
     print("\n" + "=" * 50)
     print("EVALUATION RESULTS")
     print("=" * 50)
-    for key in ["FID", "FVD", "LPIPS"]:
+    for key in ["FID", "FVD", "LPIPS", "PSNR"]:
         if key in results:
             print(f"  {key}: {results[key]:.4f}")
     print("=" * 50)
@@ -308,7 +316,7 @@ def main():
         type=str,
         nargs="+",
         default=["fid", "fvd", "lpips"],
-        choices=["fid", "fvd", "lpips"],
+        choices=["fid", "fvd", "lpips", "psnr"],
     )
     parser.add_argument(
         "--record",

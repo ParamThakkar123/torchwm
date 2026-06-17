@@ -113,6 +113,8 @@ class DiamondAgent:
         # last LSTM hidden states (saved for reproducible imagined rollouts)
         self.last_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
         self.last_reward_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
+        # policy hidden state maintained across collection steps for temporal consistency
+        self.collect_policy_hidden: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
 
     @classmethod
     def from_config(
@@ -291,9 +293,9 @@ class DiamondAgent:
         """Update diffusion world model."""
         self.diffusion_model.train()
 
-        obs_seq = batch["obs_seq"]
-        action_seq = batch["action_seq"]
-        next_obs = batch["next_obs"]
+        obs_seq = batch["obs_seq"].to(self.device)
+        action_seq = batch["action_seq"].to(self.device)
+        next_obs = batch["next_obs"].to(self.device)
 
         B, T, C, H, W = obs_seq.shape
 
@@ -350,10 +352,10 @@ class DiamondAgent:
         """Update reward/termination model."""
         self.reward_model.train()
 
-        obs_seq = batch["obs_seq"]
-        action_seq = batch["action_seq"]
-        rewards = batch["rewards"]
-        dones = batch["dones"]
+        obs_seq = batch["obs_seq"].to(self.device)
+        action_seq = batch["action_seq"].to(self.device)
+        rewards = batch["rewards"].to(self.device)
+        dones = batch["dones"].to(self.device)
 
         B, T, C, H, W = obs_seq.shape
 
@@ -399,8 +401,10 @@ class DiamondAgent:
         """
         self.actor_critic.train()
 
-        obs_seq = batch["obs_seq"]
+        obs_seq = batch["obs_seq"].to(self.device)
         action_seq = batch.get("action_seq", batch.get("actions"))
+        if action_seq is not None:
+            action_seq = action_seq.to(self.device)
 
         B, seq_T, C, H, W = obs_seq.shape
 
@@ -555,17 +559,22 @@ class DiamondAgent:
             self.obs_history = [norm_obs] * self.config.num_conditioning_frames
             self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
 
-        for _ in range(num_steps):
+        for _ in tqdm(range(num_steps), desc="Collecting experience", leave=False):
             # build tensor [1, L, C, H, W] with channels-first
             obs_np = np.stack(self.obs_history[-self.config.num_conditioning_frames :])
             # obs_np: [L, H, W, C] -> transpose to [L, C, H, W]
             obs_np = obs_np.transpose(0, 3, 1, 2)
             obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
-            # pass a batched single observation [1, C, H, W]
-            action, _ = self.actor_critic.get_action(
+            # maintain LSTM hidden state across collection steps
+            if self.collect_policy_hidden is None:
+                self.collect_policy_hidden = self.actor_critic.init_hidden(
+                    1, self.device
+                )
+
+            action, self.collect_policy_hidden = self.actor_critic.get_action(
                 obs_tensor[:, -1],
-                None,
+                self.collect_policy_hidden,
                 deterministic=False,
             )
 
@@ -600,6 +609,7 @@ class DiamondAgent:
                 self.obs_history = [norm_obs] * self.config.num_conditioning_frames
                 self.obs_history_raw = [raw_obs] * self.config.num_conditioning_frames
                 self.action_history = []
+                self.collect_policy_hidden = None
 
         return rewards
 
@@ -734,9 +744,19 @@ class DiamondAgent:
             policy_losses = []
             value_losses = []
 
+            # move batch to GPU once (dataset returns CPU tensors)
+            def to_device(batch):
+                return {
+                    k: v.to(self.device, non_blocking=True) for k, v in batch.items()
+                }
+
             # iterate over the dataloader properly; avoid recreating iterator each step
             data_iter = iter(dataloader)
-            for _ in range(self.config.training_steps_per_epoch):
+            for _ in tqdm(
+                range(self.config.training_steps_per_epoch),
+                desc="Training",
+                leave=False,
+            ):
                 try:
                     batch = next(data_iter)
                 except StopIteration:

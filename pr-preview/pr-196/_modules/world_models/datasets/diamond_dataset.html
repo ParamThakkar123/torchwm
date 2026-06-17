@@ -975,9 +975,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">done_seq_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">dones</span><span class="p">[</span><span class="n">indices</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">next_obs_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">next_observations</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
 
-        <span class="c1"># Convert on CPU; the training loop transfers full batches to the target</span>
-        <span class="c1"># device with non_blocking=True. Moving to CUDA inside __getitem__ is not</span>
-        <span class="c1"># safe with multi-worker DataLoaders.</span>
+        <span class="c1"># stay on CPU; the training loop batches and transfers to GPU</span>
         <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">obs_seq_np</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span> <span class="o">/</span> <span class="mf">255.0</span>
         <span class="c1"># (T, H, W, C) -&gt; (T, C, H, W)</span>
         <span class="k">if</span> <span class="n">obs_seq</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
@@ -1003,22 +1001,6 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">&quot;dones&quot;</span><span class="p">:</span> <span class="n">dones</span><span class="p">,</span>
             <span class="s2">&quot;next_obs&quot;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">,</span>
         <span class="p">}</span></div>
-
-
-
-<div class="viewcode-block" id="collate_fn">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.datasets.diamond_dataset.collate_fn">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">collate_fn</span><span class="p">(</span><span class="n">batch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collate function for the dataloader.&quot;&quot;&quot;</span>
-    <span class="n">obs_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;obs_seq&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
-    <span class="n">action_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;action_seq&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
-    <span class="n">next_obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;next_obs&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch</span><span class="p">])</span>
-
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;obs_seq&quot;</span><span class="p">:</span> <span class="n">obs_seq</span><span class="p">,</span>
-        <span class="s2">&quot;action_seq&quot;</span><span class="p">:</span> <span class="n">action_seq</span><span class="p">,</span>
-        <span class="s2">&quot;next_obs&quot;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">,</span>
-    <span class="p">}</span></div>
 
 </pre></div>
 

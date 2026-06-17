@@ -788,7 +788,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">test_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">total_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Test epoch: </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2"> batches, dataset size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Test epoch: </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2"> batches, dataset size: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># type: ignore[arg-type]</span>
     <span class="p">)</span>
 
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -803,7 +803,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">&quot;Test batch </span><span class="si">{</span><span class="n">batch_idx</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">, loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
 
-    <span class="n">test_loss</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">test_loss</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---&gt; Test set loss: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test_loss</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">test_loss</span></div>
 
@@ -813,15 +813,15 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_convvae.train_epoch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">train_epoch</span><span class="p">(</span>
     <span class="n">epoch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">model</span><span class="p">,</span>
-    <span class="n">optimizer</span><span class="p">,</span>
-    <span class="n">train_loader</span><span class="p">,</span>
-    <span class="n">device</span><span class="p">,</span>
-    <span class="n">train_dataset</span><span class="p">,</span>
-    <span class="n">loss_fn</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">optimizer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">train_loader</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">train_dataset</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">use_amp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">scaler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;torch.cuda.amp.GradScaler&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run one epoch of training.</span>
 
 <span class="sd">    Args:</span>
@@ -869,7 +869,8 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">&quot;---&gt; Epoch: </span><span class="si">{}</span><span class="s2"> Average Loss: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">epoch</span><span class="p">,</span> <span class="n">train_loss</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_loader</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
         <span class="p">)</span>
-    <span class="p">)</span></div>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">train_loss</span></div>
 
 
 

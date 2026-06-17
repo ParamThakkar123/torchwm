@@ -44,7 +44,7 @@ class ConvVAEEncoder(nn.Module):
         self.fc_mu = nn.Linear(2 * 2 * 256, latent_size)
         self.fc_logsigma = nn.Linear(2 * 2 * 256, latent_size)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode images to latent distribution parameters.
 
         Args:
@@ -94,7 +94,7 @@ class ConvVAEDecoder(nn.Module):
         self.deconv3 = nn.ConvTranspose2d(64, 32, 6, stride=2)
         self.deconv4 = nn.ConvTranspose2d(32, img_channels, 6, stride=2)
 
-    def forward(self, z: torch.Tensor):
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
         """Decode latent vectors to images.
 
         Args:
@@ -140,7 +140,9 @@ class ConvVAE(nn.Module):
         self.encoder = ConvVAEEncoder(img_channels, latent_size)
         self.decoder = ConvVAEDecoder(latent_size, img_channels)
 
-    def forward(self, x: torch.Tensor):
+    def forward(
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Encode and decode an image.
 
         Args:

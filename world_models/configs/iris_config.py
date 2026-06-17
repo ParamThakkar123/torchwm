@@ -8,7 +8,7 @@ class IRISConfig(SerializableConfigMixin):
     Implements discrete autoencoder + autoregressive Transformer for sample-efficient RL.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # === Discrete Autoencoder (VQVAE) ===
         self.frame_height = 64
         self.frame_width = 64
@@ -101,10 +101,10 @@ class IRISConfig(SerializableConfigMixin):
         self.eval_episodes = 100
         self.checkpoint_interval = 50
 
-    def get_frame_shape(self):
+    def get_frame_shape(self) -> tuple:
         return (self.frame_channels, self.frame_height, self.frame_width)
 
-    def get_autoencoder_config(self):
+    def get_autoencoder_config(self) -> dict:
         return {
             "vocab_size": self.vocab_size,
             "tokens_per_frame": self.tokens_per_frame,
@@ -119,7 +119,7 @@ class IRISConfig(SerializableConfigMixin):
             "perceptual_weight": self.perceptual_weight,
         }
 
-    def get_transformer_config(self):
+    def get_transformer_config(self) -> dict:
         return {
             "timesteps": self.transformer_timesteps,
             "embed_dim": self.transformer_embed_dim,
@@ -131,7 +131,7 @@ class IRISConfig(SerializableConfigMixin):
             "action_size": None,  # Set at runtime
         }
 
-    def get_rl_config(self):
+    def get_rl_config(self) -> dict:
         return {
             "imagination_horizon": self.imagination_horizon,
             "discount": self.discount,

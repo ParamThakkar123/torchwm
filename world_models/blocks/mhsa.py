@@ -11,7 +11,7 @@ class MultiHeadSelfAttention(nn.Module):
     feature dimension. It is used as a lightweight transformer attention block.
     """
 
-    def __init__(self, d, n_heads=2):
+    def __init__(self, d: int, n_heads: int = 2) -> None:
         super(MultiHeadSelfAttention, self).__init__()
         assert d % n_heads == 0, "d must be divisible by n_heads"
         self.d = d
@@ -23,7 +23,7 @@ class MultiHeadSelfAttention(nn.Module):
         self.W_v = nn.Linear(d, d)
         self.W_o = nn.Linear(d, d)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T, D = x.size()
 
         Q = self.W_q(x)

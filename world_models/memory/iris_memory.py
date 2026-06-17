@@ -61,7 +61,9 @@ class IRISReplayBuffer:
         self.rewards = np.zeros((size,), dtype=np.float32)
         self.terminals = np.zeros((size,), dtype=np.float32)
 
-    def add(self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool):
+    def add(
+        self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool
+    ) -> None:
         """Add a transition to the buffer.
 
         Args:
@@ -168,11 +170,11 @@ class IRISReplayBuffer:
             self.terminals[idx],
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size if self.full else self.idx
 
     @property
-    def buffer_capacity(self):
+    def buffer_capacity(self) -> int:
         """Returns the total capacity of the buffer."""
         return self.size
 
@@ -208,19 +210,21 @@ class IRISOnPolicyBuffer:
         self.rewards: List[float] = []
         self.terminals: List[float] = []
 
-    def add(self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool):
+    def add(
+        self, obs: np.ndarray, action: np.ndarray, reward: float, terminal: bool
+    ) -> None:
         self.observations.append(obs)
         self.actions.append(action)
         self.rewards.append(reward)
         self.terminals.append(float(terminal))
 
-    def clear(self):
+    def clear(self) -> None:
         self.observations = []
         self.actions = []
         self.rewards = []
         self.terminals = []
 
-    def get_arrays(self):
+    def get_arrays(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         return (
             np.array(self.observations),
             np.array(self.actions),
@@ -228,5 +232,5 @@ class IRISOnPolicyBuffer:
             np.array(self.terminals),
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.observations)

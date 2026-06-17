@@ -141,8 +141,8 @@ class DMLabEnv:
         self._action_space = _OneHotActionSpace(self._action_set.shape[0])
         self._observation_space = self._build_observation_space()
 
-    def _build_observation_space(self):
-        spaces = {
+    def _build_observation_space(self) -> gym.spaces.Dict:
+        spaces: dict[str, gym.spaces.Space[Any]] = {
             "image": gym.spaces.Box(
                 low=0,
                 high=255,
@@ -181,35 +181,39 @@ class DMLabEnv:
                 )
                 np_dtype = np.dtype(dtype)
                 if np.issubdtype(np_dtype, np.integer):
-                    info = np.iinfo(np_dtype)
-                    low, high = info.min, info.max
+                    info = np.iinfo(np_dtype)  # type: ignore[type-var]
+                    low: float = int(info.min)
+                    high: float = int(info.max)
                 else:
                     low, high = -np.inf, np.inf
-                spaces[name] = gym.spaces.Box(low, high, tuple(shape), dtype=np_dtype)
+                shape_t = tuple(shape) if shape is not None else ()
+                spaces[name] = gym.spaces.Box(low, high, shape_t, dtype=np_dtype.type)
         return gym.spaces.Dict(spaces)
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return self._observation_space
 
     @property
-    def action_space(self):
+    def action_space(self) -> _OneHotActionSpace:
         return self._action_space
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         fps = int(self._config.get("fps", 60))
         episode_length = int(self._config.get("episode_length_seconds", 60))
         return max(1, (fps * episode_length) // self._action_repeat)
 
-    def reset(self):
+    def reset(self) -> dict[str, np.ndarray]:
         seed = self._seed + self._episode
         self._episode += 1
         self._env.reset(seed=seed)
         self._last_obs = self._read_obs()
         return self._last_obs
 
-    def step(self, action):
+    def step(
+        self, action: np.ndarray
+    ) -> tuple[dict[str, np.ndarray], float, bool, dict[str, Any]]:
         native_action = self._to_native_action(action)
         reward = float(self._env.step(native_action, num_steps=self._action_repeat))
         done = not bool(self._env.is_running())
@@ -225,19 +229,19 @@ class DMLabEnv:
         }
         return obs, reward, done, info
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> np.ndarray:
         if kwargs.get("mode", "rgb_array") != "rgb_array":
             raise ValueError("Only render mode 'rgb_array' is supported.")
         if self._last_obs is None:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
         return self._last_obs["image"].transpose(1, 2, 0).copy()
 
-    def close(self):
+    def close(self) -> None:
         close = getattr(self._env, "close", None)
         if close is not None:
             close()
 
-    def _to_native_action(self, action):
+    def _to_native_action(self, action: np.ndarray) -> np.ndarray:
         arr = np.asarray(action)
         if arr.shape == (self._action_set.shape[1],) and np.issubdtype(
             arr.dtype, np.integer
@@ -253,7 +257,7 @@ class DMLabEnv:
         action[index] = 1.0
         return action
 
-    def _read_obs(self):
+    def _read_obs(self) -> dict[str, np.ndarray]:
         raw = self._env.observations()
         obs = {"image": self._to_chw_uint8(raw[RGB_OBSERVATION])}
         for key, value in raw.items():
@@ -261,10 +265,10 @@ class DMLabEnv:
                 obs[key] = np.asarray(value)
         return obs
 
-    def _empty_obs(self):
+    def _empty_obs(self) -> dict[str, np.ndarray]:
         return {"image": np.zeros((3, self._size[0], self._size[1]), dtype=np.uint8)}
 
-    def _to_chw_uint8(self, image):
+    def _to_chw_uint8(self, image: np.ndarray) -> np.ndarray:
         image = np.asarray(image)
         if image.ndim != 3:
             raise ValueError(
@@ -281,13 +285,13 @@ class DMLabEnv:
         if image.shape[:2] != self._size:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image.transpose(2, 0, 1).copy()
 
 
-def _require_deepmind_lab():
+def _require_deepmind_lab() -> Any:
     try:
         return importlib.import_module("deepmind_lab")
     except ImportError as exc:

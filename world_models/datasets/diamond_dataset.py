@@ -37,7 +37,7 @@ class ReplayBuffer:
         reward: float,
         done: bool,
         next_obs: np.ndarray,
-    ):
+    ) -> None:
         """Add a transition to the buffer."""
         self.observations[self.position] = obs
         self.actions[self.position] = action
@@ -136,7 +136,7 @@ class ReplayBuffer:
             "next_obs": next_obs,
         }
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
     def is_ready(self, min_size: int) -> bool:
@@ -160,7 +160,7 @@ class ReplayBuffer:
             "capacity": int(self.capacity),
         }
 
-    def load_state_dict(self, state: dict):
+    def load_state_dict(self, state: dict) -> None:
         """Load state previously produced by `state_dict()`.
 
         This will resize internal arrays if the saved capacity differs from the
@@ -213,7 +213,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.sequence_length = sequence_length
         self.burn_in = burn_in
 
-    def __len__(self):
+    def __len__(self) -> int:
         return max(0, self.replay_buffer.size - self.sequence_length)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:

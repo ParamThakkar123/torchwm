@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from collections.abc import Mapping
-from typing import Any, Optional
+from typing import Any, Generator, Optional
 
 import torch
 
@@ -80,7 +80,7 @@ def _to_scalar(value: Any) -> Any:
     return value
 
 
-def _load_summary_writer():
+def _load_summary_writer() -> Any | None:
     """Return a TensorBoard SummaryWriter class when an implementation exists."""
     if importlib.util.find_spec("torch.utils.tensorboard") is not None:
         tensorboard_module = importlib.import_module("torch.utils.tensorboard")
@@ -273,7 +273,7 @@ def collect_system_stats(device: torch.device | str | None = None) -> dict[str, 
     return stats
 
 
-def _iter_tensors(value: Any):
+def _iter_tensors(value: Any) -> Generator[torch.Tensor, None, None]:
     if isinstance(value, torch.Tensor):
         yield value
     elif isinstance(value, Mapping):
@@ -292,11 +292,11 @@ def assert_finite_values(value: Any, name: str = "value") -> Any:
     return value
 
 
-def assert_finite(fn):
+def assert_finite(fn: Any) -> Any:
     """Decorator that validates tensor outputs from loss functions are finite."""
 
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         result = fn(*args, **kwargs)
         return assert_finite_values(result, getattr(fn, "__qualname__", fn.__name__))
 

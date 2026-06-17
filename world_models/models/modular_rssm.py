@@ -708,10 +708,10 @@ class ModularRSSM(nn.Module):
 
         return self._stack_states(next_states)
 
-    def decode_observation(self, features: torch.Tensor):
+    def decode_observation(self, features: torch.Tensor) -> torch.Tensor:
         return self.decoder(features)
 
-    def decode_reward(self, features: torch.Tensor):
+    def decode_reward(self, features: torch.Tensor) -> torch.Tensor:
         if self.reward_decoder is None:
             raise ValueError("Reward decoder not provided")
         return self.reward_decoder(features)
@@ -747,7 +747,7 @@ def create_modular_rssm(
     embed_size: int = 1024,
     hidden_size: int = 200,
     activation: str = "elu",
-    **kwargs,
+    **kwargs: Any,
 ) -> ModularRSSM:
     """Factory function to create a modular RSSM with specified components.
 
@@ -766,9 +766,9 @@ def create_modular_rssm(
     Returns:
         Configured ModularRSSM instance
     """
-    image_shape: Tuple[int, int, int] = (3, 64, 64)  # type: ignore
+    image_shape: Tuple[int, int, int] = (3, 64, 64)
     if len(obs_shape) == 3:
-        image_shape = (int(obs_shape[0]), int(obs_shape[1]), int(obs_shape[2]))  # type: ignore
+        image_shape = (int(obs_shape[0]), int(obs_shape[1]), int(obs_shape[2]))
 
     # Declare with base types so mypy understands the variable may hold any
     # concrete implementation chosen below.

@@ -1,6 +1,7 @@
 from multiprocessing import Value
 
 from logging import getLogger
+from typing import Any
 
 import torch
 
@@ -14,7 +15,12 @@ class MaskCollator(object):
     fraction is assigned to context and the remainder to prediction targets.
     """
 
-    def __init__(self, ratio=(0.4, 0.6), input_size=(224, 224), patch_size=16):
+    def __init__(
+        self,
+        ratio: tuple = (0.4, 0.6),
+        input_size: tuple = (224, 224),
+        patch_size: int = 16,
+    ) -> None:
         super(MaskCollator, self).__init__()
         if not isinstance(input_size, tuple):
             input_size = (input_size,) * 2
@@ -26,14 +32,14 @@ class MaskCollator(object):
         self.ratio = ratio
         self._itr_counter = Value("i", -1)
 
-    def step(self):
+    def step(self) -> int:
         i = self._itr_counter
         with i.get_lock():
             i.value += 1
             v = i.value
         return v
 
-    def __call__(self, batch):
+    def __call__(self, batch: Any) -> tuple:
         B = len(batch)
         collated_batch = torch.utils.data.default_collate(batch)
 

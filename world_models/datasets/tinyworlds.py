@@ -35,10 +35,8 @@ except ImportError:
     h5py = None
     logger.warning("h5py not installed. Install with: pip install h5py")
 
-hf_hub_download: Any = None
-list_repo_files: Any = None
 try:
-    from huggingface_hub import hf_hub_download, list_repo_files  # type: ignore
+    from huggingface_hub import hf_hub_download, list_repo_files
 
     HF_AVAILABLE = True
 except ImportError:
@@ -104,7 +102,7 @@ class TinyWorldsDataset(Dataset):
         cache_dir: Optional[str] = None,
         download: bool = True,
         data_file: Optional[str] = None,
-    ):
+    ) -> None:
         if dataset_name not in self.DATASET_CONFIGS:
             raise ValueError(
                 f"Unknown dataset: {dataset_name}. Available: {list(self.DATASET_CONFIGS.keys())}"
@@ -130,14 +128,14 @@ class TinyWorldsDataset(Dataset):
             self._load_data()
 
     def _get_default_cache_dir(self) -> str:
-        cache = os.path.expanduser("~/.cache/tinyworlds")
+        cache: str = os.path.expanduser("~/.cache/tinyworlds")
         os.makedirs(cache, exist_ok=True)
         return cache
 
     def _get_local_path(self) -> Path:
         return Path(self.cache_dir) / self.config["filename"]
 
-    def _download_or_load_data(self):
+    def _download_or_load_data(self) -> None:
         local_path = self._get_local_path()
 
         if local_path.exists():
@@ -178,7 +176,7 @@ class TinyWorldsDataset(Dataset):
                 f"https://huggingface.co/datasets/{self.config['repo_id']}/tree/main"
             )
 
-    def _load_data(self, file_path: Optional[Path] = None):
+    def _load_data(self, file_path: Optional[Path] = None) -> None:
         if h5py is None:
             raise RuntimeError(
                 "h5py not installed. Cannot load dataset files. Install with: pip install h5py"
@@ -283,11 +281,11 @@ class TinyWorldsDataset(Dataset):
 
         return video
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._data_file is not None:
             self._data_file.close()
 
-    def get_info(self) -> Dict:
+    def get_info(self) -> Dict[str, Any]:
         """Return dataset information."""
         return {
             "name": self.dataset_name,
@@ -316,30 +314,6 @@ class TinyWorldsDataLoader:
         download: bool = True,
         data_file: Optional[str] = None,
     ) -> Tuple[TinyWorldsDataset, DataLoader]:
-        """Create a dataloader for TinyWorlds dataset.
-
-        Args:
-            dataset_name: Name of the game dataset (PICO_DOOM, PONG, ZELDA, POLE_POSITION, SONIC)
-            num_frames: Number of frames per video sequence
-            image_size: Target image size (will resize frames)
-            batch_size: Batch size
-            num_workers: Number of data loading workers
-            shuffle: Whether to shuffle the data
-            cache_dir: Directory to cache downloaded datasets
-            download: Whether to download if not cached
-
-        Returns:
-            Tuple of (dataset, dataloader)
-
-        **Usage**::
-
-            dataset, loader = TinyWorldsDataLoader.create_dataloader(
-                dataset_name="SONIC",
-                num_frames=16,
-                image_size=64,
-                batch_size=4
-            )
-        """
         dataset = TinyWorldsDataset(
             dataset_name=dataset_name,
             num_frames=num_frames,
@@ -392,33 +366,6 @@ def create_tinyworlds_dataloader(
     download: bool = True,
     data_file: Optional[str] = None,
 ) -> Tuple[TinyWorldsDataset, DataLoader]:
-    """Factory function to create TinyWorlds dataloaders.
-
-    Args:
-        dataset_name: Name of the game dataset (PICO_DOOM, PONG, ZELDA, POLE_POSITION, SONIC)
-        num_frames: Number of frames per video sequence
-        image_size: Target image size
-        batch_size: Batch size
-        num_workers: Number of data loading workers
-        shuffle: Whether to shuffle
-        cache_dir: Cache directory for datasets
-        download: Download if not cached
-
-    Returns:
-        Tuple of (dataset, dataloader)
-
-    **Usage**::
-
-        dataset, loader = create_tinyworlds_dataloader(
-            dataset_name="SONIC",
-            num_frames=16,
-            batch_size=4
-        )
-
-        for batch in loader:
-            # batch shape: (B, T, C, H, W)
-            ...
-    """
     return TinyWorldsDataLoader.create_dataloader(
         dataset_name=dataset_name,
         num_frames=num_frames,
@@ -433,6 +380,14 @@ def create_tinyworlds_dataloader(
 
 
 def download_all_datasets(cache_dir: Optional[str] = None) -> Dict[str, Optional[str]]:
+    """Download all available TinyWorlds datasets.
+
+    Args:
+        cache_dir: Directory to cache downloaded datasets
+
+    Returns:
+        Dictionary mapping dataset names to local file paths
+    """
     """Download all available TinyWorlds datasets.
 
     Args:

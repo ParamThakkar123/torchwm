@@ -7,10 +7,8 @@ import pathlib
 import numpy as np
 import glob
 import warnings
+from typing import Any, Optional, Dict, List
 
-if not hasattr(np, "bool8"):
-    # Some NumPy builds don't expose `bool8` as an attribute; set it safely
-    setattr(np, "bool8", np.bool_)
 
 import plotly
 from plotly.graph_objs import Scatter, Line
@@ -22,7 +20,7 @@ from torchvision.utils import make_grid, save_image
 
 import torch.nn.functional as F
 
-import yaml  # type: ignore[import]
+import yaml
 
 import collections
 import collections.abc
@@ -52,7 +50,7 @@ class _RestrictedReplayUnpickler(pickle.Unpickler):
         ("world_models.memory.planet_memory", "_identity"),
     }
 
-    def find_class(self, module, name):
+    def find_class(self, module: str, name: str) -> type:
         if (module, name) in self._ALLOWED_GLOBALS:
             return super().find_class(module, name)
         raise pickle.UnpicklingError(
@@ -61,49 +59,36 @@ class _RestrictedReplayUnpickler(pickle.Unpickler):
 
 
 class AttrDict(dict):
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         try:
             return self[name]
         except KeyError:
             raise AttributeError(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         self[name] = value
 
-    def __delattr__(self, name):
+    def __delattr__(self, name: str) -> None:
         del self[name]
 
 
-for type_name in collections.abc.__all__:
-    setattr(collections, type_name, getattr(collections.abc, type_name))
-
-
-def load_yml_config(path):
+def load_yml_config(path: str) -> AttrDict | None:
     with open(path) as fileStream:
         loaded = yaml.safe_load(fileStream)
-        keys = list(loaded.keys())
-
-        dictionary = None
-
-        for i, key in enumerate(keys):
-            if i == 0:
-                dictionary = AttrDict({key: loaded[key]})
-            else:
-                dictionary += AttrDict({key: loaded[key]})
-
+        dictionary = AttrDict(loaded)
         return dictionary
 
 
-def to_tensor_obs(image):
+def to_tensor_obs(image: np.ndarray) -> torch.Tensor:
     """
     Converts the input np img to channel first 64x64 dim torch img.
     """
     image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
-    image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-    return image
+    tensor: torch.Tensor = torch.from_numpy(image).float().permute(2, 0, 1)
+    return tensor
 
 
-def postprocess_img(image, depth):
+def postprocess_img(image: np.ndarray, depth: int) -> np.ndarray:
     """
     Postprocess an image observation for storage.
     From float32 numpy array [-0.5, 0.5] to uint8 numpy array [0, 255])
@@ -112,7 +97,7 @@ def postprocess_img(image, depth):
     return np.clip(image * 2 ** (8 - depth), 0, 2**8 - 1).astype(np.uint8)
 
 
-def preprocess_img(image, depth):
+def preprocess_img(image: torch.Tensor, depth: int) -> None:
     """
     Preprocesses an observation inplace.
     From float32 Tensor [0, 255] to [-0.5, 0.5]
@@ -122,7 +107,7 @@ def preprocess_img(image, depth):
     image.add_(torch.randn_like(image).div_(2**depth)).clamp_(-0.5, 0.5)
 
 
-def bottle(func, *tensors):
+def bottle(func: Any, *tensors: torch.Tensor) -> torch.Tensor:
     """
     Evaluates a func that operates in N x D with inputs of shape N x T x D
     """
@@ -132,7 +117,7 @@ def bottle(func, *tensors):
     return out.view(n, t, *out.shape[1:])
 
 
-def get_combined_params(*models):
+def get_combined_params(*models: Any) -> list:
     """
     Returns the combine parameter list of all the models given as input.
     """
@@ -142,7 +127,7 @@ def get_combined_params(*models):
     return params
 
 
-def save_video(frames, path, name):
+def save_video(frames: Any, path: str, name: str) -> str:
     """
     Saves a video containing frames.
 
@@ -184,15 +169,16 @@ def save_video(frames, path, name):
 
     first = frames_u8[0]
     ch = first.shape[-1]
-    stats = {"min": [], "max": [], "mean": []}
+    stats: Dict[str, List[Any]] = {"min": [], "max": [], "mean": []}
     for c in range(ch):
         stats["min"].append(int(first[..., c].min()))
         stats["max"].append(int(first[..., c].max()))
         stats["mean"].append(float(first[..., c].mean()))
-    equal_ch = False
+    equal_ch: bool = False
     if ch >= 3:
-        equal_ch = np.all(first[..., 0] == first[..., 1]) and np.all(
-            first[..., 1] == first[..., 2]
+        equal_ch = bool(
+            np.all(first[..., 0] == first[..., 1])
+            and np.all(first[..., 1] == first[..., 2])
         )
 
     out_dir = pathlib.Path(path)
@@ -223,7 +209,7 @@ def save_video(frames, path, name):
 
     writer = cv2.VideoWriter(
         str(out_dir / f"{name}.mp4"),
-        cv2.VideoWriter_fourcc(*"mp4v"),
+        cv2.VideoWriter.fourcc(*"mp4v"),
         25.0,
         (W, H),
         True,
@@ -241,8 +227,12 @@ def save_video(frames, path, name):
 
 
 def combine_videos(
-    video_dir, output_name="combined.mp4", pattern="vid_*.mp4", fps=25, resize=True
-):
+    video_dir: str,
+    output_name: str = "combined.mp4",
+    pattern: str = "vid_*.mp4",
+    fps: int = 25,
+    resize: bool = True,
+) -> str:
     """
     Combine all videos matching `pattern` in `video_dir` into a single MP4 file.
     Returns the output filepath (string).
@@ -263,7 +253,7 @@ def combine_videos(
     height = int(cap0.get(cv2.CAP_PROP_FRAME_HEIGHT))
     cap0.release()
 
-    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    fourcc = cv2.VideoWriter.fourcc(*"mp4v")
     out_path = str(pathlib.Path(video_dir) / output_name)
     writer = cv2.VideoWriter(out_path, fourcc, float(fps), (width, height), True)
 
@@ -287,7 +277,7 @@ def combine_videos(
     return out_path
 
 
-def ensure_results_dir_exists(results_dir):
+def ensure_results_dir_exists(results_dir: str) -> None:
     """
     Simple helper to validate a results directory exists.
     Raises FileNotFoundError if not present.
@@ -296,7 +286,13 @@ def ensure_results_dir_exists(results_dir):
         raise FileNotFoundError(f"Results directory does not exist: {results_dir}")
 
 
-def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
+def save_frames(
+    target: torch.Tensor,
+    pred_prior: torch.Tensor,
+    pred_posterior: torch.Tensor,
+    name: str,
+    n_rows: int = 5,
+) -> None:
     """
     Save side-by-side target, prior-prediction, and posterior-prediction frames.
 
@@ -305,7 +301,7 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     concatenation and values are normalized to ``[0, 1]`` when needed.
     """
 
-    def ensure_time_dim(x):
+    def ensure_time_dim(x: torch.Tensor | np.ndarray) -> torch.Tensor:
         if not torch.is_tensor(x):
             x = torch.tensor(x)
         if x.dim() == 3:
@@ -333,7 +329,7 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
 
         H, W = tf.shape[1], tf.shape[2]
 
-        def match_size(img, H, W):
+        def match_size(img: torch.Tensor, H: int, W: int) -> torch.Tensor:
             img4 = img.unsqueeze(0)
             if img4.shape[2] != H or img4.shape[3] != W:
                 img4 = F.interpolate(
@@ -345,7 +341,7 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
         pr = match_size(pr, H, W)
         ppr = match_size(ppr, H, W)
 
-        def clamp01(x):
+        def clamp01(x: torch.Tensor) -> torch.Tensor:
             if x.min() < 0 or x.max() > 1:
                 return (x - x.min()) / (x.max() - x.min() + 1e-8)
             return x
@@ -368,7 +364,7 @@ def save_frames(target, pred_prior, pred_posterior, name, n_rows=5):
     save_image(grid, f"{name}.png")
 
 
-def get_mask(tensor, lengths):
+def get_mask(tensor: Any, lengths: Any) -> torch.Tensor:
     """
     Build a batch-first validity mask from sequence lengths.
 
@@ -397,7 +393,7 @@ def get_mask(tensor, lengths):
     return mask
 
 
-def load_memory(path, device, *, trusted=False):
+def load_memory(path: str, device: torch.device, *, trusted: bool = False) -> Any:
     """
     Loads an experience replay buffer.
 
@@ -447,14 +443,14 @@ def load_memory(path, device, *, trusted=False):
     return memory
 
 
-def flatten_dict(data, sep=".", prefix=""):
+def flatten_dict(data: dict, sep: str = ".", prefix: str = "") -> dict:
     """Flattens a nested dict into a single-level dict.
 
     Example:
       {'a': 2, 'b': {'c': 20}} -> {'a': 2, 'b.c': 20}
     """
 
-    def build_key(parent, child):
+    def build_key(parent: str, child: str) -> str:
         return f"{parent}{sep}{child}" if parent else str(child)
 
     flattened = {}
@@ -468,7 +464,7 @@ def flatten_dict(data, sep=".", prefix=""):
     return flattened
 
 
-def normalize_frames_for_saving(frames):
+def normalize_frames_for_saving(frames: Any) -> np.ndarray:
     """
     Ensure frames are in shape (T, H, W, 3) with float values in [0,1].
     Handles inputs in (T, C, H, W) or (T, H, W, C), repeats single-channel -> RGB,
@@ -505,14 +501,14 @@ def normalize_frames_for_saving(frames):
 class TensorBoardMetrics:
     """Plots and (optionally) stores metrics for an experiment."""
 
-    def __init__(self, path):
-        self.steps = defaultdict(lambda: 0)
-        self.summary = {}
+    def __init__(self, path: str) -> None:
+        self.steps: defaultdict[str, int] = defaultdict(lambda: 0)
+        self.summary: dict[str, Any] = {}
 
-    def assign_type(self, key, val):
+    def assign_type(self, key: str, val: Any) -> None:
         pass
 
-    def update(self, metrics: dict):
+    def update(self, metrics: dict) -> None:
         metrics = flatten_dict(metrics)
         for key_dots, val in metrics.items():
             key = key_dots.replace(".", "/")
@@ -521,7 +517,7 @@ class TensorBoardMetrics:
             self.steps[key] += 1
 
 
-def apply_model(model, inputs, ignore_dim=None):
+def apply_model(model: Any, inputs: Any, ignore_dim: Any = None) -> None:
     """Placeholder helper for generic model application across input structures.
 
     Currently not implemented; kept as an extension hook for future utility code.
@@ -529,14 +525,20 @@ def apply_model(model, inputs, ignore_dim=None):
     pass
 
 
-def plot_metrics(metrics, path, prefix):
+def plot_metrics(metrics: dict, path: str, prefix: str) -> None:
     """Render and save line plots for each metric series in a dictionary."""
     os.makedirs(path, exist_ok=True)
     for key, val in metrics.items():
         lineplot(np.arange(len(val)), val, f"{prefix}{key}", path)
 
 
-def lineplot(xs, ys, title, path="", xaxis="episode"):
+def lineplot(
+    xs: np.ndarray | list,
+    ys: Any,
+    title: str,
+    path: str = "",
+    xaxis: str = "episode",
+) -> None:
     """Create a Plotly line plot for scalar, dict, or ensemble-series data.
 
     Supports uncertainty-band plotting when `ys` is a 2D array.
@@ -594,7 +596,10 @@ class TorchImageEnvWrapper:
     Also returns observations in image form.
     """
 
-    def __init__(self, env, bit_depth, observation_shape=None, act_rep=2):
+    def __init__(
+        self, env: Any, bit_depth: int, observation_shape: Any = None, act_rep: int = 2
+    ) -> None:
+        self.env: Any
         if isinstance(env, str):
             try:
                 self.env = gym.make(env, render_mode="rgb_array")
@@ -618,14 +623,10 @@ class TorchImageEnvWrapper:
         self.bit_depth = bit_depth
         self.action_repeats = act_rep
 
-    def _get_frame(self, last_obs=None):
-        """Call env.render robustly across gym versions. Returns ndarray frame or None.
-        If rendering fails (OverflowError / pygame Surface) fallback to last_obs or a
-        synthesized image from the observation vector.
-        """
+    def _get_frame(self, last_obs: Any = None) -> np.ndarray | None:
         frame = None
         try:
-            out = self.env.render()
+            out: Any = self.env.render()
         except Exception:
             out = None
         # gym may return (frame, info)
@@ -675,7 +676,7 @@ class TorchImageEnvWrapper:
 
         return frame
 
-    def _obs_to_frame(self, obs):
+    def _obs_to_frame(self, obs: Any) -> np.ndarray | None:
         """Convert common observation formats to an HWC image when possible."""
         if isinstance(obs, tuple):
             obs = obs[0]
@@ -726,7 +727,7 @@ class TorchImageEnvWrapper:
 
         return None
 
-    def reset(self):
+    def reset(self) -> torch.Tensor:
         ret = self.env.reset()
         obs = ret[0] if isinstance(ret, tuple) else ret
         frame = self._obs_to_frame(obs)
@@ -741,24 +742,24 @@ class TorchImageEnvWrapper:
         preprocess_img(x, self.bit_depth)
         return x
 
-    def step(self, u):
+    def step(self, u: torch.Tensor | np.ndarray | list | float | int) -> tuple:
         if isinstance(u, torch.Tensor):
-            u_t = u.cpu().detach()
+            u_t: Any = u.cpu().detach()
         else:
             u_t = u
         if getattr(self.env.action_space, "n", None) is not None:
-            n = int(self.env.action_space.n)
+            n = int(getattr(self.env.action_space, "n", 1))
             arr = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
             arr = arr.reshape(-1)
             if arr.size > 1:
-                action = int(np.argmax(arr))
+                action: Any = int(np.argmax(arr))
             else:
                 val = float(arr[0]) if arr.size else 0.0
                 action = int(np.clip(int(round(val)), 0, n - 1))
         else:
             action = u_t.numpy() if isinstance(u_t, torch.Tensor) else np.asarray(u_t)
 
-        rwds = 0
+        rwds: float = 0.0
         last_d = False
         last_i = {}
         last_obs = None
@@ -787,18 +788,18 @@ class TorchImageEnvWrapper:
         preprocess_img(x, self.bit_depth)
         return x, rwds, last_d, last_i
 
-    def render(self):
+    def render(self) -> None:
         self.env.render()
 
-    def close(self):
+    def close(self) -> None:
         self.env.close()
 
     @property
-    def observation_size(self):
+    def observation_size(self) -> tuple[int, int, int]:
         return (3, 64, 64)
 
     @property
-    def action_size(self):
+    def action_size(self) -> int:
         space = getattr(self.env, "action_space", None)
         if space is None:
             return 1
@@ -823,11 +824,11 @@ class TorchImageEnvWrapper:
         except Exception:
             return 1
 
-    def sample_random_action(self):
+    def sample_random_action(self) -> torch.Tensor:
         return torch.tensor(self.env.action_space.sample())
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         """Return environment max episode steps (compatible with TimeLimit/spec)."""
         if (
             hasattr(self.env, "_max_episode_steps")
@@ -838,11 +839,13 @@ class TorchImageEnvWrapper:
             getattr(self.env, "spec", None) is not None
             and getattr(self.env.spec, "max_episode_steps", None) is not None
         ):
-            return int(self.env.spec.max_episode_steps)
+            steps = self.env.spec.max_episode_steps
+            assert steps is not None
+            return int(steps)
         return 1000
 
 
-def apply_masks(x, masks):
+def apply_masks(x: torch.Tensor, masks: list[torch.Tensor]) -> torch.Tensor:
     """Gather token subsets from patch sequences using index masks.
 
     Each mask selects token positions from `x`; selected groups are concatenated
@@ -855,7 +858,12 @@ def apply_masks(x, masks):
     return torch.cat(all_x, dim=0)
 
 
-def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
+def visualize_latent_tsne(
+    latents: torch.Tensor | np.ndarray,
+    labels: np.ndarray | None = None,
+    save_path: str | None = None,
+    perplexity: int = 30,
+) -> plotly.graph_objs.Figure:
     """
     Visualize latent representations using t-SNE.
 
@@ -904,7 +912,12 @@ def visualize_latent_tsne(latents, labels=None, save_path=None, perplexity=30):
     return fig
 
 
-def visualize_latent_umap(latents, labels=None, save_path=None, n_neighbors=15):
+def visualize_latent_umap(
+    latents: torch.Tensor | np.ndarray,
+    labels: np.ndarray | None = None,
+    save_path: str | None = None,
+    n_neighbors: int = 15,
+) -> plotly.graph_objs.Figure:
     """
     Visualize latent representations using UMAP.
 
@@ -964,14 +977,16 @@ class StreamingVideoWriter:
         format: 'mp4' or 'avi'
     """
 
-    def __init__(self, path, fps=20, frame_shape=None, format="mp4"):
+    def __init__(
+        self, path: str, fps: int = 20, frame_shape: Any = None, format: str = "mp4"
+    ) -> None:
         self.path = path
         self.fps = fps
         self.frame_shape = frame_shape
         self.format = format.lower()
-        self.writer = None
+        self.writer: cv2.VideoWriter | None = None
 
-    def write_frame(self, frame):
+    def write_frame(self, frame: np.ndarray) -> None:
         """
         Write a single frame to the video.
 
@@ -982,9 +997,9 @@ class StreamingVideoWriter:
             if self.frame_shape is None:
                 self.frame_shape = frame.shape[:2][::-1]  # (W, H)
             if self.format == "mp4":
-                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                fourcc = cv2.VideoWriter.fourcc(*"mp4v")
             elif self.format == "avi":
-                fourcc = cv2.VideoWriter_fourcc(*"XVID")
+                fourcc = cv2.VideoWriter.fourcc(*"XVID")
             else:
                 raise ValueError("Unsupported format")
             self.writer = cv2.VideoWriter(self.path, fourcc, self.fps, self.frame_shape)
@@ -994,9 +1009,10 @@ class StreamingVideoWriter:
             frame = (frame * 255).astype(np.uint8)
         if frame.shape[-1] == 3:  # RGB to BGR
             frame = frame[..., ::-1]
+        assert self.writer is not None
         self.writer.write(frame)
 
-    def close(self):
+    def close(self) -> None:
         if self.writer is not None:
             self.writer.release()
             self.writer = None

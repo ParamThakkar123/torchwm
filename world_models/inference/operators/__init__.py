@@ -1,3 +1,4 @@
+from typing import Any
 from .base import OperatorABC, TensorSpec
 from .dreamer_operator import DreamerOperator
 from .jepa_operator import JEPAOperator
@@ -5,7 +6,7 @@ from .iris_operator import IrisOperator
 from .planet_operator import PlaNetOperator
 
 
-def get_operator(name: str, **kwargs):
+def get_operator(name: str, **kwargs: Any) -> OperatorABC:
     """Factory function to get inference operators by name.
 
     Args:

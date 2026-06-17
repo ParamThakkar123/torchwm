@@ -1,3 +1,4 @@
+from typing import Any
 import pdb
 from collections import defaultdict
 from pprint import pprint
@@ -32,14 +33,16 @@ LATENT_SIZE = 30
 EMBEDDING_SIZE = 1024
 
 
-def train_rssm(memory, model, optimizer, record_grads=True):
+def train_rssm(
+    memory: Any, model: Any, optimizer: Any, record_grads: bool = True
+) -> dict:
     """Train an RSSM on replayed trajectories for one optimization phase.
 
     Samples batches from memory, computes reconstruction and KL objectives
     across rollout steps, and returns aggregated loss metrics.
     """
     model.train()
-    metrics = defaultdict(list)
+    metrics: dict[str, Any] = defaultdict(list)
     if record_grads:
         metrics["grads"] = defaultdict(list)
     device = next(model.parameters()).device
@@ -58,13 +61,13 @@ def train_rssm(memory, model, optimizer, record_grads=True):
         iloss = (((x[:, 0] - rx) ** 2).sum((1, 2, 3))).mean()
         # KL Divergence
         kl = kl_div(prior_dists[0], posterior_dists[0]).sum(-1)
-        kloss = torch.max(FREE_NATS, kl).mean()
+        kloss = kl.clamp(min=FREE_NATS).mean()
         mask = get_mask(u[..., 0], lens).T
         for i in range(1, len(states)):
             rx = model.decoder(states[i], posterior_samples[i])
             iloss += (((x[:, i] - rx) ** 2).sum((1, 2, 3)) * mask[i]).mean()
             kl = kl_div(prior_dists[i], posterior_dists[i]).sum(-1)
-            kloss += (torch.max(FREE_NATS, kl) * mask[i]).mean()
+            kloss += (kl.clamp(min=FREE_NATS) * mask[i]).mean()
 
         kloss /= len(states)
         iloss /= len(states)
@@ -87,7 +90,7 @@ def train_rssm(memory, model, optimizer, record_grads=True):
     return metrics
 
 
-def evaluate(memory, model, path, eps):
+def evaluate(memory: Any, model: Any, path: str, eps: Any) -> None:
     """Run one RSSM reconstruction/prediction evaluation and save visual outputs.
 
     Decodes priors/posteriors for a sampled sequence and writes frame grids
@@ -123,19 +126,18 @@ def evaluate(memory, model, path, eps):
     save_frames(x[0].cpu(), pred1[:, 0].cpu(), pred2[:, 0].cpu(), f"{path}_{eps}")
 
 
-def main():
+def main() -> None:
     """Standalone training loop for RSSM with generated replay fallback support.
 
     Initializes environment/policy/memory, trains over episodes, logs metrics,
     and periodically evaluates and checkpoints the model.
     """
-    global FREE_NATS
     if torch.cuda.is_available():
         device = torch.device("cuda:0")
     else:
         device = torch.device("cpu")
         print("WARNING: CUDA not available, using CPU")
-    FREE_NATS = torch.full((1,), FREE_NATS).to(device)
+    free_nats_tensor = torch.full((1,), FREE_NATS).to(device)
     rssm = RecurrentStateSpaceModel(1, STATE_SIZE, LATENT_SIZE, EMBEDDING_SIZE).to(
         device
     )
@@ -155,7 +157,9 @@ def main():
     rollout_gen = RolloutGenerator(env, device, policy=policy)
 
     # fallback: if replay files don't exist, generate and save them with rollouts
-    def ensure_memory(path, n_warmup=25, mem_size=1000, random_policy=True):
+    def ensure_memory(
+        path: str, n_warmup: int = 25, mem_size: int = 1000, random_policy: bool = True
+    ) -> Memory:
         if os.path.exists(path):
             return load_memory(path, device)
         print(f"{path} not found → generating {n_warmup} episodes with rollout_gen")
@@ -164,7 +168,8 @@ def main():
         mem.append(eps)
         with open(path, "wb") as f:
             pickle.dump(mem, f)
-        mem.device = device
+        mem.device = device  # type: ignore[attr-defined]
+
         return mem
 
     test_data = ensure_memory("test_exp_replay.pth", n_warmup=10, random_policy=True)

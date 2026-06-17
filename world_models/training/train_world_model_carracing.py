@@ -17,6 +17,7 @@ The script will:
 
 import os
 import argparse
+from typing import Any
 import numpy as np
 import multiprocessing as mp
 from glob import glob
@@ -40,8 +41,12 @@ from world_models.vision.VAE.ConvVAE import ConvVAE
 
 
 def generate_rollouts(
-    data_dir, env_name, num_rollouts=1000, seq_len=1000, num_workers=8
-):
+    data_dir: str,
+    env_name: str,
+    num_rollouts: int = 1000,
+    seq_len: int = 1000,
+    num_workers: int = 8,
+) -> None:
     """Generate random rollouts from the specified environment.
 
     Args:
@@ -71,7 +76,7 @@ def generate_rollouts(
     print(f"Generated rollouts in {data_dir}")
 
 
-def _generate_worker(args):
+def _generate_worker(args: tuple) -> None:
     """Worker function for parallel rollout generation."""
     data_dir, env_name, seq_len, num_rollouts = args
 
@@ -104,7 +109,9 @@ def _generate_worker(args):
             if len(observations) < 10:
                 continue
 
-            filepath = os.path.join(data_dir, f"rollout_{np.random.randint(1e10)}.npz")
+            filepath = os.path.join(
+                data_dir, f"rollout_{np.random.randint(0, 10000000000)}.npz"
+            )
             np.savez(
                 filepath,
                 observations=np.array(observations, dtype=np.uint8),
@@ -119,7 +126,7 @@ def _generate_worker(args):
     env.close()
 
 
-def run_training_pipeline(args, action_size):
+def run_training_pipeline(args: Any, action_size: int) -> None:
     """Execute the complete World Model training pipeline."""
 
     vae_config = WMVAEConfig(
@@ -201,7 +208,9 @@ def run_training_pipeline(args, action_size):
     print("=" * 50)
 
 
-def test_trained_model(logdir, env_name, action_size, num_episodes=5):
+def test_trained_model(
+    logdir: str, env_name: str, action_size: int, num_episodes: int = 5
+) -> None:
     """Test the trained world model with controller in the environment."""
 
     if torch.cuda.is_available():
@@ -221,23 +230,23 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
 
     print("\nLoading trained models...")
 
-    vae_state = torch.load(vae_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
     vae = ConvVAE(img_channels=3, latent_size=32).to(device)
     vae.load_state_dict(vae_state["state_dict"])
     vae.eval()
 
-    rnn_state = torch.load(rnn_file, map_location=device)
+    rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
     rnn = MDRNN(latents=32, actions=action_size, hiddens=256, gaussians=5).to(device)
     rnn.load_state_dict(rnn_state["state_dict"])
     rnn.eval()
 
-    ctrl_state = torch.load(ctrl_file, map_location=device)
+    ctrl_state = torch.load(ctrl_file, map_location=device, weights_only=True)
     ctrl = Controller(latent_size=32, hidden_size=256, action_size=action_size)
     ctrl.load_state_dict(ctrl_state["state_dict"])
     ctrl.eval()
 
     try:
-        env = gym.make(env_name, continuous=True)
+        env: Any = gym.make(env_name, continuous=True)
     except Exception:
         env = gym.make(env_name)
 
@@ -247,7 +256,7 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
 
     for episode in range(num_episodes):
         obs, _ = env.reset()
-        total_reward = 0
+        total_reward = 0.0
         h = torch.zeros(1, 256).to(device)
 
         for step in range(1000):
@@ -265,14 +274,18 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
                 action = ctrl(h, z).cpu().numpy().flatten()
 
                 mus, sigmas, logpi, _, _ = rnn(action, z)
-                h = rnn.get_init_hidden(1)
-                h = h + torch.randn_like(h) * 0.1
+                h0 = rnn.get_init_hidden(1)
+                h = (
+                    h0[0] + torch.randn_like(h0[0]) * 0.1
+                    if isinstance(h0, tuple)
+                    else h0 + torch.randn_like(h0) * 0.1
+                )
 
-                next_obs, reward, done, _ = env.step(action)
-                total_reward += reward
+                next_obs, reward, terminated, truncated, _ = env.step(action)
+                total_reward += float(reward)
                 obs = next_obs
 
-                if done:
+                if terminated or truncated:
                     break
 
         print(f"Episode {episode + 1}: Total Reward = {total_reward:.2f}")
@@ -280,7 +293,7 @@ def test_trained_model(logdir, env_name, action_size, num_episodes=5):
     env.close()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Train World Model on any Gym environment"
     )
@@ -414,9 +427,9 @@ def main():
         temp_env = gym.make(args.env)
 
     if hasattr(temp_env.action_space, "shape"):
-        action_size = temp_env.action_space.shape[0]
+        action_size = (temp_env.action_space.shape or (0,))[0]
     else:
-        action_size = temp_env.action_space.n
+        action_size = getattr(temp_env.action_space, "n", 0)
     temp_env.close()
 
     if args.test:

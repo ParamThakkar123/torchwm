@@ -368,7 +368,7 @@ def export_model(
                 if example_inputs is None:
                     exported = torch.jit.script(module, **kwargs)
                 else:
-                    exported = torch.jit.trace(
+                    exported = torch.jit.trace(  # type: ignore[no-untyped-call]
                         module,
                         _inputs_to_args(example_inputs),
                         strict=kwargs.pop("strict", False),
@@ -413,7 +413,7 @@ def install_export_method() -> None:
 
     if getattr(nn.Module, "_torchwm_export_installed", False):
         return
-    nn.Module.export = _module_export  # type: ignore[attr-defined, method-assign]
+    nn.Module.export = _module_export  # type: ignore[attr-defined]
     nn.Module._torchwm_export_installed = True  # type: ignore[attr-defined]
 
 

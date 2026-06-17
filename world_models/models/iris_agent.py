@@ -70,7 +70,7 @@ class IRISAgent(nn.Module):
         config: IRISConfig,
         action_size: int,
         device: torch.device,
-    ):
+    ) -> None:
         super().__init__()
 
         self.config = coerce_config(IRISConfig, config)
@@ -193,7 +193,7 @@ class IRISAgent(nn.Module):
             torch.device(device) if device is not None else torch.device("cpu")
         )
         checkpoint = torch.load(
-            checkpoint_path, map_location=map_location, weights_only=False
+            checkpoint_path, map_location=map_location, weights_only=True
         )
         checkpoint_config = checkpoint.get("config")
         if config is None and isinstance(checkpoint_config, IRISConfig):
@@ -241,7 +241,7 @@ class IRISAgent(nn.Module):
             }
         )
 
-    def _setup_optimizers(self):
+    def _setup_optimizers(self) -> None:
         """Setup separate optimizers for each component."""
         # Autoencoder optimizer
         self.autoencoder_opt = optim.Adam(
@@ -552,7 +552,7 @@ class IRISAgent(nn.Module):
 
         # Update
         self.transformer_opt.zero_grad(set_to_none=True)
-        self.transformer_scaler.scale(loss).backward()
+        self.transformer_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
         self.transformer_scaler.unscale_(self.transformer_opt)
         nn.utils.clip_grad_norm_(
             self.transformer.parameters(), self.config.grad_clip_norm
@@ -635,7 +635,7 @@ class IRISAgent(nn.Module):
 
         # Update
         self.ac_opt.zero_grad(set_to_none=True)
-        self.ac_scaler.scale(loss).backward()
+        self.ac_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
         self.ac_scaler.unscale_(self.ac_opt)
         nn.utils.clip_grad_norm_(
             list(self.cnn.parameters())
@@ -658,7 +658,7 @@ class IRISAgent(nn.Module):
         self.logger.debug(f"Actor-critic update: {losses}")
         return losses
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         """Save agent state."""
         save_config_next_to_checkpoint(self.config, path)
         torch.save(
@@ -681,7 +681,7 @@ class IRISAgent(nn.Module):
             path,
         )
 
-    def load(self, path: str):
+    def load(self, path: str) -> None:
         """Load agent state."""
         with torch.serialization.safe_globals([IRISConfig]):
             checkpoint = torch.load(

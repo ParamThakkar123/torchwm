@@ -1,5 +1,6 @@
 import logging
 import sys
+from typing import Any, Optional
 
 import torch
 
@@ -12,21 +13,23 @@ logger = logging.getLogger()
 
 
 def load_checkpoint(
-    device,
-    r_path,
-    encoder,
-    predictor,
-    target_encoder,
-    opt,
-    scaler,
-):
+    device: torch.device,
+    r_path: str,
+    encoder: torch.nn.Module,
+    predictor: torch.nn.Module,
+    target_encoder: Optional[torch.nn.Module],
+    opt: torch.optim.Optimizer,
+    scaler: Optional[Any],
+) -> tuple:
     """Load JEPA training state from disk into model and optimizer objects.
 
     Restores encoder, predictor, optional target encoder, optimizer state,
     and optional AMP scaler, returning the resumed epoch for training restart.
     """
     try:
-        checkpoint = torch.load(r_path, map_location=torch.device("cpu"))
+        checkpoint = torch.load(
+            r_path, map_location=torch.device("cpu"), weights_only=True
+        )
         epoch = checkpoint["epoch"]
 
         # -- loading encoder
@@ -62,13 +65,13 @@ def load_checkpoint(
 
 
 def init_model(
-    device,
-    patch_size=16,
-    model_name="vit_base",
-    crop_size=224,
-    pred_depth=6,
-    pred_emb_dim=384,
-):
+    device: torch.device,
+    patch_size: int = 16,
+    model_name: str = "vit_base",
+    crop_size: int = 224,
+    pred_depth: int = 6,
+    pred_emb_dim: int = 384,
+) -> tuple:
     """Initialize JEPA encoder and predictor modules with ViT backbones.
 
     Applies truncated-normal parameter initialization, moves modules to the
@@ -83,7 +86,7 @@ def init_model(
         num_heads=encoder.num_heads,
     )
 
-    def init_weights(m):
+    def init_weights(m: torch.nn.Module) -> None:
         if isinstance(m, torch.nn.Linear):
             trunc_normal_(m.weight, std=0.02)
             if m.bias is not None:
@@ -105,19 +108,19 @@ def init_model(
 
 
 def init_opt(
-    encoder,
-    predictor,
-    iterations_per_epoch,
-    start_lr,
-    ref_lr,
-    warmup,
-    num_epochs,
-    wd=1e-6,
-    final_wd=1e-6,
-    final_lr=0.0,
-    use_bfloat16=False,
-    ipe_scale=1.25,
-):
+    encoder: torch.nn.Module,
+    predictor: torch.nn.Module,
+    iterations_per_epoch: int,
+    start_lr: float,
+    ref_lr: float,
+    warmup: float,
+    num_epochs: int,
+    wd: float = 1e-6,
+    final_wd: float = 1e-6,
+    final_lr: float = 0.0,
+    use_bfloat16: bool = False,
+    ipe_scale: float = 1.25,
+) -> tuple:
     """Build optimizer, AMP scaler, LR scheduler, and weight-decay scheduler for JEPA.
 
     Parameters are grouped to exclude bias/norm tensors from weight decay,
@@ -159,7 +162,7 @@ def init_opt(
     ]
 
     logger.info("Using AdamW")
-    optimizer = torch.optim.AdamW(param_groups)
+    optimizer = torch.optim.AdamW(param_groups)  # type: ignore[arg-type]
     scheduler = WarmupCosineSchedule(
         optimizer,
         warmup_steps=int(warmup * iterations_per_epoch),
@@ -174,5 +177,5 @@ def init_opt(
         final_wd=final_wd,
         T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
     )
-    scaler = torch.cuda.amp.GradScaler("cuda") if use_bfloat16 else None
+    scaler = torch.cuda.amp.GradScaler() if use_bfloat16 else None
     return optimizer, scaler, scheduler, wd_scheduler

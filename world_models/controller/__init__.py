@@ -22,7 +22,10 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:
     if name == "Controller":
         from world_models.models.controller import Controller
 

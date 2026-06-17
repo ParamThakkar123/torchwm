@@ -134,25 +134,6 @@ class LatentActionModel(nn.Module):
 
         # ST-Transformer for decoder (per paper - uses spatiotemporal attention)
         self.decoder = STTransformer(
-            num_frames=num_frames,
-            num_patches_per_frame=num_patches,
-            dim=decoder_dim,
-            depth=decoder_depth,
-            num_heads=num_heads,
-            drop_rate=0.0,
-            attn_drop_rate=0.0,
-        )
-
-        self.decoder_pos_embed = nn.Parameter(
-            torch.zeros(1, self.max_seq_len * num_patches, decoder_dim)
-        )
-        nn.init.trunc_normal_(self.decoder_pos_embed, std=0.02)
-
-        # Decoder uses action embeddings as additive conditioning
-        self.decoder_action_proj = nn.Linear(embedding_dim, decoder_dim)
-
-        # ST-Transformer for decoder (per paper - uses spatiotemporal attention)
-        self.decoder = STTransformer(
             num_frames=self.max_seq_len,
             num_patches_per_frame=num_patches,
             dim=decoder_dim,
@@ -243,9 +224,7 @@ class LatentActionModel(nn.Module):
             if self.action_pooling == "windowed_attention":
                 next_t = min(t + 1, T - 1)
                 x_next_t = x[:, next_t, :, :]  # (B, N, C)
-                x_next_t_embed = self.to_vq_embedding(
-                    x_next_t
-                )  # (B, N, embedding_dim)
+                x_next_t_embed = self.to_vq_embedding(x_next_t)  # (B, N, embedding_dim)
                 x_t_pooled = self._pool_windowed_attention(
                     x_t_embed, x_next_t_embed
                 )  # (B, embedding_dim)

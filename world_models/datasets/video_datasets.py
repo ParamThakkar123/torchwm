@@ -106,7 +106,7 @@ class VideoFolderDataset(VideoDatasetBase):
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(cast(Union[str, Path], self.data_source))
+        data_path = Path(cast(Union[str, Path], self.data_source))  # type: ignore[redundant-cast]
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -200,7 +200,7 @@ class ImageFolderDataset(VideoDatasetBase):
         if isinstance(self.data_source, (list, tuple)):
             return [Path(p) for p in self.data_source]
 
-        data_path = Path(cast(Union[str, Path], self.data_source))
+        data_path = Path(self.data_source)
 
         if not data_path.exists():
             raise FileNotFoundError(f"Data path not found: {data_path}")
@@ -264,7 +264,7 @@ class NumPyDataset(VideoDatasetBase):
         data_path = Path(data_source)
 
         if data_path.suffix == ".npz":
-            self.npz_data = np.load(data_path, allow_pickle=True)
+            self.npz_data = np.load(data_path, allow_pickle=False)
             if self.key is None:
                 self.key = list(self.npz_data.keys())[0]
             data = self.npz_data[self.key]
@@ -272,7 +272,7 @@ class NumPyDataset(VideoDatasetBase):
             self.is_5d = len(data.shape) == 5
         else:
             self.npz_data = None
-            data = np.load(data_path, allow_pickle=True)
+            data = np.load(data_path, allow_pickle=False)
             self.num_samples = data.shape[0] if len(data.shape) >= 4 else 1
             self.is_5d = len(data.shape) == 5
 
@@ -286,7 +286,7 @@ class NumPyDataset(VideoDatasetBase):
         if self.npz_data is not None:
             data = self.npz_data[self.key]
         else:
-            data = np.load(str(self.data_source), allow_pickle=True)
+            data = np.load(str(self.data_source), allow_pickle=False)
 
         if self.is_5d:
             video = data[idx]
@@ -341,10 +341,10 @@ class RLEnvironmentDataset(VideoDatasetBase):
 
     def _load_video(self, idx: int) -> torch.Tensor:
         if hasattr(self, "single_file") and self.single_file:
-            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=False)
             observations = data[self.obs_key]
         else:
-            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=True)
+            data = np.load(str(cast(Path, self.video_paths[idx])), allow_pickle=False)
             observations = data[self.obs_key]
 
         if isinstance(observations, dict):
@@ -451,7 +451,7 @@ class HDF5Dataset(VideoDatasetBase):
     def _get_video_paths(self) -> Sequence[Union[Path, int]]:
         return list(range(self.num_samples))
 
-    def _open_h5(self):
+    def _open_h5(self) -> Any:
         if self._h5_file is None:
             self._h5_file = h5py.File(self.data_source, "r" if self.memmap else "r")
         return self._h5_file
@@ -504,7 +504,7 @@ class HDF5Dataset(VideoDatasetBase):
     def __len__(self) -> int:
         return self.num_samples
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._h5_file is not None:
             self._h5_file.close()
 
@@ -518,7 +518,7 @@ def create_video_dataloader(
     num_workers: int = 4,
     shuffle: bool = True,
     pin_memory: bool = True,
-    **kwargs,
+    **kwargs: Any,
 ) -> Tuple[Dataset, DataLoader]:
     """Factory function to create video dataloaders.
 

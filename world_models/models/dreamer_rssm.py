@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as distributions
+from typing import Tuple
 
 _str_to_activation = {
     "relu": nn.ReLU(),
@@ -77,13 +78,13 @@ class RSSM(nn.Module):
 
     def __init__(
         self,
-        action_size,
-        stoch_size,
-        deter_size,
-        hidden_size,
-        obs_embed_size,
-        activation,
-    ):
+        action_size: int,
+        stoch_size: int,
+        deter_size: int,
+        hidden_size: int,
+        obs_embed_size: int,
+        activation: str,
+    ) -> None:
         super().__init__()
 
         self.action_size = action_size
@@ -105,7 +106,7 @@ class RSSM(nn.Module):
         )
         self.fc_state_posterior = nn.Linear(self.hidden_size, 2 * self.stoch_size)
 
-    def init_state(self, batch_size, device):
+    def init_state(self, batch_size: int, device: torch.device) -> dict:
         """Initialize RSSM state with zeros.
 
         Args:
@@ -125,7 +126,9 @@ class RSSM(nn.Module):
             deter=torch.zeros(batch_size, self.deter_size).to(device),
         )
 
-    def get_dist(self, mean, std):
+    def get_dist(
+        self, mean: torch.Tensor, std: torch.Tensor
+    ) -> distributions.Independent:
         """Create an Independent Normal distribution from mean and std.
 
         Args:
@@ -135,11 +138,14 @@ class RSSM(nn.Module):
         Returns:
             Independent Normal distribution with given parameters
         """
-        distribution = distributions.Normal(mean, std)
-        distribution = distributions.independent.Independent(distribution, 1)
+        distribution: distributions.Independent = distributions.independent.Independent(
+            distributions.Normal(mean, std), 1
+        )
         return distribution
 
-    def _gru_input(self, prev_state, prev_action, nonterm):
+    def _gru_input(
+        self, prev_state: dict, prev_action: torch.Tensor, nonterm: torch.Tensor
+    ) -> torch.Tensor:
         """Project [action, stoch] into the GRU input space and apply nonterm.
 
         Per the Danijar Dreamer reference, the previous stochastic state is
@@ -153,7 +159,13 @@ class RSSM(nn.Module):
         x = self.act_fn(self.fc_state_action(x))
         return x
 
-    def observe_step(self, prev_state, prev_action, obs_embed, nonterm=1.0):
+    def observe_step(
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        obs_embed: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
+    ) -> Tuple[dict, dict]:
         """Update state using actual observation (observe mode).
 
         In observe mode, the RSSM first computes a transition prior from the
@@ -183,7 +195,12 @@ class RSSM(nn.Module):
         posterior_state = dict(mean=mean, std=std, stoch=sample, deter=prior["deter"])
         return posterior_state, prior
 
-    def imagine_step(self, prev_state, prev_action, nonterm=1.0):
+    def imagine_step(
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
+    ) -> dict:
         """Predict next state without observation (imagine mode).
 
         In imagine mode, the RSSM predicts future states using only the prior
@@ -209,23 +226,21 @@ class RSSM(nn.Module):
         sample = mean + torch.randn_like(mean) * std
         return dict(mean=mean, std=std, stoch=sample, deter=prior_deter)
 
-    def get_prior(self, prev_state, prev_action, nonterm=1.0):
-        """Compute prior distribution over stochastic state.
-
-        The prior represents the model's belief about the stochastic state
-        before observing the actual outcome.
-
-        Args:
-            prev_state: Previous state dictionary
-            prev_action: Previous action
-            nonterm: Termination mask
-
-        Returns:
-            Dictionary with prior state (no observation information)
-        """
+    def get_prior(
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
+    ) -> dict:
         return self.imagine_step(prev_state, prev_action, nonterm)
 
-    def get_posterior(self, prev_state, prev_action, obs_embed, nonterm=1.0):
+    def get_posterior(
+        self,
+        prev_state: dict,
+        prev_action: torch.Tensor,
+        obs_embed: torch.Tensor,
+        nonterm: torch.Tensor = torch.tensor(1.0),
+    ) -> dict:
         """Compute posterior distribution over stochastic state.
 
         The posterior incorporates observation information to produce
@@ -245,7 +260,7 @@ class RSSM(nn.Module):
         posterior, _ = self.observe_step(prev_state, prev_action, obs_embed, nonterm)
         return posterior
 
-    def detach_state(self, state):
+    def detach_state(self, state: dict) -> dict:
         """Detach state tensors from computation graph.
 
         Used during DreamerV2 training to prevent gradient flow through
@@ -259,7 +274,7 @@ class RSSM(nn.Module):
         """
         return {k: v.detach() for k, v in state.items()}
 
-    def seq_to_batch(self, state_dict):
+    def seq_to_batch(self, state_dict: dict) -> dict:
         """Convert sequence state to batch format.
 
         Args:
@@ -270,7 +285,14 @@ class RSSM(nn.Module):
         """
         return {k: v.reshape(-1, *v.shape[2:]) for k, v in state_dict.items()}
 
-    def observe_rollout(self, obs_embed, actions, nonterms, init_state, seq_len):
+    def observe_rollout(
+        self,
+        obs_embed: torch.Tensor,
+        actions: torch.Tensor,
+        nonterms: torch.Tensor,
+        init_state: dict,
+        seq_len: int,
+    ) -> Tuple[dict, dict]:
         """Process a sequence of observations (observe mode rollout).
 
         At each timestep we run ``observe_step`` once to obtain the transition
@@ -310,7 +332,9 @@ class RSSM(nn.Module):
 
         return prior, posterior
 
-    def imagine_rollout(self, policy, init_state, horizon):
+    def imagine_rollout(
+        self, policy: nn.Module, init_state: dict, horizon: int
+    ) -> dict:
         """Generate imagined trajectory using policy (imagine mode rollout).
 
         Args:
@@ -333,7 +357,7 @@ class RSSM(nn.Module):
         to_stack = ["mean", "std", "stoch", "deter"]
         return {k: torch.stack([s[k] for s in states], dim=0) for k in to_stack}
 
-    def forward(self, x, u):
+    def forward(self, x: torch.Tensor, u: torch.Tensor) -> tuple:
         """Forward pass for training (computes sequence of states).
 
         Args:

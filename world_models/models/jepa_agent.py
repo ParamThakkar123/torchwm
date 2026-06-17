@@ -23,7 +23,7 @@ class JEPAAgent(ExportableAgentMixin):
     and delegates execution to the JEPA training entrypoint.
     """
 
-    def __init__(self, config: JEPAConfig | None = None, **kwargs):
+    def __init__(self, config: JEPAConfig | None = None, **kwargs: Any) -> None:
         self.cfg = coerce_config(JEPAConfig, config)
         for key, val in kwargs.items():
             if key == "logdir":
@@ -109,5 +109,5 @@ class JEPAAgent(ExportableAgentMixin):
             "config": self.cfg.to_dict(),
         }
 
-    def train(self):
+    def train(self) -> None:
         train_jepa_main(self.cfg)

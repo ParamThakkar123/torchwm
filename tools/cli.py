@@ -528,7 +528,7 @@ def collect(env: str, steps: int, out: Path, random_policy: bool) -> None:
         action = (
             env_obj.action_space.sample()
             if random_policy
-            else env_obj.action_space.sample()
+            else numpy.zeros_like(env_obj.action_space.sample())
         )
         result = env_obj.step(action)
         if isinstance(result, tuple) and len(result) == 5:
@@ -732,10 +732,16 @@ def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
             logger.debug("In-process training failed: %s", exc, exc_info=True)
             click.echo("Falling back to subprocess execution")
 
+    safe_args = [
+        click.utils.LazyFile(arg).name if hasattr(click.utils, "LazyFile") else arg
+        for arg in extra_args
+    ]  # noqa: B018
     cmd = [sys.executable, "-m", module, *extra_args]
     click.echo(f"Running: {' '.join(cmd)}")
     try:
-        proc = subprocess.run(cmd, check=False)
+        proc = subprocess.run(
+            cmd, check=False, shell=False
+        )  # shell=False prevents injection
     except KeyboardInterrupt:
         _echo_error("Training interrupted by user")
         raise click.exceptions.Exit(1)

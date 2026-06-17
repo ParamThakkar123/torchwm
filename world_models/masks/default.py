@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Any
 
 import torch
 
@@ -12,7 +13,6 @@ class DefaultCollator(object):
     shape `(batch, masks_enc, masks_pred)` but masking is disabled.
     """
 
-    def __call__(self, batch):
-
+    def __call__(self, batch: Any) -> tuple:
         collated_batch = torch.utils.data.default_collate(batch)
         return collated_batch, None, None

@@ -3,6 +3,7 @@ import math
 from multiprocessing import Value
 
 from logging import getLogger
+from typing import Any, Optional
 
 import torch
 
@@ -19,16 +20,16 @@ class MaskCollator(object):
 
     def __init__(
         self,
-        input_size=(224, 224),
-        patch_size=16,
-        enc_mask_scale=(0.2, 0.8),
-        pred_mask_scale=(0.5, 1.0),
-        aspect_ratio=(0.3, 3.0),
-        nenc=1,
-        npred=2,
-        min_keep=4,
-        allow_overlap=False,
-    ):
+        input_size: tuple[int, int] = (224, 224),
+        patch_size: int = 16,
+        enc_mask_scale: tuple[float, float] = (0.2, 0.8),
+        pred_mask_scale: tuple[float, float] = (0.5, 1.0),
+        aspect_ratio: tuple[float, float] = (0.3, 3.0),
+        nenc: int = 1,
+        npred: int = 2,
+        min_keep: int = 4,
+        allow_overlap: bool = False,
+    ) -> None:
         super(MaskCollator, self).__init__()
         if not isinstance(input_size, tuple):
             input_size = (input_size,) * 2
@@ -46,14 +47,16 @@ class MaskCollator(object):
         self.allow_overlap = allow_overlap
         self._itr_counter = Value("i", -1)
 
-    def step(self):
+    def step(self) -> int:
         i = self._itr_counter
         with i.get_lock():
             i.value += 1
             v = i.value
         return v
 
-    def _sample_block_size(self, generator, scale, aspect_ratio_scale):
+    def _sample_block_size(
+        self, generator: torch.Generator, scale: tuple, aspect_ratio_scale: tuple
+    ) -> tuple:
         _rand = torch.rand(1, generator=generator).item()
         min_s, max_s = scale
         mask_scale = min_s + (max_s - min_s) * _rand
@@ -68,10 +71,12 @@ class MaskCollator(object):
 
         return (h, w)
 
-    def _sample_block_mask(self, b_size, acceptable_regions=None):
+    def _sample_block_mask(
+        self, b_size: tuple, acceptable_regions: Any = None
+    ) -> tuple:
         h, w = b_size
 
-        def constrain_mask(mask_bool):
+        def constrain_mask(mask_bool: torch.Tensor) -> None:
             # If acceptable_regions provided, mask out invalid positions (in-place)
             if acceptable_regions is None:
                 return
@@ -108,7 +113,7 @@ class MaskCollator(object):
         mask_complement[top : top + h, left : left + w] = 0
         return mask, mask_complement
 
-    def __call__(self, batch):
+    def __call__(self, batch: Any) -> tuple:
         B = len(batch)
 
         collated_batch = torch.utils.data.default_collate(batch)
@@ -129,7 +134,6 @@ class MaskCollator(object):
         min_keep_pred = self.height * self.width
         min_keep_enc = self.height * self.width
         for _ in range(B):
-
             masks_p, masks_C = [], []
             for _ in range(self.npred):
                 mask, mask_C = self._sample_block_mask(p_size)
@@ -138,7 +142,7 @@ class MaskCollator(object):
                 min_keep_pred = min(min_keep_pred, len(mask))
             collated_masks_pred.append(masks_p)
 
-            acceptable_regions = masks_C
+            acceptable_regions: Any = masks_C
             try:
                 if self.allow_overlap:
                     acceptable_regions = None

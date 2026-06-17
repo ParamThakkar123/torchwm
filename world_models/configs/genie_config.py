@@ -82,6 +82,9 @@ class GenieSmallConfig(SerializableConfigMixin):
     mask_prob_min: float = 0.5
     mask_prob_max: float = 1.0
 
+    sample_temperature: float = 2.0
+    maskgit_steps: int = 25
+
 
 @dataclass
 class STTransformerConfig(SerializableConfigMixin):

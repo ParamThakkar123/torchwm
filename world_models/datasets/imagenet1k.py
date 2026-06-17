@@ -67,8 +67,8 @@ def make_imagenet1k(
     """
     # Annotate as Any because we may wrap the ImageNet with ImageNetSubset
     dataset: Any = ImageNet(
-        root=root_path,
-        image_folder=image_folder,
+        root=root_path,  # type: ignore[arg-type]
+        image_folder=image_folder,  # type: ignore[arg-type]
         transform=transform,
         train=training,
         copy_data=copy_data,
@@ -113,16 +113,16 @@ class ImageNet(torchvision.datasets.ImageFolder):
 
     def __init__(
         self,
-        root,
-        image_folder="imagenet_full_size/061417/",
-        tar_file="imagenet_full_size-061417.tar.gz",
-        transform=None,
-        train=True,
-        job_id=None,
-        local_rank=None,
-        copy_data=True,
-        index_targets=False,
-    ):
+        root: str,
+        image_folder: str = "imagenet_full_size/061417/",
+        tar_file: str = "imagenet_full_size-061417.tar.gz",
+        transform: Any = None,
+        train: bool = True,
+        job_id: str | None = None,
+        local_rank: int | None = None,
+        copy_data: bool = True,
+        index_targets: bool = False,
+    ) -> None:
         """Initialize ImageNet dataset.
 
         Args:
@@ -156,16 +156,16 @@ class ImageNet(torchvision.datasets.ImageFolder):
         logger.info("Initialized ImageNet")
 
         if index_targets:
-            self.targets = []
+            self.targets: list[int] = []
             for sample in self.samples:
                 self.targets.append(sample[1])
-            self.targets = np.array(self.targets)
-            self.samples = np.array(self.samples)
+            self.targets_arr = np.array(self.targets)
+            self.samples_arr = np.array(self.samples)
 
             mint = None
             self.target_indices = []
             for t in range(len(self.classes)):
-                indices = np.squeeze(np.argwhere(self.targets == t)).tolist()
+                indices = np.squeeze(np.argwhere(self.targets_arr == t)).tolist()
                 self.target_indices.append(indices)
                 mint = len(indices) if mint is None else min(mint, len(indices))
                 logger.debug(f"num-labeled target {t} {len(indices)}")
@@ -179,7 +179,7 @@ class ImageNetSubset(object):
     kept while preserving transforms and label mapping from the base dataset.
     """
 
-    def __init__(self, dataset, subset_file):
+    def __init__(self, dataset: Any, subset_file: str) -> None:
         """
         ImageNetSubset
 
@@ -190,7 +190,7 @@ class ImageNetSubset(object):
         self.subset_file = subset_file
         self.filter_dataset_(subset_file)
 
-    def filter_dataset_(self, subset_file):
+    def filter_dataset_(self, subset_file: str) -> None:
         """Filter self.dataset to a subset"""
         root = self.dataset.root
         class_to_idx = self.dataset.class_to_idx
@@ -206,13 +206,13 @@ class ImageNetSubset(object):
         self.samples = new_samples
 
     @property
-    def classes(self):
+    def classes(self) -> Any:
         return self.dataset.classes
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Any:
         path, target = self.samples[index]
         img = self.dataset.loader(path)
         if self.dataset.transform is not None:
@@ -223,13 +223,13 @@ class ImageNetSubset(object):
 
 
 def copy_imgnt_locally(
-    root,
-    suffix,
-    image_folder="imagenet_full_size/061417/",
-    tar_file="imagenet_full_size-061417.tar.gz",
-    job_id=None,
-    local_rank=None,
-):
+    root: str,
+    suffix: str,
+    image_folder: str = "imagenet_full_size/061417/",
+    tar_file: str = "imagenet_full_size-061417.tar.gz",
+    job_id: str | None = None,
+    local_rank: int | None = None,
+) -> str | None:
     """Copy and extract ImageNet archives to per-job local scratch storage.
 
     In SLURM environments this reduces network filesystem pressure by unpacking

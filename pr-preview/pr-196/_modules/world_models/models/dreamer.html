@@ -803,7 +803,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">memory_status</span> <span class="o">=</span> <span class="n">MEMORYSTATUSEX</span><span class="p">()</span>
         <span class="n">memory_status</span><span class="o">.</span><span class="n">dwLength</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">sizeof</span><span class="p">(</span><span class="n">MEMORYSTATUSEX</span><span class="p">)</span>
-        <span class="n">kernel32</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">WinDLL</span><span class="p">(</span><span class="s2">&quot;kernel32&quot;</span><span class="p">,</span> <span class="n">use_last_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="n">kernel32</span> <span class="o">=</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">WinDLL</span><span class="p">(</span><span class="s2">&quot;kernel32&quot;</span><span class="p">,</span> <span class="n">use_last_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">kernel32</span><span class="o">.</span><span class="n">GlobalMemoryStatusEx</span><span class="p">(</span><span class="n">ctypes</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">memory_status</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Failed to get memory status&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">memory_status</span><span class="o">.</span><span class="n">ullAvailPhys</span>
@@ -921,7 +921,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;unity_file_name must be provided when env_backend=&#39;unity_mlagents&#39;.&quot;</span>
             <span class="p">)</span>
-        <span class="n">env</span> <span class="o">=</span> <span class="n">UnityMLAgentsEnv</span><span class="p">(</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">UnityMLAgentsEnv</span><span class="p">(</span>
             <span class="n">file_name</span><span class="o">=</span><span class="n">unity_file_name</span><span class="p">,</span>
             <span class="n">behavior_name</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;unity_behavior_name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
             <span class="n">seed</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
@@ -939,11 +939,11 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">&quot;robotics, procgen, bsuite, brax, unity_mlagents.&quot;</span>
         <span class="p">)</span>
 
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">NormalizeActions</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">ActionRepeat</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">NormalizeActions</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
     <span class="n">repeat</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">))</span>
     <span class="n">duration</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">time_limit</span><span class="p">)</span> <span class="o">//</span> <span class="n">repeat</span><span class="p">)</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">TimeLimit</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">env_wrapper</span><span class="o">.</span><span class="n">TimeLimit</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">env</span></div>
 
 

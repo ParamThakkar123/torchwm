@@ -724,7 +724,8 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for world_models.inference.operators</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span><span class="p">,</span> <span class="n">TensorSpec</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">OperatorABC</span><span class="p">,</span> <span class="n">TensorSpec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.dreamer_operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.jepa_operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAOperator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.iris_operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">IrisOperator</span>
@@ -733,7 +734,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="get_operator">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.get_operator">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_operator</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_operator</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OperatorABC</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function to get inference operators by name.</span>
 
 <span class="sd">    Args:</span>

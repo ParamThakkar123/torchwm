@@ -761,10 +761,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">h5py</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;h5py not installed. Install with: pip install h5py&quot;</span><span class="p">)</span>
 
-<span class="n">hf_hub_download</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">list_repo_files</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="n">hf_hub_download</span><span class="p">,</span> <span class="n">list_repo_files</span>  <span class="c1"># type: ignore</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="n">hf_hub_download</span><span class="p">,</span> <span class="n">list_repo_files</span>
 
     <span class="n">HF_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -835,7 +833,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">data_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dataset_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">DATASET_CONFIGS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Unknown dataset: </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">. Available: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">DATASET_CONFIGS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -861,14 +859,14 @@ window.runMermaid = runMermaid;</script>
             <span class="bp">self</span><span class="o">.</span><span class="n">_load_data</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_default_cache_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.cache/tinyworlds&quot;</span><span class="p">)</span>
+        <span class="n">cache</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.cache/tinyworlds&quot;</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cache</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cache</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_local_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_download_or_load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_download_or_load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">local_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_local_path</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">local_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -909,7 +907,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">&quot;https://huggingface.co/datasets/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;repo_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/tree/main&quot;</span>
             <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">h5py</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                 <span class="s2">&quot;h5py not installed. Cannot load dataset files. Install with: pip install h5py&quot;</span>
@@ -1014,13 +1012,13 @@ window.runMermaid = runMermaid;</script>
 
         <span class="k">return</span> <span class="n">video</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TinyWorldsDataset.get_info">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.datasets.tinyworlds.TinyWorldsDataset.get_info">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return dataset information.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_name</span><span class="p">,</span>
@@ -1055,30 +1053,6 @@ window.runMermaid = runMermaid;</script>
         <span class="n">download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">data_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">TinyWorldsDataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dataloader for TinyWorlds dataset.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dataset_name: Name of the game dataset (PICO_DOOM, PONG, ZELDA, POLE_POSITION, SONIC)</span>
-<span class="sd">            num_frames: Number of frames per video sequence</span>
-<span class="sd">            image_size: Target image size (will resize frames)</span>
-<span class="sd">            batch_size: Batch size</span>
-<span class="sd">            num_workers: Number of data loading workers</span>
-<span class="sd">            shuffle: Whether to shuffle the data</span>
-<span class="sd">            cache_dir: Directory to cache downloaded datasets</span>
-<span class="sd">            download: Whether to download if not cached</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Tuple of (dataset, dataloader)</span>
-
-<span class="sd">        **Usage**::</span>
-
-<span class="sd">            dataset, loader = TinyWorldsDataLoader.create_dataloader(</span>
-<span class="sd">                dataset_name=&quot;SONIC&quot;,</span>
-<span class="sd">                num_frames=16,</span>
-<span class="sd">                image_size=64,</span>
-<span class="sd">                batch_size=4</span>
-<span class="sd">            )</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="n">TinyWorldsDataset</span><span class="p">(</span>
             <span class="n">dataset_name</span><span class="o">=</span><span class="n">dataset_name</span><span class="p">,</span>
             <span class="n">num_frames</span><span class="o">=</span><span class="n">num_frames</span><span class="p">,</span>
@@ -1141,33 +1115,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">data_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">TinyWorldsDataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory function to create TinyWorlds dataloaders.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        dataset_name: Name of the game dataset (PICO_DOOM, PONG, ZELDA, POLE_POSITION, SONIC)</span>
-<span class="sd">        num_frames: Number of frames per video sequence</span>
-<span class="sd">        image_size: Target image size</span>
-<span class="sd">        batch_size: Batch size</span>
-<span class="sd">        num_workers: Number of data loading workers</span>
-<span class="sd">        shuffle: Whether to shuffle</span>
-<span class="sd">        cache_dir: Cache directory for datasets</span>
-<span class="sd">        download: Download if not cached</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Tuple of (dataset, dataloader)</span>
-
-<span class="sd">    **Usage**::</span>
-
-<span class="sd">        dataset, loader = create_tinyworlds_dataloader(</span>
-<span class="sd">            dataset_name=&quot;SONIC&quot;,</span>
-<span class="sd">            num_frames=16,</span>
-<span class="sd">            batch_size=4</span>
-<span class="sd">        )</span>
-
-<span class="sd">        for batch in loader:</span>
-<span class="sd">            # batch shape: (B, T, C, H, W)</span>
-<span class="sd">            ...</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">TinyWorldsDataLoader</span><span class="o">.</span><span class="n">create_dataloader</span><span class="p">(</span>
         <span class="n">dataset_name</span><span class="o">=</span><span class="n">dataset_name</span><span class="p">,</span>
         <span class="n">num_frames</span><span class="o">=</span><span class="n">num_frames</span><span class="p">,</span>
@@ -1185,6 +1132,14 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="download_all_datasets">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.datasets.tinyworlds.download_all_datasets">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">download_all_datasets</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Download all available TinyWorlds datasets.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cache_dir: Directory to cache downloaded datasets</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary mapping dataset names to local file paths</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Download all available TinyWorlds datasets.</span>
 
 <span class="sd">    Args:</span>

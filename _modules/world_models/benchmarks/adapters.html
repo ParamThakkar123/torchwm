@@ -739,21 +739,23 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BaseAdapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.BaseAdapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.BaseAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseAdapter</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env_spec</span> <span class="o">=</span> <span class="n">env_spec</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
 
 <div class="viewcode-block" id="BaseAdapter.load_checkpoint">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.BaseAdapter.load_checkpoint">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.BaseAdapter.load_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 <div class="viewcode-block" id="BaseAdapter.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.BaseAdapter.evaluate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.BaseAdapter.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return standardized output. Preferred format: dict with key &#39;episode_returns&#39; -&gt; List[float]&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 </div>
@@ -761,9 +763,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DiamondAdapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DiamondAdapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DiamondAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DiamondAdapter</span><span class="p">(</span><span class="n">BaseAdapter</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
         <span class="c1"># env_spec can be a dict with keys like &#39;game&#39;, or a simple string game name</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -785,8 +789,8 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">DiamondAgent</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DiamondAdapter.load_checkpoint">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DiamondAdapter.load_checkpoint">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DiamondAdapter.load_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -794,8 +798,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DiamondAdapter.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DiamondAdapter.evaluate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DiamondAdapter.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="c1"># DiamondAgent.evaluate returns a float mean reward per episode by default.</span>
         <span class="c1"># To produce per-episode returns we run single-episode evaluations repeatedly.</span>
         <span class="n">episode_returns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -828,9 +832,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="IRISAdapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.IRISAdapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.IRISAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IRISAdapter</span><span class="p">(</span><span class="n">BaseAdapter</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
         <span class="n">game</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -851,8 +857,8 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="IRISAdapter.load_checkpoint">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.IRISAdapter.load_checkpoint">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.IRISAdapter.load_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># IRIS agent provides save/load on agent; delegate if trainer has agent</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># IRISAgent implements load(path)</span>
@@ -865,8 +871,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="IRISAdapter.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.IRISAdapter.evaluate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.IRISAdapter.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">num_episodes</span><span class="o">=</span><span class="n">num_episodes</span><span class="p">,</span> <span class="n">render</span><span class="o">=</span><span class="n">render</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
             <span class="c1"># (episode_returns_array, videos_list, latents_array)</span>
@@ -891,9 +897,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAdapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DreamerAdapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DreamerAdapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DreamerAdapter</span><span class="p">(</span><span class="n">BaseAdapter</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
         <span class="c1"># env_spec can be dict or string. DreamerConfig expects env_backend and env.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">env_spec</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -935,8 +943,8 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">DreamerAgent</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DreamerAdapter.load_checkpoint">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DreamerAdapter.load_checkpoint">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DreamerAdapter.load_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="s2">&quot;dreamer&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">dreamer</span><span class="p">,</span> <span class="s2">&quot;restore_checkpoint&quot;</span>
@@ -949,8 +957,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAdapter.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DreamerAdapter.evaluate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DreamerAdapter.evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="c1"># Configure agent&#39;s test episodes</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">test_episodes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_episodes</span><span class="p">)</span>
@@ -972,9 +980,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerV1Adapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DreamerV1Adapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DreamerV1Adapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DreamerV1Adapter</span><span class="p">(</span><span class="n">DreamerAdapter</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;algo&quot;</span><span class="p">,</span> <span class="s2">&quot;dreamerv1&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_spec</span><span class="o">=</span><span class="n">env_spec</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -982,9 +992,11 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerV2Adapter">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.DreamerV2Adapter">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.benchmarks.adapters.DreamerV2Adapter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DreamerV2Adapter</span><span class="p">(</span><span class="n">DreamerAdapter</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">env_spec</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;algo&quot;</span><span class="p">,</span> <span class="s2">&quot;dreamerv2&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_spec</span><span class="o">=</span><span class="n">env_spec</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>

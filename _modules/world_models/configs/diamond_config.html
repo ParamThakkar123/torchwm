@@ -796,7 +796,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># Preset selection (overrides manual model config if set)</span>
     <span class="n">preset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># &quot;small&quot;, &quot;medium&quot;, &quot;large&quot;, or None</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preset</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">preset</span> <span class="ow">in</span> <span class="n">MODEL_PRESETS</span><span class="p">:</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">MODEL_PRESETS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">preset</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">diffusion_channels</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">diffusion_channels</span>

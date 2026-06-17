@@ -789,7 +789,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ret</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># older gym: (obs, reward, done, info)</span>
-                <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">single_done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ret</span>  <span class="c1"># type: ignore[assignment]</span>
+                <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">single_done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ret</span>
                 <span class="n">terminated</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">single_done</span><span class="p">)</span>
                 <span class="n">truncated</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -807,7 +807,6 @@ window.runMermaid = runMermaid;</script>
                     <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;ale&quot;</span><span class="p">),</span> <span class="s2">&quot;lives&quot;</span>
                 <span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="c1"># type: ignore[attr-defined]</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">lives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">ale</span><span class="o">.</span><span class="n">lives</span><span class="p">()</span>
                     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                         <span class="c1"># some backends expose lives as attribute or method; ignore failures</span>
@@ -827,7 +826,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="DiamondAtariWrapper.step">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.diamond_atari.DiamondAtariWrapper.step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>  <span class="c1"># type: ignore[override]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Step the environment.</span>
 
 <span class="sd">        For backwards compatibility with older gym APIs this wrapper returns a</span>
@@ -845,7 +844,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="DiamondAtariWrapper.reset">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.envs.diamond_atari.DiamondAtariWrapper.reset">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

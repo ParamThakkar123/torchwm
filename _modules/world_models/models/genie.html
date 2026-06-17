@@ -733,7 +733,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.vision.video_tokenizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VideoTokenizer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.latent_action_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentActionModel</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.dynamics_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicsModel</span><span class="p">,</span> <span class="n">MaskGITSampler</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.genie_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.genie_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieConfig</span><span class="p">,</span> <span class="n">GenieSmallConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.models.model_io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">apply_config_overrides</span><span class="p">,</span>
     <span class="n">coerce_config</span><span class="p">,</span>
@@ -873,12 +873,20 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">config</span><span class="p">:</span> <span class="n">GenieConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">GenieConfig</span>
+        <span class="o">|</span> <span class="n">GenieSmallConfig</span>
+        <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">str</span>
+        <span class="o">|</span> <span class="n">Path</span>
+        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Genie&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build Genie from a config object, dict, YAML file, or YAML string.&quot;&quot;&quot;</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">coerce_config</span><span class="p">(</span><span class="n">GenieConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">overrides</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">GenieSmallConfig</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">overrides</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">coerce_config</span><span class="p">(</span><span class="n">GenieConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">overrides</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">num_frames</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">num_frames</span><span class="p">,</span>
             <span class="n">image_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
@@ -933,7 +941,9 @@ window.runMermaid = runMermaid;</script>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Could not find a Genie checkpoint for </span><span class="si">{</span><span class="n">pretrained_model_name_or_path</span><span class="si">!r}</span><span class="s2">.&quot;</span>
             <span class="p">)</span>
-        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span> <span class="ow">or</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+            <span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span> <span class="ow">or</span> <span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
         <span class="n">checkpoint_config</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>

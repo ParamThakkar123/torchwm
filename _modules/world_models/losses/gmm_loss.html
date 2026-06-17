@@ -730,6 +730,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">Recurrent Neural Network (MDRNN) for world model training.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.distributions.normal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normal</span>
 
@@ -742,7 +744,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">sigmas</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">logpi</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">reduce</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the negative log-likelihood of a batch under a Gaussian Mixture Model.</span>
 
 <span class="sd">    This function computes minus the log probability of the batch under the GMM</span>
@@ -777,7 +779,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        &gt;&gt;&gt; loss = gmm_loss(batch, mus, sigmas, logpi)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">latent_next_obs</span> <span class="o">=</span> <span class="n">latent_next_obs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">normal_dist</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">mus</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">)</span>
+    <span class="n">normal_dist</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">mus</span><span class="p">,</span> <span class="n">sigmas</span><span class="p">)</span>
     <span class="n">g_log_probs</span> <span class="o">=</span> <span class="n">normal_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">latent_next_obs</span><span class="p">)</span>
     <span class="n">g_log_probs</span> <span class="o">=</span> <span class="n">logpi</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">g_log_probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">max_log_probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">g_log_probs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>

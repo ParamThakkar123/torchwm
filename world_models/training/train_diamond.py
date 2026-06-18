@@ -343,7 +343,7 @@ class DiamondAgent:
             loss = F.mse_loss(model_output, target)
 
         self.diffusion_opt.zero_grad(set_to_none=True)
-        self.diffusion_scaler.scale(loss).backward()  # type: ignore[no-untyped-call]
+        self.diffusion_scaler.scale(loss).backward()
         self.diffusion_scaler.step(self.diffusion_opt)
         self.diffusion_scaler.update()
 
@@ -543,7 +543,7 @@ class DiamondAgent:
             total_loss = policy_loss + value_loss
 
         self.actor_opt.zero_grad(set_to_none=True)
-        self.actor_scaler.scale(total_loss).backward()  # type: ignore[no-untyped-call]
+        self.actor_scaler.scale(total_loss).backward()
         self.actor_scaler.step(self.actor_opt)
         self.actor_scaler.update()
 
@@ -671,7 +671,7 @@ class DiamondAgent:
             )
 
             # predict reward/termination from the sampled frame [B, C, H, W]
-            reward, done, hidden_state = self.reward_model.predict(  # type: ignore[assignment]
+            reward, done, hidden_state = self.reward_model.predict(
                 obs=sampled,
                 actions=actions_current[:, -1],
                 hidden_state=hidden_state,
@@ -745,12 +745,6 @@ class DiamondAgent:
             policy_losses = []
             value_losses = []
 
-            # move batch to GPU once (dataset returns CPU tensors)
-            def to_device(batch):
-                return {
-                    k: v.to(self.device, non_blocking=True) for k, v in batch.items()
-                }
-
             # iterate over the dataloader properly; avoid recreating iterator each step
             data_iter = iter(dataloader)
             for _ in tqdm(
@@ -823,7 +817,7 @@ class DiamondAgent:
                 obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(self.device)
 
                 # pass batched observation [1, C, H, W]
-                action, policy_hidden = self.actor_critic.get_action(  # type: ignore[assignment]
+                action, policy_hidden = self.actor_critic.get_action(
                     obs_tensor[:, -1],
                     policy_hidden,
                     deterministic=True,

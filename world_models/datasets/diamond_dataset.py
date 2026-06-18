@@ -37,7 +37,7 @@ class ReplayBuffer:
         reward: float,
         done: bool,
         next_obs: np.ndarray,
-    ):
+    ) -> None:
         """Add a transition to the buffer."""
         self.observations[self.position] = obs
         self.actions[self.position] = action
@@ -136,7 +136,7 @@ class ReplayBuffer:
             "next_obs": next_obs,
         }
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
     def is_ready(self, min_size: int) -> bool:
@@ -160,7 +160,7 @@ class ReplayBuffer:
             "capacity": int(self.capacity),
         }
 
-    def load_state_dict(self, state: dict):
+    def load_state_dict(self, state: dict) -> None:
         """Load state previously produced by `state_dict()`.
 
         This will resize internal arrays if the saved capacity differs from the
@@ -213,7 +213,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.sequence_length = sequence_length
         self.burn_in = burn_in
 
-    def __len__(self):
+    def __len__(self) -> int:
         return max(0, self.replay_buffer.size - self.sequence_length)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
@@ -226,9 +226,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         done_seq_np = self.replay_buffer.dones[indices[:-1]]
         next_obs_np = self.replay_buffer.next_observations[indices[-1]]
 
-        # Convert on CPU; the training loop transfers full batches to the target
-        # device with non_blocking=True. Moving to CUDA inside __getitem__ is not
-        # safe with multi-worker DataLoaders.
+        # stay on CPU; the training loop batches and transfers to GPU
         obs_seq = torch.from_numpy(obs_seq_np).float() / 255.0
         # (T, H, W, C) -> (T, C, H, W)
         if obs_seq.ndim == 4:
@@ -254,16 +252,3 @@ class SequenceDataset(torch.utils.data.Dataset):
             "dones": dones,
             "next_obs": next_obs,
         }
-
-
-def collate_fn(batch: List[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
-    """Collate function for the dataloader."""
-    obs_seq = torch.stack([item["obs_seq"] for item in batch])
-    action_seq = torch.stack([item["action_seq"] for item in batch])
-    next_obs = torch.stack([item["next_obs"] for item in batch])
-
-    return {
-        "obs_seq": obs_seq,
-        "action_seq": action_seq,
-        "next_obs": next_obs,
-    }

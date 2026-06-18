@@ -27,6 +27,8 @@ Exported Components:
         - SampleDist: Distribution wrapper for sampling
 """
 
+from typing import Any
+
 __all__ = [
     # Encoders
     "ConvEncoder",
@@ -50,7 +52,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     # Encoders
     if name == "ConvEncoder":
         from .dreamer_encoder import ConvEncoder

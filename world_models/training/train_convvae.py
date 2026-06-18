@@ -6,7 +6,7 @@ for world model learning.
 
 import os
 from os.path import join, exists
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import torch
 import torch.utils.data
@@ -20,7 +20,9 @@ from world_models.losses.convae_loss import conv_vae_loss_fn
 from world_models.utils.train_utils import EarlyStopping, ReduceLROnPlateau
 
 
-def save_checkpoint(state, is_best, filename, best_filename):
+def save_checkpoint(
+    state: dict, is_best: bool, filename: str, best_filename: str
+) -> None:
     """Save model checkpoint.
 
     Args:
@@ -34,7 +36,12 @@ def save_checkpoint(state, is_best, filename, best_filename):
         torch.save(state, best_filename)
 
 
-def test_epoch(model, test_loader, device, loss_fn):
+def test_epoch(
+    model: ConvVAE,
+    test_loader: torch.utils.data.DataLoader,
+    device: torch.device,
+    loss_fn: Any,
+) -> float:
     """Run one epoch of validation.
 
     Args:
@@ -50,7 +57,7 @@ def test_epoch(model, test_loader, device, loss_fn):
     test_loss = 0.0
     total_batches = len(test_loader)
     print(
-        f"Test epoch: {total_batches} batches, dataset size: {len(test_loader.dataset)}"
+        f"Test epoch: {total_batches} batches, dataset size: {len(test_loader.dataset)}"  # type: ignore[arg-type]
     )
 
     with torch.no_grad():
@@ -65,22 +72,22 @@ def test_epoch(model, test_loader, device, loss_fn):
                     f"Test batch {batch_idx}/{total_batches}, loss: {loss.item():.4f}"
                 )
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_loader.dataset)  # type: ignore[arg-type]
     print("---> Test set loss: {:.4f}".format(test_loss))
     return test_loss
 
 
 def train_epoch(
     epoch: int,
-    model,
-    optimizer,
-    train_loader,
-    device,
-    train_dataset,
-    loss_fn,
+    model: Any,
+    optimizer: Any,
+    train_loader: Any,
+    device: Any,
+    train_dataset: Any,
+    loss_fn: Any,
     use_amp: bool = False,
     scaler: Optional["torch.cuda.amp.GradScaler"] = None,
-):
+) -> float:
     """Run one epoch of training.
 
     Args:
@@ -129,6 +136,7 @@ def train_epoch(
             epoch, train_loss / len(train_loader.dataset)
         )
     )
+    return train_loss
 
 
 def train_convae(config: WMVAEConfig) -> None:
@@ -192,7 +200,7 @@ def train_convae(config: WMVAEConfig) -> None:
     if not config.noreload:
         reload_file = join(vae_dir, "best.tar")
         if exists(reload_file):
-            state = torch.load(reload_file)
+            state = torch.load(reload_file, weights_only=True)
             print(
                 "Reloading model at epoch {}, with test error {}".format(
                     state["epoch"], state["precision"]

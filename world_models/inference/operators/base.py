@@ -45,7 +45,9 @@ class OperatorABC(nn.Module, ABC):
 
     def __init__(self, *, device: torch.device | str | None = None) -> None:
         super().__init__()
-        self.device = torch.device(device) if device is not None else torch.device("cpu")
+        self.device = (
+            torch.device(device) if device is not None else torch.device("cpu")
+        )
 
     @abstractmethod
     def preprocess(self, inputs: Any) -> dict[str, torch.Tensor]:
@@ -69,7 +71,9 @@ class OperatorABC(nn.Module, ABC):
         """Process raw inputs through preprocess, forward, and postprocess stages."""
 
         preprocessed = self.preprocess(inputs)
-        self.validate_mapping(preprocessed, self.input_specs, label="preprocessed input")
+        self.validate_mapping(
+            preprocessed, self.input_specs, label="preprocessed input"
+        )
         preprocessed = self._move_tensors(preprocessed)
         outputs = self.forward(preprocessed)
         self.validate_mapping(outputs, self.output_specs, label="operator output")
@@ -99,7 +103,7 @@ class OperatorABC(nn.Module, ABC):
             self.device = device
         return module
 
-    def __call__(self, inputs: Any) -> dict[str, torch.Tensor]:  # type: ignore[override]
+    def __call__(self, inputs: Any) -> dict[str, torch.Tensor]:
         return self.process(inputs)
 
     @classmethod

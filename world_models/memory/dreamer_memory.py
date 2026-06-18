@@ -133,7 +133,9 @@ class ReplayBuffer:
             valid_idx = self.idx not in idxs[1:]
         return idxs
 
-    def _retrieve_batch(self, idxs: np.ndarray, n: int, L: int):
+    def _retrieve_batch(
+        self, idxs: np.ndarray, n: int, L: int
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Retrieve batch of sequences given indices.
 
         Args:
@@ -156,7 +158,7 @@ class ReplayBuffer:
             self.terminals[vec_idxs].reshape(L, n),
         )
 
-    def sample(self):
+    def sample(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Sample a batch of sequences for training.
 
         Returns:
@@ -194,7 +196,7 @@ class Memory:
         # typed deque for stored transitions
         self.memory: Deque[tuple[Any, ...]] = deque(maxlen=capacity)
 
-    def append(self, *args) -> None:
+    def append(self, *args: Any) -> None:
         """Append a transition to memory.
 
         Args:
@@ -203,7 +205,7 @@ class Memory:
         """
         self.memory.append(args)
 
-    def sample(self, batch_size: int):
+    def sample(self, batch_size: int) -> list:
         """Sample random batch of transitions from memory.
 
         Args:
@@ -245,7 +247,14 @@ class Episode:
 
     _fields = ["observation", "action", "reward", "terminal", "info"]
 
-    def __init__(self, observation, action=None, reward=None, terminal=None, info=None):
+    def __init__(
+        self,
+        observation: Any,
+        action: Any = None,
+        reward: Any = None,
+        terminal: Any = None,
+        info: Any = None,
+    ) -> None:
         self.observation = observation
         if action is not None:
             self.action = [action]
@@ -261,7 +270,14 @@ class Episode:
             self.terminal = []
         self.info = info if info is not None else {}
 
-    def append(self, action, observation, reward, terminal, info=None) -> None:
+    def append(
+        self,
+        action: Any,
+        observation: Any,
+        reward: Any,
+        terminal: Any,
+        info: Any = None,
+    ) -> None:
         self.action.append(action)
         self.observation.append(observation)
         self.reward.append(reward)

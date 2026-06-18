@@ -112,7 +112,7 @@ class WMVAEConfig:
         self._cfg = WMVAEConfig._Config(**known, extra=extra)
         self._cfg.validate()
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         """Get configuration attribute.
 
         Args:
@@ -244,7 +244,7 @@ class WMMDNRNNConfig:
         self._cfg = WMMDNRNNConfig._Config(**known, extra=extra)
         self._cfg.validate()
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         """Get configuration attribute.
 
         Args:
@@ -261,7 +261,7 @@ class WMMDNRNNConfig:
             return self._cfg.extra[item]
         raise AttributeError(item)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary.
 
         Returns:
@@ -342,7 +342,7 @@ class WMControllerConfig:
         self._cfg = WMControllerConfig._Config(**known, extra=extra)
         self._cfg.validate()
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         """Get configuration attribute."""
         if item == "_cfg":
             raise AttributeError(item)
@@ -352,6 +352,6 @@ class WMControllerConfig:
             return self._cfg.extra[item]
         raise AttributeError(item)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
         return self._cfg.to_dict()

@@ -10,7 +10,7 @@ from world_models.configs.iris_config import IRISConfig
 import numpy as np
 import json
 import os
-from typing import List, Dict, Optional, cast
+from typing import Any, List, Dict, Optional, cast
 
 
 # Atari 100k benchmark games
@@ -194,7 +194,7 @@ def run_atari_100k(
     config: Optional[IRISConfig] = None,
     device: str = "cuda",
     output_file: str = "results/iris_atari100k.json",
-):
+) -> tuple[list, dict[str, Any]]:
     """Run IRIS on all Atari 100k games.
 
     Args:
@@ -260,7 +260,7 @@ def run_atari_100k(
     return results, aggregate
 
 
-def main():
+def main() -> None:
     """Run full Atari 100k benchmark using OmegaConf CLI overrides."""
     from omegaconf import OmegaConf
 

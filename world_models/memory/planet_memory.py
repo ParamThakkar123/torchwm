@@ -1,10 +1,11 @@
-import numpy as np
-
+from typing import Any
 from collections import deque
+
+import numpy as np
 from numpy.random import choice
 
 
-def _identity(x):
+def _identity(x: Any) -> Any:
     return x
 
 
@@ -35,26 +36,26 @@ class Episode:
         print(episode.x.shape)  # Now a numpy array
     """
 
-    def __init__(self, postprocess_fn=None):
-        self.x = []
-        self.u = []
-        self.t = []
-        self.r = []
+    def __init__(self, postprocess_fn: Any = None) -> None:
+        self.x: Any = []
+        self.u: Any = []
+        self.t: Any = []
+        self.r: Any = []
         self.postprocess_fn = _identity if postprocess_fn is None else postprocess_fn
         self._size = 0
 
     @property
-    def size(self):
+    def size(self) -> int:
         return self._size
 
-    def append(self, obs, act, reward, terminal):
+    def append(self, obs: Any, act: Any, reward: Any, terminal: Any) -> None:
         self._size += 1
         self.x.append(self.postprocess_fn(obs.numpy()))
         self.u.append(act.cpu().numpy())
         self.r.append(reward)
         self.t.append(terminal)
 
-    def terminate(self, obs):
+    def terminate(self, obs: Any) -> None:
         self.x.append(self.postprocess_fn(obs.numpy()))
         self.x = np.stack(self.x)
         self.u = np.stack(self.u)
@@ -90,7 +91,7 @@ class Memory(deque):
         batch, lengths = memory.sample(batch_size=32, tracelen=50)
     """
 
-    def __init__(self, size=None):
+    def __init__(self, size: int | None = None) -> None:
         """Initialize memory with optional episode capacity.
 
         Args:
@@ -98,26 +99,26 @@ class Memory(deque):
                 creates unbounded deques for pickle compatibility.
         """
         maxlen = size if size is not None else None
-        self.episodes = deque(maxlen=maxlen)
-        self.eps_lengths = deque(maxlen=maxlen)
+        self.episodes: deque[Any] = deque(maxlen=maxlen)
+        self.eps_lengths: deque[Any] = deque(maxlen=maxlen)
         if size is not None:
             print(f"Creating memory with len {size} episodes.")
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.episodes)
 
     @property
-    def size(self):
+    def size(self) -> int:
         return sum(self.eps_lengths)
 
-    def _append(self, episode: Episode):
+    def _append(self, episode: Episode) -> None:
         if isinstance(episode, Episode):
             self.episodes.append(episode)
             self.eps_lengths.append(episode.size)
         else:
             raise ValueError("can only append <Episode> or list of <Episode>")
 
-    def append(self, episodes: list[Episode]):
+    def append(self, episodes: list[Episode]) -> None:
         if isinstance(episodes, Episode):
             episodes = [episodes]
         if isinstance(episodes, list):
@@ -126,7 +127,9 @@ class Memory(deque):
         else:
             raise ValueError("can only append <Episode> or list of <Episode>")
 
-    def sample(self, batch_size, tracelen=1, time_first=False):
+    def sample(
+        self, batch_size: int, tracelen: int = 1, time_first: bool = False
+    ) -> tuple[list[np.ndarray], np.ndarray]:
         """Sample random sub-sequences from stored episodes.
 
         Randomly selects episodes and starting positions to create batches
@@ -226,7 +229,7 @@ class Memory(deque):
                 rets = [np.stack(i) for i in (x, u, r, t)]
         except ValueError as exc:
 
-            def shapes(lst):
+            def shapes(lst: list) -> list:
                 return [getattr(a, "shape", np.asarray(a).shape) for a in lst]
 
             info = {

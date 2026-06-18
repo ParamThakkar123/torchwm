@@ -1,3 +1,5 @@
+from typing import Any
+
 import gymnasium as gym
 import numpy as np
 
@@ -32,7 +34,13 @@ class DeepMindControlEnv:
         >>> print(obs.keys())  # dict_keys(['position', 'velocity', 'image'])
     """
 
-    def __init__(self, name, seed, size=(64, 64), camera=None):
+    def __init__(
+        self,
+        name: str,
+        seed: int,
+        size: tuple[int, int] = (64, 64),
+        camera: int | None = None,
+    ) -> None:
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
@@ -49,19 +57,19 @@ class DeepMindControlEnv:
         self._camera = camera
 
     @property
-    def observation_space(self):
-        spaces = {}
+    def observation_space(self) -> gym.spaces.Dict:
+        spaces: dict[str, gym.spaces.Space[Any]] = {}
         for key, value in self._env.observation_spec().items():
             spaces[key] = gym.spaces.Box(-np.inf, np.inf, value.shape, dtype=np.float32)
         spaces["image"] = gym.spaces.Box(0, 255, (3,) + self._size, dtype=np.uint8)
         return gym.spaces.Dict(spaces)
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.spaces.Box:
         spec = self._env.action_spec()
         return gym.spaces.Box(spec.minimum, spec.maximum, dtype=np.float32)
 
-    def step(self, action):
+    def step(self, action: np.ndarray) -> tuple[dict, float, bool, dict]:
         time_step = self._env.step(action)
         obs = dict(time_step.observation)
         obs["image"] = self.render().transpose(2, 0, 1).copy()
@@ -70,13 +78,13 @@ class DeepMindControlEnv:
         info = {"discount": np.array(time_step.discount, np.float32)}
         return obs, reward, done, info
 
-    def reset(self):
+    def reset(self) -> dict:
         time_step = self._env.reset()
         obs = dict(time_step.observation)
         obs["image"] = self.render().transpose(2, 0, 1).copy()
         return obs
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> np.ndarray:
         if kwargs.get("mode", "rgb_array") != "rgb_array":
             raise ValueError("Only render mode 'rgb_array' is supported.")
         return self._env.physics.render(*self._size, camera_id=self._camera)

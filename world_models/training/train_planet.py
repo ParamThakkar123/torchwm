@@ -1,3 +1,4 @@
+from typing import Any
 import pdb
 import torch
 import numpy as np
@@ -25,7 +26,16 @@ from world_models.controller.rssm_policy import RSSMPolicy
 from world_models.controller.rollout_generator import RolloutGenerator
 
 
-def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
+def train(
+    memory: Any,
+    rssm: Any,
+    optimizer: Any,
+    device: torch.device,
+    N: int = 32,
+    H: int = 50,
+    beta: float = 1.0,
+    grads: bool = False,
+) -> dict:
     """
     Training implementation as indicated in:
     Learning Latent Dynamics for Planning from Pixels
@@ -48,31 +58,40 @@ def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
         states.append(h_t)
         priors.append(rssm.state_prior(h_t))
         posteriors.append(rssm.state_posterior(h_t, e_t[i + 1]))
-        posterior_samples.append(Normal(*posteriors[-1]).rsample())
+        m, s = posteriors[-1]
+        posterior_samples.append(Normal(m, s).rsample())
         s_t = posterior_samples[-1]
 
-    prior_dist = Normal(*map(torch.stack, zip(*priors)))
-    posterior_dist = Normal(*map(torch.stack, zip(*posteriors)))
-    states = torch.stack(states)
-    posterior_samples = torch.stack(posterior_samples)
+    prior_mean = torch.stack([p[0] for p in priors])
+    prior_std = torch.stack([p[1] for p in priors])
+    posterior_mean = torch.stack([p[0] for p in posteriors])
+    posterior_std = torch.stack([p[1] for p in posteriors])
+    prior_dist = Normal(prior_mean, prior_std)
+    posterior_dist = Normal(posterior_mean, posterior_std)
+    states_stacked = torch.stack(states)
+    posterior_samples_stacked = torch.stack(posterior_samples)
 
     rec_loss = (
         F.mse_loss(
-            bottle(rssm.decoder, states, posterior_samples), x[1:], reduction="none"
+            bottle(rssm.decoder, states_stacked, posterior_samples_stacked),
+            x[1:],
+            reduction="none",
         )
         .sum((2, 3, 4))
         .mean()
     )
 
-    kld_loss = torch.max(
-        kl_divergence(posterior_dist, prior_dist).sum(-1), free_nats
-    ).mean()
+    kld_loss = (
+        kl_divergence(posterior_dist, prior_dist).sum(-1).clamp(min=free_nats).mean()
+    )
 
-    rew_loss = F.mse_loss(bottle(rssm.pred_reward, states, posterior_samples), r)
+    rew_loss = F.mse_loss(
+        bottle(rssm.pred_reward, states_stacked, posterior_samples_stacked), r
+    )
 
     optimizer.zero_grad()
     loss = beta * kld_loss + rec_loss + rew_loss
-    loss.backward()
+    loss.backward()  # type: ignore[no-untyped-call]
     nn.utils.clip_grad_norm_(rssm.parameters(), 1000.0, norm_type=2)
     optimizer.step()
 
@@ -91,13 +110,13 @@ def train(memory, rssm, optimizer, device, N=32, H=50, beta=1.0, grads=False):
     return metrics
 
 
-def main():
+def main() -> None:
     """Example PlaNet/RSSM training script with rollout collection and evaluation.
 
     Builds environment/model/policy objects, iteratively trains on replayed
     episodes, and periodically saves videos and checkpoints.
     """
-    env = None
+    env: Any = None
     try:
         env = RolloutGenerator
     except Exception:
@@ -138,7 +157,7 @@ def main():
     summary = TensorBoardMetrics(f"{res_dir}/")
 
     for i in trange(2, desc="Epoch", leave=False):
-        metrics = {}
+        metrics: dict[str, Any] = {}
         for _ in trange(150, desc="Iter ", leave=False):
             train_metrics = train(mem, rssm_model.train(), optimizer, device)
             for k, v in flatten_dict(train_metrics).items():
@@ -148,7 +167,7 @@ def main():
                 metrics[f"{k}_mean"] = np.array(metrics[k]).mean()
 
         summary.update(metrics)
-        mem.append(rollout_gen.rollout_once(explore=True))
+        mem.append([rollout_gen.rollout_once(explore=True)])
         eval_episode, eval_frames, eval_metrics = rollout_gen.rollout_eval()
         print("\n===== EVAL FRAME DEBUG =====")
 
@@ -181,7 +200,7 @@ def main():
 
         print("===== END DEBUG =====\n")
 
-        mem.append(eval_episode)
+        mem.append([eval_episode])
         # normalize frames to (T,H,W,3) float in [0,1] before saving
         safe_frames = normalize_frames_for_saving(eval_frames)
         save_video(safe_frames, res_dir, f"vid_{i + 1}")

@@ -9,6 +9,8 @@ Exported Components:
     - IRISOnPolicyBuffer: IRIS on-policy buffer
 """
 
+from typing import Any
+
 __all__ = [
     "ReplayBuffer",
     "Episode",
@@ -18,7 +20,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     if name == "ReplayBuffer":
         from .dreamer_memory import ReplayBuffer
 

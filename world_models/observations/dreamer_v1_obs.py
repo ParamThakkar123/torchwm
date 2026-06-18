@@ -11,19 +11,19 @@ class SymbolicObservationModel(nn.Module):
 
     def __init__(
         self,
-        observation_size,
-        belief_size,
-        state_size,
-        embedding_size,
-        activation_function="relu",
-    ):
+        observation_size: int,
+        belief_size: int,
+        state_size: int,
+        embedding_size: int,
+        activation_function: str = "relu",
+    ) -> None:
         super().__init__()
         self.act_fn = getattr(F, activation_function)
         self.fc1 = nn.Linear(belief_size + state_size, embedding_size)
         self.fc2 = nn.Linear(embedding_size, embedding_size)
         self.fc3 = nn.Linear(embedding_size, observation_size)
 
-    def forward(self, belief, state):
+    def forward(self, belief: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
         hidden = self.act_fn(self.fc1(torch.cat([belief, state], dim=1)))
         hidden = self.act_fn(self.fc2(hidden))
         observation = self.fc3(hidden)
@@ -38,8 +38,12 @@ class VisualObservationModel(nn.Module):
     """
 
     def __init__(
-        self, belief_size, state_size, embedding_size, activation_function="relu"
-    ):
+        self,
+        belief_size: int,
+        state_size: int,
+        embedding_size: int,
+        activation_function: str = "relu",
+    ) -> None:
         super().__init__()
         self.act_fn = getattr(F, activation_function)
         self.embedding_size = embedding_size
@@ -49,7 +53,7 @@ class VisualObservationModel(nn.Module):
         self.conv3 = nn.ConvTranspose2d(64, 32, 6, stride=2)
         self.conv4 = nn.ConvTranspose2d(32, 3, 6, stride=2)
 
-    def forward(self, belief, state):
+    def forward(self, belief: torch.Tensor, state: torch.Tensor) -> torch.Tensor:
         hidden = self.fc1(torch.cat([belief, state], dim=1))  # No nonlinearity here
         hidden = hidden.view(-1, self.embedding_size, 1, 1)
         hidden = self.act_fn(self.conv1(hidden))
@@ -60,13 +64,13 @@ class VisualObservationModel(nn.Module):
 
 
 def ObservationModel(
-    symbolic,
-    observation_size,
-    belief_size,
-    state_size,
-    embedding_size,
-    activation_function="relu",
-):
+    symbolic: bool,
+    observation_size: int,
+    belief_size: int,
+    state_size: int,
+    embedding_size: int,
+    activation_function: str = "relu",
+) -> nn.Module:
     """Factory that returns symbolic or visual observation decoder variants.
 
     Selects the concrete model class based on the `symbolic` flag.

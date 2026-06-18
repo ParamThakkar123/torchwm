@@ -17,7 +17,10 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+from typing import Any
+
+
+def __getattr__(name: str) -> Any:
     if name == "VideoDatasetBase":
         from .video_datasets import VideoDatasetBase
 

@@ -13,13 +13,13 @@ class RecurrentStateSpaceModel(nn.Module):
 
     def __init__(
         self,
-        action_size,
-        state_size=200,
-        latent_size=30,
-        hidden_size=200,
-        embed_size=1024,
-        activation_function="relu",
-    ):
+        action_size: int,
+        state_size: int = 200,
+        latent_size: int = 30,
+        hidden_size: int = 200,
+        embed_size: int = 1024,
+        activation_function: str = "relu",
+    ) -> None:
         super().__init__()
         self.state_size = state_size
         self.action_size = action_size
@@ -39,7 +39,14 @@ class RecurrentStateSpaceModel(nn.Module):
         self.fc_reward_2 = nn.Linear(hidden_size, hidden_size)
         self.fc_reward_3 = nn.Linear(hidden_size, 1)
 
-    def get_init_state(self, enc, h_t=None, s_t=None, a_t=None, mean=False):
+    def get_init_state(
+        self,
+        enc: torch.Tensor,
+        h_t: torch.Tensor | None = None,
+        s_t: torch.Tensor | None = None,
+        a_t: torch.Tensor | None = None,
+        mean: bool = False,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Returns the initial posterior given the observation."""
         N, dev = enc.size(0), enc.device
         h_t = torch.zeros(N, self.state_size).to(dev) if h_t is None else h_t
@@ -50,9 +57,11 @@ class RecurrentStateSpaceModel(nn.Module):
             s_tp1 = self.state_posterior(h_t, enc, sample=True)
         else:
             s_tp1, _ = self.state_posterior(h_t, enc)
-        return h_tp1, s_tp1
+        return h_tp1, s_tp1  # type: ignore[return-value]
 
-    def deterministic_state_fwd(self, h_t, s_t, a_t):
+    def deterministic_state_fwd(
+        self, h_t: torch.Tensor, s_t: torch.Tensor, a_t: torch.Tensor
+    ) -> torch.Tensor:
         """Deterministic transition update.
 
         Ensures a_t is 2D and matches batch dimension of h_t before concatenation.
@@ -90,7 +99,9 @@ class RecurrentStateSpaceModel(nn.Module):
         h = self.grucell(h, h_t)
         return h
 
-    def state_prior(self, h_t, sample=False):
+    def state_prior(
+        self, h_t: torch.Tensor, sample: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
         """Returns the prior distribution over the latent state given the deterministic state"""
         z = self.act_fn(self.fc_prior_1(h_t))
         m = self.fc_prior_m(z)
@@ -100,7 +111,9 @@ class RecurrentStateSpaceModel(nn.Module):
             return m + torch.rand_like(m) * s
         return m, s
 
-    def state_posterior(self, h_t, e_t, sample=False):
+    def state_posterior(
+        self, h_t: torch.Tensor, e_t: torch.Tensor, sample: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
         """Returns the state prior given the deterministic state and obs"""
         z = torch.cat([h_t, e_t], dim=1)
         z = self.act_fn(self.fc_posterior_1(z))
@@ -111,23 +124,24 @@ class RecurrentStateSpaceModel(nn.Module):
             return m + torch.rand_like(m) * s
         return m, s
 
-    def pred_reward(self, h_t, s_t):
+    def pred_reward(self, h_t: torch.Tensor, s_t: torch.Tensor) -> torch.Tensor:
         r = self.act_fn(self.fc_reward_1(torch.cat([h_t, s_t], dim=-1)))
         r = self.act_fn(self.fc_reward_2(r))
         r = self.fc_reward_3(r)
         return r.squeeze()
 
-    def rollout_prior(self, act, h_t, s_t):
+    def rollout_prior(
+        self, act: torch.Tensor, h_t: torch.Tensor, s_t: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         states, latents = [], []
         for a_t in torch.unbind(act, dim=0):
             h_t = self.deterministic_state_fwd(h_t, s_t, a_t)
-            s_t = self.state_prior(h_t)
+            s_t = self.state_prior(h_t)  # type: ignore[assignment]
             states.append(h_t)
             latents.append(s_t)
-            Normal(*map(torch.stack, zip(*s_t)))
         return torch.stack(states), torch.stack(latents)
 
-    def forward(self, x, u):
+    def forward(self, x: torch.Tensor, u: torch.Tensor) -> list[list]:
         """Forward through the RSSM for a batch of sequences.
 
         Args:
@@ -164,4 +178,4 @@ class RecurrentStateSpaceModel(nn.Module):
 
             s = posterior[0]
 
-        return states, priors, posteriors
+        return [states, priors, posteriors]

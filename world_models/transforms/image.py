@@ -1,3 +1,4 @@
+from typing import Any
 from logging import getLogger
 
 from PIL import ImageFilter
@@ -9,14 +10,17 @@ logger = getLogger()
 
 
 def make_transforms(
-    crop_size=224,
-    crop_scale=(0.3, 1.0),
-    color_jitter=1.0,
-    horizontal_flip=False,
-    color_distortion=False,
-    gaussian_blur=False,
-    normalization=((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-):
+    crop_size: int = 224,
+    crop_scale: tuple[float, float] = (0.3, 1.0),
+    color_jitter: float = 1.0,
+    horizontal_flip: bool = False,
+    color_distortion: bool = False,
+    gaussian_blur: bool = False,
+    normalization: tuple[tuple[float, ...], tuple[float, ...]] = (
+        (0.485, 0.456, 0.406),
+        (0.229, 0.224, 0.225),
+    ),
+) -> Any:
     """Compose image augmentations and normalization for vision model training.
 
     Supports random crops, optional flip/color distortion/blur, and returns a
@@ -24,7 +28,7 @@ def make_transforms(
     """
     logger.info("making imagenet data transforms")
 
-    def get_color_distortion(s=1.0):
+    def get_color_distortion(s: float = 1.0) -> Any:
         # s is the strength of color distortion.
         color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
         rnd_color_jitter = transforms.RandomApply([color_jitter], p=0.8)
@@ -53,12 +57,14 @@ class GaussianBlur(object):
     Applies blur with random radius in a configurable range when sampled.
     """
 
-    def __init__(self, p=0.5, radius_min=0.1, radius_max=2.0):
+    def __init__(
+        self, p: float = 0.5, radius_min: float = 0.1, radius_max: float = 2.0
+    ) -> None:
         self.prob = p
         self.radius_min = radius_min
         self.radius_max = radius_max
 
-    def __call__(self, img):
+    def __call__(self, img: Any) -> Any:
         if torch.bernoulli(torch.tensor(self.prob)) == 0:
             return img
 

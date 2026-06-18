@@ -1,5 +1,6 @@
 import os
 import random
+import sys
 import time
 import importlib.util
 import numpy as np
@@ -12,6 +13,7 @@ import torch.distributions as distributions
 
 from collections import OrderedDict
 from pathlib import Path
+from typing import Dict, Union
 from typing import Any
 
 import world_models.envs.wrappers as env_wrapper
@@ -54,7 +56,7 @@ if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
     os.environ["MUJOCO_GL"] = "egl"
 
 
-def get_available_memory():
+def get_available_memory() -> int:
     """Get available physical memory in bytes."""
     if os.name == "nt":  # Windows
 
@@ -73,7 +75,7 @@ def get_available_memory():
 
         memory_status = MEMORYSTATUSEX()
         memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore
         if not kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
             raise OSError("Failed to get memory status")
         return memory_status.ullAvailPhys
@@ -96,7 +98,7 @@ def get_available_memory():
             return 8 * 1024 * 1024 * 1024
 
 
-def _resolve_image_size(args):
+def _resolve_image_size(args: Any) -> tuple:
     size = getattr(args, "image_size", (64, 64))
     if isinstance(size, int):
         return (size, size)
@@ -105,7 +107,7 @@ def _resolve_image_size(args):
     raise ValueError(f"Invalid image_size={size}. Expected int or (H, W).")
 
 
-def make_env(args):
+def make_env(args: Any) -> Any:
     """Construct a Dreamer-compatible environment from `DreamerConfig` options.
 
     Supports DMC, DMLab, Gym/Gymnasium, MuJoCo, Gymnasium Robotics, Procgen,
@@ -118,7 +120,7 @@ def make_env(args):
 
     env_instance = getattr(args, "env_instance", None)
     if env_instance is not None:
-        env = GymImageEnv(
+        env: Any = GymImageEnv(
             env_instance,
             seed=args.seed,
             size=size,
@@ -302,7 +304,7 @@ def _save_config_next_to_checkpoint(
     config.to_yaml(checkpoint.parent / "config.yaml")
 
 
-def preprocess_obs(obs):
+def preprocess_obs(obs: torch.Tensor) -> torch.Tensor:
     """Convert raw uint8 image observations to Dreamer float input space.
 
     Images are scaled from `[0, 255]` to roughly `[-0.5, 0.5]`, matching the
@@ -319,11 +321,18 @@ class Dreamer:
     loss computation, optimization steps, evaluation loops, and checkpoint I/O.
     """
 
-    def __init__(self, args, obs_shape, action_size, device, restore=False):
+    def __init__(
+        self,
+        args: Any,
+        obs_shape: Any,
+        action_size: int,
+        device: torch.device | str,
+        restore: bool = False,
+    ) -> None:
         self.args = args
         self.obs_shape = obs_shape
         self.action_size = action_size
-        self.device = device
+        self.device = torch.device(device)
         self.restore = args.restore
         self.restore_path = args.checkpoint_path
 
@@ -361,7 +370,7 @@ class Dreamer:
         )
         self._build_model(restore=self.restore)
 
-    def _build_model(self, restore):
+    def _build_model(self, restore: bool = False) -> None:
         self.rssm = RSSM(
             action_size=self.action_size,
             stoch_size=self.args.stoch_size,
@@ -391,7 +400,7 @@ class Dreamer:
             activation=self.args.cnn_activation_function,
         ).to(self.device)
         head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
-        head_kwargs = {}
+        head_kwargs: Dict[str, Any] = {}
         if head_dist == "symlog_twohot":
             head_kwargs = {
                 "num_buckets": getattr(self.args, "num_buckets", 255),
@@ -541,7 +550,9 @@ class Dreamer:
                 f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
             )
 
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )
@@ -623,7 +634,13 @@ class Dreamer:
         }
 
     @assert_finite
-    def world_model_loss(self, obs, acs, rews, nonterms):
+    def world_model_loss(
+        self,
+        obs: torch.Tensor,
+        acs: torch.Tensor,
+        rews: torch.Tensor,
+        nonterms: torch.Tensor,
+    ) -> torch.Tensor:
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
         init_state = self.rssm.init_state(self.args.batch_size, self.device)
@@ -690,7 +707,7 @@ class Dreamer:
         return model_loss
 
     @assert_finite
-    def actor_loss(self):
+    def actor_loss(self) -> torch.Tensor:
         with torch.no_grad():
             posterior = self.rssm.detach_state(self.rssm.seq_to_batch(self.posterior))
 
@@ -701,7 +718,9 @@ class Dreamer:
 
         self.imag_feat = torch.cat([imag_states["stoch"], imag_states["deter"]], dim=-1)
 
-        with FreezeParameters(self.world_model_modules + self.value_modules):
+        with FreezeParameters(
+            list(self.world_model_modules) + list(self.value_modules)
+        ):
             imag_rew_dist = self.reward_model(self.imag_feat)
             imag_val_dist = self.value_model(self.imag_feat)
 
@@ -733,7 +752,7 @@ class Dreamer:
         return actor_loss
 
     @assert_finite
-    def value_loss(self):
+    def value_loss(self) -> torch.Tensor:
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
             value_targ = self.returns.detach()
@@ -747,11 +766,11 @@ class Dreamer:
         value_loss = -torch.mean(self.discounts * log_prob)
         return value_loss
 
-    def train_one_batch(self):
+    def train_one_batch(self) -> list[float]:
         obs, acs, rews, terms = self.data_buffer.sample()
-        obs = torch.tensor(obs, dtype=torch.float32).to(self.device)
-        acs = torch.tensor(acs, dtype=torch.float32).to(self.device)
-        rews = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
+        obs_t = torch.tensor(obs, dtype=torch.float32).to(self.device)
+        acs_t = torch.tensor(acs, dtype=torch.float32).to(self.device)
+        rews_t = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
         nonterms = (
             torch.tensor((1.0 - terms), dtype=torch.float32)
             .to(self.device)
@@ -762,7 +781,7 @@ class Dreamer:
             device_type=getattr(self.device, "type", str(self.device)),
             enabled=self.use_amp,
         ):
-            model_loss = self.world_model_loss(obs, acs, rews, nonterms)
+            model_loss = self.world_model_loss(obs_t, acs_t, rews_t, nonterms)
         self.world_model_opt.zero_grad(set_to_none=True)
         self.world_model_scaler.scale(model_loss).backward()
         self.world_model_scaler.unscale_(self.world_model_opt)
@@ -802,7 +821,13 @@ class Dreamer:
             .tolist()
         )
 
-    def act_with_world_model(self, obs, prev_state, prev_action, explore=False):
+    def act_with_world_model(
+        self,
+        obs: Any,
+        prev_state: Any,
+        prev_action: torch.Tensor,
+        explore: bool = False,
+    ) -> tuple:
         obs = obs["image"]
         obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
         obs_embed = self.obs_encoder(preprocess_obs(obs))
@@ -814,7 +839,7 @@ class Dreamer:
 
         return posterior, action
 
-    def act_and_collect_data(self, env, collect_steps):
+    def act_and_collect_data(self, env: Any, collect_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
         prev_state = self.rssm.init_state(1, self.device)
@@ -842,7 +867,6 @@ class Dreamer:
                 obs = env.reset()
                 done = False
                 prev_state = self.rssm.init_state(1, self.device)
-                prev_action = torch.zeros(1, self.action_size).to(self.device)
                 if i != collect_steps - 1:
                     episode_rewards.append(0.0)
             else:
@@ -856,11 +880,11 @@ class Dreamer:
 
         return np.array(episode_rewards)
 
-    def evaluate(self, env, eval_episodes, render=False):
+    def evaluate(self, env: Any, eval_episodes: int, render: bool = False) -> tuple:
         episode_rew = np.zeros((eval_episodes))
 
-        video_images = [[] for _ in range(eval_episodes)]
-        latents = [] if render else None
+        video_images: list[list[Any]] = [[] for _ in range(eval_episodes)]
+        latents: list[Any] | None = [] if render else None
 
         for i in range(eval_episodes):
             obs = env.reset()
@@ -898,15 +922,16 @@ class Dreamer:
                             .numpy()
                         )
                 obs = next_obs
+        latents_arr: Any = None
         if latents is not None and len(latents) > 0:
-            latents = np.array(latents)
+            latents_arr = np.array(latents)
         return (
             episode_rew,
             np.array(video_images[: self.args.max_videos_to_save]),
-            latents,
+            latents_arr,
         )
 
-    def collect_random_episodes(self, env, seed_steps):
+    def collect_random_episodes(self, env: Any, seed_steps: int) -> np.ndarray:
         obs = env.reset()
         done = False
         seed_episode_rews = [0.0]
@@ -932,7 +957,7 @@ class Dreamer:
 
         return np.array(seed_episode_rews)
 
-    def save(self, save_path):
+    def save(self, save_path: str) -> None:
         _save_config_next_to_checkpoint(self.args, save_path)
         torch.save(
             {
@@ -956,7 +981,9 @@ class Dreamer:
             save_path,
         )
 
-    def restore_checkpoint(self, ckpt_path, map_location=None):
+    def restore_checkpoint(
+        self, ckpt_path: str | Path, map_location: Any = None
+    ) -> None:
         checkpoint = torch.load(ckpt_path, map_location=map_location, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
@@ -978,7 +1005,7 @@ class DreamerAgent(ExportableAgentMixin):
     instantiates `Dreamer`, and exposes simple `train()` / `evaluate()` methods.
     """
 
-    def __init__(self, config=None, **kwargs):
+    def __init__(self, config: Any = None, **kwargs: Any) -> None:
         self.args = _coerce_dreamer_config(config)
 
         self.last_latents_ref = kwargs.get("last_latents_ref", None)
@@ -1121,7 +1148,9 @@ class DreamerAgent(ExportableAgentMixin):
                 f"Could not find a Dreamer checkpoint for {pretrained_model_name_or_path!r}."
             )
 
-        checkpoint = torch.load(checkpoint_path, map_location=map_location or "cpu")
+        checkpoint = torch.load(
+            checkpoint_path, map_location=map_location or "cpu", weights_only=True
+        )
         checkpoint_config = (
             checkpoint.get("config") if isinstance(checkpoint, dict) else None
         )
@@ -1158,7 +1187,7 @@ class DreamerAgent(ExportableAgentMixin):
 
         return self.dreamer.summary()
 
-    def train(self, total_steps=None):
+    def train(self, total_steps: int | None = None) -> None:
         if total_steps is None:
             total_steps = self.args.total_steps
 
@@ -1266,7 +1295,7 @@ class DreamerAgent(ExportableAgentMixin):
             global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
             self.logger.flush()
 
-    def evaluate(self):
+    def evaluate(self) -> tuple:
         logs = OrderedDict()
         episode_rews, video_images, latents = self.dreamer.evaluate(
             self.test_env, self.args.test_episodes, render=True

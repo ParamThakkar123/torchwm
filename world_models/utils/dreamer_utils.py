@@ -1,12 +1,13 @@
 import os
-import pickle
+import pickle  # noqa: S403  # restricted unpickler loaded separately
 import torch
 import numpy as np
 import moviepy as mpy
 import cv2
 
-from typing import Iterable
+from typing import Any, Iterable
 from torch.nn import Module
+from torch.nn.parameter import Parameter
 
 from types import ModuleType
 from typing import Optional
@@ -112,7 +113,7 @@ class TwoHotEncoder:
         return symexp(expectation)
 
 
-def get_parameters(modules: Iterable[Module]):
+def get_parameters(modules: Iterable[Module]) -> list[Parameter]:
     """
     Given a list of torch modules, returns a list of their parameters.
     :param modules: iterable of modules
@@ -145,11 +146,16 @@ class FreezeParameters:
         self.modules = modules
         self.param_states = [p.requires_grad for p in get_parameters(self.modules)]
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         for param in get_parameters(self.modules):
             param.requires_grad = False
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
+    ) -> None:
         for i, param in enumerate(get_parameters(self.modules)):
             param.requires_grad = self.param_states[i]
 
@@ -163,18 +169,18 @@ class Logger:
 
     def __init__(
         self,
-        log_dir,
-        enable_wandb=False,
-        wandb_api_key="",
-        wandb_project="torchwm",
-        wandb_entity="",
-        video_format="gif",
-        video_fps=20,
-        enable_tensorboard=False,
-        enable_console=True,
-        enable_jsonl=True,
-        jsonl_filename="metrics.jsonl",
-    ):
+        log_dir: str,
+        enable_wandb: bool = False,
+        wandb_api_key: str = "",
+        wandb_project: str = "torchwm",
+        wandb_entity: str = "",
+        video_format: str = "gif",
+        video_fps: int = 20,
+        enable_tensorboard: bool = False,
+        enable_console: bool = True,
+        enable_jsonl: bool = True,
+        jsonl_filename: str = "metrics.jsonl",
+    ) -> None:
         self._log_dir = log_dir
         self._logger = get_package_logger("dreamer")
         self._logger.info("logging outputs to %s", log_dir)
@@ -196,16 +202,21 @@ class Logger:
         )
         self._wandb_run = self.metrics._wandb_run
 
-    def log_scalar(self, scalar, name, step_):
+    def log_scalar(self, scalar: Any, name: str, step_: int) -> None:
         self.metrics.log({name: scalar}, step_)
 
-    def log_scalars(self, scalar_dict, step):
+    def log_scalars(self, scalar_dict: dict[str, Any], step: int) -> None:
         self.metrics.log(scalar_dict, step)
         self.dump_scalars_to_pickle(scalar_dict, step)
 
     def log_videos(
-        self, videos, step, max_videos_to_save=1, fps=None, video_title="video"
-    ):
+        self,
+        videos: Any,
+        step: int,
+        max_videos_to_save: int = 1,
+        fps: int | None = None,
+        video_title: str = "video",
+    ) -> None:
         if fps is None:
             fps = self.video_fps
         format = self.video_format
@@ -232,7 +243,7 @@ class Logger:
                 new_video_title = video_title + "{}_{}".format(step, i) + ".mp4"
                 filename = os.path.join(self._log_dir, new_video_title)
                 height, width = video_u8.shape[1], video_u8.shape[2]
-                fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # type: ignore[attr-defined]
                 out = cv2.VideoWriter(filename, fourcc, fps, (width, height))
                 for frame in video_u8:
                     out.write(frame)
@@ -248,18 +259,26 @@ class Logger:
                 video_array = np.array(videos[i])
                 self.metrics.log_video(f"{video_title}_{i}", video_array, step, fps=fps)
 
-    def dump_scalars_to_pickle(self, metrics, step, log_title=None):
+    def dump_scalars_to_pickle(
+        self, metrics: dict[str, Any], step: int, log_title: str | None = None
+    ) -> None:
         log_path = os.path.join(
             self._log_dir, "scalar_data.pkl" if log_title is None else log_title
         )
         with open(log_path, "ab") as f:
             pickle.dump({"step": step, **dict(metrics)}, f)
 
-    def flush(self):
+    def flush(self) -> None:
         self.metrics.flush()
 
 
-def compute_return(rewards, values, discounts, td_lam, last_value):
+def compute_return(
+    rewards: torch.Tensor,
+    values: torch.Tensor,
+    discounts: torch.Tensor,
+    td_lam: float,
+    last_value: torch.Tensor,
+) -> torch.Tensor:
     """Compute TD(lambda) returns from imagined rewards, values, and discounts.
 
     Implements backward recursion used by Dreamer actor/value objectives.

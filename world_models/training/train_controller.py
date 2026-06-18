@@ -9,6 +9,7 @@ Reference:
     https://arxiv.org/abs/1805.11111
 """
 
+from typing import Any
 import sys
 from os.path import join, exists
 from os import mkdir, unlink, listdir, getpid
@@ -28,11 +29,11 @@ from world_models.configs.wm_config import WMControllerConfig
 from world_models.envs.gym_env import GymImageEnv
 
 
-def flatten_parameters(parameters):
+def flatten_parameters(parameters: Any) -> np.ndarray:
     return np.concatenate([p.data.cpu().numpy().flatten() for p in parameters])
 
 
-def load_parameters(params, controller):
+def load_parameters(params: Any, controller: Any) -> None:
     pointer = 0
     for param in controller.parameters():
         param_shape = param.shape
@@ -45,7 +46,14 @@ def load_parameters(params, controller):
         pointer += size
 
 
-def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device):
+def _run_rollout(
+    ctrl_params: np.ndarray,
+    logdir: str,
+    env_name: str,
+    action_size: int,
+    time_limit: int,
+    device: torch.device,
+) -> float:
     """Run a single rollout with given controller parameters.
 
     Args:
@@ -62,8 +70,8 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
     vae_file = join(logdir, "vae", "best.tar")
     rnn_file = join(logdir, "mdrnn", "best.tar")
 
-    vae_state = torch.load(vae_file, map_location=device)
-    rnn_state = torch.load(rnn_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
+    rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
     latent_size = 32
 
     vae = ConvVAE(img_channels=3, latent_size=latent_size).to(device)
@@ -79,10 +87,10 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
     cell_rnn = MDRNNCell(
         latents=latent_size, actions=action_size, hiddens=256, gaussians=5
     ).to(device)
-    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)
-    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)
-    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)
-    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)
+    cell_rnn.rnn.weight_ih.data.copy_(batch_rnn.rnn.weight_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.weight_hh.data.copy_(batch_rnn.rnn.weight_hh_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_ih.data.copy_(batch_rnn.rnn.bias_ih_l0.data)  # type: ignore[arg-type]
+    cell_rnn.rnn.bias_hh.data.copy_(batch_rnn.rnn.bias_hh_l0.data)  # type: ignore[arg-type]
     cell_rnn.gmm_linear.load_state_dict(batch_rnn.gmm_linear.state_dict())
     cell_rnn.eval()
     del batch_rnn
@@ -92,7 +100,7 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
     ctrl.eval()
 
     try:
-        env = gym.make(env_name, continuous=True)
+        env: Any = gym.make(env_name, continuous=True)
     except Exception:
         env = gym.make(env_name)
     env = GymImageEnv(env=env, size=(64, 64))
@@ -118,17 +126,19 @@ def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device)
             action_t = torch.tensor(action).float().to(device)
             _, _, _, _, _, (h, c) = cell_rnn(action_t, z, (h, c))
 
-            next_obs, reward, done, _ = env.step(action)
+            next_obs, reward, terminated, truncated, _ = env.step(action)
             total_reward += reward
             obs = next_obs
-            if done:
+            if terminated or truncated:
                 break
 
     env.close()
     return total_reward
 
 
-def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
+def slave_routine(
+    p_queue: Any, r_queue: Any, e_queue: Any, p_index: int, config: Any, time_limit: int
+) -> None:
     """Worker process routine for parallel rollout evaluation.
 
     Args:
@@ -161,7 +171,9 @@ def slave_routine(p_queue, r_queue, e_queue, p_index, config, time_limit):
             r_queue.put((s_id, reward))
 
 
-def evaluate(solutions, results, rollouts, p_queue, r_queue):
+def evaluate(
+    solutions: Any, results: Any, rollouts: int, p_queue: Any, r_queue: Any
+) -> Any:
     """Evaluate current controller."""
     index_min = np.argmin(results)
     best_guess = solutions[index_min]
@@ -223,7 +235,7 @@ def train_controller(config: WMControllerConfig) -> None:
     ctrl_file = join(ctrl_dir, "best.tar")
     print("Attempting to load previous best...")
     if exists(ctrl_file):
-        state = torch.load(ctrl_file, map_location={"cuda:0": "cpu"})
+        state = torch.load(ctrl_file, map_location={"cuda:0": "cpu"}, weights_only=True)
         cur_best = -state["reward"]
         controller.load_state_dict(state["state_dict"])
         print(f"Previous best was {-cur_best}...")

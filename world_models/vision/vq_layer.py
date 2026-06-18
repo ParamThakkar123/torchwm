@@ -166,10 +166,10 @@ class VectorQuantizerEMA(nn.Module):
         # EMA tracking
         # Annotate buffers so the type checker knows these are tensors
         self.register_buffer("ema_cluster_size", torch.zeros(vocab_size))
-        self.ema_cluster_size: torch.Tensor = self.ema_cluster_size  # type: ignore[name-defined]
+        self.ema_cluster_size: torch.Tensor = self.ema_cluster_size
 
         self.register_buffer("ema_embed_avg", self.codebook.weight.data.clone())
-        self.ema_embed_avg: torch.Tensor = self.ema_embed_avg  # type: ignore[name-defined]
+        self.ema_embed_avg: torch.Tensor = self.ema_embed_avg
 
     def forward(
         self, z: torch.Tensor

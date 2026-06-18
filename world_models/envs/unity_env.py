@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 import gymnasium as gym
 import numpy as np
 from PIL import Image
 
 
-def make_unity_mlagents_env(env_id: "Optional[str]" = None, **kwargs):
+def make_unity_mlagents_env(
+    env_id: Optional[str] = None, **kwargs: Any
+) -> UnityMLAgentsEnv:
     """Create a Unity ML-Agents environment wrapper.
 
     Factory function that instantiates a UnityMLAgentsEnv with the provided
@@ -72,17 +74,17 @@ class UnityMLAgentsEnv:
 
     def __init__(
         self,
-        file_name,
-        behavior_name=None,
-        seed=0,
-        size=(64, 64),
-        worker_id=0,
-        base_port=5005,
-        no_graphics=True,
-        time_scale=20.0,
-        quality_level=1,
-        max_episode_steps=1000,
-    ):
+        file_name: str,
+        behavior_name: str | None = None,
+        seed: int = 0,
+        size: tuple[int, int] = (64, 64),
+        worker_id: int = 0,
+        base_port: int = 5005,
+        no_graphics: bool = True,
+        time_scale: float = 20.0,
+        quality_level: int = 1,
+        max_episode_steps: int = 1000,
+    ) -> None:
         from mlagents_envs.base_env import ActionTuple
         from mlagents_envs.environment import UnityEnvironment
         from mlagents_envs.side_channel.engine_configuration_channel import (
@@ -93,7 +95,7 @@ class UnityMLAgentsEnv:
         self._size = (int(size[0]), int(size[1]))
         self._max_episode_steps = int(max_episode_steps)
         self._agent_id = None
-        self._last_image = None
+        self._last_image: Any = None
 
         self._engine_channel = EngineConfigurationChannel()
         self._engine_channel.set_configuration_parameters(
@@ -134,7 +136,7 @@ class UnityMLAgentsEnv:
         self._action_size = int(action_spec.continuous_size)
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.spaces.Dict:
         return gym.spaces.Dict(
             {
                 "image": gym.spaces.Box(
@@ -147,16 +149,16 @@ class UnityMLAgentsEnv:
         )
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.spaces.Box:
         return gym.spaces.Box(
             low=-1.0, high=1.0, shape=(self._action_size,), dtype=np.float32
         )
 
     @property
-    def max_episode_steps(self):
+    def max_episode_steps(self) -> int:
         return self._max_episode_steps
 
-    def _extract_agent_data(self, steps, preferred_agent_id):
+    def _extract_agent_data(self, steps: Any, preferred_agent_id: Any) -> Any:
         agent_ids = np.asarray(getattr(steps, "agent_id", []))
         if agent_ids.size == 0:
             return None
@@ -183,14 +185,15 @@ class UnityMLAgentsEnv:
 
         return agent_id, obs_list, reward, interrupted
 
-    def _vector_to_image(self, vector):
-        arr = np.asarray(vector, dtype=np.float32).reshape(-1)
+    def _vector_to_image(self, vector: Any) -> np.ndarray:
+        arr: np.ndarray = np.asarray(vector, dtype=np.float32).reshape(-1)
         if arr.size == 0:
             return np.zeros((self._size[0], self._size[1], 3), dtype=np.uint8)
         vmin = float(arr.min())
         vmax = float(arr.max())
         if vmax > vmin:
-            arr = (arr - vmin) / (vmax - vmin)
+            arr_norm = (arr - vmin) / (vmax - vmin)
+            arr = arr_norm
         else:
             arr = np.zeros_like(arr)
 
@@ -203,7 +206,7 @@ class UnityMLAgentsEnv:
             image[:, start:end, :] = int(255.0 * float(arr[i]))
         return image
 
-    def _to_hwc_uint8(self, obs):
+    def _to_hwc_uint8(self, obs: Any) -> np.ndarray:
         arr = np.asarray(obs)
 
         if arr.ndim == 1:
@@ -233,12 +236,12 @@ class UnityMLAgentsEnv:
         if image.shape[0] != self._size[0] or image.shape[1] != self._size[1]:
             image = np.array(
                 Image.fromarray(image).resize(
-                    (self._size[1], self._size[0]), Image.BILINEAR
+                    (self._size[1], self._size[0]), Image.Resampling.BILINEAR
                 )
             )
         return image
 
-    def _obs_list_to_chw_image(self, obs_list):
+    def _obs_list_to_chw_image(self, obs_list: Any) -> np.ndarray:
         visual = None
         for obs in obs_list:
             arr = np.asarray(obs)
@@ -252,7 +255,7 @@ class UnityMLAgentsEnv:
         image = self._to_hwc_uint8(visual)
         return image.transpose(2, 0, 1).copy()
 
-    def reset(self):
+    def reset(self) -> dict[str, Any]:
         self._env.reset()
         decision_steps, terminal_steps = self._env.get_steps(self._behavior_name)
 
@@ -267,7 +270,7 @@ class UnityMLAgentsEnv:
         self._last_image = image
         return {"image": image}
 
-    def step(self, action):
+    def step(self, action: Any) -> tuple[dict[str, Any], float, bool, dict[str, Any]]:
         if self._agent_id is None:
             raise RuntimeError(
                 "Environment has terminated. Call reset() before step()."
@@ -311,11 +314,11 @@ class UnityMLAgentsEnv:
 
         return {"image": image}, float(reward), bool(done), info
 
-    def render(self, *args, **kwargs):
+    def render(self, *args: Any, **kwargs: Any) -> Any:
         if self._last_image is None:
             raise RuntimeError("No frame available. Call reset() before render().")
         return self._last_image.transpose(1, 2, 0).copy()
 
-    def close(self):
+    def close(self) -> None:
         if hasattr(self, "_env") and self._env is not None:
             self._env.close()

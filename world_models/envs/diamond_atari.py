@@ -58,7 +58,7 @@ class DiamondAtariWrapper(gym.Wrapper):
                 obs, reward, terminated, truncated, info = ret
             else:
                 # older gym: (obs, reward, done, info)
-                obs, reward, single_done, info = ret  # type: ignore[assignment]
+                obs, reward, single_done, info = ret
                 terminated = bool(single_done)
                 truncated = False
 
@@ -76,7 +76,6 @@ class DiamondAtariWrapper(gym.Wrapper):
                     getattr(self.env, "ale"), "lives"
                 ):
                     try:
-                        # type: ignore[attr-defined]
                         self.lives = self.env.ale.lives()
                     except Exception:
                         # some backends expose lives as attribute or method; ignore failures
@@ -94,7 +93,7 @@ class DiamondAtariWrapper(gym.Wrapper):
         assert obs is not None
         return obs, total_reward, done, info
 
-    def step(self, action: int) -> Any:  # type: ignore[override]
+    def step(self, action: int) -> Any:
         """Step the environment.
 
         For backwards compatibility with older gym APIs this wrapper returns a
@@ -109,7 +108,7 @@ class DiamondAtariWrapper(gym.Wrapper):
         # Return legacy 4-tuple (obs, reward, done, info)
         return obs, reward, bool(done), info
 
-    def reset(self, **kwargs) -> Tuple[Any, Dict[str, Any]]:
+    def reset(self, **kwargs: Any) -> Tuple[Any, Dict[str, Any]]:
         obs, info = self.env.reset(**kwargs)
 
         if self.resize is not None:

@@ -44,7 +44,9 @@ class ConvEncoder(nn.Module):
         depth: Base channel depth for first layer (default 32)
     """
 
-    def __init__(self, input_shape, embed_size, activation, depth=32):
+    def __init__(
+        self, input_shape: tuple, embed_size: int, activation: str, depth: int = 32
+    ) -> None:
         super().__init__()
 
         self.input_shape = input_shape
@@ -54,7 +56,7 @@ class ConvEncoder(nn.Module):
 
         self.embed_size = embed_size
 
-        layers = []
+        layers: list[nn.Module] = []
         for i, kernel_size in enumerate(self.kernels):
             in_ch = input_shape[0] if i == 0 else self.depth * (2 ** (i - 1))
             out_ch = self.depth * (2**i)
@@ -68,7 +70,7 @@ class ConvEncoder(nn.Module):
             else nn.Linear(1024, self.embed_size)
         )
 
-    def forward(self, inputs):
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         reshaped = inputs.reshape(-1, *self.input_shape)
         embed = self.conv_block(reshaped)
         embed = torch.reshape(embed, (*inputs.shape[:-3], -1))

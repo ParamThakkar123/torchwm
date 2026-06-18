@@ -3,7 +3,7 @@ import argparse
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-from typing import Optional, Dict, Tuple, Literal
+from typing import Any, Optional, Dict, Tuple, Literal
 import numpy as np
 from dataclasses import dataclass
 
@@ -54,7 +54,9 @@ class GenieConfig(SerializableConfigMixin):
 class VideoDataset(Dataset):
     """Dataset for video data."""
 
-    def __init__(self, video_paths: list, num_frames: int = 16, image_size: int = 64):
+    def __init__(
+        self, video_paths: list, num_frames: int = 16, image_size: int = 64
+    ) -> None:
         self.video_paths = video_paths
         self.num_frames = num_frames
         self.image_size = image_size
@@ -74,7 +76,7 @@ class GenieTrainer:
         model: nn.Module,
         config: GenieConfig,
         device: Optional[torch.device] = None,
-    ):
+    ) -> None:
         self.model = model
         self.config = config
 
@@ -95,12 +97,12 @@ class GenieTrainer:
 
         self.global_step = 0
 
-    def _create_scheduler(self):
+    def _create_scheduler(self) -> torch.optim.lr_scheduler.LambdaLR:
         """Create learning rate scheduler with warmup and cosine decay."""
         warmup_steps = self.config.warmup_steps
         max_steps = self.config.max_steps
 
-        def lr_lambda(step):
+        def lr_lambda(step: int) -> float:
             if step < warmup_steps:
                 return step / warmup_steps
             else:
@@ -109,7 +111,7 @@ class GenieTrainer:
 
         return torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda)
 
-    def train_step(self, batch: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def train_step(self, batch: torch.Tensor) -> Dict[str, torch.Tensor | float | None]:
         """Single training step.
 
         Args:
@@ -155,7 +157,7 @@ class GenieTrainer:
         self.global_step += 1
 
         # Normalize all returned metrics to torch.Tensor for consistent typing
-        def as_tensor(x):
+        def as_tensor(x: Any) -> torch.Tensor:
             if isinstance(x, torch.Tensor):
                 return x.detach().cpu()
             try:
@@ -198,7 +200,7 @@ class GenieTrainer:
         num_steps: Optional[int] = None,
         log_interval: int = 100,
         val_interval: int = 1000,
-    ):
+    ) -> None:
         """Full training loop.
 
         Args:
@@ -243,7 +245,7 @@ class GenieTrainer:
 
         print("Training complete!")
 
-    def save_checkpoint(self, path: str):
+    def save_checkpoint(self, path: str) -> None:
         """Save model checkpoint."""
         save_config_next_to_checkpoint(self.config, path)
         torch.save(
@@ -257,7 +259,7 @@ class GenieTrainer:
             path,
         )
 
-    def load_checkpoint(self, path: str):
+    def load_checkpoint(self, path: str) -> None:
         """Load model checkpoint."""
         checkpoint = torch.load(
             path,

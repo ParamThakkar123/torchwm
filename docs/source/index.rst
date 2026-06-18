@@ -20,8 +20,10 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    training_guide
    inference_guide
    visualization
+   evaluation_guide
    environments_guide
    environments/index
+   datasets/nuplan
    cli
    package_overview
    world_models_guide
@@ -36,6 +38,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    jepa
    iris
    dit
+   diamond
    genie
 
 .. toctree::

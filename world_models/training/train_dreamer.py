@@ -5,6 +5,7 @@ Usage:
     python -m world_models.training.train_dreamer env_backend=gym env=Pendulum-v1
 """
 
+from typing import Any
 from world_models.configs.dreamer_config import DreamerConfig
 from world_models.experiments import (
     dump_config,
@@ -14,7 +15,7 @@ from world_models.experiments import (
 from world_models.models.dreamer import DreamerAgent
 
 
-def train_dreamer(config: DreamerConfig | None = None, **kwargs):
+def train_dreamer(config: DreamerConfig | None = None, **kwargs: Any) -> DreamerAgent:
     if config is None:
         config = DreamerConfig()
     for key, value in kwargs.items():
@@ -25,7 +26,7 @@ def train_dreamer(config: DreamerConfig | None = None, **kwargs):
     return agent
 
 
-def main(argv: list[str] | None = None):
+def main(argv: list[str] | None = None) -> DreamerConfig:
     args = parse_experiment_args(argv, description="Train Dreamer")
     config = instantiate_dataclass(DreamerConfig, args.config, args.overrides)
     if args.print_config:

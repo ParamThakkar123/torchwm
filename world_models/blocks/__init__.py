@@ -19,6 +19,8 @@ Exported Components:
         - AdaLNNormalization: Adaptive Layer Normalization
 """
 
+from typing import Any
+
 __all__ = [
     # Transformers
     "STTransformer",
@@ -35,7 +37,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     # Transformers
     if name == "STTransformer":
         from .st_transformer import STTransformer

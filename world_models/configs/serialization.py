@@ -7,7 +7,7 @@ from dataclasses import asdict, fields, is_dataclass
 from pathlib import Path
 from typing import Any, TypeVar
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 ConfigT = TypeVar("ConfigT", bound="SerializableConfigMixin")
 
@@ -105,10 +105,13 @@ class SerializableConfigMixin:
             valid = _config_field_names(cls)
             invalid = sorted(set(values) - valid)
             if invalid:
-                raise ValueError(
-                    f"Invalid {cls.__name__} field(s): {', '.join(invalid)}"
+                msg = (
+                    f"Invalid {cls.__name__} field"
+                    f"{'s' if len(invalid) > 1 else ''}: {', '.join(invalid)}"
                 )
-            return cls(**values)
+                raise ValueError(msg)
+            config = cls()
+            return update_config_from_dict(config, values)
         config = cls()
         return update_config_from_dict(config, values)
 

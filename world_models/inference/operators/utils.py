@@ -7,8 +7,8 @@ import numpy as np
 def normalize_image(
     image: Union[torch.Tensor, Any],
     size: tuple = (224, 224),
-    mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225],
+    mean: list = [0.485, 0.456, 0.406],
+    std: list = [0.229, 0.224, 0.225],
 ) -> torch.Tensor:
     """Normalize image tensor or PIL Image."""
     transform = T.Compose(

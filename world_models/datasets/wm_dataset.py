@@ -10,6 +10,7 @@ from albumentations.core.composition import Compose
 import glob
 import torch
 from bisect import bisect
+from typing import Any
 
 
 class RolloutDataset(Dataset):
@@ -68,7 +69,7 @@ class RolloutDataset(Dataset):
 
         self.cum_size = [0]
         for f in self.files:
-            with np.load(f) as data:
+            with np.load(f, allow_pickle=False) as data:
                 size = len(data["observations"])
             self.cum_size.append(self.cum_size[-1] + size)
 
@@ -77,7 +78,7 @@ class RolloutDataset(Dataset):
         self.buffer_idx = 0
         self.buffer_fnames: list[str | None] = [None] * len(self.files)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get the total number of samples in the dataset.
 
         Returns:
@@ -85,7 +86,7 @@ class RolloutDataset(Dataset):
         """
         return self.cum_size[-1]
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> dict:
         """Get a single sample from the dataset.
 
         Args:
@@ -97,12 +98,12 @@ class RolloutDataset(Dataset):
         file_idx = bisect(self.cum_size, idx) - 1
         seq_idx = idx - self.cum_size[file_idx]
         if self.buffer[file_idx] is None:
-            self.buffer[file_idx] = np.load(self.files[file_idx])
+            self.buffer[file_idx] = np.load(self.files[file_idx], allow_pickle=False)
             self.buffer_fnames[file_idx] = self.files[file_idx]
         data = self.buffer[file_idx]
         return self._get_data(data, seq_idx)
 
-    def _get_data(self, data, idx):
+    def _get_data(self, data: Any, idx: int) -> dict:
         """Extract and transform a single data point from rollout.
 
         Args:
@@ -127,7 +128,7 @@ class RolloutDataset(Dataset):
 
         return dict(observation=obs, action=action, reward=reward, terminal=terminal)
 
-    def load_next_buffer(self):
+    def load_next_buffer(self) -> None:
         """Load the next batch of rollout files into memory.
 
         This method implements a circular buffer, loading buffer_size files
@@ -135,14 +136,14 @@ class RolloutDataset(Dataset):
         """
         if self.buffer is None:
             self.buffer = [None] * len(self.files)
-        self.buffer_fnames: list[str | None] = [None] * len(self.files)
+        self.buffer_fnames = [None] * len(self.files)
 
         start_idx = self.buffer_idx
         end_idx = min(start_idx + self.buffer_size, len(self.files))
 
         for i in range(start_idx, end_idx):
             if self.buffer[i] is None or self.buffer_fnames[i] != self.files[i]:
-                self.buffer[i] = np.load(self.files[i])
+                self.buffer[i] = np.load(self.files[i], allow_pickle=False)
                 self.buffer_fnames[i] = self.files[i]
 
         self.buffer_idx = end_idx % len(self.files)
@@ -163,16 +164,7 @@ class ObservationDataset(RolloutDataset):
         >>> obs = dataset[0]
     """
 
-    def _get_data(self, data, idx: int):
-        """Extract a single observation from rollout data.
-
-        Args:
-            data: Dictionary containing rollout data arrays.
-            idx: Index of the observation to extract.
-
-        Returns:
-            torch.Tensor: Processed observation tensor.
-        """
+    def _get_data(self, data: Any, idx: int) -> torch.Tensor:  # type: ignore[override]
         obs = data["observations"][idx]
         if self.transform:
             transformed = self.transform(image=obs)
@@ -223,16 +215,7 @@ class SequenceDataset(RolloutDataset):
         super().__init__(root, transform, train, buffer_size, num_test_files)
         self.seq_len = seq_len
 
-    def _get_data(self, data, idx: int):
-        """Extract a sequence of data from rollout.
-
-        Args:
-            data: Dictionary containing rollout data arrays.
-            idx: Starting index of the sequence.
-
-        Returns:
-            Tuple of (observations, actions, rewards, terminals, next_observations).
-        """
+    def _get_data(self, data: Any, idx: int) -> tuple:  # type: ignore[override]
         obs_data = data["observations"][idx : idx + self.seq_len]
         if self.transform:
             transformed = [self.transform(image=obs) for obs in obs_data]
@@ -284,10 +267,10 @@ class LatentSequenceDataset(Dataset):
         self.seq_len = seq_len
         self.cum_size = list(range(self.start_idx, self.end_idx + 1, seq_len))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cum_size) - 1
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> tuple:
         start = self.cum_size[idx]
         latent_obs = self.latents_arr[start : start + self.seq_len]
         latent_next_obs = self.latents_arr[start + 1 : start + self.seq_len + 1]

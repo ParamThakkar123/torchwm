@@ -25,7 +25,7 @@ from world_models.datasets.wm_dataset import SequenceDataset, LatentSequenceData
 from world_models.utils.train_utils import EarlyStopping, ReduceLROnPlateau
 
 
-def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
+def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig) -> None:
     """Pre-compute and save VAE latents to disk for memory-efficient RNN training.
 
     This function encodes all observations using the VAE and saves the latent
@@ -50,7 +50,7 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
     assert exists(vae_file), "No trained VAE found. Train VAE first."
 
     print("Loading VAE for latent encoding...")
-    vae_state = torch.load(vae_file, map_location=device)
+    vae_state = torch.load(vae_file, map_location=device, weights_only=True)
     vae = ConvVAE(img_channels=3, latent_size=mdrnn_config.latent_size).to(device)
     vae.load_state_dict(vae_state["state_dict"])
     vae.eval()
@@ -67,7 +67,7 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
 
     with torch.no_grad():
         for fpath in tqdm(rollout_files):
-            data = np.load(fpath)
+            data = np.load(fpath, allow_pickle=False)
             observations = data["observations"]
             actions = data["actions"]
             rewards = data["rewards"]
@@ -112,7 +112,9 @@ def precompute_latents(vae_config: WMVAEConfig, mdrnn_config: WMMDNRNNConfig):
     print(f"Saved pre-computed latents to {latent_file}")
 
 
-def save_checkpoint(state, is_best, filename, best_filename):
+def save_checkpoint(
+    state: Any, is_best: bool, filename: str, best_filename: str
+) -> None:
     """Save model checkpoint.
 
     Args:
@@ -126,7 +128,13 @@ def save_checkpoint(state, is_best, filename, best_filename):
         torch.save(state, best_filename)
 
 
-def to_latent(vae, obs, next_obs, device, red_size=64):
+def to_latent(
+    vae: ConvVAE,
+    obs: torch.Tensor,
+    next_obs: torch.Tensor,
+    device: torch.device,
+    red_size: int = 64,
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Transform observations to latent space using VAE encoder.
 
     This function encodes observations into the latent space using the VAE's
@@ -166,15 +174,15 @@ def to_latent(vae, obs, next_obs, device, red_size=64):
 
 
 def get_loss(
-    mdrnn,
-    latent_obs,
-    action,
-    reward,
-    terminal,
-    latent_next_obs,
-    include_reward,
-    latent_size,
-):
+    mdrnn: MDRNN,
+    latent_obs: torch.Tensor,
+    action: torch.Tensor,
+    reward: torch.Tensor,
+    terminal: torch.Tensor,
+    latent_next_obs: torch.Tensor,
+    include_reward: bool,
+    latent_size: int,
+) -> dict[str, torch.Tensor]:
     """Compute MDRNN loss.
 
     Computes the combined loss for the MDRNN model:
@@ -216,20 +224,27 @@ def get_loss(
 
 
 def data_pass(
-    epoch,
-    mdrnn,
-    vae,
-    train_loader,
-    test_loader,
-    optimizer,
-    device,
-    include_reward,
-    latent_size,
-    batch_size,
-    train=True,
-    use_amp=False,
-    scaler=None,
-):
+    epoch: int,
+    mdrnn: Any,
+    vae: Any,
+    train_loader: Any,
+    test_loader: Any,
+    optimizer: Any,
+    device: Any,
+    include_reward: bool,
+    test_every: int = 10,
+    epochs: int = 1,
+    use_amp: bool = False,
+    scaler: Any = None,
+    latent_size: int = 32,
+    max_seq_len: int = 50,
+    log_wandb: bool = False,
+    prev_val_loss: float = 1e6,
+    early_stop: Any = None,
+    lr_scheduler: Any = None,
+    batch_size: int = 50,
+    train: bool = True,
+) -> float:
     """Run one epoch of training or validation.
 
     Args:
@@ -257,13 +272,13 @@ def data_pass(
         mdrnn.eval()
         loader = test_loader
 
+    cum_loss: float = 0.0
+    cum_gmm: float = 0.0
+    cum_bce: float = 0.0
+    cum_mse: float = 0.0
+
     if hasattr(loader.dataset, "load_next_buffer"):
         loader.dataset.load_next_buffer()
-
-    cum_loss = 0
-    cum_gmm = 0
-    cum_bce = 0
-    cum_mse = 0
 
     use_precomputed = vae is None
 
@@ -313,7 +328,7 @@ def data_pass(
                     latent_size,
                 )
                 optimizer.zero_grad()
-                losses["loss"].backward()
+                losses["loss"].backward()  # type: ignore[no-untyped-call]
                 optimizer.step()
         else:
             with torch.no_grad():
@@ -344,15 +359,16 @@ def data_pass(
         cum_loss += losses["loss"].item()
         cum_gmm += losses["gmm"].item()
         cum_bce += losses["bce"].item()
-        cum_mse += (
+        mse_val = float(
             losses["mse"].item() if hasattr(losses["mse"], "item") else losses["mse"]
         )
+        cum_mse += mse_val
 
         pbar.set_postfix_str(
             "loss={loss:10.6f} bce={bce:10.6f} gmm={gmm:10.6f} mse={mse:10.6f}".format(
                 loss=cum_loss / (i + 1),
                 bce=cum_bce / (i + 1),
-                gmm=cum_gmm / latent_size / (i + 1),
+                gmm=cum_gmm / max(latent_size, 1) / (i + 1),
                 mse=cum_mse / (i + 1),
             )
         )
@@ -408,7 +424,7 @@ def train_mdn_rnn(
     vae = None
     if use_precomputed_latents and exists(latent_file):
         print(f"Loading pre-computed latents from {latent_file}")
-        latent_data = np.load(latent_file)
+        latent_data = np.load(latent_file, allow_pickle=False)
         latents = latent_data["latents"]
         all_actions = latent_data["actions"]
         all_rewards = latent_data["rewards"]
@@ -417,7 +433,7 @@ def train_mdn_rnn(
         if use_precomputed_latents:
             print("Pre-computing latents...")
             precompute_latents(vae_config, mdrnn_config)
-            latent_data = np.load(latent_file)
+            latent_data = np.load(latent_file, allow_pickle=False)
             latents = latent_data["latents"]
             all_actions = latent_data["actions"]
             all_rewards = latent_data["rewards"]
@@ -425,7 +441,7 @@ def train_mdn_rnn(
         else:
             vae_file = join(vae_config.logdir, "vae", "best.tar")
             assert exists(vae_file), "No trained VAE in the logdir..."
-            vae_state = torch.load(vae_file, map_location=device)
+            vae_state = torch.load(vae_file, map_location=device, weights_only=True)
             print(
                 "Loading VAE at epoch {} with test error {}".format(
                     vae_state["epoch"], vae_state["precision"]
@@ -463,7 +479,7 @@ def train_mdn_rnn(
 
     rnn_file = join(rnn_dir, "best.tar")
     if not mdrnn_config.noreload and exists(rnn_file):
-        rnn_state = torch.load(rnn_file, map_location=device)
+        rnn_state = torch.load(rnn_file, map_location=device, weights_only=True)
         print(
             "Loading MDRNN at epoch {} with test error {}".format(
                 rnn_state["epoch"], rnn_state["precision"]
@@ -511,7 +527,7 @@ def train_mdn_rnn(
         )
     else:
 
-        def transform(x):
+        def transform(x: Any) -> torch.Tensor:
             return torch.tensor(x).float() / 255.0
 
         train_dataset = SequenceDataset(

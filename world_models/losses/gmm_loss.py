@@ -4,6 +4,8 @@ This module provides the GMM loss function used in the Mixture Density
 Recurrent Neural Network (MDRNN) for world model training.
 """
 
+from typing import Any
+
 import torch
 from torch.distributions.normal import Normal
 
@@ -14,7 +16,7 @@ def gmm_loss(
     sigmas: torch.Tensor,
     logpi: torch.Tensor,
     reduce: bool = True,
-):
+) -> torch.Tensor:
     """Compute the negative log-likelihood of a batch under a Gaussian Mixture Model.
 
     This function computes minus the log probability of the batch under the GMM
@@ -49,7 +51,7 @@ def gmm_loss(
         >>> loss = gmm_loss(batch, mus, sigmas, logpi)
     """
     latent_next_obs = latent_next_obs.unsqueeze(-2)
-    normal_dist = Normal(mus, sigmas)
+    normal_dist: Any = Normal(mus, sigmas)
     g_log_probs = normal_dist.log_prob(latent_next_obs)
     g_log_probs = logpi + torch.sum(g_log_probs, dim=-1)
     max_log_probs = torch.max(g_log_probs, dim=-1, keepdim=True)[0]

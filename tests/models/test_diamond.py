@@ -218,7 +218,6 @@ class TestEulerSampler:
         assert sampler.num_steps == 3
         assert sampler.t_steps.shape == (3,)
 
-    @pytest.mark.skip(reason="Device mismatch bug in diamond_diffusion.py")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_sampler_sample(self):
         sampler = EulerSampler(num_steps=3)
@@ -506,7 +505,6 @@ class TestIntegration:
 
     @pytest.mark.slow
     @pytest.mark.gpu
-    @pytest.mark.skip(reason="Device mismatch bug in diamond_diffusion.py")
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_full_forward_pass(self):
         config = DiamondConfig(obs_size=32)

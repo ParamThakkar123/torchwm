@@ -37,6 +37,7 @@ and representation learning workflows (Dreamer, JEPA, IRIS, DiT, and more).
    jepa
    iris
    dit
+   diamond
    genie
 
 .. toctree::

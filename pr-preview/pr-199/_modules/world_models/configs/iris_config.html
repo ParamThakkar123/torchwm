@@ -736,7 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Implements discrete autoencoder + autoregressive Transformer for sample-efficient RL.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># === Discrete Autoencoder (VQVAE) ===</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frame_height</span> <span class="o">=</span> <span class="mi">64</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frame_width</span> <span class="o">=</span> <span class="mi">64</span>
@@ -831,13 +831,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="IRISConfig.get_frame_shape">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISConfig.get_frame_shape">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_frame_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_frame_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_width</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="IRISConfig.get_autoencoder_config">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISConfig.get_autoencoder_config">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_autoencoder_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_autoencoder_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;vocab_size&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
             <span class="s2">&quot;tokens_per_frame&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokens_per_frame</span><span class="p">,</span>
@@ -855,7 +855,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="IRISConfig.get_transformer_config">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISConfig.get_transformer_config">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_transformer_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_transformer_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;timesteps&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer_timesteps</span><span class="p">,</span>
             <span class="s2">&quot;embed_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer_embed_dim</span><span class="p">,</span>
@@ -870,7 +870,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="IRISConfig.get_rl_config">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.IRISConfig.get_rl_config">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_rl_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_rl_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;imagination_horizon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">imagination_horizon</span><span class="p">,</span>
             <span class="s2">&quot;discount&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">discount</span><span class="p">,</span>

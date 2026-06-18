@@ -64,7 +64,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Package Overview" href="package_overview.html" />
-    <link rel="prev" title="Environment Wrappers" href="environments/wrappers.html" />
+    <link rel="prev" title="NuPlan Dataset" href="datasets/nuplan.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -271,8 +271,10 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization Trackers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
@@ -285,6 +287,7 @@
 <li class="toctree-l1"><a class="reference internal" href="jepa.html">JEPA: Joint Embedding Predictive Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="iris.html">IRIS: Transformers for Sample-Efficient World Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dit.html">DiT: Diffusion Transformer and Diffusion Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diamond.html">DIAMOND</a></li>
 <li class="toctree-l1"><a class="reference internal" href="genie.html">Genie: Generative Interactive Environment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
@@ -366,7 +369,7 @@ commands require optional dependencies (listed below).</p></li>
 </ul>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> - Print the installed <code class="docutils literal notranslate"><span class="pre">torchwm</span></code> package version (or “unknown” if
 the package cannot be imported).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">envs</span> <span class="pre">list</span></code> - List built-in environment backends and example environment ids.
@@ -392,6 +395,35 @@ entrypoint. The CLI maps simple model names to modules in
 module’s <code class="docutils literal notranslate"><span class="pre">main()</span></code> if available). DIAMOND, IRIS, and JEPA accept
 <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">PATH</span></code>, <code class="docutils literal notranslate"><span class="pre">--print-config</span></code>, and OmegaConf/Hydra-style dot-list
 overrides such as <code class="docutils literal notranslate"><span class="pre">total_epochs=100</span></code> or <code class="docutils literal notranslate"><span class="pre">optimization.lr=3e-4</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eval</span> <span class="pre">--model</span> <span class="pre">&lt;NAME&gt;</span> <span class="pre">--checkpoint</span> <span class="pre">&lt;PATH&gt;</span> <span class="pre">[options]</span></code> - Evaluate a trained world
+model with FID, FVD, LPIPS, and PSNR metrics. Metrics compare real trajectories
+(collected from the environment) against generated trajectories (from the
+model). See <a class="reference internal" href="evaluation_guide.html"><span class="doc">Evaluation Guide</span></a> for details and interpretation.</p>
+<p>Key options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--model</span></code>, <code class="docutils literal notranslate"><span class="pre">-m</span></code> — model type (currently <code class="docutils literal notranslate"><span class="pre">diamond</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint</span></code>, <code class="docutils literal notranslate"><span class="pre">-c</span></code> — path to checkpoint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--game</span></code>, <code class="docutils literal notranslate"><span class="pre">-g</span></code> — environment name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-videos</span></code> — number of trajectories (default 256)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--metrics</span></code> — comma-separated metrics, e.g. <code class="docutils literal notranslate"><span class="pre">fid,fvd,lpips,psnr</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--record</span> <span class="pre">PATH</span></code> — save real and generated videos</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output</span></code>, <code class="docutils literal notranslate"><span class="pre">-o</span></code> — save results JSON</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">play</span> <span class="pre">--model</span> <span class="pre">&lt;NAME&gt;</span> <span class="pre">--checkpoint</span> <span class="pre">&lt;PATH&gt;</span> <span class="pre">[options]</span></code> - Interactively play
+inside a trained world model. Two modes toggled by <code class="docutils literal notranslate"><span class="pre">TAB</span></code>: <strong>REAL</strong> (env
+stepping) and <strong>DREAM</strong> (model imagination). Press arrow keys / WASD to
+override the agent’s actions.</p>
+<p>Key options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--model</span></code>, <code class="docutils literal notranslate"><span class="pre">-m</span></code> — model type (currently <code class="docutils literal notranslate"><span class="pre">diamond</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--checkpoint</span></code>, <code class="docutils literal notranslate"><span class="pre">-c</span></code> — path to checkpoint</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--game</span></code>, <code class="docutils literal notranslate"><span class="pre">-g</span></code> — environment name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--deterministic</span></code> / <code class="docutils literal notranslate"><span class="pre">--stochastic</span></code> — action selection (default deterministic)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--record</span> <span class="pre">PATH</span></code> — save gameplay video</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--record-fps</span></code> — video framerate (default 20)</p></li>
+</ul>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">models</span> <span class="pre">list</span></code> - Print the known training entrypoints and (when available)
 exported model names from <code class="docutils literal notranslate"><span class="pre">world_models.models</span></code>.</p></li>
 </ul>
@@ -460,6 +492,18 @@ repository.</p></li>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>diamond<span class="w"> </span>--config<span class="w"> </span>world_models/configs/experiments/diamond.yaml<span class="w"> </span><span class="nv">preset</span><span class="o">=</span>small<span class="w"> </span><span class="nv">seed</span><span class="o">=</span><span class="m">3</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li><p>Example: evaluate a DIAMOND checkpoint</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--model<span class="w"> </span>diamond<span class="w"> </span>--checkpoint<span class="w"> </span>checkpoints/diamond/checkpoint.pt<span class="w"> </span>--game<span class="w"> </span>Breakout-v5
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Example: interactively play inside a DIAMOND world model</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>play<span class="w"> </span>--model<span class="w"> </span>diamond<span class="w"> </span>--checkpoint<span class="w"> </span>checkpoints/diamond/checkpoint.pt<span class="w"> </span>--game<span class="w"> </span>Breakout-v5<span class="w"> </span>--record<span class="w"> </span>gameplay.mp4
+</pre></div>
+</div>
 </section>
 <section id="maintaining-this-page">
 <h2>Maintaining this page<a class="headerlink" href="#maintaining-this-page" title="Link to this heading">#</a></h2>
@@ -479,12 +523,12 @@ new usage, examples, and any additional optional dependencies.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="environments/wrappers.html"
+       href="datasets/nuplan.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Environment Wrappers</p>
+        <p class="prev-next-title">NuPlan Dataset</p>
       </div>
     </a>
     <a class="right-next"

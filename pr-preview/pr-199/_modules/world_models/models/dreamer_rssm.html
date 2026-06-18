@@ -728,6 +728,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributions</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">distributions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
 
 <span class="n">_str_to_activation</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;relu&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
@@ -805,13 +806,13 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">action_size</span><span class="p">,</span>
-        <span class="n">stoch_size</span><span class="p">,</span>
-        <span class="n">deter_size</span><span class="p">,</span>
-        <span class="n">hidden_size</span><span class="p">,</span>
-        <span class="n">obs_embed_size</span><span class="p">,</span>
-        <span class="n">activation</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">stoch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">deter_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">obs_embed_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
@@ -835,7 +836,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.init_state">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.init_state">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RSSM state with zeros.</span>
 
 <span class="sd">        Args:</span>
@@ -858,7 +859,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.get_dist">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_dist">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dist</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Independent</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an Independent Normal distribution from mean and std.</span>
 
 <span class="sd">        Args:</span>
@@ -868,12 +871,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        Returns:</span>
 <span class="sd">            Independent Normal distribution with given parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">distribution</span> <span class="o">=</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
-        <span class="n">distribution</span> <span class="o">=</span> <span class="n">distributions</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">distribution</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">distribution</span><span class="p">:</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Independent</span> <span class="o">=</span> <span class="n">distributions</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span>
+            <span class="n">distributions</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">),</span> <span class="mi">1</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">distribution</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_gru_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gru_input</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Project [action, stoch] into the GRU input space and apply nonterm.</span>
 
 <span class="sd">        Per the Danijar Dreamer reference, the previous stochastic state is</span>
@@ -889,7 +895,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.observe_step">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.observe_step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observe_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prev_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">prev_action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">obs_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">nonterm</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update state using actual observation (observe mode).</span>
 
 <span class="sd">        In observe mode, the RSSM first computes a transition prior from the</span>
@@ -922,7 +934,12 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.imagine_step">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.imagine_step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">imagine_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">imagine_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prev_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">prev_action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">nonterm</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict next state without observation (imagine mode).</span>
 
 <span class="sd">        In imagine mode, the RSSM predicts future states using only the prior</span>
@@ -951,26 +968,24 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.get_prior">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_prior">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_prior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute prior distribution over stochastic state.</span>
-
-<span class="sd">        The prior represents the model&#39;s belief about the stochastic state</span>
-<span class="sd">        before observing the actual outcome.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            prev_state: Previous state dictionary</span>
-<span class="sd">            prev_action: Previous action</span>
-<span class="sd">            nonterm: Termination mask</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dictionary with prior state (no observation information)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_prior</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prev_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">prev_action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">nonterm</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">imagine_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RSSM.get_posterior">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.get_posterior">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_posterior</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prev_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">prev_action</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">obs_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">nonterm</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute posterior distribution over stochastic state.</span>
 
 <span class="sd">        The posterior incorporates observation information to produce</span>
@@ -993,7 +1008,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.detach_state">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.detach_state">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Detach state tensors from computation graph.</span>
 
 <span class="sd">        Used during DreamerV2 training to prevent gradient flow through</span>
@@ -1010,7 +1025,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.seq_to_batch">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.seq_to_batch">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seq_to_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert sequence state to batch format.</span>
 
 <span class="sd">        Args:</span>
@@ -1024,7 +1039,14 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.observe_rollout">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.observe_rollout">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">observe_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">observe_rollout</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_embed</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">nonterms</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">init_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a sequence of observations (observe mode rollout).</span>
 
 <span class="sd">        At each timestep we run ``observe_step`` once to obtain the transition</span>
@@ -1067,7 +1089,9 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.imagine_rollout">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.imagine_rollout">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">policy</span><span class="p">,</span> <span class="n">init_state</span><span class="p">,</span> <span class="n">horizon</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">imagine_rollout</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">policy</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">init_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate imagined trajectory using policy (imagine mode rollout).</span>
 
 <span class="sd">        Args:</span>
@@ -1093,7 +1117,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="RSSM.forward">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.RSSM.forward">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">u</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward pass for training (computes sequence of states).</span>
 
 <span class="sd">        Args:</span>

@@ -508,6 +508,11 @@ Datasets and transforms
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: world_models.datasets.nuplan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 .. automodule:: world_models.transforms.image
    :members:
    :undoc-members:

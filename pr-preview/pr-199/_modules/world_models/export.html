@@ -1117,7 +1117,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="n">example_inputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">exported</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">exported</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>
+                    <span class="n">exported</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>  <span class="c1"># type: ignore[no-untyped-call]</span>
                         <span class="n">module</span><span class="p">,</span>
                         <span class="n">_inputs_to_args</span><span class="p">(</span><span class="n">example_inputs</span><span class="p">),</span>
                         <span class="n">strict</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;strict&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
@@ -1165,7 +1165,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="s2">&quot;_torchwm_export_installed&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
         <span class="k">return</span>
-    <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">export</span> <span class="o">=</span> <span class="n">_module_export</span>  <span class="c1"># type: ignore[attr-defined, method-assign]</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">export</span> <span class="o">=</span> <span class="n">_module_export</span>  <span class="c1"># type: ignore[attr-defined]</span>
     <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">_torchwm_export_installed</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># type: ignore[attr-defined]</span></div>
 
 

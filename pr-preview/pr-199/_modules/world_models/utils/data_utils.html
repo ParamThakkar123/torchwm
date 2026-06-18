@@ -728,6 +728,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
 
+
 <div class="viewcode-block" id="create_efficient_dataloader">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.data_utils.create_efficient_dataloader">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_efficient_dataloader</span><span class="p">(</span>
@@ -757,13 +758,13 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="prefetch_iterator">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.utils.data_utils.prefetch_iterator">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">prefetch_iterator</span><span class="p">(</span><span class="n">iterator</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prefetch_iterator</span><span class="p">(</span><span class="n">iterator</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add prefetching to any iterator.&quot;&quot;&quot;</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
 
     <span class="n">buffer</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">fill_buffer</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_buffer</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
             <span class="n">buffer</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">buffer_size</span><span class="p">:</span>

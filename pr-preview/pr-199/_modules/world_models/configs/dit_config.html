@@ -725,8 +725,30 @@ window.runMermaid = runMermaid;</script>
                   
   <h1>Source code for world_models.configs.dit_config</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">replace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializableConfigMixin</span>
+
+<span class="n">_SNAKE_TO_UPPER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="s2">&quot;DATASET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="s2">&quot;BATCH&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;epochs&quot;</span><span class="p">:</span> <span class="s2">&quot;EPOCHS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="s2">&quot;LR&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;img_size&quot;</span><span class="p">:</span> <span class="s2">&quot;IMG_SIZE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;channels&quot;</span><span class="p">:</span> <span class="s2">&quot;CHANNELS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;patch_size&quot;</span><span class="p">:</span> <span class="s2">&quot;PATCH&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;WIDTH&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;depth&quot;</span><span class="p">:</span> <span class="s2">&quot;DEPTH&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;heads&quot;</span><span class="p">:</span> <span class="s2">&quot;HEADS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;drop&quot;</span><span class="p">:</span> <span class="s2">&quot;DROP&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;beta_start&quot;</span><span class="p">:</span> <span class="s2">&quot;BETA_START&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;beta_end&quot;</span><span class="p">:</span> <span class="s2">&quot;BETA_END&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;timesteps&quot;</span><span class="p">:</span> <span class="s2">&quot;TIMESTEPS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ema&quot;</span><span class="p">:</span> <span class="s2">&quot;EMA&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ema_decay&quot;</span><span class="p">:</span> <span class="s2">&quot;EMA_DECAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;workdir&quot;</span><span class="p">:</span> <span class="s2">&quot;WORKDIR&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;root_path&quot;</span><span class="p">:</span> <span class="s2">&quot;ROOT_PATH&quot;</span><span class="p">,</span>
+<span class="p">}</span>
 
 
 <div class="viewcode-block" id="DiTConfig">
@@ -738,6 +760,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    The fields define dataset selection, model architecture, diffusion schedule,</span>
 <span class="sd">    optimization hyperparameters, and output paths used by the built-in</span>
 <span class="sd">    training entrypoints.</span>
+
+<span class="sd">    Field names use UPPER_CASE for backward compatibility with the original DiT</span>
+<span class="sd">    codebase. Snake-case aliases are accepted via ``__getattr__`` and</span>
+<span class="sd">    ``get_dit_config()``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">DATASET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CIFAR10&quot;</span>
@@ -757,20 +783,36 @@ window.runMermaid = runMermaid;</script>
     <span class="n">EMA</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">EMA_DECAY</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.999</span>
     <span class="n">WORKDIR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./dit_demo&quot;</span>
-    <span class="n">ROOT_PATH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span></div>
+    <span class="n">ROOT_PATH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="n">_SNAKE_TO_UPPER</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="n">_SNAKE_TO_UPPER</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">upper</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="get_dit_config">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.get_dit_config">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_dit_config</span><span class="p">(</span><span class="o">**</span><span class="n">overrides</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_dit_config</span><span class="p">(</span><span class="o">**</span><span class="n">overrides</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DiTConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a DiTConfig instance with default values overridden by the provided keyword arguments.</span>
 
+<span class="sd">    Both UPPER_CASE and snake_case override keys are accepted.</span>
+
 <span class="sd">    Example usage:</span>
 <span class="sd">        cfg = get_dit_config(BATCH=64, EPOCHS=10, LR=1e-3)</span>
+<span class="sd">        cfg = get_dit_config(batch=64, epochs=10, lr=1e-3)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">DiTConfig</span><span class="p">(),</span> <span class="o">**</span><span class="n">overrides</span><span class="p">)</span></div>
+    <span class="n">translated</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">translated</span><span class="p">[</span><span class="n">_SNAKE_TO_UPPER</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">replace</span><span class="p">(</span><span class="n">DiTConfig</span><span class="p">(),</span> <span class="o">**</span><span class="n">translated</span><span class="p">)</span></div>
 
 </pre></div>
 

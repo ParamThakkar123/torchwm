@@ -729,6 +729,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Value</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
@@ -747,16 +748,16 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">input_size</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">),</span>
-        <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
-        <span class="n">enc_mask_scale</span><span class="o">=</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
-        <span class="n">pred_mask_scale</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">aspect_ratio</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
-        <span class="n">nenc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">npred</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="n">min_keep</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-        <span class="n">allow_overlap</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">input_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">),</span>
+        <span class="n">patch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">enc_mask_scale</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">),</span>
+        <span class="n">pred_mask_scale</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="n">aspect_ratio</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">nenc</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">npred</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">min_keep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">allow_overlap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MaskCollator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
             <span class="n">input_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_size</span><span class="p">,)</span> <span class="o">*</span> <span class="mi">2</span>
@@ -776,7 +777,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="MaskCollator.step">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.masks.MaskCollator.step">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_itr_counter</span>
         <span class="k">with</span> <span class="n">i</span><span class="o">.</span><span class="n">get_lock</span><span class="p">():</span>
             <span class="n">i</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -784,7 +785,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">v</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_sample_block_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">aspect_ratio_scale</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sample_block_size</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">generator</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">aspect_ratio_scale</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">_rand</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="n">generator</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="n">min_s</span><span class="p">,</span> <span class="n">max_s</span> <span class="o">=</span> <span class="n">scale</span>
         <span class="n">mask_scale</span> <span class="o">=</span> <span class="n">min_s</span> <span class="o">+</span> <span class="p">(</span><span class="n">max_s</span> <span class="o">-</span> <span class="n">min_s</span><span class="p">)</span> <span class="o">*</span> <span class="n">_rand</span>
@@ -799,10 +802,12 @@ window.runMermaid = runMermaid;</script>
 
         <span class="k">return</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_sample_block_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">b_size</span><span class="p">,</span> <span class="n">acceptable_regions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sample_block_mask</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">b_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">acceptable_regions</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">b_size</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">constrain_mask</span><span class="p">(</span><span class="n">mask_bool</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">constrain_mask</span><span class="p">(</span><span class="n">mask_bool</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># If acceptable_regions provided, mask out invalid positions (in-place)</span>
             <span class="k">if</span> <span class="n">acceptable_regions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span>
@@ -839,7 +844,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">mask_complement</span><span class="p">[</span><span class="n">top</span> <span class="p">:</span> <span class="n">top</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">left</span> <span class="p">:</span> <span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">mask</span><span class="p">,</span> <span class="n">mask_complement</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">B</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
 
         <span class="n">collated_batch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">default_collate</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
@@ -860,7 +865,6 @@ window.runMermaid = runMermaid;</script>
         <span class="n">min_keep_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
         <span class="n">min_keep_enc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">B</span><span class="p">):</span>
-
             <span class="n">masks_p</span><span class="p">,</span> <span class="n">masks_C</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npred</span><span class="p">):</span>
                 <span class="n">mask</span><span class="p">,</span> <span class="n">mask_C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_mask</span><span class="p">(</span><span class="n">p_size</span><span class="p">)</span>
@@ -869,7 +873,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">min_keep_pred</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">min_keep_pred</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span>
             <span class="n">collated_masks_pred</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">masks_p</span><span class="p">)</span>
 
-            <span class="n">acceptable_regions</span> <span class="o">=</span> <span class="n">masks_C</span>
+            <span class="n">acceptable_regions</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">masks_C</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">allow_overlap</span><span class="p">:</span>
                     <span class="n">acceptable_regions</span> <span class="o">=</span> <span class="kc">None</span>

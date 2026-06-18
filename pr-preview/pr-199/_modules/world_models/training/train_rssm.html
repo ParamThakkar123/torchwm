@@ -724,7 +724,8 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for world_models.training.train_rssm</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pdb</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pdb</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pprint</span><span class="w"> </span><span class="kn">import</span> <span class="n">pprint</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -760,14 +761,16 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="train_rssm">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_rssm.train_rssm">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">train_rssm</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">record_grads</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">train_rssm</span><span class="p">(</span>
+    <span class="n">memory</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">record_grads</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Train an RSSM on replayed trajectories for one optimization phase.</span>
 
 <span class="sd">    Samples batches from memory, computes reconstruction and KL objectives</span>
 <span class="sd">    across rollout steps, and returns aggregated loss metrics.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-    <span class="n">metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">record_grads</span><span class="p">:</span>
         <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;grads&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">device</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span><span class="o">.</span><span class="n">device</span>
@@ -786,13 +789,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">iloss</span> <span class="o">=</span> <span class="p">(((</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">rx</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
         <span class="c1"># KL Divergence</span>
         <span class="n">kl</span> <span class="o">=</span> <span class="n">kl_div</span><span class="p">(</span><span class="n">prior_dists</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">posterior_dists</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">kloss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">FREE_NATS</span><span class="p">,</span> <span class="n">kl</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">kloss</span> <span class="o">=</span> <span class="n">kl</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="n">FREE_NATS</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">lens</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)):</span>
             <span class="n">rx</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">posterior_samples</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">iloss</span> <span class="o">+=</span> <span class="p">(((</span><span class="n">x</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">rx</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">*</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
             <span class="n">kl</span> <span class="o">=</span> <span class="n">kl_div</span><span class="p">(</span><span class="n">prior_dists</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">posterior_dists</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">kloss</span> <span class="o">+=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">FREE_NATS</span><span class="p">,</span> <span class="n">kl</span><span class="p">)</span> <span class="o">*</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">kloss</span> <span class="o">+=</span> <span class="p">(</span><span class="n">kl</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="n">FREE_NATS</span><span class="p">)</span> <span class="o">*</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
         <span class="n">kloss</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
         <span class="n">iloss</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
@@ -818,7 +821,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="evaluate">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_rssm.evaluate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="n">memory</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run one RSSM reconstruction/prediction evaluation and save visual outputs.</span>
 
 <span class="sd">    Decodes priors/posteriors for a sampled sequence and writes frame grids</span>
@@ -857,19 +860,18 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.training.train_rssm.main">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Standalone training loop for RSSM with generated replay fallback support.</span>
 
 <span class="sd">    Initializes environment/policy/memory, trains over episodes, logs metrics,</span>
 <span class="sd">    and periodically evaluates and checkpoints the model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">FREE_NATS</span>
     <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: CUDA not available, using CPU&quot;</span><span class="p">)</span>
-    <span class="n">FREE_NATS</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">FREE_NATS</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">free_nats_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">FREE_NATS</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="n">rssm</span> <span class="o">=</span> <span class="n">RecurrentStateSpaceModel</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">STATE_SIZE</span><span class="p">,</span> <span class="n">LATENT_SIZE</span><span class="p">,</span> <span class="n">EMBEDDING_SIZE</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
         <span class="n">device</span>
     <span class="p">)</span>
@@ -889,7 +891,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">rollout_gen</span> <span class="o">=</span> <span class="n">RolloutGenerator</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">)</span>
 
     <span class="c1"># fallback: if replay files don&#39;t exist, generate and save them with rollouts</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_memory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">n_warmup</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">mem_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ensure_memory</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n_warmup</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">,</span> <span class="n">mem_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">random_policy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Memory</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">load_memory</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> not found → generating </span><span class="si">{</span><span class="n">n_warmup</span><span class="si">}</span><span class="s2"> episodes with rollout_gen&quot;</span><span class="p">)</span>
@@ -898,7 +902,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">mem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-        <span class="n">mem</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="n">mem</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>  <span class="c1"># type: ignore[attr-defined]</span>
+
         <span class="k">return</span> <span class="n">mem</span>
 
     <span class="n">test_data</span> <span class="o">=</span> <span class="n">ensure_memory</span><span class="p">(</span><span class="s2">&quot;test_exp_replay.pth&quot;</span><span class="p">,</span> <span class="n">n_warmup</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

@@ -862,25 +862,6 @@ window.runMermaid = runMermaid;</script>
 
         <span class="c1"># ST-Transformer for decoder (per paper - uses spatiotemporal attention)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">STTransformer</span><span class="p">(</span>
-            <span class="n">num_frames</span><span class="o">=</span><span class="n">num_frames</span><span class="p">,</span>
-            <span class="n">num_patches_per_frame</span><span class="o">=</span><span class="n">num_patches</span><span class="p">,</span>
-            <span class="n">dim</span><span class="o">=</span><span class="n">decoder_dim</span><span class="p">,</span>
-            <span class="n">depth</span><span class="o">=</span><span class="n">decoder_depth</span><span class="p">,</span>
-            <span class="n">num_heads</span><span class="o">=</span><span class="n">num_heads</span><span class="p">,</span>
-            <span class="n">drop_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-            <span class="n">attn_drop_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder_pos_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span> <span class="o">*</span> <span class="n">num_patches</span><span class="p">,</span> <span class="n">decoder_dim</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">trunc_normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder_pos_embed</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
-
-        <span class="c1"># Decoder uses action embeddings as additive conditioning</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder_action_proj</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">embedding_dim</span><span class="p">,</span> <span class="n">decoder_dim</span><span class="p">)</span>
-
-        <span class="c1"># ST-Transformer for decoder (per paper - uses spatiotemporal attention)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">STTransformer</span><span class="p">(</span>
             <span class="n">num_frames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_seq_len</span><span class="p">,</span>
             <span class="n">num_patches_per_frame</span><span class="o">=</span><span class="n">num_patches</span><span class="p">,</span>
             <span class="n">dim</span><span class="o">=</span><span class="n">decoder_dim</span><span class="p">,</span>
@@ -973,9 +954,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_pooling</span> <span class="o">==</span> <span class="s2">&quot;windowed_attention&quot;</span><span class="p">:</span>
                 <span class="n">next_t</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">x_next_t</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">next_t</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># (B, N, C)</span>
-                <span class="n">x_next_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span>
-                    <span class="n">x_next_t</span>
-                <span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
+                <span class="n">x_next_t_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_vq_embedding</span><span class="p">(</span><span class="n">x_next_t</span><span class="p">)</span>  <span class="c1"># (B, N, embedding_dim)</span>
                 <span class="n">x_t_pooled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pool_windowed_attention</span><span class="p">(</span>
                     <span class="n">x_t_embed</span><span class="p">,</span> <span class="n">x_next_t_embed</span>
                 <span class="p">)</span>  <span class="c1"># (B, embedding_dim)</span>

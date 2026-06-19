@@ -4,6 +4,9 @@ import numpy as np
 import tempfile
 import os
 from pathlib import Path
+
+pytest.importorskip("cv2")
+pytest.importorskip("h5py")
 from world_models.datasets import (
     VideoFolderDataset,
     ImageFolderDataset,

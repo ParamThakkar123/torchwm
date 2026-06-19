@@ -802,7 +802,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="list_procgen_envs">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.list_procgen_envs">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.list_procgen_envs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_procgen_envs</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the Procgen game names understood by :class:`ProcgenImageEnv`.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">PROCGEN_ENVS</span><span class="p">)</span></div>
@@ -810,7 +810,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="normalize_procgen_env_name">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.normalize_procgen_env_name">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.normalize_procgen_env_name">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_procgen_env_name</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize Procgen Gym ids and shorthand names to Procgen game names.</span>
 
@@ -847,7 +847,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_procgen_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_procgen_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.make_procgen_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_procgen_env</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ProcgenImageEnv&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a single-environment Procgen adapter.</span>
 
@@ -864,7 +864,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ProcgenImageEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ProcgenImageEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ProcgenImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapt Procgen&#39;s vector API to TorchWM&#39;s single-env image interface.</span>
 
@@ -994,7 +994,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ProcgenImageEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ProcgenImageEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">]]:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_obs</span> <span class="o">=</span> <span class="n">obs</span>
@@ -1004,7 +1004,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ProcgenImageEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ProcgenImageEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">]],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -1026,7 +1026,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ProcgenImageEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ProcgenImageEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No frame available. Call reset() before render().&quot;</span><span class="p">)</span>
@@ -1034,7 +1034,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ProcgenImageEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ProcgenImageEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.procgen_env.ProcgenImageEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>

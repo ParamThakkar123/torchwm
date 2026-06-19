@@ -724,93 +724,237 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for world_models.envs</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">list_gymnasium_robotics_envs</span><span class="p">,</span>
-    <span class="n">make_robotics_env</span><span class="p">,</span>
-    <span class="n">register_gymnasium_robotics_envs</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">MuJoCoImageEnv</span><span class="p">,</span>
-    <span class="n">make_mujoco_env</span><span class="p">,</span>
-    <span class="n">make_mujoco_env_from_config</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.world_model_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorldModelEnv</span><span class="p">,</span> <span class="n">make_world_model_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">PROCGEN_ENVS</span><span class="p">,</span>
-    <span class="n">ProcgenImageEnv</span><span class="p">,</span>
-    <span class="n">list_procgen_envs</span><span class="p">,</span>
-    <span class="n">make_procgen_env</span><span class="p">,</span>
-    <span class="n">normalize_procgen_env_name</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.brax_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BraxImageEnv</span><span class="p">,</span> <span class="n">make_brax_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.dmlab</span><span class="w"> </span><span class="kn">import</span> <span class="n">DMLabEnv</span><span class="p">,</span> <span class="n">make_dmlab_env</span><span class="p">,</span> <span class="n">DMLAB_LEVELS</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BSuiteImageEnv</span><span class="p">,</span> <span class="n">make_bsuite_env</span><span class="p">,</span> <span class="n">list_available_bsuite_ids</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span><span class="p">,</span> <span class="n">make_unity_mlagents_env</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">TimeLimit</span><span class="p">,</span>
-    <span class="n">ActionRepeat</span><span class="p">,</span>
-    <span class="n">NormalizeActions</span><span class="p">,</span>
-    <span class="n">ObsDict</span><span class="p">,</span>
-    <span class="n">OneHotAction</span><span class="p">,</span>
-    <span class="n">RewardObs</span><span class="p">,</span>
-    <span class="n">ResizeImage</span><span class="p">,</span>
-    <span class="n">RenderImage</span><span class="p">,</span>
-    <span class="n">SelectAction</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_logging</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">_logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;make_atari_env&quot;</span><span class="p">,</span> <span class="s2">&quot;list_available_atari_envs&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_atari_env&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">make_atari_env</span>
+        <span class="k">return</span> <span class="n">list_available_atari_envs</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_atari_vector_env&quot;</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_vector_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_vector_env</span>
+
+        <span class="k">return</span> <span class="n">make_atari_vector_env</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s2">&quot;list_gymnasium_robotics_envs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;make_robotics_env&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;register_gymnasium_robotics_envs&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">list_gymnasium_robotics_envs</span><span class="p">,</span>
+            <span class="n">make_robotics_env</span><span class="p">,</span>
+            <span class="n">register_gymnasium_robotics_envs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;list_gymnasium_robotics_envs&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">list_gymnasium_robotics_envs</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_robotics_env&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">make_robotics_env</span>
+        <span class="k">return</span> <span class="n">register_gymnasium_robotics_envs</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s2">&quot;MuJoCoImageEnv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;make_mujoco_env&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;make_mujoco_env_from_config&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">MuJoCoImageEnv</span><span class="p">,</span>
+            <span class="n">make_mujoco_env</span><span class="p">,</span>
+            <span class="n">make_mujoco_env_from_config</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;MuJoCoImageEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MuJoCoImageEnv</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_mujoco_env&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">make_mujoco_env</span>
+        <span class="k">return</span> <span class="n">make_mujoco_env_from_config</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;GymImageEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_gym_env&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;GymImageEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">GymImageEnv</span>
+        <span class="k">return</span> <span class="n">make_gym_env</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;WorldModelEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_world_model_env&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.world_model_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorldModelEnv</span><span class="p">,</span> <span class="n">make_world_model_env</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;WorldModelEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">WorldModelEnv</span>
+        <span class="k">return</span> <span class="n">make_world_model_env</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s2">&quot;PROCGEN_ENVS&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProcgenImageEnv&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;list_procgen_envs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;make_procgen_env&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;normalize_procgen_env_name&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">PROCGEN_ENVS</span><span class="p">,</span>
+            <span class="n">ProcgenImageEnv</span><span class="p">,</span>
+            <span class="n">list_procgen_envs</span><span class="p">,</span>
+            <span class="n">make_procgen_env</span><span class="p">,</span>
+            <span class="n">normalize_procgen_env_name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;PROCGEN_ENVS&quot;</span><span class="p">:</span> <span class="n">PROCGEN_ENVS</span><span class="p">,</span>
+            <span class="s2">&quot;ProcgenImageEnv&quot;</span><span class="p">:</span> <span class="n">ProcgenImageEnv</span><span class="p">,</span>
+            <span class="s2">&quot;list_procgen_envs&quot;</span><span class="p">:</span> <span class="n">list_procgen_envs</span><span class="p">,</span>
+            <span class="s2">&quot;make_procgen_env&quot;</span><span class="p">:</span> <span class="n">make_procgen_env</span><span class="p">,</span>
+            <span class="s2">&quot;normalize_procgen_env_name&quot;</span><span class="p">:</span> <span class="n">normalize_procgen_env_name</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;BraxImageEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_brax_env&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.brax_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">BraxImageEnv</span><span class="p">,</span> <span class="n">make_brax_env</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;BraxImageEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BraxImageEnv</span>
+        <span class="k">return</span> <span class="n">make_brax_env</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;DMLabEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_dmlab_env&quot;</span><span class="p">,</span> <span class="s2">&quot;DMLAB_LEVELS&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmlab</span><span class="w"> </span><span class="kn">import</span> <span class="n">DMLabEnv</span><span class="p">,</span> <span class="n">make_dmlab_env</span><span class="p">,</span> <span class="n">DMLAB_LEVELS</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;DMLabEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">DMLabEnv</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_dmlab_env&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">make_dmlab_env</span>
+        <span class="k">return</span> <span class="n">DMLAB_LEVELS</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;BSuiteImageEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_bsuite_env&quot;</span><span class="p">,</span> <span class="s2">&quot;list_available_bsuite_ids&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">BSuiteImageEnv</span><span class="p">,</span>
+            <span class="n">make_bsuite_env</span><span class="p">,</span>
+            <span class="n">list_available_bsuite_ids</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;BSuiteImageEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BSuiteImageEnv</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;make_bsuite_env&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">make_bsuite_env</span>
+        <span class="k">return</span> <span class="n">list_available_bsuite_ids</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;UnityMLAgentsEnv&quot;</span><span class="p">,</span> <span class="s2">&quot;make_unity_mlagents_env&quot;</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span><span class="p">,</span> <span class="n">make_unity_mlagents_env</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;UnityMLAgentsEnv&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">UnityMLAgentsEnv</span>
+        <span class="k">return</span> <span class="n">make_unity_mlagents_env</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="s2">&quot;TimeLimit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ActionRepeat&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;NormalizeActions&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ObsDict&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OneHotAction&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RewardObs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ResizeImage&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;RenderImage&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SelectAction&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">TimeLimit</span><span class="p">,</span>
+            <span class="n">ActionRepeat</span><span class="p">,</span>
+            <span class="n">NormalizeActions</span><span class="p">,</span>
+            <span class="n">ObsDict</span><span class="p">,</span>
+            <span class="n">OneHotAction</span><span class="p">,</span>
+            <span class="n">RewardObs</span><span class="p">,</span>
+            <span class="n">ResizeImage</span><span class="p">,</span>
+            <span class="n">RenderImage</span><span class="p">,</span>
+            <span class="n">SelectAction</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;TimeLimit&quot;</span><span class="p">:</span> <span class="n">TimeLimit</span><span class="p">,</span>
+            <span class="s2">&quot;ActionRepeat&quot;</span><span class="p">:</span> <span class="n">ActionRepeat</span><span class="p">,</span>
+            <span class="s2">&quot;NormalizeActions&quot;</span><span class="p">:</span> <span class="n">NormalizeActions</span><span class="p">,</span>
+            <span class="s2">&quot;ObsDict&quot;</span><span class="p">:</span> <span class="n">ObsDict</span><span class="p">,</span>
+            <span class="s2">&quot;OneHotAction&quot;</span><span class="p">:</span> <span class="n">OneHotAction</span><span class="p">,</span>
+            <span class="s2">&quot;RewardObs&quot;</span><span class="p">:</span> <span class="n">RewardObs</span><span class="p">,</span>
+            <span class="s2">&quot;ResizeImage&quot;</span><span class="p">:</span> <span class="n">ResizeImage</span><span class="p">,</span>
+            <span class="s2">&quot;RenderImage&quot;</span><span class="p">:</span> <span class="n">RenderImage</span><span class="p">,</span>
+            <span class="s2">&quot;SelectAction&quot;</span><span class="p">:</span> <span class="n">SelectAction</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;DeepMindControlEnv&quot;</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
+
+        <span class="k">return</span> <span class="n">DeepMindControlEnv</span>
+
+    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="make_env">
 <a class="viewcode-back" href="../../api_reference.html#world_models.envs.make_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compatibility helper: create an environment by delegating to</span>
-<span class="sd">    package-specific factories when available, falling back to gym.make.</span>
-
-<span class="sd">    This preserves older callers that expect `make_env` to exist.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">backend</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mujoco&quot;</span><span class="p">,</span> <span class="s2">&quot;mjcf&quot;</span><span class="p">,</span> <span class="s2">&quot;native_mujoco&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.mujoco_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_mujoco_env</span>
+
         <span class="k">return</span> <span class="n">make_mujoco_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;bsuite&quot;</span><span class="p">,</span> <span class="s2">&quot;behavior_suite&quot;</span><span class="p">,</span> <span class="s2">&quot;behaviour_suite&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_bsuite_env</span>
+
         <span class="k">return</span> <span class="n">make_bsuite_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;robotics&quot;</span><span class="p">,</span> <span class="s2">&quot;gymnasium_robotics&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_robotics_env</span>
+
         <span class="k">return</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;world-model&quot;</span><span class="p">,</span> <span class="s2">&quot;world_model&quot;</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="s2">&quot;wm&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.world_model_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_world_model_env</span>
+
         <span class="k">return</span> <span class="n">make_world_model_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;dmlab&quot;</span><span class="p">,</span> <span class="s2">&quot;deepmind_lab&quot;</span><span class="p">,</span> <span class="s2">&quot;deepmindlab&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmlab</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_dmlab_env</span>
+
         <span class="k">return</span> <span class="n">make_dmlab_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;procgen&quot;</span><span class="p">,</span> <span class="s2">&quot;coinrun&quot;</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_procgen_env</span>
+
         <span class="k">return</span> <span class="n">make_procgen_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c1"># Prefer a package-local factory if present.</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_gym_env</span>
+
         <span class="k">return</span> <span class="n">make_gym_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;make_gym_env could not create </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.robotics_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_robotics_env</span>
+
         <span class="k">return</span> <span class="n">make_robotics_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;make_robotics_env could not create </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.ale_atari_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span>
+
         <span class="k">return</span> <span class="n">make_atari_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;make_atari_env could not create </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_procgen_env</span>
+
         <span class="k">return</span> <span class="n">make_procgen_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;make_procgen_env could not create </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.unity_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_unity_mlagents_env</span>
+
         <span class="k">return</span> <span class="n">make_unity_mlagents_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
@@ -818,11 +962,12 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.bsuite_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_bsuite_env</span>
+
         <span class="k">return</span> <span class="n">make_bsuite_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;make_bsuite_env could not create </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># Fall back to gymnasium (formerly gym).</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span>
 
     <span class="k">return</span> <span class="n">gymnasium</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>

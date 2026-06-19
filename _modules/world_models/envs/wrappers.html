@@ -739,7 +739,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="TimeLimit">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.TimeLimit">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TimeLimit">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeLimit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Terminate episodes after a fixed number of wrapper steps.</span>
 
@@ -756,7 +756,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TimeLimit.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.TimeLimit.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TimeLimit.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Must reset environment.&quot;</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
@@ -770,7 +770,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="TimeLimit.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.TimeLimit.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TimeLimit.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
@@ -779,7 +779,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ActionRepeat">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ActionRepeat">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionRepeat">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ActionRepeat</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Repeat each action for a fixed number of environment steps.</span>
 
@@ -795,7 +795,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ActionRepeat.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ActionRepeat.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ActionRepeat.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">total_reward</span> <span class="o">=</span> <span class="mi">0</span>
@@ -810,7 +810,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="NormalizeActions">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.NormalizeActions">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.NormalizeActions">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NormalizeActions</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Expose a normalized `[-1, 1]` action space for bounded continuous controls.</span>
 
@@ -836,7 +836,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
 <div class="viewcode-block" id="NormalizeActions.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.NormalizeActions.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.NormalizeActions.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">original</span> <span class="o">=</span> <span class="p">(</span><span class="n">action</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_high</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_low</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_low</span>
         <span class="n">original</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">original</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
@@ -846,7 +846,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ObsDict">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ObsDict">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ObsDict">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObsDict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert scalar/array observations into a dictionary observation format.</span>
 
@@ -871,7 +871,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">action_space</span>
 
 <div class="viewcode-block" id="ObsDict.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ObsDict.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ObsDict.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)}</span>
@@ -879,7 +879,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ObsDict.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ObsDict.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ObsDict.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)}</span>
@@ -889,7 +889,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="OneHotAction">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.OneHotAction">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.OneHotAction">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OneHotAction</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrap discrete-action environments to accept one-hot action vectors.</span>
 
@@ -915,7 +915,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">space</span>
 
 <div class="viewcode-block" id="OneHotAction.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.OneHotAction.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.OneHotAction.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
         <span class="n">reference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
@@ -926,7 +926,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="OneHotAction.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.OneHotAction.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.OneHotAction.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
@@ -941,7 +941,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="RewardObs">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RewardObs">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RewardObs">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RewardObs</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Augment observations with the latest scalar reward under `obs[&quot;reward&quot;]`.</span>
 
@@ -963,7 +963,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">spaces</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RewardObs.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RewardObs.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RewardObs.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;reward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reward</span>
@@ -971,7 +971,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="RewardObs.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RewardObs.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RewardObs.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;reward&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -981,7 +981,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ResizeImage">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ResizeImage">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ResizeImage">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ResizeImage</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resize image-like observation entries to a target spatial size.</span>
 
@@ -1018,7 +1018,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">spaces</span>
 
 <div class="viewcode-block" id="ResizeImage.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ResizeImage.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ResizeImage.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
@@ -1027,7 +1027,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="ResizeImage.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.ResizeImage.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.ResizeImage.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
@@ -1043,7 +1043,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="RenderImage">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RenderImage">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RenderImage">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RenderImage</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Inject RGB renders from `env.render(&quot;rgb_array&quot;)` into observations.</span>
 
@@ -1071,7 +1071,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">spaces</span>
 
 <div class="viewcode-block" id="RenderImage.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RenderImage.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RenderImage.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="n">obs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
@@ -1079,7 +1079,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="RenderImage.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.RenderImage.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.RenderImage.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">obs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span>
@@ -1089,7 +1089,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="UUID">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.UUID">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.UUID">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">UUID</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym wrapper that tracks a unique run identifier per environment reset.</span>
 
@@ -1103,7 +1103,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <div class="viewcode-block" id="UUID.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.UUID.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.UUID.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -1113,7 +1113,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="SelectAction">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.SelectAction">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SelectAction">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SelectAction</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym wrapper for dictionary actions that forwards a selected key only.</span>
 
@@ -1126,7 +1126,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
 
 <div class="viewcode-block" id="SelectAction.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.SelectAction.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.SelectAction.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">])</span></div>
 </div>

@@ -783,7 +783,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="get_available_memory">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.get_available_memory">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.get_available_memory">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_available_memory</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get available physical memory in bytes.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;nt&quot;</span><span class="p">:</span>  <span class="c1"># Windows</span>
@@ -837,7 +837,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.make_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_env</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a Dreamer-compatible environment from `DreamerConfig` options.</span>
 
@@ -1037,7 +1037,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="preprocess_obs">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.preprocess_obs">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.preprocess_obs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert raw uint8 image observations to Dreamer float input space.</span>
 
@@ -1050,7 +1050,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Dreamer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Core Dreamer training system combining world model, actor, and value nets.</span>
 
@@ -1226,7 +1226,7 @@ window.runMermaid = runMermaid;</script>
             <span class="bp">self</span><span class="o">.</span><span class="n">restore_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">restore_path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Dreamer.from_config">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.from_config">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.from_config">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1260,7 +1260,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.from_pretrained">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.from_pretrained">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.from_pretrained">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1335,7 +1335,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.parameter_count">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.parameter_count">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.parameter_count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parameter_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainable_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the total number of parameters owned by the Dreamer modules.&quot;&quot;&quot;</span>
 
@@ -1350,7 +1350,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.summary">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.summary">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a compact parameter-count summary for the Dreamer modules.&quot;&quot;&quot;</span>
 
@@ -1383,7 +1383,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.world_model_loss">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.world_model_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.world_model_loss">[docs]</a>
     <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">world_model_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1459,7 +1459,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.actor_loss">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.actor_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.actor_loss">[docs]</a>
     <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">actor_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -1507,7 +1507,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.value_loss">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.value_loss">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.value_loss">[docs]</a>
     <span class="nd">@assert_finite</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">value_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -1525,7 +1525,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.train_one_batch">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.train_one_batch">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.train_one_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_one_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
         <span class="n">obs_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -1583,7 +1583,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.act_with_world_model">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.act_with_world_model">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.act_with_world_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">act_with_world_model</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -1604,7 +1604,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.act_and_collect_data">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.act_and_collect_data">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.act_and_collect_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">act_and_collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">collect_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1648,7 +1648,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.evaluate">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">eval_episodes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">episode_rew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">eval_episodes</span><span class="p">))</span>
 
@@ -1702,7 +1702,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.collect_random_episodes">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.collect_random_episodes">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.collect_random_episodes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">collect_random_episodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">seed_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1731,7 +1731,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.save">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.save">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_save_config_next_to_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
@@ -1758,7 +1758,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Dreamer.restore_checkpoint">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.Dreamer.restore_checkpoint">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.restore_checkpoint">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">restore_checkpoint</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">map_location</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1779,7 +1779,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DreamerAgent</span><span class="p">(</span><span class="n">ExportableAgentMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;High-level user API for running Dreamer experiments end to end.</span>
 
@@ -1890,7 +1890,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="DreamerAgent.from_config">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.from_config">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.from_config">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_config</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1903,7 +1903,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent.from_pretrained">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.from_pretrained">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.from_pretrained">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -1966,7 +1966,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent.parameter_count">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.parameter_count">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.parameter_count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">parameter_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainable_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the total number of Dreamer parameters.&quot;&quot;&quot;</span>
 
@@ -1974,7 +1974,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent.summary">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.summary">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.summary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a compact parameter-count summary for the wrapped Dreamer model.&quot;&quot;&quot;</span>
 
@@ -1982,7 +1982,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent.train">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.train">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.train">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">total_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">total_steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">total_steps</span>
@@ -2093,7 +2093,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DreamerAgent.evaluate">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.models.dreamer.DreamerAgent.evaluate">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DreamerAgent.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="n">logs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">episode_rews</span><span class="p">,</span> <span class="n">video_images</span><span class="p">,</span> <span class="n">latents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>

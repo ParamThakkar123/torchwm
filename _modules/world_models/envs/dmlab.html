@@ -778,7 +778,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_dmlab_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_dmlab_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_dmlab_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_dmlab_env</span><span class="p">(</span><span class="n">level</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DMLabEnv&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a DeepMind Lab environment adapter for TorchWM.</span>
 
@@ -816,7 +816,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DMLabEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.DMLabEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DMLabEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DMLabEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-style adapter for DeepMind Lab 3D environments.</span>
 
@@ -939,7 +939,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">fps</span> <span class="o">*</span> <span class="n">episode_length</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_repeat</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DMLabEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.DMLabEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DMLabEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_episode</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -949,7 +949,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DMLabEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.DMLabEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DMLabEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -970,7 +970,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DMLabEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.DMLabEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DMLabEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only render mode &#39;rgb_array&#39; is supported.&quot;</span><span class="p">)</span>
@@ -980,7 +980,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="DMLabEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.DMLabEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.DMLabEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">close</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">close</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

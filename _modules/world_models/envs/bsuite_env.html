@@ -751,7 +751,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="list_available_bsuite_ids">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.list_available_bsuite_ids">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.list_available_bsuite_ids">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_available_bsuite_ids</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the installed BSuite sweep ids, or examples if BSuite is absent.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span>
@@ -769,7 +769,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_bsuite_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_bsuite_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_bsuite_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_bsuite_env</span><span class="p">(</span><span class="n">bsuite_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BSuiteImageEnv&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a Dreamer-compatible image wrapper around a BSuite task.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">BSuiteImageEnv</span><span class="p">(</span><span class="n">bsuite_id</span><span class="o">=</span><span class="n">bsuite_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -793,7 +793,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BSuiteImageEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BSuiteImageEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BSuiteImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BSuiteImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-like wrapper for DeepMind BSuite ``dm_env`` environments.</span>
 
@@ -852,7 +852,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">&quot;bsuite_num_episodes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1000</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BSuiteImageEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BSuiteImageEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BSuiteImageEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="c1"># BSuite seeds are encoded in the bsuite_id/settings. Accepting seed keeps</span>
         <span class="c1"># this wrapper compatible with Gym-style callers.</span>
@@ -864,7 +864,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BSuiteImageEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BSuiteImageEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BSuiteImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -886,7 +886,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BSuiteImageEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BSuiteImageEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BSuiteImageEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;rgb_array&quot;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only render mode &#39;rgb_array&#39; is supported.&quot;</span><span class="p">)</span>
@@ -896,7 +896,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BSuiteImageEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BSuiteImageEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BSuiteImageEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">close</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">close</span><span class="p">):</span>

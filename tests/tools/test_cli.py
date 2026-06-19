@@ -2,7 +2,11 @@ import re
 
 import pytest
 import torchwm
-from tools import cli
+
+try:
+    from tools import cli
+except ImportError:
+    pytest.skip("click not installed", allow_module_level=True)
 
 try:
     from click.testing import CliRunner

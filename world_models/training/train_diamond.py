@@ -27,7 +27,7 @@ from world_models.experiments import (
     parse_experiment_args,
 )
 from world_models.envs.diamond_atari import make_diamond_atari_env
-from gym.spaces import Discrete, Box
+from gymnasium.spaces import Discrete, Box
 from world_models.datasets.diamond_dataset import ReplayBuffer, SequenceDataset
 from world_models.models.diffusion.diamond_diffusion import (
     DiffusionUNet,

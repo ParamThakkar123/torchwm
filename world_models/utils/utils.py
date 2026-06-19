@@ -8,8 +8,17 @@ import warnings
 from typing import Any, Dict, List
 
 
-import plotly
-from plotly.graph_objs import Scatter, Line
+try:
+    import plotly
+    from plotly.graph_objs import Scatter, Line
+
+    from sklearn.manifold import TSNE
+    import umap
+
+    HAS_VIZ = True
+except ImportError:
+    plotly = None  # type: ignore
+    HAS_VIZ = False
 
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
@@ -19,12 +28,6 @@ from torchvision.utils import make_grid, save_image
 import torch.nn.functional as F
 
 import yaml
-
-
-from sklearn.manifold import TSNE
-import umap
-
-HAS_VIZ = True
 
 
 class _RestrictedReplayUnpickler(pickle.Unpickler):
@@ -867,7 +870,7 @@ def visualize_latent_tsne(
     labels: np.ndarray | None = None,
     save_path: str | None = None,
     perplexity: int = 30,
-) -> plotly.graph_objs.Figure:
+) -> "plotly.graph_objs.Figure":
     """
     Visualize latent representations using t-SNE.
 
@@ -921,7 +924,7 @@ def visualize_latent_umap(
     labels: np.ndarray | None = None,
     save_path: str | None = None,
     n_neighbors: int = 15,
-) -> plotly.graph_objs.Figure:
+) -> "plotly.graph_objs.Figure":
     """
     Visualize latent representations using UMAP.
 

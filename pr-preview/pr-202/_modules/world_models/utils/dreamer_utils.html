@@ -728,8 +728,6 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>  <span class="c1"># noqa: S403  # restricted unpickler loaded separately</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">moviepy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="kn">import</span> <span class="n">Module</span>
@@ -745,7 +743,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="symlog">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.symlog">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.symlog">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">symlog</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Symmetric log transform used by Dreamer V2 for reward/value targets.</span>
 
@@ -758,7 +756,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="symexp">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.symexp">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.symexp">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">symexp</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Inverse of :func:`symlog`.</span>
 
@@ -769,7 +767,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="TwoHotEncoder">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TwoHotEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TwoHotEncoder</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Two-hot encoding for symlog targets (Dreamer V2 reward/value heads).</span>
 
@@ -790,7 +788,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">register_buffers</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TwoHotEncoder.register_buffers">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.register_buffers">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TwoHotEncoder.register_buffers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">register_buffers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate the bucket-center buffer on CPU. Use :meth:`to` to move.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bucket_centers</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
@@ -800,14 +798,14 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="TwoHotEncoder.to">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.to">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TwoHotEncoder.to">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TwoHotEncoder&quot;</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bucket_centers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bucket_centers</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
 <div class="viewcode-block" id="TwoHotEncoder.encode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.encode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TwoHotEncoder.encode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Two-hot encode a real-valued target into soft bucket probabilities.</span>
 
@@ -838,7 +836,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="TwoHotEncoder.decode">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.TwoHotEncoder.decode">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.TwoHotEncoder.decode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode categorical logits into the expected real-valued prediction.</span>
 
@@ -861,7 +859,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="get_parameters">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.get_parameters">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.get_parameters">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_parameters</span><span class="p">(</span><span class="n">modules</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Module</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Parameter</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of torch modules, returns a list of their parameters.</span>
@@ -876,7 +874,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="FreezeParameters">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.FreezeParameters">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.FreezeParameters">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FreezeParameters</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager that temporarily disables gradients for given modules.</span>
 
@@ -914,7 +912,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Logger">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Logger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Experiment logger for scalars and GIF rollouts using WandB.</span>
 
@@ -958,20 +956,20 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">_wandb_run</span>
 
 <div class="viewcode-block" id="Logger.log_scalar">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.log_scalar">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger.log_scalar">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">step_</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">log</span><span class="p">({</span><span class="n">name</span><span class="p">:</span> <span class="n">scalar</span><span class="p">},</span> <span class="n">step_</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Logger.log_scalars">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.log_scalars">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger.log_scalars">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_scalars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scalar_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scalar_dict</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dump_scalars_to_pickle</span><span class="p">(</span><span class="n">scalar_dict</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Logger.log_videos">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.log_videos">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger.log_videos">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">log_videos</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">videos</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -999,6 +997,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">padding</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;mp4&quot;</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+
                 <span class="c1"># Convert to uint8 HWC BGR for OpenCV</span>
                 <span class="n">video_u8</span> <span class="o">=</span> <span class="p">(</span><span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">video_u8</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># RGB to BGR</span>
@@ -1012,6 +1012,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># gif</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">moviepy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpy</span>
+
                 <span class="n">clip</span> <span class="o">=</span> <span class="n">mpy</span><span class="o">.</span><span class="n">ImageSequenceClip</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">videos</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
                 <span class="n">new_video_title</span> <span class="o">=</span> <span class="n">video_title</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.gif&quot;</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_dir</span><span class="p">,</span> <span class="n">new_video_title</span><span class="p">)</span>
@@ -1024,7 +1026,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Logger.dump_scalars_to_pickle">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.dump_scalars_to_pickle">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger.dump_scalars_to_pickle">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dump_scalars_to_pickle</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">log_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1036,7 +1038,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="Logger.flush">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.Logger.flush">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.Logger.flush">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">flush</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 </div>
@@ -1044,7 +1046,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="compute_return">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.utils.dreamer_utils.compute_return">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.compute_return">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_return</span><span class="p">(</span>
     <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>

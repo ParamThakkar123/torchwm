@@ -10,7 +10,6 @@ from world_models.training.rl_harness import PPOTrainer
 
 
 import queue as _queue
-import sys
 import time
 
 

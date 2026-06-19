@@ -411,7 +411,6 @@ class DiamondAgent:
 
         # Determine burn-in / conditioning length and horizon
         burn_in = self.config.burn_in_length
-        horizon = self.config.imagination_horizon
 
         # safety checks
         assert seq_T >= burn_in, "Sequence shorter than burn-in"
@@ -806,7 +805,6 @@ class DiamondAgent:
 
             obs_history = [obs] * self.config.num_conditioning_frames
             # initialize separate hidden states for reward model and policy
-            reward_hidden = self.reward_model.init_hidden(1, self.device)
             policy_hidden = self.actor_critic.init_hidden(1, self.device)
 
             done = False

@@ -1,5 +1,4 @@
 import os
-import gym
 import torch
 import pickle
 import pathlib
@@ -602,6 +601,8 @@ class TorchImageEnvWrapper:
     def __init__(
         self, env: Any, bit_depth: int, observation_shape: Any = None, act_rep: int = 2
     ) -> None:
+        import gym
+
         self.env: Any
         if isinstance(env, str):
             try:

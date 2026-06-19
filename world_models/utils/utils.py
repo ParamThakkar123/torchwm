@@ -17,7 +17,7 @@ try:
 
     HAS_VIZ = True
 except ImportError:
-    plotly = None  # type: ignore
+    plotly = None
     HAS_VIZ = False
 
 from collections import defaultdict

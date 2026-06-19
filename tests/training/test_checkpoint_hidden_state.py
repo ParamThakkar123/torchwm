@@ -1,10 +1,9 @@
 import pytest
 
 import torch
-import numpy as np
 
 from world_models.configs.diamond_config import DiamondConfig
-from world_models.training.train_diamond import DiamondAgent
+from world_models.envs.diamond_atari import make_diamond_atari_env
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
@@ -13,6 +12,15 @@ def test_hidden_state_save_load_and_broadcast(tmp_path):
     """Ensure last_policy_hidden/last_reward_hidden are saved/restored and
     batch-size-1 hidden states are broadcast when used for larger batches.
     """
+    try:
+        make_diamond_atari_env(
+            game="Breakout-v4", frameskip=4, max_noop=30, resize=(64, 64), seed=0
+        )
+    except Exception:
+        pytest.skip("Atari environment (Breakout) not available")
+
+    from world_models.training.train_diamond import DiamondAgent
+
     cfg = DiamondConfig(preset="small")
     cfg.game = "Breakout-v4"
     cfg.device = "cpu"

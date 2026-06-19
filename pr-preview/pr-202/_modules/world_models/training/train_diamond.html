@@ -1151,7 +1151,6 @@ window.runMermaid = runMermaid;</script>
 
         <span class="c1"># Determine burn-in / conditioning length and horizon</span>
         <span class="n">burn_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">burn_in_length</span>
-        <span class="n">horizon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">imagination_horizon</span>
 
         <span class="c1"># safety checks</span>
         <span class="k">assert</span> <span class="n">seq_T</span> <span class="o">&gt;=</span> <span class="n">burn_in</span><span class="p">,</span> <span class="s2">&quot;Sequence shorter than burn-in&quot;</span>
@@ -1551,7 +1550,6 @@ window.runMermaid = runMermaid;</script>
 
             <span class="n">obs_history</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">num_conditioning_frames</span>
             <span class="c1"># initialize separate hidden states for reward model and policy</span>
-            <span class="n">reward_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">init_hidden</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
             <span class="n">policy_hidden</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">init_hidden</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
             <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>

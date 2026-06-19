@@ -737,7 +737,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_gym_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_gym_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_gym_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_gym_env</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a GymImageEnv wrapper for generic Gym/Gymnasium environments.</span>
 
@@ -758,7 +758,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="GymImageEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GymImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GymImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-like environment wrapper that always returns image observations.</span>
 
@@ -1032,7 +1032,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">encoded</span>
 
 <div class="viewcode-block" id="GymImageEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GymImageEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seed_applied</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1051,7 +1051,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="GymImageEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GymImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">native_action</span><span class="p">,</span> <span class="n">model_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_native_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">native_action</span><span class="p">)</span>
@@ -1077,7 +1077,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="GymImageEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GymImageEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_hwc_image</span><span class="p">(</span><span class="n">last_obs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_last_obs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1088,7 +1088,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="GymImageEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.GymImageEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.GymImageEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>

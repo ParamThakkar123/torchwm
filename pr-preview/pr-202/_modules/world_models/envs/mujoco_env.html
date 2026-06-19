@@ -793,7 +793,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_mujoco_env_from_config">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_mujoco_env_from_config">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_mujoco_env_from_config">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_mujoco_env_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a MuJoCo image environment from a DreamerConfig-like object.&quot;&quot;&quot;</span>
     <span class="n">native_kwargs</span> <span class="o">=</span> <span class="p">{</span>
@@ -824,7 +824,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="MuJoCoImageEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MuJoCoImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MuJoCoImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Native MuJoCo environment adapter for pixel-based world-model training.</span>
 
@@ -957,7 +957,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MuJoCoImageEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MuJoCoImageEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
@@ -976,7 +976,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="MuJoCoImageEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MuJoCoImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -1007,13 +1007,13 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="MuJoCoImageEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MuJoCoImageEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_chw</span><span class="p">()</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="MuJoCoImageEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.MuJoCoImageEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.MuJoCoImageEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
             <span class="k">return</span>
@@ -1026,7 +1026,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_mujoco_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_mujoco_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_mujoco_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_mujoco_env</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>

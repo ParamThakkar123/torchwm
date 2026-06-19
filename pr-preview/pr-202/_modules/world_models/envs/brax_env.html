@@ -739,7 +739,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="make_brax_env">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.make_brax_env">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_brax_env">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_brax_env</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BraxImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a TorchWM image wrapper for Brax environments.</span>
 
@@ -757,7 +757,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BraxImageEnv">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BraxImageEnv">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BraxImageEnv">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BraxImageEnv</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gym-like adapter for training TorchWM world models on Brax tasks.</span>
 
@@ -962,14 +962,14 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">info</span>
 
 <div class="viewcode-block" id="BraxImageEnv.reset">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BraxImageEnv.reset">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BraxImageEnv.reset">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_split_key</span><span class="p">())</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_to_obs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BraxImageEnv.step">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BraxImageEnv.step">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BraxImageEnv.step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Must call reset() before step().&quot;</span><span class="p">)</span>
@@ -992,7 +992,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BraxImageEnv.render">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BraxImageEnv.render">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BraxImageEnv.render">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No frame available. Call reset() before render().&quot;</span><span class="p">)</span>
@@ -1000,7 +1000,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="BraxImageEnv.close">
-<a class="viewcode-back" href="../../../api_reference.html#world_models.envs.BraxImageEnv.close">[docs]</a>
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.BraxImageEnv.close">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="kc">None</span></div>
 </div>

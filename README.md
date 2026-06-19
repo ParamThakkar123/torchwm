@@ -6,6 +6,7 @@
     <a href="https://pypi.org/project/torchwm/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/torchwm.svg"></a>
     <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
     <a href="https://paramthakkar123.github.io/torchwm/"><img alt="Documentation" src="https://img.shields.io/badge/docs-link-blue.svg"></a>
+    <a href="https://github.com/paramthakkar123/torchwm/actions/workflows/test.yml"><img alt="CI" src="https://github.com/paramthakkar123/torchwm/actions/workflows/test.yml/badge.svg"></a>
   </p>
   <p><strong>Modular PyTorch library for world models, latent dynamics, and representation learning.</strong></p>
 </div>

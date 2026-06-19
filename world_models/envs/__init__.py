@@ -172,39 +172,61 @@ def __getattr__(name: str) -> Any:
 def make_env(env_id: str, **kwargs: Any) -> Any:
     backend = str(kwargs.pop("backend", "")).lower()
     if backend in {"mujoco", "mjcf", "native_mujoco"}:
+        from .mujoco_env import make_mujoco_env
+
         return make_mujoco_env(env_id, **kwargs)
     if backend in {"bsuite", "behavior_suite", "behaviour_suite"}:
+        from .bsuite_env import make_bsuite_env
+
         return make_bsuite_env(env_id, **kwargs)
     if backend in {"robotics", "gymnasium_robotics"}:
+        from .robotics_env import make_robotics_env
+
         return make_robotics_env(env_id, **kwargs)
     if backend in {"world-model", "world_model", "model", "wm"}:
+        from .world_model_env import make_world_model_env
+
         return make_world_model_env(env_id, **kwargs)
     if backend in {"dmlab", "deepmind_lab", "deepmindlab"}:
+        from .dmlab import make_dmlab_env
+
         return make_dmlab_env(env_id, **kwargs)
     if backend in {"procgen", "coinrun"}:
+        from .procgen_env import make_procgen_env
+
         return make_procgen_env(env_id, **kwargs)
 
     try:
+        from .gym_env import make_gym_env
+
         return make_gym_env(env_id, **kwargs)
     except Exception:
         logger.debug("make_gym_env could not create %s", env_id, exc_info=True)
 
     try:
+        from .robotics_env import make_robotics_env
+
         return make_robotics_env(env_id, **kwargs)
     except Exception:
         logger.debug("make_robotics_env could not create %s", env_id, exc_info=True)
 
     try:
+        from .ale_atari_env import make_atari_env
+
         return make_atari_env(env_id, **kwargs)
     except Exception:
         logger.debug("make_atari_env could not create %s", env_id, exc_info=True)
 
     try:
+        from .procgen_env import make_procgen_env
+
         return make_procgen_env(env_id, **kwargs)
     except Exception:
         logger.debug("make_procgen_env could not create %s", env_id, exc_info=True)
 
     try:
+        from .unity_env import make_unity_mlagents_env
+
         return make_unity_mlagents_env(env_id, **kwargs)
     except Exception:
         logger.debug(
@@ -212,6 +234,8 @@ def make_env(env_id: str, **kwargs: Any) -> Any:
         )
 
     try:
+        from .bsuite_env import make_bsuite_env
+
         return make_bsuite_env(env_id, **kwargs)
     except Exception:
         logger.debug("make_bsuite_env could not create %s", env_id, exc_info=True)

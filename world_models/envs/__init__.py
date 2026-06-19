@@ -1,52 +1,175 @@
-from .ale_atari_env import make_atari_env, list_available_atari_envs
-from .ale_atari_vector_env import make_atari_vector_env
-from .robotics_env import (
-    list_gymnasium_robotics_envs,
-    make_robotics_env,
-    register_gymnasium_robotics_envs,
-)
-from .mujoco_env import (
-    MuJoCoImageEnv,
-    make_mujoco_env,
-    make_mujoco_env_from_config,
-)
-from .gym_env import GymImageEnv, make_gym_env
-from .world_model_env import WorldModelEnv, make_world_model_env
-from .procgen_env import (
-    PROCGEN_ENVS,
-    ProcgenImageEnv,
-    list_procgen_envs,
-    make_procgen_env,
-    normalize_procgen_env_name,
-)
-from .brax_env import BraxImageEnv, make_brax_env
-from .dmlab import DMLabEnv, make_dmlab_env, DMLAB_LEVELS
-from .bsuite_env import BSuiteImageEnv, make_bsuite_env, list_available_bsuite_ids
-from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
-from .wrappers import (
-    TimeLimit,
-    ActionRepeat,
-    NormalizeActions,
-    ObsDict,
-    OneHotAction,
-    RewardObs,
-    ResizeImage,
-    RenderImage,
-    SelectAction,
-)
-from .dmc import DeepMindControlEnv
 from typing import Any
 import logging as _logging
 
 logger = _logging.getLogger(__name__)
 
 
-def make_env(env_id: str, **kwargs: Any) -> Any:
-    """Compatibility helper: create an environment by delegating to
-    package-specific factories when available, falling back to gym.make.
+def __getattr__(name: str) -> Any:
+    if name in ("make_atari_env", "list_available_atari_envs"):
+        from .ale_atari_env import make_atari_env, list_available_atari_envs
 
-    This preserves older callers that expect `make_env` to exist.
-    """
+        if name == "make_atari_env":
+            return make_atari_env
+        return list_available_atari_envs
+
+    if name == "make_atari_vector_env":
+        from .ale_atari_vector_env import make_atari_vector_env
+
+        return make_atari_vector_env
+
+    if name in (
+        "list_gymnasium_robotics_envs",
+        "make_robotics_env",
+        "register_gymnasium_robotics_envs",
+    ):
+        from .robotics_env import (
+            list_gymnasium_robotics_envs,
+            make_robotics_env,
+            register_gymnasium_robotics_envs,
+        )
+
+        if name == "list_gymnasium_robotics_envs":
+            return list_gymnasium_robotics_envs
+        if name == "make_robotics_env":
+            return make_robotics_env
+        return register_gymnasium_robotics_envs
+
+    if name in (
+        "MuJoCoImageEnv",
+        "make_mujoco_env",
+        "make_mujoco_env_from_config",
+    ):
+        from .mujoco_env import (
+            MuJoCoImageEnv,
+            make_mujoco_env,
+            make_mujoco_env_from_config,
+        )
+
+        if name == "MuJoCoImageEnv":
+            return MuJoCoImageEnv
+        if name == "make_mujoco_env":
+            return make_mujoco_env
+        return make_mujoco_env_from_config
+
+    if name in ("GymImageEnv", "make_gym_env"):
+        from .gym_env import GymImageEnv, make_gym_env
+
+        if name == "GymImageEnv":
+            return GymImageEnv
+        return make_gym_env
+
+    if name in ("WorldModelEnv", "make_world_model_env"):
+        from .world_model_env import WorldModelEnv, make_world_model_env
+
+        if name == "WorldModelEnv":
+            return WorldModelEnv
+        return make_world_model_env
+
+    if name in (
+        "PROCGEN_ENVS",
+        "ProcgenImageEnv",
+        "list_procgen_envs",
+        "make_procgen_env",
+        "normalize_procgen_env_name",
+    ):
+        from .procgen_env import (
+            PROCGEN_ENVS,
+            ProcgenImageEnv,
+            list_procgen_envs,
+            make_procgen_env,
+            normalize_procgen_env_name,
+        )
+
+        _map = {
+            "PROCGEN_ENVS": PROCGEN_ENVS,
+            "ProcgenImageEnv": ProcgenImageEnv,
+            "list_procgen_envs": list_procgen_envs,
+            "make_procgen_env": make_procgen_env,
+            "normalize_procgen_env_name": normalize_procgen_env_name,
+        }
+        return _map[name]
+
+    if name in ("BraxImageEnv", "make_brax_env"):
+        from .brax_env import BraxImageEnv, make_brax_env
+
+        if name == "BraxImageEnv":
+            return BraxImageEnv
+        return make_brax_env
+
+    if name in ("DMLabEnv", "make_dmlab_env", "DMLAB_LEVELS"):
+        from .dmlab import DMLabEnv, make_dmlab_env, DMLAB_LEVELS
+
+        if name == "DMLabEnv":
+            return DMLabEnv
+        if name == "make_dmlab_env":
+            return make_dmlab_env
+        return DMLAB_LEVELS
+
+    if name in ("BSuiteImageEnv", "make_bsuite_env", "list_available_bsuite_ids"):
+        from .bsuite_env import (
+            BSuiteImageEnv,
+            make_bsuite_env,
+            list_available_bsuite_ids,
+        )
+
+        if name == "BSuiteImageEnv":
+            return BSuiteImageEnv
+        if name == "make_bsuite_env":
+            return make_bsuite_env
+        return list_available_bsuite_ids
+
+    if name in ("UnityMLAgentsEnv", "make_unity_mlagents_env"):
+        from .unity_env import UnityMLAgentsEnv, make_unity_mlagents_env
+
+        if name == "UnityMLAgentsEnv":
+            return UnityMLAgentsEnv
+        return make_unity_mlagents_env
+
+    if name in (
+        "TimeLimit",
+        "ActionRepeat",
+        "NormalizeActions",
+        "ObsDict",
+        "OneHotAction",
+        "RewardObs",
+        "ResizeImage",
+        "RenderImage",
+        "SelectAction",
+    ):
+        from .wrappers import (
+            TimeLimit,
+            ActionRepeat,
+            NormalizeActions,
+            ObsDict,
+            OneHotAction,
+            RewardObs,
+            ResizeImage,
+            RenderImage,
+            SelectAction,
+        )
+
+        _map = {
+            "TimeLimit": TimeLimit,
+            "ActionRepeat": ActionRepeat,
+            "NormalizeActions": NormalizeActions,
+            "ObsDict": ObsDict,
+            "OneHotAction": OneHotAction,
+            "RewardObs": RewardObs,
+            "ResizeImage": ResizeImage,
+            "RenderImage": RenderImage,
+            "SelectAction": SelectAction,
+        }
+        return _map[name]
+
+    if name == "DeepMindControlEnv":
+        from .dmc import DeepMindControlEnv
+
+        return DeepMindControlEnv
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def make_env(env_id: str, **kwargs: Any) -> Any:
     backend = str(kwargs.pop("backend", "")).lower()
     if backend in {"mujoco", "mjcf", "native_mujoco"}:
         return make_mujoco_env(env_id, **kwargs)
@@ -61,7 +184,6 @@ def make_env(env_id: str, **kwargs: Any) -> Any:
     if backend in {"procgen", "coinrun"}:
         return make_procgen_env(env_id, **kwargs)
 
-    # Prefer a package-local factory if present.
     try:
         return make_gym_env(env_id, **kwargs)
     except Exception:
@@ -94,7 +216,6 @@ def make_env(env_id: str, **kwargs: Any) -> Any:
     except Exception:
         logger.debug("make_bsuite_env could not create %s", env_id, exc_info=True)
 
-    # Fall back to gymnasium (formerly gym).
     import gymnasium
 
     return gymnasium.make(env_id, **kwargs)

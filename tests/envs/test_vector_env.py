@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 import torch
+
+pytest.importorskip("gym")
 from gym import spaces
 
 from world_models.envs.vector_env import SimWorker, TorchVectorizedEnv

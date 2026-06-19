@@ -746,7 +746,7 @@ class DiamondAgent:
             value_losses = []
 
             # move batch to GPU once (dataset returns CPU tensors)
-            def to_device(batch):
+            def to_device(batch: dict) -> dict:
                 return {
                     k: v.to(self.device, non_blocking=True) for k, v in batch.items()
                 }

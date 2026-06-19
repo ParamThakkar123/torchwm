@@ -1,5 +1,4 @@
 import os
-import cv2
 import gym
 import torch
 import pickle
@@ -7,7 +6,7 @@ import pathlib
 import numpy as np
 import glob
 import warnings
-from typing import Any, Optional, Dict, List
+from typing import Any, Dict, List
 
 
 import plotly
@@ -22,8 +21,6 @@ import torch.nn.functional as F
 
 import yaml
 
-import collections
-import collections.abc
 
 from sklearn.manifold import TSNE
 import umap
@@ -83,6 +80,8 @@ def to_tensor_obs(image: np.ndarray) -> torch.Tensor:
     """
     Converts the input np img to channel first 64x64 dim torch img.
     """
+    import cv2
+
     image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
     tensor: torch.Tensor = torch.from_numpy(image).float().permute(2, 0, 1)
     return tensor
@@ -181,6 +180,8 @@ def save_video(frames: Any, path: str, name: str) -> str:
             and np.all(first[..., 1] == first[..., 2])
         )
 
+    import cv2
+
     out_dir = pathlib.Path(path)
     out_dir.mkdir(parents=True, exist_ok=True)
     debug_path = out_dir / f"{name}_debug_frame.png"
@@ -240,6 +241,8 @@ def combine_videos(
     Example:
       combine_videos("results/planet", output_name="all_training.mp4")
     """
+    import cv2
+
     files = sorted(glob.glob(os.path.join(video_dir, pattern)))
     if len(files) == 0:
         raise FileNotFoundError(f"No videos found in {video_dir} matching {pattern}")
@@ -980,6 +983,8 @@ class StreamingVideoWriter:
     def __init__(
         self, path: str, fps: int = 20, frame_shape: Any = None, format: str = "mp4"
     ) -> None:
+        import cv2
+
         self.path = path
         self.fps = fps
         self.frame_shape = frame_shape
@@ -993,6 +998,8 @@ class StreamingVideoWriter:
         Args:
             frame: numpy array of shape (H, W, C) or (H, W), uint8 or float in [0,1]
         """
+        import cv2
+
         if self.writer is None:
             if self.frame_shape is None:
                 self.frame_shape = frame.shape[:2][::-1]  # (W, H)

@@ -11,9 +11,7 @@ Reference:
 import torch
 import torch.nn as nn
 from torchvision import models
-from typing import Optional, Sequence
 import numpy as np
-from scipy import linalg
 
 
 class InceptionFeatureExtractor(nn.Module):
@@ -105,6 +103,8 @@ def _frechet_distance(
     mu1: np.ndarray, sigma1: np.ndarray, mu2: np.ndarray, sigma2: np.ndarray
 ) -> float:
     """Compute the Fréchet distance between two Gaussians."""
+    from scipy import linalg
+
     diff = mu1 - mu2
     covmean = linalg.sqrtm(sigma1 @ sigma2)
     if isinstance(covmean, np.ndarray) and np.iscomplexobj(covmean):

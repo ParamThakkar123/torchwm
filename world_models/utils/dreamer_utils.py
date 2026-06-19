@@ -2,8 +2,6 @@ import os
 import pickle  # noqa: S403  # restricted unpickler loaded separately
 import torch
 import numpy as np
-import moviepy as mpy
-import cv2
 
 from typing import Any, Iterable
 from torch.nn import Module
@@ -236,6 +234,8 @@ class Logger:
                 videos[i] = np.concatenate([videos[i], padding], 0)
 
             if format.lower() == "mp4":
+                import cv2
+
                 # Convert to uint8 HWC BGR for OpenCV
                 video_u8 = (videos[i] * 255).astype(np.uint8)
                 if video_u8.shape[-1] == 3:  # RGB to BGR
@@ -249,6 +249,8 @@ class Logger:
                     out.write(frame)
                 out.release()
             else:  # gif
+                import moviepy as mpy
+
                 clip = mpy.ImageSequenceClip(list(videos[i]), fps=fps)
                 new_video_title = video_title + "{}_{}".format(step, i) + ".gif"
                 filename = os.path.join(self._log_dir, new_video_title)

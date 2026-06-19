@@ -10,6 +10,7 @@ import torch
 
 class TestUtils:
     _needs_cv2 = {
+        "test_to_tensor_obs",
         "test_save_video_chw",
         "test_save_video_hwc",
         "test_save_video_invalid_dims",
@@ -17,6 +18,7 @@ class TestUtils:
         "test_combine_videos_no_files",
         "test_StreamingVideoWriter",
         "test_StreamingVideoWriter_float_frame",
+        "test_TorchImageEnvWrapper_reset",
     }
     _needs_plotly = {"test_plot_metrics"}
     _needs_gym = {"test_TorchImageEnvWrapper_init_with_string"}

@@ -1,8 +1,9 @@
 import pytest
 import torch
 import numpy as np
-import h5py
 from pathlib import Path
+
+h5py = pytest.importorskip("h5py")
 
 
 class TestTinyWorldsDataset:

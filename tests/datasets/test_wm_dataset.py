@@ -4,6 +4,8 @@ import numpy as np
 import torch
 import pytest
 from unittest.mock import patch, MagicMock
+
+pytest.importorskip("albumentations")
 from world_models.datasets.wm_dataset import (
     RolloutDataset,
     ObservationDataset,

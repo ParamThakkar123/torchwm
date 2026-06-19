@@ -1,17 +1,24 @@
 import os
-import cv2
-import gym
 import torch
 import pickle
 import pathlib
 import numpy as np
 import glob
 import warnings
-from typing import Any, Optional, Dict, List
+from typing import Any, Dict, List
 
 
-import plotly
-from plotly.graph_objs import Scatter, Line
+try:
+    import plotly
+    from plotly.graph_objs import Scatter, Line
+
+    from sklearn.manifold import TSNE
+    import umap
+
+    HAS_VIZ = True
+except ImportError:
+    plotly = None
+    HAS_VIZ = False
 
 from collections import defaultdict
 from world_models.memory.planet_memory import Memory
@@ -21,14 +28,6 @@ from torchvision.utils import make_grid, save_image
 import torch.nn.functional as F
 
 import yaml
-
-import collections
-import collections.abc
-
-from sklearn.manifold import TSNE
-import umap
-
-HAS_VIZ = True
 
 
 class _RestrictedReplayUnpickler(pickle.Unpickler):
@@ -83,6 +82,8 @@ def to_tensor_obs(image: np.ndarray) -> torch.Tensor:
     """
     Converts the input np img to channel first 64x64 dim torch img.
     """
+    import cv2
+
     image = cv2.resize(image, (64, 64), interpolation=cv2.INTER_LINEAR)
     tensor: torch.Tensor = torch.from_numpy(image).float().permute(2, 0, 1)
     return tensor
@@ -181,6 +182,8 @@ def save_video(frames: Any, path: str, name: str) -> str:
             and np.all(first[..., 1] == first[..., 2])
         )
 
+    import cv2
+
     out_dir = pathlib.Path(path)
     out_dir.mkdir(parents=True, exist_ok=True)
     debug_path = out_dir / f"{name}_debug_frame.png"
@@ -240,6 +243,8 @@ def combine_videos(
     Example:
       combine_videos("results/planet", output_name="all_training.mp4")
     """
+    import cv2
+
     files = sorted(glob.glob(os.path.join(video_dir, pattern)))
     if len(files) == 0:
         raise FileNotFoundError(f"No videos found in {video_dir} matching {pattern}")
@@ -601,6 +606,8 @@ class TorchImageEnvWrapper:
     ) -> None:
         self.env: Any
         if isinstance(env, str):
+            import gym
+
             try:
                 self.env = gym.make(env, render_mode="rgb_array")
                 self._render_mode_supported = True
@@ -863,7 +870,7 @@ def visualize_latent_tsne(
     labels: np.ndarray | None = None,
     save_path: str | None = None,
     perplexity: int = 30,
-) -> plotly.graph_objs.Figure:
+) -> "plotly.graph_objs.Figure":
     """
     Visualize latent representations using t-SNE.
 
@@ -917,7 +924,7 @@ def visualize_latent_umap(
     labels: np.ndarray | None = None,
     save_path: str | None = None,
     n_neighbors: int = 15,
-) -> plotly.graph_objs.Figure:
+) -> "plotly.graph_objs.Figure":
     """
     Visualize latent representations using UMAP.
 
@@ -980,6 +987,8 @@ class StreamingVideoWriter:
     def __init__(
         self, path: str, fps: int = 20, frame_shape: Any = None, format: str = "mp4"
     ) -> None:
+        import cv2
+
         self.path = path
         self.fps = fps
         self.frame_shape = frame_shape
@@ -993,6 +1002,8 @@ class StreamingVideoWriter:
         Args:
             frame: numpy array of shape (H, W, C) or (H, W), uint8 or float in [0,1]
         """
+        import cv2
+
         if self.writer is None:
             if self.frame_shape is None:
                 self.frame_shape = frame.shape[:2][::-1]  # (W, H)

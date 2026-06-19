@@ -1,7 +1,7 @@
 import os
 import pickle
 import tempfile
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -9,6 +9,29 @@ import torch
 
 
 class TestUtils:
+    _needs_cv2 = {
+        "test_to_tensor_obs",
+        "test_save_video_chw",
+        "test_save_video_hwc",
+        "test_save_video_invalid_dims",
+        "test_combine_videos",
+        "test_combine_videos_no_files",
+        "test_StreamingVideoWriter",
+        "test_StreamingVideoWriter_float_frame",
+        "test_TorchImageEnvWrapper_reset",
+    }
+    _needs_plotly = {"test_plot_metrics"}
+    _needs_gym = {"test_TorchImageEnvWrapper_init_with_string"}
+
+    @pytest.fixture(autouse=True)
+    def _deps(self, request):
+        if request.function.__name__ in self._needs_cv2:
+            pytest.importorskip("cv2")
+        if request.function.__name__ in self._needs_plotly:
+            pytest.importorskip("plotly")
+        if request.function.__name__ in self._needs_gym:
+            pytest.importorskip("gym")
+
     def test_to_tensor_obs(self):
         from world_models.utils.utils import to_tensor_obs
 
@@ -251,7 +274,6 @@ class TestUtils:
 
     def test_combine_videos_no_files(self):
         from world_models.utils.utils import combine_videos
-        import os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             with pytest.raises(FileNotFoundError):
@@ -270,7 +292,6 @@ class TestUtils:
 
     def test_TorchImageEnvWrapper_init_with_string(self):
         from world_models.utils.utils import TorchImageEnvWrapper
-        import gym
 
         with patch("gym.make") as mock_make:
             mock_env = Mock()
@@ -336,7 +357,6 @@ class TestUtils:
     def test_StreamingVideoWriter(self):
         from world_models.utils.utils import StreamingVideoWriter
         import os
-        import cv2
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "test.mp4")
@@ -351,7 +371,6 @@ class TestUtils:
     def test_StreamingVideoWriter_float_frame(self):
         from world_models.utils.utils import StreamingVideoWriter
         import os
-        import cv2
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = os.path.join(tmpdir, "test.mp4")

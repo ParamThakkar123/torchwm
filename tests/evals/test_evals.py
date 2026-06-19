@@ -6,12 +6,16 @@ import torch
 import numpy as np
 
 from evals.fid import FID, _frechet_distance, _compute_statistics
-from evals.fvd import FVD, _sample_clips, VideoFeatureExtractor
+from evals.fvd import FVD, _sample_clips
 from evals.lpips import LPIPS, VGGFeatureExtractor
 from evals.psnr import PSNR
 
 
 class TestFIDInternals:
+    @pytest.fixture(autouse=True)
+    def _require_scipy(self):
+        pytest.importorskip("scipy")
+
     def test_frechet_distance_identical(self):
         """Fréchet distance of identical distributions should be 0."""
         mu = np.array([1.0, 2.0, 3.0])
@@ -187,8 +191,6 @@ class TestEvalUtils:
     def test_generate_trajectories_imports(self):
         """Tests that evals.diamond_utils imports correctly."""
         from evals.diamond_utils import generate_trajectories
-        from evals.diamond_utils import collect_real_trajectories_from_env
-        from evals.diamond_utils import load_trajectories_from_replay_buffer
 
         assert callable(generate_trajectories)
 

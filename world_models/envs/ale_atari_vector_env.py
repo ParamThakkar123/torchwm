@@ -44,6 +44,6 @@ def make_atari_vector_env(
         max_episode_steps=max_episode_steps,
         seed=seed,
         **kwargs,
-    )  # type: ignore[call-arg]
+    )
 
     return cast(AtariVectorEnv, env)

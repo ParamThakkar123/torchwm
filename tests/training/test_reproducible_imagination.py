@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 from world_models.configs.diamond_config import DiamondConfig
-from world_models.training.train_diamond import DiamondAgent
+from world_models.envs.diamond_atari import make_diamond_atari_env
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
@@ -21,6 +21,15 @@ def test_reproducible_imagination(tmp_path):
     """Run a short imagined rollout, save checkpoint, reload and re-run to
     assert identical imagined observations when seeds and inputs are fixed.
     """
+    try:
+        make_diamond_atari_env(
+            game="Breakout-v4", frameskip=4, max_noop=30, resize=(64, 64), seed=0
+        )
+    except Exception:
+        pytest.skip("Atari environment (Breakout) not available")
+
+    from world_models.training.train_diamond import DiamondAgent
+
     cfg = DiamondConfig(preset="small")
     cfg.game = "Breakout-v4"
     cfg.device = "cpu"
@@ -33,7 +42,6 @@ def test_reproducible_imagination(tmp_path):
     agent = DiamondAgent(cfg)
 
     # populate replay buffer with random but deterministic frames
-    B = 8
     for i in range(32):
         frame = np.random.randint(
             0, 256, (cfg.obs_size, cfg.obs_size, 3), dtype=np.uint8

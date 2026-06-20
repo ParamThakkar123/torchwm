@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 import torch
+
+pytest.importorskip("gym")
 from gym import spaces
 
 from world_models.envs.vector_env import SimWorker, TorchVectorizedEnv
@@ -8,7 +10,6 @@ from world_models.training.rl_harness import PPOTrainer
 
 
 import queue as _queue
-import sys
 import time
 
 

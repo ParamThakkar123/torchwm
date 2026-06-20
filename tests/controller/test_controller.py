@@ -3,6 +3,8 @@ import numpy as np
 import torch
 from unittest.mock import Mock, patch, MagicMock
 from world_models.controller.rssm_policy import RSSMPolicy
+
+pytest.importorskip("cv2")
 from world_models.controller.rollout_generator import RolloutGenerator
 from world_models.memory.planet_memory import Episode
 

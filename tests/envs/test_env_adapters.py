@@ -1,8 +1,10 @@
+import pytest
 import numpy as np
 from unittest.mock import Mock, patch
 
-import gym
 import torch
+
+gym = pytest.importorskip("gym")
 
 from world_models.configs.dreamer_config import DreamerConfig
 from world_models.envs.gym_env import GymImageEnv

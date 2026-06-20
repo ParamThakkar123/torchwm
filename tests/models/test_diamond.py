@@ -68,6 +68,10 @@ class TestDiamondConfig:
 
 
 class TestDiamondAtariWrapper:
+    @pytest.fixture(autouse=True)
+    def _require_cv2(self):
+        pytest.importorskip("cv2")
+
     @pytest.fixture
     def mock_env(self):
         env = MagicMock()

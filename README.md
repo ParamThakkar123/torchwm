@@ -67,6 +67,7 @@ agent.train()
 | **JEPA** | Self-supervised visual representations | Masked prediction, ViT |
 | **IRIS** | Sample-efficient RL with Transformers | Discrete VAEs, world models |
 | **DiT** | Diffusion Transformer workflows | Patch embeddings, diffusion backbones |
+| **DIAMOND** | Diffusion world model for pixel-control RL | EDM sampling, Atari imagination rollouts |
 
 ## Documentation
 

@@ -1,12 +1,27 @@
 import re
 
+import pytest
 import torchwm
-from click.testing import CliRunner
-from tools import cli
+
+try:
+    from tools import cli
+except ImportError:
+    pytest.skip("click not installed", allow_module_level=True)
+
+try:
+    from click.testing import CliRunner
+except ImportError:
+    CliRunner = None  # type: ignore
+
+
+def _runner() -> "CliRunner":
+    if CliRunner is None:
+        pytest.importorskip("click")
+    return _runner()  # type: ignore
 
 
 def test_version_shows_package_version():
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(cli.app, ["version"])
     assert res.exit_code == 0
     assert re.search(r"\d+\.\d+\.\d+", res.output)
@@ -14,7 +29,7 @@ def test_version_shows_package_version():
 
 
 def test_envs_list_outputs_backends():
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(cli.app, ["envs", "list"])
     assert res.exit_code == 0
     # ui.server declares these backends; ensure at least 'gym' appears
@@ -22,7 +37,7 @@ def test_envs_list_outputs_backends():
 
 
 def test_datasets_list_empty_dir(tmp_path):
-    runner = CliRunner()
+    runner = _runner()
     # point to an empty temporary folder
     res = runner.invoke(cli.app, ["datasets", "list", str(tmp_path)])
     assert res.exit_code == 0
@@ -32,28 +47,28 @@ def test_datasets_list_empty_dir(tmp_path):
 def test_datasets_list_with_subdir(tmp_path):
     d = tmp_path / "sample"
     d.mkdir()
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(cli.app, ["datasets", "list", str(tmp_path)])
     assert res.exit_code == 0
     assert "- sample" in res.output
 
 
 def test_train_unknown_model_errors():
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(cli.app, ["train", "notamodel"])
     assert res.exit_code == 1
     assert "Unknown model" in res.output
 
 
 def test_benchmark_requires_agent_or_all_agents():
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(cli.app, ["benchmark", "--game", "ALE/Pong-v5"])
     assert res.exit_code == 1
     assert "Either --agent or --all-agents" in res.output
 
 
 def test_benchmark_single_agent_requires_checkpoint():
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(
         cli.app, ["benchmark", "--agent", "iris", "--game", "ALE/Pong-v5"]
     )
@@ -95,7 +110,7 @@ def test_benchmark_single_agent_runs_with_checkpoint(monkeypatch, tmp_path):
         ),
     )
 
-    runner = CliRunner()
+    runner = _runner()
     res = runner.invoke(
         cli.app,
         [

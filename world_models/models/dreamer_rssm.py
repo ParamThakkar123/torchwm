@@ -325,6 +325,11 @@ class RSSM(nn.Module):
             state = posterior
 
         to_stack = ["mean", "std", "stoch", "deter"]
+
+        if not prior_states:
+            empty = {k: init_state[k].unsqueeze(0)[:0] for k in to_stack}
+            return empty, empty
+
         prior = {k: torch.stack([p[k] for p in prior_states], dim=0) for k in to_stack}
         posterior = {
             k: torch.stack([p[k] for p in posterior_states], dim=0) for k in to_stack

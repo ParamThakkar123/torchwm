@@ -73,7 +73,9 @@ class ConvEncoder(nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         reshaped = inputs.reshape(-1, *self.input_shape)
         embed = self.conv_block(reshaped)
-        embed = torch.reshape(embed, (*inputs.shape[:-3], -1))
+        embed = embed.reshape(
+            *inputs.shape[:-3], embed.shape[1] * embed.shape[2] * embed.shape[3]
+        )
         embed = self.fc(embed)
 
         return embed

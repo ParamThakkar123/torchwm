@@ -769,6 +769,10 @@ class Dreamer:
     def train_one_batch(self) -> list[float]:
         obs, acs, rews, terms = self.data_buffer.sample()
         obs_t = torch.tensor(obs, dtype=torch.float32).to(self.device)
+
+        if obs_t.shape[0] <= 1:
+            return [0.0, 0.0, 0.0]
+
         acs_t = torch.tensor(acs, dtype=torch.float32).to(self.device)
         rews_t = torch.tensor(rews, dtype=torch.float32).to(self.device).unsqueeze(-1)
         nonterms = (

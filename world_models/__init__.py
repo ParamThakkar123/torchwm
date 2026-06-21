@@ -183,6 +183,10 @@ _LAZY_EXPORTS: dict[str, str] = {
     "FreezeParameters": "world_models.utils",
     "compute_return": "world_models.utils",
     "preprocess_obs": "world_models.utils",
+    "ProjectionResult": "world_models.utils",
+    "plot_projection": "world_models.utils",
+    "project_latent_trajectories": "world_models.utils",
+    "project_representation_embeddings": "world_models.utils",
 }
 
 _EXPORTS = {**_API_EXPORTS, **_LAZY_EXPORTS}

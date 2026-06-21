@@ -37,7 +37,7 @@ agent = DreamerAgent(cfg)
 | **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `make_procgen_env`, `GymImageEnv`, `ProcgenImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, wrappers, etc. |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
 | **Reward** | `RewardModel`, `ValueModel` |
-| **Utilities** | `__version__` |
+| **Utilities** | `__version__`, `project_latent_trajectories`, `project_representation_embeddings`, `plot_projection`, `ProjectionResult` |
 
 Example usage:
 
@@ -85,7 +85,7 @@ processed = op.process({"image": image, "action": action})
 
 ## Utilities
 
-- `world_models.utils`: Logging, parameter freezing, transforms
+- `world_models.utils`: Logging, parameter freezing, transforms, and visualization projection helpers
 - `world_models.transforms`: Data augmentation pipelines
 - `world_models.benchmarks`: CLI and reporting utilities
 

@@ -130,7 +130,9 @@ Core model families
 Diffusion and DIAMOND components
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Key classes:** ``DDPM``, ``DiT``, ``DiffusionUNet``, ``EDMPreconditioner``, ``EulerSampler``, ``RewardTerminationModel``, and ``ActorCriticNetwork``.
+**Key classes:** ``DiamondAgent``, ``DDPM``, ``DiT``, ``DiffusionUNet``, ``EDMPreconditioner``, ``EulerSampler``, ``RewardTerminationModel``, and ``ActorCriticNetwork``.
+
+DIAMOND exposes ``DiamondAgent`` from ``world_models.training.train_diamond``; there is no separate ``DIAMONDAgent`` class name in the package.
 
 .. automodule:: world_models.models.diffusion
    :members:
@@ -272,6 +274,13 @@ Configuration objects
 
 Training entry points
 ---------------------
+
+**Key classes and functions:** ``DiamondAgent``, ``train_diamond``, ``train_dreamer``, ``GenieTrainer``, ``IRISTrainer``, and related training entry points.
+
+.. automodule:: world_models.training
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 .. automodule:: world_models.training.train_world_model
    :members:

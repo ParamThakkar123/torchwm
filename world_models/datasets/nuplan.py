@@ -257,13 +257,17 @@ def _polygon_to_mask(
     if geom.is_empty:
         return None
     if hasattr(geom, "geoms"):  # MultiPolygon
-        rows, cols = [], []
+        row_parts, col_parts = [], []
         for sub in geom.geoms:
             result = _polygon_to_mask(sub, h, w)
             if result is not None:
-                rows.append(result[0])
-                cols.append(result[1])
-        return (np.concatenate(rows), np.concatenate(cols)) if rows else None
+                row_parts.append(result[0])
+                col_parts.append(result[1])
+        return (
+            (np.concatenate(row_parts), np.concatenate(col_parts))
+            if row_parts
+            else None
+        )
 
     min_x, min_y, max_x, max_y = map(int, geom.bounds)
     min_x = max(min_x, 0)
@@ -279,10 +283,8 @@ def _polygon_to_mask(
     pts = points(np.stack([xx.ravel(), yy.ravel()], axis=1))
     prepare(geom)
     mask = contains(geom, pts).reshape(len(ys), len(xs))
-    rows: Any  # type: ignore[no-redef]
-    cols: Any  # type: ignore[no-redef]
-    rows, cols = np.where(mask)  # type: ignore[assignment]
-    return (rows + min_y, cols + min_x)  # type: ignore[operator]
+    rows, cols = np.where(mask)
+    return (rows + min_y, cols + min_x)
 
 
 def _extract_ego(

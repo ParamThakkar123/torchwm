@@ -870,53 +870,47 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">vae_config</span> <span class="o">=</span> <span class="n">WMVAEConfig</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
-                <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
-                <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
-                <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
-                <span class="s2">&quot;train_batch_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">vae_batch_size</span><span class="p">,</span>
-                <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">vae_epochs</span><span class="p">,</span>
-                <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
-                <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">vae_lr</span><span class="p">,</span>
-                <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
-                <span class="s2">&quot;noreload&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">noreload</span><span class="p">,</span>
-                <span class="s2">&quot;nosamples&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">nosamples</span><span class="p">,</span>
-            <span class="p">}</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">latent_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="n">train_batch_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">vae_batch_size</span><span class="p">,</span>
+            <span class="n">num_epochs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">vae_epochs</span><span class="p">,</span>
+            <span class="n">data_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">vae_lr</span><span class="p">,</span>
+            <span class="n">logdir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
+            <span class="n">noreload</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">noreload</span><span class="p">,</span>
+            <span class="n">nosamples</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">nosamples</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">mdrnn_config</span> <span class="o">=</span> <span class="n">WMMDNRNNConfig</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
-                <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="n">action_size</span><span class="p">,</span>
-                <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">rnn_hidden</span><span class="p">,</span>
-                <span class="s2">&quot;gmm_components&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">gmm_components</span><span class="p">,</span>
-                <span class="s2">&quot;device&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
-                <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">rnn_batch_size</span><span class="p">,</span>
-                <span class="s2">&quot;seq_len&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">seq_len</span><span class="p">,</span>
-                <span class="s2">&quot;num_epochs&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">rnn_epochs</span><span class="p">,</span>
-                <span class="s2">&quot;data_dir&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
-                <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">rnn_lr</span><span class="p">,</span>
-                <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
-                <span class="s2">&quot;noreload&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">noreload</span><span class="p">,</span>
-                <span class="s2">&quot;include_reward&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="p">}</span>
+            <span class="n">latent_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
+            <span class="n">action_size</span><span class="o">=</span><span class="n">action_size</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">rnn_hidden</span><span class="p">,</span>
+            <span class="n">gmm_components</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">gmm_components</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">rnn_batch_size</span><span class="p">,</span>
+            <span class="n">seq_len</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">seq_len</span><span class="p">,</span>
+            <span class="n">num_epochs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">rnn_epochs</span><span class="p">,</span>
+            <span class="n">data_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">rnn_lr</span><span class="p">,</span>
+            <span class="n">logdir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
+            <span class="n">noreload</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">noreload</span><span class="p">,</span>
+            <span class="n">include_reward</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">ctrl_config</span> <span class="o">=</span> <span class="n">WMControllerConfig</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;latent_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
-                <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">rnn_hidden</span><span class="p">,</span>
-                <span class="s2">&quot;action_size&quot;</span><span class="p">:</span> <span class="n">action_size</span><span class="p">,</span>
-                <span class="s2">&quot;env_name&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
-                <span class="s2">&quot;logdir&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
-                <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">ctrl_samples</span><span class="p">,</span>
-                <span class="s2">&quot;pop_size&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">ctrl_pop_size</span><span class="p">,</span>
-                <span class="s2">&quot;target_return&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">ctrl_target</span><span class="p">,</span>
-                <span class="s2">&quot;max_workers&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">ctrl_workers</span><span class="p">,</span>
-                <span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;time_limit&quot;</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">ctrl_time_limit</span><span class="p">,</span>
-            <span class="p">}</span>
+            <span class="n">latent_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">latent_size</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">rnn_hidden</span><span class="p">,</span>
+            <span class="n">action_size</span><span class="o">=</span><span class="n">action_size</span><span class="p">,</span>
+            <span class="n">env_name</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">logdir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
+            <span class="n">n_samples</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ctrl_samples</span><span class="p">,</span>
+            <span class="n">pop_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ctrl_pop_size</span><span class="p">,</span>
+            <span class="n">target_return</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ctrl_target</span><span class="p">,</span>
+            <span class="n">max_workers</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ctrl_workers</span><span class="p">,</span>
+            <span class="n">display</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">time_limit</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ctrl_time_limit</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">stage</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;vae&quot;</span><span class="p">]:</span>

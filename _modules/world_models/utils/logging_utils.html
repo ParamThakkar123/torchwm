@@ -863,7 +863,6 @@ window.runMermaid = runMermaid;</script>
         <span class="n">jsonl_filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;metrics.jsonl&quot;</span><span class="p">,</span>
         <span class="n">enable_tensorboard</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">enable_wandb</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">wandb_api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">wandb_project</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;torchwm&quot;</span><span class="p">,</span>
         <span class="n">wandb_entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">run_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -889,12 +888,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_tb_writer</span> <span class="o">=</span> <span class="n">summary_writer</span><span class="p">(</span><span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">enable_wandb</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">wandb_api_key</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;WandB API key is required when enable_wandb is True&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">&quot;wandb&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;wandb is not installed&quot;</span><span class="p">)</span>
             <span class="n">wandb</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;wandb&quot;</span><span class="p">)</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;WANDB_API_KEY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wandb_api_key</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_wandb_run</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span>
                 <span class="n">project</span><span class="o">=</span><span class="n">wandb_project</span><span class="p">,</span>
                 <span class="n">entity</span><span class="o">=</span><span class="n">wandb_entity</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>

@@ -140,7 +140,6 @@ class DreamerConfig:
 
     # WandB
     enable_wandb: bool = False
-    wandb_api_key: str = ""
     wandb_project: str = "torchwm"
     wandb_entity: str = ""
     log_dir: str = "runs"
@@ -212,7 +211,6 @@ class JEPAConfig:
     folder: str = "results/jepa"
     write_tag: str = "jepa_run"
     enable_wandb: bool = False
-    wandb_api_key: str = ""
     wandb_project: str = "torchwm"
     wandb_entity: str = ""
     enable_sweep: bool = False

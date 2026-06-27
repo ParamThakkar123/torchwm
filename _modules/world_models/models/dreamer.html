@@ -760,9 +760,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">Logger</span><span class="p">,</span>
     <span class="n">FreezeParameters</span><span class="p">,</span>
     <span class="n">compute_return</span><span class="p">,</span>
-    <span class="n">symlog</span> <span class="k">as</span> <span class="n">_symlog</span><span class="p">,</span>
-    <span class="n">symexp</span> <span class="k">as</span> <span class="n">_symexp</span><span class="p">,</span>
-    <span class="n">TwoHotEncoder</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.dreamer_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">world_models.export</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExportableAgentMixin</span>
@@ -1136,13 +1133,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">output_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">cnn_activation_function</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">head_dist</span> <span class="o">=</span> <span class="s2">&quot;symlog_twohot&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span> <span class="k">else</span> <span class="s2">&quot;normal&quot;</span>
-        <span class="n">head_kwargs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">head_dist</span> <span class="o">==</span> <span class="s2">&quot;symlog_twohot&quot;</span><span class="p">:</span>
-            <span class="n">head_kwargs</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;num_buckets&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;num_buckets&quot;</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
-                <span class="s2">&quot;symlog_range&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;symlog_range&quot;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
-            <span class="p">}</span>
+        <span class="n">head_dist</span><span class="p">,</span> <span class="n">head_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_head_config</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span> <span class="o">=</span> <span class="n">DenseDecoder</span><span class="p">(</span>
             <span class="n">stoch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">stoch_size</span><span class="p">,</span>
@@ -1408,44 +1399,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">prior_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">get_dist</span><span class="p">(</span><span class="n">prior</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">prior</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">])</span>
         <span class="n">post_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">get_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
-            <span class="n">post_no_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">detach_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">)</span>
-            <span class="n">prior_no_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">detach_state</span><span class="p">(</span><span class="n">prior</span><span class="p">)</span>
-            <span class="n">post_mean_no_grad</span><span class="p">,</span> <span class="n">post_std_no_grad</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">post_no_grad</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
-                <span class="n">post_no_grad</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
-            <span class="p">)</span>
-            <span class="n">prior_mean_no_grad</span><span class="p">,</span> <span class="n">prior_std_no_grad</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">prior_no_grad</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
-                <span class="n">prior_no_grad</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
-            <span class="p">)</span>
-
-            <span class="n">kl_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_alpha</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
-                    <span class="n">distributions</span><span class="o">.</span><span class="n">kl</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">get_dist</span><span class="p">(</span><span class="n">post_mean_no_grad</span><span class="p">,</span> <span class="n">post_std_no_grad</span><span class="p">),</span>
-                        <span class="n">prior_dist</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">kl_loss</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
-                    <span class="n">distributions</span><span class="o">.</span><span class="n">kl</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span>
-                        <span class="n">post_dist</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">get_dist</span><span class="p">(</span><span class="n">prior_mean_no_grad</span><span class="p">,</span> <span class="n">prior_std_no_grad</span><span class="p">),</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">kl_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distributions</span><span class="o">.</span><span class="n">kl</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="n">post_dist</span><span class="p">,</span> <span class="n">prior_dist</span><span class="p">))</span>
-            <span class="n">kl_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
-                <span class="n">kl_loss</span><span class="p">,</span> <span class="n">kl_loss</span><span class="o">.</span><span class="n">new_full</span><span class="p">(</span><span class="n">kl_loss</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">free_nats</span><span class="p">)</span>
-            <span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
-            <span class="n">target_rew</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">target_rew</span> <span class="o">=</span> <span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kl_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_kl_loss</span><span class="p">(</span><span class="n">prior</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">,</span> <span class="n">post_dist</span><span class="p">,</span> <span class="n">prior_dist</span><span class="p">)</span>
+        <span class="n">target_rew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reward_target</span><span class="p">(</span><span class="n">rews</span><span class="p">)</span>
 
         <span class="n">obs_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obs_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
         <span class="n">rew_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rew_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">target_rew</span><span class="p">))</span>
@@ -1497,13 +1452,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">discounts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">discounts</span><span class="p">[:</span><span class="mi">1</span><span class="p">]),</span> <span class="n">discounts</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">discounts</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
-            <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-            <span class="n">target</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
-            <span class="n">actor_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">target</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">actor_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">actor_loss</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_actor_loss</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dreamer.value_loss">
@@ -1513,15 +1462,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">value_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imag_feat</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
             <span class="n">value_targ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
-
-        <span class="n">value_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span><span class="p">(</span><span class="n">value_feat</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;Dreamerv2&quot;</span><span class="p">:</span>
-            <span class="n">target</span> <span class="o">=</span> <span class="n">_symlog</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span>
-            <span class="n">log_prob</span> <span class="o">=</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">log_prob</span> <span class="o">=</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">value_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">log_prob</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value_loss</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_value_loss</span><span class="p">(</span><span class="n">value_feat</span><span class="p">,</span> <span class="n">value_targ</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">discounts</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dreamer.train_one_batch">
@@ -1778,7 +1719,41 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">world_model_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;world_model_optimizer&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;actor_optimizer&quot;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;value_optimizer&quot;</span><span class="p">])</span></div>
-</div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_head_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_kl_loss</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">posterior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">post_dist</span><span class="p">:</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
+        <span class="n">prior_dist</span><span class="p">:</span> <span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">kl_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distributions</span><span class="o">.</span><span class="n">kl</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="n">post_dist</span><span class="p">,</span> <span class="n">prior_dist</span><span class="p">))</span>
+        <span class="n">kl_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span>
+            <span class="n">kl_loss</span><span class="p">,</span> <span class="n">kl_loss</span><span class="o">.</span><span class="n">new_full</span><span class="p">(</span><span class="n">kl_loss</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">free_nats</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">kl_loss</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_reward_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rews</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">rews</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_actor_loss</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">returns</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">discounts</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">returns</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_value_loss</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value_feat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">value_targ</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">discounts</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">value_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span><span class="p">(</span><span class="n">value_feat</span><span class="p">)</span>
+        <span class="n">log_prob</span> <span class="o">=</span> <span class="n">value_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">value_targ</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">discounts</span> <span class="o">*</span> <span class="n">log_prob</span><span class="p">)</span></div>
 
 
 
@@ -1882,7 +1857,6 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span>
             <span class="n">enable_wandb</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">enable_wandb</span><span class="p">,</span>
-            <span class="n">wandb_api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_api_key</span><span class="p">,</span>
             <span class="n">wandb_project</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_project</span><span class="p">,</span>
             <span class="n">wandb_entity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">wandb_entity</span><span class="p">,</span>
             <span class="n">video_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">video_format</span><span class="p">,</span>

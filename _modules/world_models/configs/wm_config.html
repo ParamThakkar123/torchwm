@@ -732,12 +732,12 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="WMVAEConfig">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMVAEConfig">[docs]</a>
+<span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">WMVAEConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration class for Variational Autoencoder (VAE) training.</span>
 
-<span class="sd">    This class manages all hyperparameters and settings for training a ConvVAE</span>
-<span class="sd">    model on observation data. It provides validation and dictionary conversion</span>
-<span class="sd">    utilities.</span>
+<span class="sd">    Manages all hyperparameters and settings for training a ConvVAE model</span>
+<span class="sd">    on observation data.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        height: Height of input images (pixels).</span>
@@ -755,118 +755,54 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        scheduler_factor: Multiplicative factor for learning rate reduction.</span>
 <span class="sd">        early_stopping_patience: Epochs to wait before early stopping.</span>
 <span class="sd">        sample_interval: Epoch interval for saving sample images.</span>
-<span class="sd">        extra: Dictionary for additional custom parameters.</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; config = WMVAEConfig({</span>
-<span class="sd">        ...     &#39;height&#39;: 64,</span>
-<span class="sd">        ...     &#39;width&#39;: 64,</span>
-<span class="sd">        ...     &#39;latent_size&#39;: 32,</span>
-<span class="sd">        ...     &#39;logdir&#39;: &#39;results&#39;,</span>
-<span class="sd">        ... })</span>
-<span class="sd">        &gt;&gt;&gt; config.latent_size</span>
-<span class="sd">        32</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@dataclass</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">_Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal dataclass for VAE configuration.&quot;&quot;&quot;</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="n">train_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
+    <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
+    <span class="n">noreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">nosamples</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">scheduler_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">scheduler_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">early_stopping_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">sample_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
 
-        <span class="n">height</span><span class="p">:</span> <span class="nb">int</span>
-        <span class="n">width</span><span class="p">:</span> <span class="nb">int</span>
-        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
-        <span class="n">train_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
-        <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
-        <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
-        <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
-        <span class="n">noreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">nosamples</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">scheduler_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="n">scheduler_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
-        <span class="n">early_stopping_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
-        <span class="n">sample_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="n">extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.</span>
+<div class="viewcode-block" id="WMVAEConfig.validate">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMVAEConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;height/width must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;train_batch_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_epochs must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;learning_rate must be &gt; 0&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
-<span class="sd">            Raises:</span>
-<span class="sd">                AssertionError: If any parameter is invalid.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;height/width must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;train_batch_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_epochs must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;learning_rate must be &gt; 0&quot;</span>
-            <span class="k">return</span> <span class="kc">True</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Convert configuration to dictionary.</span>
-
-<span class="sd">            Returns:</span>
-<span class="sd">                Dictionary containing all configuration parameters.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__annotations__</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;extra&quot;</span><span class="p">}</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">d</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize VAE configuration from dictionary.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            config_dict: Dictionary containing configuration parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">known_keys</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;height&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;width&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;device&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;train_batch_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;num_epochs&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;latent_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;data_dir&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;logdir&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;noreload&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;nosamples&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;scheduler_patience&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;scheduler_factor&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;early_stopping_patience&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;sample_interval&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="n">extra</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">WMVAEConfig</span><span class="o">.</span><span class="n">_Config</span><span class="p">(</span><span class="o">**</span><span class="n">known</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get configuration attribute.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            item: Name of the attribute to retrieve.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Value of the configuration attribute.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;_cfg&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+<div class="viewcode-block" id="WMVAEConfig.to_dict">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMVAEConfig.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">}</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="WMMDNRNNConfig">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig">[docs]</a>
+<span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">WMMDNRNNConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration class for Mixture Density Recurrent Neural Network (MDRNN) training.</span>
 
-<span class="sd">    This class manages all hyperparameters and settings for training an MDRNN</span>
-<span class="sd">    model on sequence data. It provides validation and dictionary conversion</span>
-<span class="sd">    utilities.</span>
+<span class="sd">    Manages all hyperparameters and settings for training an MDRNN model</span>
+<span class="sd">    on sequence data.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        latent_size: Dimensionality of the latent space from VAE.</span>
@@ -885,138 +821,64 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        scheduler_patience: Epochs to wait before reducing learning rate.</span>
 <span class="sd">        scheduler_factor: Multiplicative factor for learning rate reduction.</span>
 <span class="sd">        early_stopping_patience: Epochs to wait before early stopping.</span>
-<span class="sd">        extra: Dictionary for additional custom parameters.</span>
-
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; config = WMMDNRNNConfig({</span>
-<span class="sd">        ...     &#39;latent_size&#39;: 32,</span>
-<span class="sd">        ...     &#39;action_size&#39;: 3,</span>
-<span class="sd">        ...     &#39;hidden_size&#39;: 256,</span>
-<span class="sd">        ...     &#39;gmm_components&#39;: 5,</span>
-<span class="sd">        ... })</span>
-<span class="sd">        &gt;&gt;&gt; config.hidden_size</span>
-<span class="sd">        256</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@dataclass</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">_Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal dataclass for MDRNN configuration.&quot;&quot;&quot;</span>
+    <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">gmm_components</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
+    <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
+    <span class="n">noreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">include_reward</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">scheduler_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">scheduler_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">early_stopping_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
 
-        <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
-        <span class="n">gmm_components</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
-        <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">num_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
-        <span class="n">data_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./data&quot;</span>
-        <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
-        <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
-        <span class="n">noreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">include_reward</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">scheduler_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="n">scheduler_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
-        <span class="n">early_stopping_patience</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span>
-        <span class="n">extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.</span>
+<div class="viewcode-block" id="WMMDNRNNConfig.validate">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;action_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;hidden_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmm_components</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;gmm_components must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;batch_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;seq_len must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_epochs must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;learning_rate must be &gt; 0&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
-<span class="sd">            Raises:</span>
-<span class="sd">                AssertionError: If any parameter is invalid.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;action_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;hidden_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">gmm_components</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;gmm_components must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;batch_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;seq_len must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_epochs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_epochs must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;learning_rate must be &gt; 0&quot;</span>
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Convert configuration to dictionary.</span>
-
-<span class="sd">            Returns:</span>
-<span class="sd">                Dictionary containing all configuration parameters.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__annotations__</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;extra&quot;</span><span class="p">}</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">d</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize MDRNN configuration from dictionary.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            config_dict: Dictionary containing configuration parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">known_keys</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;latent_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;action_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;hidden_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;gmm_components&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;device&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;batch_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;seq_len&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;num_epochs&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;data_dir&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;logdir&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;noreload&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;include_reward&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;scheduler_patience&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;scheduler_factor&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;early_stopping_patience&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="n">extra</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">WMMDNRNNConfig</span><span class="o">.</span><span class="n">_Config</span><span class="p">(</span><span class="o">**</span><span class="n">known</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get configuration attribute.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            item: Name of the attribute to retrieve.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Value of the configuration attribute.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;_cfg&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WMMDNRNNConfig.to_dict">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMMDNRNNConfig.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert configuration to dictionary.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Dictionary containing all configuration parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">}</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="WMControllerConfig">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMControllerConfig">[docs]</a>
+<span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">WMControllerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration class for Controller training with CMA-ES.</span>
 
-<span class="sd">    This class manages hyperparameters for training a linear controller</span>
+<span class="sd">    Manages hyperparameters for training a linear controller</span>
 <span class="sd">    using Covariance Matrix Adaptation Evolution Strategy (CMA-ES).</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        latent_size: Dimensionality of latent state from VAE.</span>
 <span class="sd">        hidden_size: Dimensionality of RSSM hidden state.</span>
 <span class="sd">        action_size: Dimensionality of action space.</span>
+<span class="sd">        env_name: Gym environment name.</span>
 <span class="sd">        logdir: Directory for saving logs and checkpoints.</span>
 <span class="sd">        n_samples: Number of samples used to obtain return estimate.</span>
 <span class="sd">        pop_size: Population size for CMA-ES.</span>
@@ -1026,74 +888,37 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        time_limit: Maximum steps per episode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@dataclass</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">_Config</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal dataclass for Controller configuration.&quot;&quot;&quot;</span>
+    <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">env_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CarRacing-v2&quot;</span>
+    <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
+    <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">target_return</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">950.0</span>
+    <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">display</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">time_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
 
-        <span class="n">latent_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">200</span>
-        <span class="n">action_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="n">env_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CarRacing-v2&quot;</span>
-        <span class="n">logdir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;results&quot;</span>
-        <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="n">pop_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
-        <span class="n">target_return</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">950.0</span>
-        <span class="n">max_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
-        <span class="n">display</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">time_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
-        <span class="n">extra</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Validate configuration parameters.&quot;&quot;&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;hidden_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;action_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;n_samples must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;pop_size must be &gt; 0&quot;</span>
-            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;max_workers must be &gt; 0&quot;</span>
-            <span class="k">return</span> <span class="kc">True</span>
+<div class="viewcode-block" id="WMControllerConfig.validate">
+<a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMControllerConfig.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">latent_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;latent_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;hidden_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;action_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;n_samples must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;pop_size must be &gt; 0&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;max_workers must be &gt; 0&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Convert configuration to dictionary.&quot;&quot;&quot;</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__annotations__</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;extra&quot;</span><span class="p">}</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">d</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize Controller configuration from dictionary.&quot;&quot;&quot;</span>
-        <span class="n">known_keys</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;latent_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;hidden_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;action_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;env_name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;logdir&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;n_samples&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;pop_size&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;target_return&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;max_workers&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;display&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;time_limit&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="n">extra</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_keys</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">WMControllerConfig</span><span class="o">.</span><span class="n">_Config</span><span class="p">(</span><span class="o">**</span><span class="n">known</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">extra</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get configuration attribute.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;_cfg&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">extra</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
 <div class="viewcode-block" id="WMControllerConfig.to_dict">
 <a class="viewcode-back" href="../../../api_reference.html#world_models.configs.wm_config.WMControllerConfig.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert configuration to dictionary.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="p">}</span></div>
 </div>
 
 </pre></div>

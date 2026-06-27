@@ -58,6 +58,20 @@ pre-commit install
 4. Push to your fork and create a PR.
 5. PRs must pass CI checks and have at least one approval.
 
+## Commit Message Conventions
+
+Use structured commit messages to keep the history readable:
+
+- `feat: ...` — new feature
+- `fix: ...` — bug fix
+- `docs: ...` — documentation only
+- `refactor: ...` — code restructuring
+- `test: ...` — adding or updating tests
+- `ci: ...` — CI/CD changes
+- `chore: ...` — maintenance tasks (deps, config, etc.)
+
+Write the body in imperative mood ("fix bug" not "fixed bug" or "fixes bug"). If the commit closes an issue, include `Closes #N` in the body.
+
 ## Code of Conduct
 
 Please be respectful and inclusive. Harassment or discriminatory behavior will not be tolerated.

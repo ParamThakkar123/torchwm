@@ -26,6 +26,8 @@ Exported Components:
 __all__ = [
     # Agents
     "Dreamer",
+    "DreamerV1",
+    "DreamerV2",
     "DreamerAgent",
     "Planet",
     "JEPAAgent",
@@ -59,6 +61,14 @@ def __getattr__(name: str) -> Any:
         from .dreamer import Dreamer
 
         return Dreamer
+    if name == "DreamerV1":
+        from .dreamer_v1 import DreamerV1
+
+        return DreamerV1
+    if name == "DreamerV2":
+        from .dreamer_v2 import DreamerV2
+
+        return DreamerV2
     if name == "DreamerAgent":
         from .dreamer import DreamerAgent
 

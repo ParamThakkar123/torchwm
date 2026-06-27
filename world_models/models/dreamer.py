@@ -34,9 +34,6 @@ from world_models.utils.dreamer_utils import (
     Logger,
     FreezeParameters,
     compute_return,
-    symlog as _symlog,
-    symexp as _symexp,
-    TwoHotEncoder,
 )
 from world_models.configs.dreamer_config import DreamerConfig
 from world_models.export import ExportableAgentMixin
@@ -399,13 +396,7 @@ class Dreamer:
             output_shape=self.obs_shape,
             activation=self.args.cnn_activation_function,
         ).to(self.device)
-        head_dist = "symlog_twohot" if self.args.algo == "Dreamerv2" else "normal"
-        head_kwargs: Dict[str, Any] = {}
-        if head_dist == "symlog_twohot":
-            head_kwargs = {
-                "num_buckets": getattr(self.args, "num_buckets", 255),
-                "symlog_range": getattr(self.args, "symlog_range", 10.0),
-            }
+        head_dist, head_kwargs = self._get_head_config()
 
         self.reward_model = DenseDecoder(
             stoch_size=self.args.stoch_size,
@@ -657,44 +648,8 @@ class Dreamer:
         prior_dist = self.rssm.get_dist(prior["mean"], prior["std"])
         post_dist = self.rssm.get_dist(self.posterior["mean"], self.posterior["std"])
 
-        if self.args.algo == "Dreamerv2":
-            post_no_grad = self.rssm.detach_state(self.posterior)
-            prior_no_grad = self.rssm.detach_state(prior)
-            post_mean_no_grad, post_std_no_grad = (
-                post_no_grad["mean"],
-                post_no_grad["std"],
-            )
-            prior_mean_no_grad, prior_std_no_grad = (
-                prior_no_grad["mean"],
-                prior_no_grad["std"],
-            )
-
-            kl_loss = self.args.kl_alpha * (
-                torch.mean(
-                    distributions.kl.kl_divergence(
-                        self.rssm.get_dist(post_mean_no_grad, post_std_no_grad),
-                        prior_dist,
-                    )
-                )
-            )
-            kl_loss += (1 - self.args.kl_alpha) * (
-                torch.mean(
-                    distributions.kl.kl_divergence(
-                        post_dist,
-                        self.rssm.get_dist(prior_mean_no_grad, prior_std_no_grad),
-                    )
-                )
-            )
-        else:
-            kl_loss = torch.mean(distributions.kl.kl_divergence(post_dist, prior_dist))
-            kl_loss = torch.max(
-                kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
-            )
-
-        if self.args.algo == "Dreamerv2":
-            target_rew = _symlog(rews[:-1])
-        else:
-            target_rew = rews[:-1]
+        kl_loss = self._compute_kl_loss(prior, self.posterior, post_dist, prior_dist)
+        target_rew = self._get_reward_target(rews)
 
         obs_loss = -torch.mean(obs_dist.log_prob(obs[1:]))
         rew_loss = -torch.mean(rew_dist.log_prob(target_rew))
@@ -743,28 +698,14 @@ class Dreamer:
         discounts = torch.cat([torch.ones_like(discounts[:1]), discounts[1:-1]], 0)
         self.discounts = torch.cumprod(discounts, 0).detach()
 
-        if self.args.algo == "Dreamerv2":
-            weight = self.discounts.detach()
-            target = _symlog(self.returns.detach())
-            actor_loss = -torch.mean(weight * target)
-        else:
-            actor_loss = -torch.mean(self.discounts * self.returns)
-        return actor_loss
+        return self._compute_actor_loss(self.returns, self.discounts)
 
     @assert_finite
     def value_loss(self) -> torch.Tensor:
         with torch.no_grad():
             value_feat = self.imag_feat[:-1].detach()
             value_targ = self.returns.detach()
-
-        value_dist = self.value_model(value_feat)
-        if self.args.algo == "Dreamerv2":
-            target = _symlog(value_targ)
-            log_prob = value_dist.log_prob(target)
-        else:
-            log_prob = value_dist.log_prob(value_targ).unsqueeze(-1)
-        value_loss = -torch.mean(self.discounts * log_prob)
-        return value_loss
+        return self._compute_value_loss(value_feat, value_targ, self.discounts)
 
     def train_one_batch(self) -> list[float]:
         obs, acs, rews, terms = self.data_buffer.sample()
@@ -1001,6 +942,40 @@ class Dreamer:
         self.actor_opt.load_state_dict(checkpoint["actor_optimizer"])
         self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
+    def _get_head_config(self) -> tuple[str, dict]:
+        return "normal", {}
+
+    def _compute_kl_loss(
+        self,
+        prior: dict,
+        posterior: dict,
+        post_dist: distributions.Distribution,
+        prior_dist: distributions.Distribution,
+    ) -> torch.Tensor:
+        kl_loss = torch.mean(distributions.kl.kl_divergence(post_dist, prior_dist))
+        kl_loss = torch.max(
+            kl_loss, kl_loss.new_full(kl_loss.size(), self.args.free_nats)
+        )
+        return kl_loss
+
+    def _get_reward_target(self, rews: torch.Tensor) -> torch.Tensor:
+        return rews[:-1]
+
+    def _compute_actor_loss(
+        self, returns: torch.Tensor, discounts: torch.Tensor
+    ) -> torch.Tensor:
+        return -torch.mean(discounts * returns)
+
+    def _compute_value_loss(
+        self,
+        value_feat: torch.Tensor,
+        value_targ: torch.Tensor,
+        discounts: torch.Tensor,
+    ) -> torch.Tensor:
+        value_dist = self.value_model(value_feat)
+        log_prob = value_dist.log_prob(value_targ).unsqueeze(-1)
+        return -torch.mean(discounts * log_prob)
+
 
 class DreamerAgent(ExportableAgentMixin):
     """High-level user API for running Dreamer experiments end to end.
@@ -1100,7 +1075,6 @@ class DreamerAgent(ExportableAgentMixin):
         self.logger = Logger(
             self.logdir,
             enable_wandb=self.args.enable_wandb,
-            wandb_api_key=self.args.wandb_api_key,
             wandb_project=self.args.wandb_project,
             wandb_entity=self.args.wandb_entity,
             video_format=self.args.video_format,

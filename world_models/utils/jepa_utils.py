@@ -181,7 +181,6 @@ class CSVLogger(object):
         self,
         fname: str,
         enable_wandb: bool = False,
-        wandb_api_key: str = "",
         wandb_project: str = "torchwm",
         wandb_entity: str = "",
         *argv: Any,
@@ -193,11 +192,8 @@ class CSVLogger(object):
         self._wandb_run = None
 
         if self.enable_wandb:
-            if not wandb_api_key:
-                raise ValueError("WandB API key is required when enable_wandb is True")
             if wandb is None:
                 raise ImportError("wandb is not installed")
-            os.environ["WANDB_API_KEY"] = wandb_api_key
             self._wandb_run = wandb.init(
                 project=wandb_project,
                 entity=wandb_entity,

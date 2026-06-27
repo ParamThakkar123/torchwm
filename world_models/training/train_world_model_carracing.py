@@ -130,52 +130,46 @@ def run_training_pipeline(args: Any, action_size: int) -> None:
     """Execute the complete World Model training pipeline."""
 
     vae_config = WMVAEConfig(
-        {
-            "height": 64,
-            "width": 64,
-            "latent_size": args.latent_size,
-            "device": args.device,
-            "train_batch_size": args.vae_batch_size,
-            "num_epochs": args.vae_epochs,
-            "data_dir": args.data_dir,
-            "learning_rate": args.vae_lr,
-            "logdir": args.logdir,
-            "noreload": args.noreload,
-            "nosamples": args.nosamples,
-        }
+        height=64,
+        width=64,
+        latent_size=args.latent_size,
+        device=args.device,
+        train_batch_size=args.vae_batch_size,
+        num_epochs=args.vae_epochs,
+        data_dir=args.data_dir,
+        learning_rate=args.vae_lr,
+        logdir=args.logdir,
+        noreload=args.noreload,
+        nosamples=args.nosamples,
     )
 
     mdrnn_config = WMMDNRNNConfig(
-        {
-            "latent_size": args.latent_size,
-            "action_size": action_size,
-            "hidden_size": args.rnn_hidden,
-            "gmm_components": args.gmm_components,
-            "device": args.device,
-            "batch_size": args.rnn_batch_size,
-            "seq_len": args.seq_len,
-            "num_epochs": args.rnn_epochs,
-            "data_dir": args.data_dir,
-            "learning_rate": args.rnn_lr,
-            "logdir": args.logdir,
-            "noreload": args.noreload,
-            "include_reward": True,
-        }
+        latent_size=args.latent_size,
+        action_size=action_size,
+        hidden_size=args.rnn_hidden,
+        gmm_components=args.gmm_components,
+        device=args.device,
+        batch_size=args.rnn_batch_size,
+        seq_len=args.seq_len,
+        num_epochs=args.rnn_epochs,
+        data_dir=args.data_dir,
+        learning_rate=args.rnn_lr,
+        logdir=args.logdir,
+        noreload=args.noreload,
+        include_reward=True,
     )
 
     ctrl_config = WMControllerConfig(
-        {
-            "latent_size": args.latent_size,
-            "hidden_size": args.rnn_hidden,
-            "action_size": action_size,
-            "logdir": args.logdir,
-            "n_samples": args.ctrl_samples,
-            "pop_size": args.ctrl_pop_size,
-            "target_return": args.ctrl_target,
-            "max_workers": args.ctrl_workers,
-            "display": True,
-            "time_limit": args.ctrl_time_limit,
-        }
+        latent_size=args.latent_size,
+        hidden_size=args.rnn_hidden,
+        action_size=action_size,
+        logdir=args.logdir,
+        n_samples=args.ctrl_samples,
+        pop_size=args.ctrl_pop_size,
+        target_return=args.ctrl_target,
+        max_workers=args.ctrl_workers,
+        display=True,
+        time_limit=args.ctrl_time_limit,
     )
 
     if args.stage in ["all", "vae"]:

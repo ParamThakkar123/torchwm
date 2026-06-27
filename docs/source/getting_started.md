@@ -28,14 +28,10 @@ TorchWM supports logging experiment results to Weights & Biases (WandB) and Tens
 
 ### Weights & Biases
 
-To use WandB logging, you must provide an API key as anonymous logins are no longer supported.
-
-1. Get your WandB API key from [wandb.ai](https://wandb.ai/settings).
-2. Set the key in your config:
+To use WandB logging, set the `WANDB_API_KEY` environment variable (anonymous logins are no longer supported). You can get your key from [wandb.ai](https://wandb.ai/settings).
 
 ```python :class: thebe
 cfg.enable_wandb = True
-cfg.wandb_api_key = "your-api-key-here"
 cfg.wandb_project = "torchwm"
 cfg.wandb_entity = "your-entity"
 ```

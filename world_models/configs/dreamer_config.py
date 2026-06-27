@@ -126,7 +126,6 @@ class DreamerConfig(SerializableConfigMixin):
 
     # Logging options
     enable_wandb: bool = False
-    wandb_api_key: str = ""  # Required if enable_wandb is True
     wandb_project: str = "torchwm"
     wandb_entity: str = ""
     log_dir: str = "runs"

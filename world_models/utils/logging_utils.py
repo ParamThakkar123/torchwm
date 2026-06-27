@@ -129,7 +129,6 @@ class MetricsLogger:
         jsonl_filename: str = "metrics.jsonl",
         enable_tensorboard: bool = False,
         enable_wandb: bool = False,
-        wandb_api_key: str = "",
         wandb_project: str = "torchwm",
         wandb_entity: str = "",
         run_name: str | None = None,
@@ -155,12 +154,9 @@ class MetricsLogger:
                 self._tb_writer = summary_writer(log_dir=log_dir)
 
         if enable_wandb:
-            if not wandb_api_key:
-                raise ValueError("WandB API key is required when enable_wandb is True")
             if importlib.util.find_spec("wandb") is None:
                 raise ImportError("wandb is not installed")
             wandb = importlib.import_module("wandb")
-            os.environ["WANDB_API_KEY"] = wandb_api_key
             self._wandb_run = wandb.init(
                 project=wandb_project,
                 entity=wandb_entity or None,

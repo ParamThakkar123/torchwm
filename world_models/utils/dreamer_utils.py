@@ -169,7 +169,6 @@ class Logger:
         self,
         log_dir: str,
         enable_wandb: bool = False,
-        wandb_api_key: str = "",
         wandb_project: str = "torchwm",
         wandb_entity: str = "",
         video_format: str = "gif",
@@ -194,7 +193,6 @@ class Logger:
             jsonl_filename=jsonl_filename,
             enable_tensorboard=enable_tensorboard,
             enable_wandb=enable_wandb,
-            wandb_api_key=wandb_api_key,
             wandb_project=wandb_project,
             wandb_entity=wandb_entity,
         )

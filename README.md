@@ -59,6 +59,64 @@ agent.train()
 - Environment integrations for Gym/Gymnasium, Unity ML-Agents, MuJoCo, Brax, and robotics extras
 - Optional logging, visualization, development, and documentation extras
 
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph API["torchwm API"]
+        CFG["create_config()"]
+        MDL["create_model()"]
+        ENV["make_env()"]
+    end
+
+    subgraph CONFIGS["Configs"]
+        DC["DreamerConfig"]
+        JC["JEPAConfig"]
+        IC["IRISConfig"]
+        GC["GenieConfig"]
+        DIC["DiTConfig / DiamondConfig"]
+    end
+
+    subgraph AGENTS["Agents / Models"]
+        DR["Dreamer / DreamerV1 / DreamerV2"]
+        JP["JEPAAgent"]
+        IR["IRISAgent"]
+        GN["Genie"]
+        DT["DiT / DIAMOND"]
+    end
+
+    subgraph BACKBONES["Backbones"]
+        RSSM["RSSM / ModularRSSM"]
+        VIT["VisionTransformer"]
+        VQ["VQ-VAE / VideoTokenizer"]
+        ST["STTransformer"]
+        DIF["DDPM / DiT diffusion"]
+    end
+
+    subgraph ENVS["Environments"]
+        GYM["Gym / Atari"]
+        DMC["DeepMind Control"]
+        MJ["MuJoCo"]
+        BR["Brax"]
+        UN["Unity ML-Agents"]
+        ROB["Robotics"]
+        more["..."]
+    end
+
+    subgraph EXPORT["Export"]
+        ONNX["ONNX"]
+        TS["TorchScript"]
+        TRT["TensorRT"]
+    end
+
+    CFG --> CONFIGS
+    MDL --> AGENTS
+    ENV --> ENVS
+    AGENTS --> BACKBONES
+    AGENTS -.-> ENVS
+    AGENTS --> EXPORT
+```
+
 ## Supported Algorithms
 
 | Algorithm | Description | Key Features |

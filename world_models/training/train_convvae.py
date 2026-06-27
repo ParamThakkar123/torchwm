@@ -159,13 +159,9 @@ def train_convae(config: WMVAEConfig) -> None:
         - Generating sample images at specified intervals
 
     Example:
-        >>> config = WMVAEConfig({
-        ...     'height': 64,
-        ...     'width': 64,
-        ...     'latent_size': 32,
-        ...     'num_epochs': 100,
-        ...     'logdir': 'results',
-        ... })
+        >>> config = WMVAEConfig(
+        ...     height=64, width=64, latent_size=32, num_epochs=100, logdir='results'
+        ... )
         >>> train_convae(config)
     """
     if torch.cuda.is_available():

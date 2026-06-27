@@ -135,7 +135,6 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
     folder = args["logging"]["folder"]
     tag = args["logging"]["write_tag"]
     enable_wandb = args["logging"]["enable_wandb"]
-    wandb_api_key = args["logging"]["wandb_api_key"]
     wandb_project = args["logging"]["wandb_project"]
     wandb_entity = args["logging"]["wandb_entity"]
 
@@ -169,7 +168,6 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
     csv_logger = CSVLogger(
         log_file,
         enable_wandb,
-        wandb_api_key,
         wandb_project,
         wandb_entity,
         ("%d", "epoch"),

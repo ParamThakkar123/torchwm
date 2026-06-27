@@ -1,6 +1,9 @@
+from dataclasses import dataclass
+
 from world_models.configs.serialization import SerializableConfigMixin
 
 
+@dataclass
 class IRISConfig(SerializableConfigMixin):
     """Configuration for IRIS (Imagination with auto-Regression over an Inner Speech)
 
@@ -8,98 +11,84 @@ class IRISConfig(SerializableConfigMixin):
     Implements discrete autoencoder + autoregressive Transformer for sample-efficient RL.
     """
 
-    def __init__(self) -> None:
-        # === Discrete Autoencoder (VQVAE) ===
-        self.frame_height = 64
-        self.frame_width = 64
-        self.frame_channels = 3
+    # === Discrete Autoencoder (VQVAE) ===
+    frame_height: int = 64
+    frame_width: int = 64
+    frame_channels: int = 3
 
-        self.vocab_size = 512  # N: vocabulary size
-        self.tokens_per_frame = 16  # K: tokens per frame
-        self.token_embedding_dim = 512  # d: embedding dimension
+    vocab_size: int = 512
+    tokens_per_frame: int = 16
+    token_embedding_dim: int = 512
 
-        # Encoder settings
-        self.encoder_channels = 64
-        self.encoder_layers = 4
-        self.encoder_residual_blocks = 2
+    encoder_channels: int = 64
+    encoder_layers: int = 4
+    encoder_residual_blocks: int = 2
 
-        # Decoder settings
-        self.decoder_depth = 32
+    decoder_depth: int = 32
 
-        # Loss weights
-        self.reconstruction_weight = 1.0
-        self.commitment_weight = 0.25  # From VQGAN paper
-        self.perceptual_weight = 1.0
+    reconstruction_weight: float = 1.0
+    commitment_weight: float = 0.25
+    perceptual_weight: float = 1.0
 
-        # === Transformer (World Model) ===
-        self.transformer_timesteps = 20  # L: sequence length
-        self.transformer_embed_dim = 256  # D
-        self.transformer_layers = 10  # M
-        self.transformer_heads = 4
-        self.transformer_dropout = 0.1
+    # === Transformer (World Model) ===
+    transformer_timesteps: int = 20
+    transformer_embed_dim: int = 256
+    transformer_layers: int = 10
+    transformer_heads: int = 4
+    transformer_dropout: float = 0.1
 
-        # === Actor-Critic ===
-        self.imagination_horizon = 15  # H - Reduced from 20 for faster training
-        self.discount = 0.99  # gamma
-        self.td_lambda = 0.9  # lambda for lambda-return
-        self.entropy_coef = 0.01  # eta: entropy coefficient
+    # === Actor-Critic ===
+    imagination_horizon: int = 15
+    discount: float = 0.99
+    td_lambda: float = 0.9
+    entropy_coef: float = 0.01
 
-        # Policy network
-        self.actor_hidden_size = 512
-        self.actor_layers = 4
+    actor_hidden_size: int = 512
+    actor_layers: int = 4
 
-        # Value network
-        self.value_hidden_size = 512
-        self.value_layers = 3
+    value_hidden_size: int = 512
+    value_layers: int = 3
 
-        # === Training ===
-        self.total_epochs = 600
-        self.collection_epochs = 500
-        self.env_steps_per_epoch = 200  # Reduced from 400 for faster training
-        self.training_steps_per_epoch = 250  # Reduced from 500 for faster training
+    # === Training ===
+    total_epochs: int = 600
+    collection_epochs: int = 500
+    env_steps_per_epoch: int = 200
+    training_steps_per_epoch: int = 250
 
-        # Optimization
-        self.model_learning_rate = 1e-4
-        self.actor_learning_rate = 1e-4
-        self.value_learning_rate = 1e-4
-        self.adam_beta1 = 0.9
-        self.adam_beta2 = 0.999
-        self.weight_decay = 0.01
-        self.grad_clip_norm = 10.0
-        self.use_amp = True
-        self.gradient_checkpointing = True
+    model_learning_rate: float = 1e-4
+    actor_learning_rate: float = 1e-4
+    value_learning_rate: float = 1e-4
+    adam_beta1: float = 0.9
+    adam_beta2: float = 0.999
+    weight_decay: float = 0.01
+    grad_clip_norm: float = 10.0
+    use_amp: bool = True
+    gradient_checkpointing: bool = True
 
-        # Exploration
-        self.collect_epsilon = 0.1  # Increased from 0.01 for better exploration
-        self.eval_temperature = 0.1
+    collect_epsilon: float = 0.1
+    eval_temperature: float = 0.1
 
-        # Warm-start delays (epochs)
-        self.start_autoencoder_after = 1
-        self.start_transformer_after = (
-            15  # Increased to give more time for autoencoder to train
-        )
-        self.start_actor_critic_after = (
-            35  # Increased to give more time for world model to train
-        )
+    start_autoencoder_after: int = 1
+    start_transformer_after: int = 15
+    start_actor_critic_after: int = 35
 
-        # Batch sizes
-        self.autoencoder_batch_size = 256
-        self.transformer_batch_size = 64
-        self.actor_critic_batch_size = 64
+    autoencoder_batch_size: int = 256
+    transformer_batch_size: int = 64
+    actor_critic_batch_size: int = 64
 
-        # === Atari 100k Benchmark ===
-        self.atari_100k = True
-        self.max_env_steps = 100000  # ~2 hours of gameplay
+    # === Atari 100k Benchmark ===
+    atari_100k: bool = True
+    max_env_steps: int = 100000
 
-        # === Environment ===
-        self.env_backend = "gym"
-        self.env = "ALE/Pong-v5"
-        self.action_repeat = 4
+    # === Environment ===
+    env_backend: str = "gym"
+    env: str = "ALE/Pong-v5"
+    action_repeat: int = 4
 
-        # === Logging ===
-        self.log_interval = 1000
-        self.eval_episodes = 100
-        self.checkpoint_interval = 50
+    # === Logging ===
+    log_interval: int = 1000
+    eval_episodes: int = 100
+    checkpoint_interval: int = 50
 
     def get_frame_shape(self) -> tuple:
         return (self.frame_channels, self.frame_height, self.frame_width)
@@ -128,7 +117,7 @@ class IRISConfig(SerializableConfigMixin):
             "dropout": self.transformer_dropout,
             "vocab_size": self.vocab_size,
             "tokens_per_frame": self.tokens_per_frame,
-            "action_size": None,  # Set at runtime
+            "action_size": None,
         }
 
     def get_rl_config(self) -> dict:

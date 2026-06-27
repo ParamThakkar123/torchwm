@@ -406,13 +406,13 @@ def train_mdn_rnn(
         - Checkpointing best and current models
 
     Example:
-        >>> vae_config = WMVAEConfig({
-        ...     'height': 64, 'width': 64, 'latent_size': 32, 'logdir': 'results'
-        ... })
-        >>> mdrnn_config = WMMDNRNNConfig({
-        ...     'latent_size': 32, 'action_size': 3, 'hidden_size': 256,
-        ...     'gmm_components': 5, 'logdir': 'results'
-        ... })
+        >>> vae_config = WMVAEConfig(
+        ...     height=64, width=64, latent_size=32, logdir='results'
+        ... )
+        >>> mdrnn_config = WMMDNRNNConfig(
+        ...     latent_size=32, action_size=3, hidden_size=256,
+        ...     gmm_components=5, logdir='results'
+        ... )
         >>> train_mdn_rnn(vae_config, mdrnn_config)
     """
     device = torch.device(mdrnn_config.device)

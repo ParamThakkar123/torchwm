@@ -317,16 +317,6 @@ class DiamondAgent:
         t_cond = precond["c_noise"].squeeze(-1).squeeze(-1)
 
         # Debug asserts: ensure shapes are as expected
-        try:
-            # obs_seq: [B, T, C, H, W], obs_history: [B, L, C, H, W], next_obs [B, C, H, W]
-            assert obs_seq.ndim == 5
-            assert obs_history.ndim == 5
-            assert target_obs.ndim == 4
-        except AssertionError:
-            print(
-                f"DEBUG SHAPES: obs_seq={getattr(obs_seq, 'shape', None)}, obs_history={getattr(obs_history, 'shape', None)}, target_obs={getattr(target_obs, 'shape', None)}"
-            )
-
         with torch.amp.autocast(
             device_type=getattr(self.device, "type", str(self.device)),
             enabled=self.use_amp,

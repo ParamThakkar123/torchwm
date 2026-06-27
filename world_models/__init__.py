@@ -50,6 +50,8 @@ _API_EXPORTS = {
 _LAZY_EXPORTS: dict[str, str] = {
     # Agents and high-level models.
     "Dreamer": "world_models.models",
+    "DreamerV1": "world_models.models",
+    "DreamerV2": "world_models.models",
     "DreamerAgent": "world_models.models",
     "Planet": "world_models.models",
     "JEPAAgent": "world_models.models",

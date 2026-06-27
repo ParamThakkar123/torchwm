@@ -1,3 +1,4 @@
+import ale_py  # noqa: F401 (register ALE envs with gymnasium)
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
@@ -170,7 +171,7 @@ def make_diamond_atari_env(
     Create a DIAMOND-compatible Atari environment.
 
     Args:
-        game: Atari game name (e.g., "Breakout-v5")
+        game: Atari game name (e.g., "Breakout-v5" or "ALE/Breakout-v5")
         frameskip: Number of frames to skip between actions
         max_noop: Maximum number of noop actions at reset
         terminate_on_life_loss: Whether to terminate on life loss
@@ -181,13 +182,24 @@ def make_diamond_atari_env(
     Returns:
         DiamondAtariWrapper: Configured Atari environment
     """
-    env = gym.make(
-        game,
-        obs_type="rgb",
-        frameskip=1,
-        repeat_action_probability=0.0,
-        full_action_space=False,
-    )
+    # Gymnasium 1.x requires ALE/ prefix for v5 games; try both
+    try:
+        env = gym.make(
+            game,
+            obs_type="rgb",
+            frameskip=1,
+            repeat_action_probability=0.0,
+            full_action_space=False,
+        )
+    except (gym.error.NameNotFound, gym.error.VersionNotFound):
+        prefixed = f"ALE/{game}"
+        env = gym.make(
+            prefixed,
+            obs_type="rgb",
+            frameskip=1,
+            repeat_action_probability=0.0,
+            full_action_space=False,
+        )
 
     if seed is not None:
         env.reset(seed=seed)

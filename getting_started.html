@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,6 +270,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -278,6 +278,11 @@
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +298,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -582,16 +588,40 @@ python<span class="w"> </span>-m<span class="w"> </span>world_models.training.tr
 <p>Dreamer supports multiple backends through <code class="docutils literal notranslate"><span class="pre">DreamerConfig.env_backend</span></code>; the
 top-level <code class="docutils literal notranslate"><span class="pre">torchwm.make_env()</span></code> helper uses the same backend names for standalone
 environment creation:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dmc</span></code>: DeepMind Control Suite tasks (for example <code class="docutils literal notranslate"><span class="pre">walker-walk</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dmlab</span></code>: DeepMind Lab 3D navigation tasks (for example <code class="docutils literal notranslate"><span class="pre">rooms_collect_good_objects_train</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gym</span></code>: Gym/Gymnasium environment IDs or an existing environment instance</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mujoco</span></code>: Gymnasium MuJoCo task ids or native MJCF/MJB models</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">robotics</span></code>: any id registered by the installed Gymnasium Robotics package</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">procgen</span></code>: Procgen benchmark games such as <code class="docutils literal notranslate"><span class="pre">coinrun</span></code> and <code class="docutils literal notranslate"><span class="pre">heist</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">brax</span></code>: JAX/Brax continuous-control environments</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unity_mlagents</span></code>: Unity ML-Agents executable environments</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Backend</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dmc</span></code></p></td>
+<td><p>DeepMind Control Suite tasks (e.g. <code class="docutils literal notranslate"><span class="pre">walker-walk</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dmlab</span></code></p></td>
+<td><p>DeepMind Lab 3D navigation tasks (e.g. <code class="docutils literal notranslate"><span class="pre">rooms_collect_good_objects_train</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gym</span></code></p></td>
+<td><p>Gym/Gymnasium environment IDs or an existing environment instance</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mujoco</span></code></p></td>
+<td><p>Gymnasium MuJoCo task IDs or native MJCF/MJB models</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">robotics</span></code></p></td>
+<td><p>Any ID registered by the installed Gymnasium Robotics package</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">procgen</span></code></p></td>
+<td><p>Procgen benchmark games such as <code class="docutils literal notranslate"><span class="pre">coinrun</span></code> and <code class="docutils literal notranslate"><span class="pre">heist</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">brax</span></code></p></td>
+<td><p>JAX/Brax continuous-control environments</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">unity_mlagents</span></code></p></td>
+<td><p>Unity ML-Agents executable environments</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 </section>
 <section id="typical-training-flow">

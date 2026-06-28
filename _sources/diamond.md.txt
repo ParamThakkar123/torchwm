@@ -4,6 +4,9 @@ DIAMOND (**DI**ffusion **A**s a **M**odel **O**f e**N**vironment **D**reams) is 
 
 Use DIAMOND when you want to study model-based RL with pixel-space generation rather than latent-state prediction. Dreamer learns compact latent dynamics; IRIS predicts discrete visual tokens; DIAMOND keeps the environment model in observation space and uses a denoising diffusion model to synthesize future frames.
 
+```{contents} Contents
+```
+
 ## High-level architecture
 
 ```{mermaid}
@@ -67,7 +70,7 @@ The diffusion model predicts pixels only. DIAMOND separately trains `RewardTermi
 Create a small DIAMOND config and agent:
 
 ```python
-from world_models.configs.diamond_config import DiamondConfig
+from torchwm import DiamondConfig
 from world_models.training.train_diamond import DiamondAgent
 
 config = DiamondConfig(

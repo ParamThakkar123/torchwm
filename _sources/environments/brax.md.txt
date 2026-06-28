@@ -22,61 +22,16 @@ The adapter supports:
 - Deterministic RGB feature-band images for vector observations.
 - Raw vector observations in `info["vector_observation"]` for diagnostics.
 
-## Installation
+Install: `pip install torchwm[brax]`
 
-Install TorchWM with the Brax optional extra:
-
-```bash
-pip install torchwm[brax]
-```
-
-If you are working from a local checkout, install the extra from the repository
-root:
-
-```bash
-pip install -e .[brax]
-```
-
-## Dreamer configuration
-
-Set `DreamerConfig.env_backend` to `"brax"` and choose a Brax task name:
-
-```python :class: thebe
-from world_models.configs import DreamerConfig
-from world_models.models.dreamer import Dreamer
-
-cfg = DreamerConfig()
-cfg.env_backend = "brax"
-cfg.env = "ant"
-cfg.image_size = (64, 64)
-cfg.time_limit = 1000
-cfg.action_repeat = 1
-
-# Brax-specific options.
-cfg.brax_backend = "generalized"  # Use "mjx" when supported by your install.
-cfg.brax_jit = True
-cfg.brax_auto_reset = False
-# Optionally suppress noisy optional MuJoCo/MJX Warp import messages that may
-# appear during Brax imports when Warp isn't installed. These messages are
-# harmless but can clutter logs during tests or normal runs. Enabled by
-# default.
-cfg.brax_suppress_warp_warnings = True
-
-agent = Dreamer(cfg)
-agent.train()
-```
-
-`BraxImageEnv` passes `cfg.time_limit` to Brax as the environment
-`episode_length`. TorchWM's regular `TimeLimit` wrapper is still applied after
-action-repeat wrapping, so keep `cfg.time_limit` aligned with the horizon you
-want the world model to collect.
+Dreamer uses `cfg.env_backend = "brax"` to select this backend. See {doc}`../dreamer` for the full Dreamer config reference. Brax-specific fields (`brax_backend`, `brax_jit`, `brax_suppress_warp_warnings`) are forwarded from `DreamerConfig` to `BraxImageEnv`.
 
 ## Direct adapter usage
 
 You can also construct the adapter directly:
 
-```python :class: thebe
-from world_models.envs import make_brax_env
+```python
+from torchwm import make_brax_env
 
 env = make_brax_env(
     "ant",

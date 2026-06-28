@@ -8,9 +8,12 @@ TorchWM provides standardized inference through operators and future pipelines.
 For application code, prefer the top-level `torchwm.get_operator()` factory; it
 keeps examples short and avoids deep imports.
 
+```{contents} Contents
+```
+
 ## Loading Trained Models
 
-```python :class: thebe
+```python
 from torchwm import DreamerAgent
 
 # Load from checkpoint
@@ -26,7 +29,7 @@ See {doc}`operators_guide` for detailed operator usage.
 
 ### Dreamer
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 from torchwm import DreamerAgent
@@ -45,7 +48,7 @@ with torch.no_grad():
 
 ### JEPA
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 from torchwm import JEPAAgent
@@ -65,7 +68,7 @@ with torch.no_grad():
 
 Generate imagined trajectories:
 
-```python :class: thebe
+```python
 # Dreamer imagination
 from torchwm import DreamerAgent
 
@@ -82,7 +85,7 @@ imagined_trajectory = agent.imagine_rollout(initial_obs, horizon)
 
 Process multiple inputs efficiently:
 
-```python :class: thebe
+```python
 batch_size = 32
 obs_batch = torch.randn(batch_size, 3, 64, 64)
 action_batch = torch.randn(batch_size, 6)
@@ -97,7 +100,7 @@ with torch.no_grad():
 
 Move to GPU for faster inference:
 
-```python :class: thebe
+```python
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 agent = agent.to(device)
@@ -111,7 +114,7 @@ with torch.no_grad():
 
 For interactive applications:
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 from torchwm import DreamerAgent
@@ -133,7 +136,7 @@ server = InferenceServer()
 
 ### JIT Compilation
 
-```python :class: thebe
+```python
 import torch
 
 agent = torch.jit.script(agent)
@@ -141,7 +144,7 @@ agent = torch.jit.script(agent)
 
 ### Memory Efficient Inference
 
-```python :class: thebe
+```python
 import torch
 
 with torch.inference_mode():
@@ -152,22 +155,22 @@ with torch.inference_mode():
 
 TorchWM installs a deployment-oriented `export()` method once on `torch.nn.Module`, so every model class in the library can be exported with the same API. High-level wrapper agents such as Dreamer and PlaNet use the same exporter for their contained modules:
 
-```python :class: thebe
+```python
 model.export("model.onnx", format="onnx", example_inputs=example_inputs)
 agent.export("agent_actor.onnx", format="onnx")
 ```
 
-The method supports three formats:
-
-- `format="onnx"` writes an ONNX graph for ONNX Runtime, TensorRT conversion, or other production runtimes.
-- `format="torchscript"` (aliases: `"jit"`, `"ts"`) writes a TorchScript `.pt` file.
-- `format="tensorrt"` (alias: `"trt"`) compiles with the optional `torch-tensorrt` package and writes a serialized TorchScript TensorRT module.
+| Format | Alias | Output |
+|---|---|---|---|
+| `"onnx"` | — | ONNX graph for ONNX Runtime, TensorRT conversion, or other production runtimes |
+| `"torchscript"` | `"jit"`, `"ts"` | TorchScript `.pt` file |
+| `"tensorrt"` | `"trt"` | Serialized TorchScript TensorRT module (requires `torch-tensorrt`) |
 
 Dreamer exports its deterministic actor by default. The exported Dreamer actor
 accepts concatenated latent features with shape `[batch, stoch_size + deter_size]`
 and returns actions:
 
-```python :class: thebe
+```python
 import torch
 from torchwm import DreamerAgent
 
@@ -189,14 +192,14 @@ agent.export(
 Export individual components by passing `target` when the agent provides more
 than one deployable module:
 
-```python :class: thebe
+```python
 agent.export("dreamer_encoder.onnx", format="onnx", target="obs_encoder")
 agent.export("dreamer_reward.pt", format="torchscript", target="reward_model")
 ```
 
 For any lower-level `torch.nn.Module` model, pass `example_inputs` explicitly if TorchWM cannot infer a safe default:
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 
@@ -213,7 +216,7 @@ Agents that contain multiple deployable modules accept either short target names
 
 TensorRT export requires `torch-tensorrt` in the deployment environment:
 
-```python :class: thebe
+```python
 agent.export("dreamer_actor_trt.pt", format="tensorrt")
 ```
 
@@ -221,7 +224,7 @@ agent.export("dreamer_actor_trt.pt", format="tensorrt")
 
 ### With Gym Environments
 
-```python :class: thebe
+```python
 import torchwm
 from torchwm import DreamerAgent
 
@@ -239,7 +242,7 @@ while not done:
 
 ### With Custom Environments
 
-```python :class: thebe
+```python
 class CustomEnv:
     def step(self, action):
         # Your environment logic

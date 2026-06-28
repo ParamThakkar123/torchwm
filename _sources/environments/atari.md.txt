@@ -2,14 +2,7 @@
 
 TorchWM exposes Atari 2600 environments through Gymnasium and the Arcade Learning Environment (ALE). Atari is the environment family; DIAMOND-style Atari support in TorchWM is an optional preprocessing wrapper/factory for Atari, not a separate environment backend.
 
-## Install
-
-```bash
-pip install ale-py
-pip install torchwm[gym]
-```
-
-If ROMs are not already available, install and run AutoROM according to your environment's legal and operational requirements.
+Install: `pip install ale-py torchwm[gym]` (ROMs required separately via AutoROM)
 
 ## Raw Atari APIs
 

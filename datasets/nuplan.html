@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,6 +270,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">NuPlan Dataset</a></li>
@@ -278,6 +278,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +298,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -525,7 +531,7 @@
 <dl class="py class">
 <dt class="sig sig-object py">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">world_models.datasets.nuplan.</span></span><span class="sig-name descname"><span class="pre">NuPlanDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nuplan-maps-v1.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">planning_horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_horizon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(100.0,</span> <span class="pre">100.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_agents</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_scenarios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/world_models/datasets/nuplan.html#NuPlanDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>[<a class="reference internal" href="../api_reference.html#world_models.datasets.nuplan.NuPlanSample" title="world_models.datasets.nuplan.NuPlanSample"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuPlanSample</span></code></a>]</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">NuPlanSample</span></code>]</p>
 <p>PyTorch Dataset over NuPlan scenarios for world model training.</p>
 <p>Each sample contains rasterised map tiles, ego and agent history, and
 future planning targets at 10 Hz.</p>
@@ -564,11 +570,11 @@ auto-discovers files under <code class="docutils literal notranslate"><span clas
 <li><p><strong>split</strong> (<em>str</em>) – Dataset split.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Batch size.</p></li>
 <li><p><strong>num_workers</strong> (<em>int</em>) – Worker count for the DataLoader.</p></li>
-<li><p><strong>**dataset_kwargs</strong> (<em>Any</em>) – Extra arguments forwarded to <a class="reference internal" href="../api_reference.html#world_models.datasets.nuplan.NuPlanDataset" title="world_models.datasets.nuplan.NuPlanDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuPlanDataset</span></code></a>.</p></li>
+<li><p><strong>**dataset_kwargs</strong> (<em>Any</em>) – Extra arguments forwarded to <code class="xref py py-class docutils literal notranslate"><span class="pre">NuPlanDataset</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>(<a class="reference internal" href="../api_reference.html#torchwm.JEPAConfig.dataset" title="torchwm.JEPAConfig.dataset">dataset</a>, dataloader)</p>
+<dd class="field-even"><p>(dataset, dataloader)</p>
 </dd>
 </dl>
 </dd></dl>

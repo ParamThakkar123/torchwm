@@ -2,6 +2,9 @@
 
 This page documents all configuration classes in TorchWM.
 
+```{contents} Contents
+```
+
 ## Shared Serialization API
 
 All model config classes exported by TorchWM support a common
@@ -30,7 +33,7 @@ can be reproduced without guessing hyperparameters.
 
 Configuration for Dreamer agent training.
 
-```python :class: thebe
+```python
 @dataclass
 class DreamerConfig:
     # Environment
@@ -158,7 +161,7 @@ class DreamerConfig:
 
 Configuration for JEPA training.
 
-```python :class: thebe
+```python
 @dataclass
 class JEPAConfig:
     # Meta
@@ -221,7 +224,7 @@ class JEPAConfig:
 
 Configuration for IRIS training.
 
-```python :class: thebe
+```python
 @dataclass
 class IRISConfig:
     # Discrete Autoencoder (VQVAE)
@@ -293,7 +296,7 @@ class IRISConfig:
 
 Configuration for Diamond (Diffusion + RL) training.
 
-```python :class: thebe
+```python
 @dataclass
 class DiamondConfig:
     # Preset
@@ -367,7 +370,7 @@ class DiamondConfig:
 
 ### Basic Configuration
 
-```python :class: thebe
+```python
 from torchwm import DreamerConfig
 
 cfg = DreamerConfig()
@@ -377,7 +380,7 @@ cfg.total_steps = 1_000_000
 
 ### Environment-Specific Configs
 
-```python :class: thebe
+```python
 # DMC
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
@@ -409,7 +412,7 @@ cfg.unity_file_name = "env.exe"
 
 ### Training Configs
 
-```python :class: thebe
+```python
 # Basic training
 cfg.batch_size = 50
 cfg.model_learning_rate = 6e-4
@@ -425,7 +428,7 @@ cfg.checkpoint_interval = 100_000
 
 ### Advanced Configs
 
-```python :class: thebe
+```python
 # Custom model sizes
 cfg.obs_embed_size = 2048
 cfg.num_units = 600
@@ -469,3 +472,11 @@ torchwm train jepa --config world_models/configs/experiments/jepa.yaml optimizat
 
 Use `--print-config` with these entrypoints to inspect the fully composed config
 without launching a run.
+
+## See Also
+
+- {doc}`dreamer` — DreamerConfig usage walkthrough
+- {doc}`jepa` — JEPAConfig usage walkthrough
+- {doc}`iris` — IRISConfig usage walkthrough
+- {doc}`dit` — DiTConfig and DiamondConfig usage walkthrough
+- {doc}`genie` — GenieConfig usage walkthrough

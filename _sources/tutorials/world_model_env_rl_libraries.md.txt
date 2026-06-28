@@ -9,14 +9,7 @@ obs, reward, terminated, truncated, info = env.step(action)
 
 Because `WorldModelEnv` implements that contract, you can hand it to Stable-Baselines3, wrap it with TorchRL's `GymWrapper`, or use it inside a CleanRL-style training script. The world model itself does not need to implement a single TorchWM-specific interface: provide small adapter callables whenever the model uses custom method names, latent-state objects, reward heads, or action encodings.
 
-A notebook version of this tutorial is available at [`world_model_env_rl_libraries_notebook.ipynb`](world_model_env_rl_libraries_notebook.ipynb).
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-
-world_model_env_rl_libraries_notebook
-```
+A notebook version of this tutorial is also available (requires pandoc to build).
 
 ## 1. Build one adapter once
 
@@ -26,7 +19,7 @@ Start by writing the smallest glue layer between your trained model and the Gymn
 import gymnasium as gym
 import numpy as np
 
-from world_models.envs import WorldModelEnv
+from torchwm import WorldModelEnv
 
 
 trained_model = ...  # Load a TorchWM model, an exported module, or your own adapter object.

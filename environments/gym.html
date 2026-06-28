@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,13 +270,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation_guide.html">Evaluation Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_guide.html">Memory &amp; Replay Buffers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Environment Backends</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dmc.html">DeepMind Control Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dmlab.html">DeepMind Lab</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Gym and Gymnasium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="brax.html">Brax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atari.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procgen.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco.html">MuJoCo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotics.html">Gymnasium Robotics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unity.html">Unity ML-Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectorized.html">Vectorized Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="world_model.html">World Model Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../datasets/nuplan.html">NuPlan Dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +312,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -364,15 +384,7 @@
   <section id="gym-and-gymnasium">
 <h1>Gym and Gymnasium<a class="headerlink" href="#gym-and-gymnasium" title="Link to this heading">#</a></h1>
 <p>The Gym/Gymnasium backend adapts standard Gym-like environments to TorchWM’s image-first training interface. It accepts either an environment ID string or a pre-built environment instance and returns observations as <code class="docutils literal notranslate"><span class="pre">{&quot;image&quot;:</span> <span class="pre">...}</span></code>.</p>
-<section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
-<p>Gymnasium and Gym are included in TorchWM’s base dependency set. Optional environment families may require extras:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym<span class="o">]</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;gymnasium[classic-control,box2d,atari]&quot;</span>
-</pre></div>
-</div>
-<p>Install the extras needed by the specific Gymnasium environment ID you plan to use.</p>
-</section>
+<p>Install: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torchwm[gym]</span></code> for Gymnasium extras.</p>
 <section id="main-apis">
 <h2>Main APIs<a class="headerlink" href="#main-apis" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GymImageEnv</span><span class="p">,</span> <span class="n">make_gym_env</span>
@@ -389,19 +401,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <span class="n">env</span> <span class="o">=</span> <span class="n">GymImageEnv</span><span class="p">(</span><span class="n">base_env</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
 </pre></div>
 </div>
-</section>
-<section id="dreamer-configuration">
-<h2>Dreamer configuration<a class="headerlink" href="#dreamer-configuration" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;gym&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="s2">&quot;Pendulum-v1&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">gym_render_mode</span> <span class="o">=</span> <span class="s2">&quot;rgb_array&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="mi">64</span>
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">env_backend</span></code> can be <code class="docutils literal notranslate"><span class="pre">&quot;gym&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;gymnasium&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;generic&quot;</span></code>. If <code class="docutils literal notranslate"><span class="pre">cfg.env_instance</span></code> is provided, Dreamer wraps that instance with <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code> regardless of backend string.</p>
+<p>Dreamer uses <code class="docutils literal notranslate"><span class="pre">cfg.env_backend</span> <span class="pre">=</span> <span class="pre">&quot;gym&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">&quot;gymnasium&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;generic&quot;</span></code>) to select this backend. Set <code class="docutils literal notranslate"><span class="pre">cfg.gym_render_mode</span> <span class="pre">=</span> <span class="pre">&quot;rgb_array&quot;</span></code> for image observations. See <a class="reference internal" href="../dreamer.html"><span class="doc">Dreamer: Model-Based RL with Latent Dynamics</span></a> for the full Dreamer config reference.</p>
 </section>
 <section id="observation-conversion">
 <h2>Observation conversion<a class="headerlink" href="#observation-conversion" title="Link to this heading">#</a></h2>
@@ -493,9 +493,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-apis">Main APIs</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer-configuration">Dreamer configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-conversion">Observation conversion</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#action-conversion">Action conversion</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#example-environments">Example environments</a></li>

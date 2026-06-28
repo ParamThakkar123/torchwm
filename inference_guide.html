@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,6 +270,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -278,6 +278,11 @@
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +298,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -356,16 +362,58 @@
                 <article class="bd-article">
                   
   <section id="inference-guide">
-<h1>Inference Guide<a class="headerlink" href="#inference-guide" title="Link to this heading">#</a></h1>
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">Inference Guide</a><a class="headerlink" href="#inference-guide" title="Link to this heading">#</a></h1>
 <p>This guide covers how to use trained TorchWM models for inference and deployment.</p>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>TorchWM provides standardized inference through operators and future pipelines.
 For application code, prefer the top-level <code class="docutils literal notranslate"><span class="pre">torchwm.get_operator()</span></code> factory; it
 keeps examples short and avoids deep imports.</p>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#inference-guide" id="id1">Inference Guide</a></p>
+<ul>
+<li><p><a class="reference internal" href="#overview" id="id2">Overview</a></p></li>
+<li><p><a class="reference internal" href="#loading-trained-models" id="id3">Loading Trained Models</a></p></li>
+<li><p><a class="reference internal" href="#using-operators-for-preprocessing" id="id4">Using Operators for Preprocessing</a></p></li>
+<li><p><a class="reference internal" href="#basic-inference" id="id5">Basic Inference</a></p>
+<ul>
+<li><p><a class="reference internal" href="#dreamer" id="id6">Dreamer</a></p></li>
+<li><p><a class="reference internal" href="#jepa" id="id7">JEPA</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#rollout-and-imagination" id="id8">Rollout and Imagination</a></p></li>
+<li><p><a class="reference internal" href="#batch-inference" id="id9">Batch Inference</a></p></li>
+<li><p><a class="reference internal" href="#gpu-acceleration" id="id10">GPU Acceleration</a></p></li>
+<li><p><a class="reference internal" href="#real-time-inference" id="id11">Real-time Inference</a></p></li>
+<li><p><a class="reference internal" href="#performance-optimization" id="id12">Performance Optimization</a></p>
+<ul>
+<li><p><a class="reference internal" href="#jit-compilation" id="id13">JIT Compilation</a></p></li>
+<li><p><a class="reference internal" href="#memory-efficient-inference" id="id14">Memory Efficient Inference</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#exporting-models" id="id15">Exporting Models</a></p></li>
+<li><p><a class="reference internal" href="#integration-examples" id="id16">Integration Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#with-gym-environments" id="id17">With Gym Environments</a></p></li>
+<li><p><a class="reference internal" href="#with-custom-environments" id="id18">With Custom Environments</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#troubleshooting" id="id19">Troubleshooting</a></p>
+<ul>
+<li><p><a class="reference internal" href="#memory-issues" id="id20">Memory Issues</a></p></li>
+<li><p><a class="reference internal" href="#speed-issues" id="id21">Speed Issues</a></p></li>
+<li><p><a class="reference internal" href="#accuracy-issues" id="id22">Accuracy Issues</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
 </section>
 <section id="loading-trained-models">
-<h2>Loading Trained Models<a class="headerlink" href="#loading-trained-models" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Loading Trained Models</a><a class="headerlink" href="#loading-trained-models" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
 
 <span class="c1"># Load from checkpoint</span>
@@ -375,13 +423,13 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="using-operators-for-preprocessing">
-<h2>Using Operators for Preprocessing<a class="headerlink" href="#using-operators-for-preprocessing" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Using Operators for Preprocessing</a><a class="headerlink" href="#using-operators-for-preprocessing" title="Link to this heading">#</a></h2>
 <p>See <a class="reference internal" href="operators_guide.html"><span class="doc">Using Operators for Inference</span></a> for detailed operator usage.</p>
 </section>
 <section id="basic-inference">
-<h2>Basic Inference<a class="headerlink" href="#basic-inference" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Basic Inference</a><a class="headerlink" href="#basic-inference" title="Link to this heading">#</a></h2>
 <section id="dreamer">
-<h3>Dreamer<a class="headerlink" href="#dreamer" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Dreamer</a><a class="headerlink" href="#dreamer" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
@@ -400,7 +448,7 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="jepa">
-<h3>JEPA<a class="headerlink" href="#jepa" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">JEPA</a><a class="headerlink" href="#jepa" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">JEPAAgent</span>
@@ -419,7 +467,7 @@ keeps examples short and avoids deep imports.</p>
 </section>
 </section>
 <section id="rollout-and-imagination">
-<h2>Rollout and Imagination<a class="headerlink" href="#rollout-and-imagination" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Rollout and Imagination</a><a class="headerlink" href="#rollout-and-imagination" title="Link to this heading">#</a></h2>
 <p>Generate imagined trajectories:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dreamer imagination</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
@@ -435,7 +483,7 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="batch-inference">
-<h2>Batch Inference<a class="headerlink" href="#batch-inference" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Batch Inference</a><a class="headerlink" href="#batch-inference" title="Link to this heading">#</a></h2>
 <p>Process multiple inputs efficiently:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">32</span>
 <span class="n">obs_batch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
@@ -449,7 +497,7 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="gpu-acceleration">
-<h2>GPU Acceleration<a class="headerlink" href="#gpu-acceleration" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">GPU Acceleration</a><a class="headerlink" href="#gpu-acceleration" title="Link to this heading">#</a></h2>
 <p>Move to GPU for faster inference:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
@@ -462,7 +510,7 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="real-time-inference">
-<h2>Real-time Inference<a class="headerlink" href="#real-time-inference" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Real-time Inference</a><a class="headerlink" href="#real-time-inference" title="Link to this heading">#</a></h2>
 <p>For interactive applications:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
@@ -483,9 +531,9 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="performance-optimization">
-<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Performance Optimization</a><a class="headerlink" href="#performance-optimization" title="Link to this heading">#</a></h2>
 <section id="jit-compilation">
-<h3>JIT Compilation<a class="headerlink" href="#jit-compilation" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">JIT Compilation</a><a class="headerlink" href="#jit-compilation" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">script</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>
@@ -493,7 +541,7 @@ keeps examples short and avoids deep imports.</p>
 </div>
 </section>
 <section id="memory-efficient-inference">
-<h3>Memory Efficient Inference<a class="headerlink" href="#memory-efficient-inference" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Memory Efficient Inference</a><a class="headerlink" href="#memory-efficient-inference" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">inference_mode</span><span class="p">():</span>
@@ -503,18 +551,17 @@ keeps examples short and avoids deep imports.</p>
 </section>
 </section>
 <section id="exporting-models">
-<h2>Exporting Models<a class="headerlink" href="#exporting-models" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Exporting Models</a><a class="headerlink" href="#exporting-models" title="Link to this heading">#</a></h2>
 <p>TorchWM installs a deployment-oriented <code class="docutils literal notranslate"><span class="pre">export()</span></code> method once on <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>, so every model class in the library can be exported with the same API. High-level wrapper agents such as Dreamer and PlaNet use the same exporter for their contained modules:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s2">&quot;model.onnx&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;onnx&quot;</span><span class="p">,</span> <span class="n">example_inputs</span><span class="o">=</span><span class="n">example_inputs</span><span class="p">)</span>
 <span class="n">agent</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s2">&quot;agent_actor.onnx&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;onnx&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The method supports three formats:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">format=&quot;onnx&quot;</span></code> writes an ONNX graph for ONNX Runtime, TensorRT conversion, or other production runtimes.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">format=&quot;torchscript&quot;</span></code> (aliases: <code class="docutils literal notranslate"><span class="pre">&quot;jit&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ts&quot;</span></code>) writes a TorchScript <code class="docutils literal notranslate"><span class="pre">.pt</span></code> file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">format=&quot;tensorrt&quot;</span></code> (alias: <code class="docutils literal notranslate"><span class="pre">&quot;trt&quot;</span></code>) compiles with the optional <code class="docutils literal notranslate"><span class="pre">torch-tensorrt</span></code> package and writes a serialized TorchScript TensorRT module.</p></li>
-</ul>
+<p>| Format | Alias | Output |
+|—|—|—|—|
+| <code class="docutils literal notranslate"><span class="pre">&quot;onnx&quot;</span></code> | — | ONNX graph for ONNX Runtime, TensorRT conversion, or other production runtimes |
+| <code class="docutils literal notranslate"><span class="pre">&quot;torchscript&quot;</span></code> | <code class="docutils literal notranslate"><span class="pre">&quot;jit&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ts&quot;</span></code> | TorchScript <code class="docutils literal notranslate"><span class="pre">.pt</span></code> file |
+| <code class="docutils literal notranslate"><span class="pre">&quot;tensorrt&quot;</span></code> | <code class="docutils literal notranslate"><span class="pre">&quot;trt&quot;</span></code> | Serialized TorchScript TensorRT module (requires <code class="docutils literal notranslate"><span class="pre">torch-tensorrt</span></code>) |</p>
 <p>Dreamer exports its deterministic actor by default. The exported Dreamer actor
 accepts concatenated latent features with shape <code class="docutils literal notranslate"><span class="pre">[batch,</span> <span class="pre">stoch_size</span> <span class="pre">+</span> <span class="pre">deter_size]</span></code>
 and returns actions:</p>
@@ -562,9 +609,9 @@ than one deployable module:</p>
 </div>
 </section>
 <section id="integration-examples">
-<h2>Integration Examples<a class="headerlink" href="#integration-examples" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Integration Examples</a><a class="headerlink" href="#integration-examples" title="Link to this heading">#</a></h2>
 <section id="with-gym-environments">
-<h3>With Gym Environments<a class="headerlink" href="#with-gym-environments" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">With Gym Environments</a><a class="headerlink" href="#with-gym-environments" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torchwm</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerAgent</span>
 
@@ -582,7 +629,7 @@ than one deployable module:</p>
 </div>
 </section>
 <section id="with-custom-environments">
-<h3>With Custom Environments<a class="headerlink" href="#with-custom-environments" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">With Custom Environments</a><a class="headerlink" href="#with-custom-environments" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomEnv</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="c1"># Your environment logic</span>
@@ -614,9 +661,9 @@ than one deployable module:</p>
 </section>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
 <section id="memory-issues">
-<h3>Memory Issues<a class="headerlink" href="#memory-issues" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Memory Issues</a><a class="headerlink" href="#memory-issues" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Use smaller batch sizes</p></li>
 <li><p>Enable gradient checkpointing</p></li>
@@ -624,7 +671,7 @@ than one deployable module:</p>
 </ul>
 </section>
 <section id="speed-issues">
-<h3>Speed Issues<a class="headerlink" href="#speed-issues" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Speed Issues</a><a class="headerlink" href="#speed-issues" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Move to GPU</p></li>
 <li><p>Use JIT compilation</p></li>
@@ -632,7 +679,7 @@ than one deployable module:</p>
 </ul>
 </section>
 <section id="accuracy-issues">
-<h3>Accuracy Issues<a class="headerlink" href="#accuracy-issues" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Accuracy Issues</a><a class="headerlink" href="#accuracy-issues" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Ensure proper preprocessing with operators</p></li>
 <li><p>Check model loading</p></li>

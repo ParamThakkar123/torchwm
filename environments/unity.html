@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,13 +270,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation_guide.html">Evaluation Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_guide.html">Memory &amp; Replay Buffers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Environment Backends</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dmc.html">DeepMind Control Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dmlab.html">DeepMind Lab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gym.html">Gym and Gymnasium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="brax.html">Brax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atari.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procgen.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco.html">MuJoCo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotics.html">Gymnasium Robotics</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Unity ML-Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectorized.html">Vectorized Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="world_model.html">World Model Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../datasets/nuplan.html">NuPlan Dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +312,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -364,13 +384,7 @@
   <section id="unity-ml-agents">
 <h1>Unity ML-Agents<a class="headerlink" href="#unity-ml-agents" title="Link to this heading">#</a></h1>
 <p>The Unity ML-Agents backend connects TorchWM to an external Unity executable. It supports continuous-action ML-Agents behaviors, extracts visual observations when available, and converts vector observations into image-like inputs when necessary.</p>
-<section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>ml-agents<span class="o">]</span>
-</pre></div>
-</div>
-<p>You also need a Unity environment executable built for the platform running training.</p>
-</section>
+<p>Install: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torchwm[ml-agents]</span></code> (requires a Unity executable at runtime)</p>
 <section id="main-api">
 <h2>Main API<a class="headerlink" href="#main-api" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnityMLAgentsEnv</span>
@@ -390,23 +404,7 @@
 </pre></div>
 </div>
 <p>If <code class="docutils literal notranslate"><span class="pre">behavior_name</span></code> is omitted, TorchWM uses the first behavior advertised by the Unity executable. The wrapper currently supports continuous action spaces only.</p>
-</section>
-<section id="dreamer-configuration">
-<h2>Dreamer configuration<a class="headerlink" href="#dreamer-configuration" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DreamerConfig</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">DreamerConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env_backend</span> <span class="o">=</span> <span class="s2">&quot;unity_mlagents&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_file_name</span> <span class="o">=</span> <span class="s2">&quot;/path/to/UnityEnvironment.x86_64&quot;</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_behavior_name</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_no_graphics</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_time_scale</span> <span class="o">=</span> <span class="mf">20.0</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_worker_id</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_base_port</span> <span class="o">=</span> <span class="mi">5005</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">unity_quality_level</span> <span class="o">=</span> <span class="mi">1</span>
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">env_backend</span></code> can be <code class="docutils literal notranslate"><span class="pre">&quot;unity&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;unity_mlagents&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;mlagents&quot;</span></code>. Dreamer creation requires <code class="docutils literal notranslate"><span class="pre">unity_file_name</span></code>; without it, <code class="docutils literal notranslate"><span class="pre">make_env()</span></code> raises a clear configuration error.</p>
+<p>Dreamer uses <code class="docutils literal notranslate"><span class="pre">cfg.env_backend</span> <span class="pre">=</span> <span class="pre">&quot;unity_mlagents&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">&quot;unity&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mlagents&quot;</span></code>) to select this backend. Requires <code class="docutils literal notranslate"><span class="pre">cfg.unity_file_name</span></code>. See <a class="reference internal" href="../dreamer.html"><span class="doc">Dreamer: Model-Based RL with Latent Dynamics</span></a> for the full Dreamer config reference.</p>
 </section>
 <section id="observation-contract">
 <h2>Observation contract<a class="headerlink" href="#observation-contract" title="Link to this heading">#</a></h2>
@@ -423,12 +421,28 @@
 <section id="engine-settings">
 <h2>Engine settings<a class="headerlink" href="#engine-settings" title="Link to this heading">#</a></h2>
 <p>TorchWM configures Unity through <code class="docutils literal notranslate"><span class="pre">EngineConfigurationChannel</span></code>:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> come from the requested TorchWM image size.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">quality_level</span></code> controls graphics quality.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time_scale</span></code> speeds up or slows down simulation.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">no_graphics=True</span></code> can improve throughput for headless training when the executable supports it.</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Source / behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">width</span></code> / <code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p>Derived from the requested TorchWM image size</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">quality_level</span></code></p></td>
+<td><p>Controls graphics quality</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">time_scale</span></code></p></td>
+<td><p>Speeds up or slows down simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">no_graphics=True</span></code></p></td>
+<td><p>Improves throughput for headless training when the executable supports it</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p>Use unique <code class="docutils literal notranslate"><span class="pre">worker_id</span></code> values when launching multiple Unity environments on the same machine so ML-Agents ports do not collide.</p>
 </section>
 <section id="troubleshooting">
@@ -490,9 +504,7 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-api">Main API</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dreamer-configuration">Dreamer configuration</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-contract">Observation contract</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#action-contract">Action contract</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#engine-settings">Engine settings</a></li>

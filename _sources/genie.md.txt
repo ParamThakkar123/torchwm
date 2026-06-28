@@ -221,26 +221,7 @@ actions = model.infer_actions(frames)
 torchwm train genie --config path/to/genie_config.yaml
 ```
 
-## Config Reference
-
-```python
-from torchwm import GenieConfig, create_genie_small
-
-cfg = GenieConfig()
-cfg.num_frames = 16
-cfg.image_size = 64
-cfg.epochs = 100
-
-# Create model
-model = create_genie_small(num_frames=16, image_size=64)
-
-# Key hyperparameters
-cfg.tokenizer_vocab_size = 1024   # Video token codebook
-cfg.action_vocab_size = 8         # Latent action codebook
-cfg.dynamics_dim = 512            # Transformer hidden size
-cfg.dynamics_depth = 8            # Transformer layers
-cfg.maskgit_steps = 25            # MaskGIT refinement steps
-```
+See {doc}`configs_reference` for the full GenieConfig field reference with defaults.
 
 ## Model Variants
 
@@ -302,6 +283,12 @@ The LAM might learn trivial actions.
 **Fixes:**
 - Increase action codebook size
 - Add entropy regularization on action distribution
+
+## See Also
+
+- {doc}`vision_guide` — VideoTokenizer, VectorQuantizer, and ViT components
+- {doc}`datasets_guide` — TinyWorlds datasets for Genie training
+- {doc}`iris` — predecessor with known actions instead of latent actions
 
 ## References
 

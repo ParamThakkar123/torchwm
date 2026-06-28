@@ -2,34 +2,13 @@
 
 TorchWM supports Gymnasium Robotics environments through shared factories and environment catalogs for online world models. The adapter imports and registers `gymnasium_robotics` before calling `gymnasium.make`, which exposes every environment registered by the installed Gymnasium Robotics package, including the legacy MuJoCo v2/v3 task ids that Gymnasium moved out of the core package.
 
-## Install
-
-```bash
-pip install "torchwm[robotics]"
-```
-
-You can also install the package directly:
-
-```bash
-pip install gymnasium-robotics
-```
+Install: `pip install "torchwm[robotics]"` or `pip install gymnasium-robotics`
 
 ## World-model availability
 
 Gymnasium Robotics ids are listed dynamically from Gymnasium's registry after `gymnasium_robotics` is installed. The catalog exposes those ids to the online world-model families (Dreamer, PlaNet/RSSM, IRIS, DIAMOND, Genie, and DiT). I-JEPA/JEPA is intentionally excluded because it trains on image datasets rather than online Gymnasium environments.
 
-## Dreamer configuration
-
-```python
-from torchwm import DreamerConfig
-
-cfg = DreamerConfig()
-cfg.env_backend = "robotics"
-cfg.env = "HalfCheetah-v2"
-cfg.gym_render_mode = "rgb_array"
-```
-
-The Dreamer wrapper stack still applies action repeat, action normalization, and time limits after the Robotics environment is converted to TorchWM image observations.
+Dreamer uses `cfg.env_backend = "robotics"` to select this backend. See {doc}`../dreamer` for the full Dreamer config reference.
 
 ## Factory usage
 

@@ -100,7 +100,7 @@ stored under `/data/torchwm`, which you can persist with a bind mount or volume.
 
 Verify your installation:
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 

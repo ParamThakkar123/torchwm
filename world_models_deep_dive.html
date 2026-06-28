@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -502,7 +502,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Dreamer: Model-Based RL with Latent Dynamics" href="dreamer.html" />
-    <link rel="prev" title="Plug TorchWM world models into Stable-Baselines3, TorchRL, and CleanRL" href="tutorials/world_model_env_rl_libraries_notebook.html" />
+    <link rel="prev" title="Plugin Registry" href="plugin_registry.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -693,8 +693,7 @@ window.runMermaid = runMermaid;</script>
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -709,6 +708,7 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -716,6 +716,11 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -731,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -876,6 +882,7 @@ inference, configuration, and common pitfalls.</p>
 <li><p><a class="reference internal" href="#adding-a-non-linear-controller" id="id45">Adding a non-linear controller</a></p></li>
 </ul>
 </li>
+<li><p><a class="reference internal" href="#see-also" id="id46">See Also</a></p></li>
 </ul>
 </li>
 </ul>
@@ -961,11 +968,25 @@ or the world model, and works on sparse/delayed rewards.</p></li>
 </pre></div>
 </div>
 <p>Key classes in <code class="docutils literal notranslate"><span class="pre">world_models.vision.VAE.ConvVAE</span></code>:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ConvVAEEncoder</span></code></strong>: Encodes images → <code class="docutils literal notranslate"><span class="pre">(mu,</span> <span class="pre">logsigma)</span></code>.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ConvVAEDecoder</span></code></strong>: Decodes latent → reconstructed image.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ConvVAE</span></code></strong>: Combines encoder + decoder, exposes <code class="docutils literal notranslate"><span class="pre">forward(x)</span></code> → <code class="docutils literal notranslate"><span class="pre">(recon,</span> <span class="pre">mu,</span> <span class="pre">logsigma)</span></code>.</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ConvVAEEncoder</span></code></p></td>
+<td><p>Encodes images → <code class="docutils literal notranslate"><span class="pre">(mu,</span> <span class="pre">logsigma)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ConvVAEDecoder</span></code></p></td>
+<td><p>Decodes latent → reconstructed image</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ConvVAE</span></code></p></td>
+<td><p>Combines encoder + decoder, exposes <code class="docutils literal notranslate"><span class="pre">forward(x)</span></code> → <code class="docutils literal notranslate"><span class="pre">(recon,</span> <span class="pre">mu,</span> <span class="pre">logsigma)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="loss-function">
 <h3><a class="toc-backref" href="#id7" role="doc-backlink">Loss function</a><a class="headerlink" href="#loss-function" title="Link to this heading">#</a></h3>
@@ -973,15 +994,25 @@ or the world model, and works on sparse/delayed rewards.</p></li>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}_{\text{VAE}} = \underbrace{\|x - \hat{x}\|^2}_{\text{MSE reconstruction}}
   - \frac{1}{2}\sum_{i=1}^{d}\left(1 + 2\log\sigma_i - \mu_i^2 - e^{2\log\sigma_i}\right)\]</div>
-<ul class="simple">
-<li><p><strong>MSE term:</strong> Measures pixel-level reconstruction quality.</p></li>
-<li><p><strong>KL term:</strong> Regularizes the latent distribution toward a standard normal prior.
-When <code class="docutils literal notranslate"><span class="pre">μ=0</span></code> and <code class="docutils literal notranslate"><span class="pre">logσ=0</span></code>, the KL term is exactly zero, and the loss equals
-the reconstruction loss alone.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">size_average=False</span></code> flag on MSE means the loss is summed, not averaged
-over pixels. This is intentional: the KL term is also summed over latent
-dimensions. Both terms are on similar scales after summation.</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Term</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>MSE term</strong></p></td>
+<td><p>Measures pixel-level reconstruction quality</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>KL term</strong></p></td>
+<td><p>Regularizes the latent distribution toward a standard normal prior. When <code class="docutils literal notranslate"><span class="pre">μ=0</span></code> and <code class="docutils literal notranslate"><span class="pre">logσ=0</span></code>, the KL term is exactly zero and the loss equals the reconstruction loss alone</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">size_average=False</span></code></strong></p></td>
+<td><p>MSE is summed (not averaged) over pixels — intentional, since the KL term is also summed over latent dimensions, keeping both terms on similar scales</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="data-pipeline">
 <h3><a class="toc-backref" href="#id8" role="doc-backlink">Data pipeline</a><a class="headerlink" href="#data-pipeline" title="Link to this heading">#</a></h3>
@@ -1005,20 +1036,28 @@ dimensions. Both terms are on similar scales after summation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">terminals</span></code>: <code class="docutils literal notranslate"><span class="pre">(T,)</span></code> float32 array</p></li>
 </ul>
 <p><strong>Dataset classes</strong> for VAE training:</p>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ObservationDataset</span></code></strong>: Returns individual frames (not sequences). Used by
-<code class="docutils literal notranslate"><span class="pre">train_convvae.py</span></code>. Extends <code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code> and overrides <code class="docutils literal notranslate"><span class="pre">_get_data()</span></code> to
-return only the observation tensor.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code></strong>: Base class that loads <code class="docutils literal notranslate"><span class="pre">.npz</span></code> files, manages a circular
-buffer of open files, and splits files into train/test sets. Each sample
-returns a <code class="docutils literal notranslate"><span class="pre">dict(observation,</span> <span class="pre">action,</span> <span class="pre">reward,</span> <span class="pre">terminal)</span></code>.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code></strong>: Used for MDRNN training with raw images (when
-precomputed latents are disabled). Returns sequences of observations, actions,
-rewards, terminals, and next observations.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">LatentSequenceDataset</span></code></strong>: Used for MDRNN training with precomputed latents.
-Operates on pre-encoded numpy arrays rather than raw images, reducing memory
-and avoiding repeated VAE encoding.</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dataset</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ObservationDataset</span></code></p></td>
+<td><p>Returns individual frames (not sequences). Used by <code class="docutils literal notranslate"><span class="pre">train_convvae.py</span></code>. Extends <code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code>, overrides <code class="docutils literal notranslate"><span class="pre">_get_data()</span></code> to return only the observation tensor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RolloutDataset</span></code></p></td>
+<td><p>Base class that loads <code class="docutils literal notranslate"><span class="pre">.npz</span></code> files, manages a circular buffer of open files, and splits files into train/test sets. Each sample returns <code class="docutils literal notranslate"><span class="pre">dict(observation,</span> <span class="pre">action,</span> <span class="pre">reward,</span> <span class="pre">terminal)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SequenceDataset</span></code></p></td>
+<td><p>Used for MDRNN training with raw images (when precomputed latents are disabled). Returns sequences of observations, actions, rewards, terminals, and next observations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">LatentSequenceDataset</span></code></p></td>
+<td><p>Used for MDRNN training with precomputed latents. Operates on pre-encoded numpy arrays rather than raw images, reducing memory and avoiding repeated VAE encoding</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="train-test-split">
 <h3><a class="toc-backref" href="#id9" role="doc-backlink">Train/test split</a><a class="headerlink" href="#train-test-split" title="Link to this heading">#</a></h3>
@@ -1149,19 +1188,28 @@ temporal memory.</p>
   + \underbrace{\text{BCE}(d_t, \hat{d}_t)}_{\text{terminal prediction}}
   + \underbrace{\text{MSE}(r_t, \hat{r}_t) \cdot \mathbb{1}_{\text{include\_reward}}}_{\text{reward prediction}}
 \right)\]</div>
-<ul>
-<li><p><strong>GMM loss</strong> (<code class="docutils literal notranslate"><span class="pre">world_models.losses.gmm_loss</span></code>): Negative log-likelihood of the
-observed next latent under the predicted Gaussian mixture. Uses numerically
-stable log-sum-exp:</p>
-<div class="math notranslate nohighlight">
-\[\mathcal{L}_{\text{GMM}} = -\log\sum_k \pi_k \cdot \mathcal{N}(z_{t+1} | \mu_k, \sigma_k)\]</div>
-</li>
-<li><p><strong>BCE loss</strong>: Binary cross-entropy for terminal flag prediction.</p></li>
-<li><p><strong>MSE loss</strong>: Mean squared error for reward prediction (only if
-<code class="docutils literal notranslate"><span class="pre">include_reward=True</span></code>).</p></li>
-<li><p><strong>Scaling factor</strong>: The total loss is divided by <code class="docutils literal notranslate"><span class="pre">latent_size</span> <span class="pre">+</span> <span class="pre">2</span></code> (or
-<code class="docutils literal notranslate"><span class="pre">latent_size</span> <span class="pre">+</span> <span class="pre">1</span></code> if reward is excluded) to balance the GMM loss scale.</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>GMM loss</strong> (<code class="docutils literal notranslate"><span class="pre">world_models.losses.gmm_loss</span></code>)</p></td>
+<td><p>Negative log-likelihood of the observed next latent under the predicted Gaussian mixture. Uses numerically stable log-sum-exp: <code class="docutils literal notranslate"><span class="pre">\mathcal{L}_{\text{GMM}}</span> <span class="pre">=</span> <span class="pre">-\log\sum_k</span> <span class="pre">\pi_k</span> <span class="pre">\cdot</span> <span class="pre">\mathcal{N}(z_{t+1}</span> <span class="pre">\mid</span> <span class="pre">\mu_k,</span> <span class="pre">\sigma_k)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>BCE loss</strong></p></td>
+<td><p>Binary cross-entropy for terminal flag prediction</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>MSE loss</strong></p></td>
+<td><p>Mean squared error for reward prediction (only if <code class="docutils literal notranslate"><span class="pre">include_reward=True</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Scaling factor</strong></p></td>
+<td><p>Total loss divided by <code class="docutils literal notranslate"><span class="pre">latent_size</span> <span class="pre">+</span> <span class="pre">2</span></code> (or <code class="docutils literal notranslate"><span class="pre">latent_size</span> <span class="pre">+</span> <span class="pre">1</span></code> if reward excluded) to balance the GMM loss scale</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="precomputed-latents">
 <h3><a class="toc-backref" href="#id16" role="doc-backlink">Precomputed latents</a><a class="headerlink" href="#precomputed-latents" title="Link to this heading">#</a></h3>
@@ -1223,14 +1271,25 @@ regions that produced higher rewards.</p></li>
 <section id="parallel-evaluation">
 <h3><a class="toc-backref" href="#id20" role="doc-backlink">Parallel evaluation</a><a class="headerlink" href="#parallel-evaluation" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">train_controller.py</span></code> uses <code class="docutils literal notranslate"><span class="pre">torch.multiprocessing</span></code> for parallel rollout:</p>
-<ul class="simple">
-<li><p><strong>Master process:</strong> Runs CMA-ES, dispatches parameter vectors to workers.</p></li>
-<li><p><strong>Worker processes (<code class="docutils literal notranslate"><span class="pre">slave_routine</span></code>):</strong> Each loads the trained VAE + MDRNNCell,
-creates an environment, and runs rollouts with the received controller
-parameters.</p></li>
-<li><p><strong>Weight transfer in workers:</strong> Each worker converts the batched <code class="docutils literal notranslate"><span class="pre">MDRNN</span></code>
-checkpoint to an <code class="docutils literal notranslate"><span class="pre">MDRNNCell</span></code> for recurrent inference:</p></li>
-</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Responsibility</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Master process</strong></p></td>
+<td><p>Runs CMA-ES, dispatches parameter vectors to workers</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Worker processes (<code class="docutils literal notranslate"><span class="pre">slave_routine</span></code>)</strong></p></td>
+<td><p>Each loads the trained VAE + MDRNNCell, creates an environment, and runs rollouts with the received controller parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Weight transfer in workers</strong></p></td>
+<td><p>Each worker converts the batched <code class="docutils literal notranslate"><span class="pre">MDRNN</span></code> checkpoint to an <code class="docutils literal notranslate"><span class="pre">MDRNNCell</span></code> for recurrent inference</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_run_rollout</span><span class="p">(</span><span class="n">ctrl_params</span><span class="p">,</span> <span class="n">logdir</span><span class="p">,</span> <span class="n">env_name</span><span class="p">,</span> <span class="n">action_size</span><span class="p">,</span> <span class="n">time_limit</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
     <span class="c1"># Load VAE and MDRNN checkpoints, convert to MDRNNCell</span>
     <span class="c1"># Create environment</span>
@@ -1851,6 +1910,14 @@ Consider using a smaller population size or switching to backprop-based
 controller training for larger networks.</p>
 </section>
 </section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id46" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="modular_rssm_guide.html"><span class="doc">Modular RSSM</span></a> — swappable components for custom world model architectures</p></li>
+<li><p><a class="reference internal" href="vision_guide.html"><span class="doc">Vision Components</span></a> — encoders, decoders, and tokenizers used in the pipeline</p></li>
+<li><p><a class="reference internal" href="losses_guide.html"><span class="doc">Loss Functions</span></a> — conv_vae_loss_fn and gmm_loss used in VAE + MDNRNN training</p></li>
+</ul>
+</section>
 </section>
 
 
@@ -1864,12 +1931,12 @@ controller training for larger networks.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="tutorials/world_model_env_rl_libraries_notebook.html"
+       href="plugin_registry.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Plug TorchWM world models into Stable-Baselines3, TorchRL, and CleanRL</p>
+        <p class="prev-next-title">Plugin Registry</p>
       </div>
     </a>
     <a class="right-next"
@@ -1963,6 +2030,7 @@ controller training for larger networks.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-a-non-linear-controller">Adding a non-linear controller</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See Also</a></li>
 </ul>
   </nav></div>
 

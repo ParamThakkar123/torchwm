@@ -2,6 +2,9 @@
 
 This guide covers how to train world models in TorchWM.
 
+```{contents} Contents
+```
+
 ## Overview
 
 TorchWM supports training multiple world model algorithms with a unified interface.
@@ -15,7 +18,7 @@ TorchWM supports training multiple world model algorithms with a unified interfa
 
 The simplest path is the top-level `torchwm` API:
 
-```python :class: thebe
+```python
 import torchwm
 
 agent = torchwm.create_model(
@@ -33,7 +36,7 @@ For research code, the lower-level config and agent classes remain available.
 
 Preferred application API:
 
-```python :class: thebe
+```python
 import torchwm
 
 agent = torchwm.create_model(
@@ -47,7 +50,7 @@ agent.train()
 
 Equivalent direct API:
 
-```python :class: thebe
+```python
 from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
@@ -61,7 +64,7 @@ agent.train()
 
 ## JEPA Training
 
-```python :class: thebe
+```python
 import torchwm
 
 agent = torchwm.create_model(
@@ -78,7 +81,7 @@ agent.train()
 `IRISAgent` needs constructor arguments such as `action_size` and `device` in
 addition to its config, so pass those as constructor overrides:
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 
@@ -95,7 +98,7 @@ agent = torchwm.create_model(
 
 For advanced users, implement custom training:
 
-```python :class: thebe
+```python
 from torchwm import DreamerAgent, ReplayBuffer
 
 agent = DreamerAgent(cfg)
@@ -127,18 +130,24 @@ for step in range(cfg.total_steps):
 All training is controlled via config objects:
 
 ### Common Parameters
-- `seed`: Random seed
-- `device`: Training device
-- `total_steps`/`epochs`: Training duration
-- `batch_size`: Batch size
-- `learning_rate`: Learning rate
-- `grad_clip_norm`: Gradient clipping
+
+| Parameter | Description |
+|---|---|
+| `seed` | Random seed |
+| `device` | Training device |
+| `total_steps` / `epochs` | Training duration |
+| `batch_size` | Batch size |
+| `learning_rate` | Learning rate |
+| `grad_clip_norm` | Gradient clipping |
 
 ### Logging
-- `enable_wandb`: Weights & Biases logging
-- `log_dir`: Base log directory for supported agents
-- `scalar_freq`/`log_interval`: Metric logging cadence, depending on the agent
-- `checkpoint_interval`: Save frequency
+
+| Parameter | Description |
+|---|---|
+| `enable_wandb` | Weights & Biases logging |
+| `log_dir` | Base log directory for supported agents |
+| `scalar_freq` / `log_interval` | Metric logging cadence, depending on the agent |
+| `checkpoint_interval` | Save frequency |
 
 ### Starter YAML configs
 
@@ -157,33 +166,33 @@ Add `--print-config` to inspect the composed configuration without launching a r
 ## Environment Setup
 
 ### DMC
-```python :class: thebe
+```python
 cfg.env_backend = "dmc"
 cfg.env = "walker-walk"
 ```
 
 ### DeepMind Lab
-```python :class: thebe
+```python
 cfg.env_backend = "dmlab"
 cfg.env = "rooms_collect_good_objects_train"
 cfg.dmlab_action_repeat = 4
 ```
 
 ### Gym
-```python :class: thebe
+```python
 cfg.env_backend = "gym"
 cfg.env = "Pendulum-v1"
 ```
 
 ### Brax
-```python :class: thebe
+```python
 cfg.env_backend = "brax"
 cfg.env = "ant"
 cfg.brax_backend = "generalized"
 ```
 
 ### Unity ML-Agents
-```python :class: thebe
+```python
 cfg.env_backend = "unity_mlagents"
 cfg.unity_file_name = "path/to/env.exe"
 ```
@@ -196,7 +205,7 @@ tensorboard --logdir runs
 ```
 
 ### Weights & Biases
-```python :class: thebe
+```python
 cfg.enable_wandb = True
 cfg.wandb_project = "torchwm"
 cfg.wandb_entity = "your-entity"
@@ -206,7 +215,7 @@ cfg.wandb_entity = "your-entity"
 
 Models are automatically saved:
 
-```python :class: thebe
+```python
 # Resume training
 cfg.restore = True
 cfg.checkpoint_path = "path/to/checkpoint"
@@ -216,7 +225,7 @@ cfg.checkpoint_path = "path/to/checkpoint"
 
 For multi-GPU training:
 
-```python :class: thebe
+```python
 cfg.num_gpus = 4
 # TorchWM handles distributed setup automatically
 ```
@@ -228,3 +237,10 @@ cfg.num_gpus = 4
 3. **Tune hyperparameters**: Adjust learning rates and batch sizes
 4. **Use checkpoints**: Save frequently and resume from failures
 5. **Log experiments**: Use WandB or TensorBoard for tracking
+
+## See Also
+
+- {doc}`evaluation_guide` — how to evaluate trained agents
+- {doc}`memory_guide` — replay buffer setup for each agent
+- {doc}`dreamer` — Dreamer-specific training loop details
+- {doc}`diamond` — DIAMOND diffusion-based training loop

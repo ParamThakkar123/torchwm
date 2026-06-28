@@ -161,7 +161,7 @@ No cross-attention — DiT is typically unconditional or class-conditional via A
 
 ### Training
 
-```python :class: thebe
+```python
 from torchwm import DiTConfig, get_dit_config
 
 cfg = get_dit_config(
@@ -176,7 +176,7 @@ cfg = get_dit_config(
 
 ### Sampling (Generation)
 
-```python :class: thebe
+```python
 # Start from random noise, iteratively denoise
 for t in reversed(range(T)):
     ε = model(x_t, t)  # Predict noise
@@ -265,7 +265,7 @@ cfg = get_dit_config(DATASET="CIFAR10", BATCH=128, EPOCHS=100, IMG_SIZE=32)
 ### DIAMOND quick start
 
 ```python
-from world_models.configs.diamond_config import DiamondConfig
+from torchwm import DiamondConfig
 
 cfg = DiamondConfig(preset="small")  # small, medium, large
 cfg.game = "Breakout-v5"
@@ -312,36 +312,7 @@ for epoch in range(num_epochs):
     actor_loss, critic_loss = compute_ac_loss(imagination_trajectory)
 ```
 
-## Config Reference
-
-### DiTConfig
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `IMG_SIZE` | 32 | Image resolution |
-| `PATCH` | 4 | Patch size for tokenization |
-| `WIDTH` | 384 | Transformer embedding dimension |
-| `DEPTH` | 6 | Number of DiT blocks |
-| `HEADS` | 6 | Number of attention heads |
-| `BATCH` | 128 | Training batch size |
-| `EPOCHS` | 100 | Training epochs |
-| `TIMESTEPS` | 1000 | Diffusion timesteps |
-| `BETA_START` | 1e-4 | Noise schedule start |
-| `BETA_END` | 0.02 | Noise schedule end |
-
-### DiamondConfig
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `game` | `Breakout-v5` | Atari game name |
-| `obs_size` | 64 | Frame resolution |
-| `diffusion_channels` | [64,64,64,64] | UNet channel multipliers |
-| `diffusion_cond_dim` | 256 | Conditioning embedding dim |
-| `num_sampling_steps` | 3 | Euler sampling steps |
-| `imagination_horizon` | 15 | Actor-critic rollout length |
-| `discount_factor` | 0.985 | Discount factor γ |
-| `learning_rate` | 1e-4 | Learning rate |
-| `num_epochs` | 1000 | Total training epochs |
+See {doc}`configs_reference` for the full DiTConfig and DiamondConfig field reference with defaults. |
 
 ## Sampling Methods
 
@@ -388,6 +359,12 @@ Low sampling steps produce blurry results.
 - Increase `num_sampling_steps`
 - Add classifier-free guidance
 - Train with more diffusion timesteps
+
+## See Also
+
+- {doc}`dreamer` — continuous world model alternative using RSSM
+- {doc}`iris` — discrete world model alternative using transformers
+- {doc}`vision_guide` — diffusion model components (PatchEmbed, DDPM)
 
 ## References
 

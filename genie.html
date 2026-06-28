@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -693,8 +693,7 @@ window.runMermaid = runMermaid;</script>
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -709,6 +708,7 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -716,6 +716,11 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -731,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -829,18 +835,18 @@ without requiring any action labels.</p>
 <li><p><a class="reference internal" href="#cli" id="id17">CLI</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#config-reference" id="id18">Config Reference</a></p></li>
-<li><p><a class="reference internal" href="#model-variants" id="id19">Model Variants</a></p></li>
-<li><p><a class="reference internal" href="#comparison-iris-vs-genie" id="id20">Comparison: IRIS vs Genie</a></p></li>
-<li><p><a class="reference internal" href="#related-components" id="id21">Related Components</a></p></li>
-<li><p><a class="reference internal" href="#advantages" id="id22">Advantages</a></p></li>
-<li><p><a class="reference internal" href="#common-pitfalls" id="id23">Common Pitfalls</a></p>
+<li><p><a class="reference internal" href="#model-variants" id="id18">Model Variants</a></p></li>
+<li><p><a class="reference internal" href="#comparison-iris-vs-genie" id="id19">Comparison: IRIS vs Genie</a></p></li>
+<li><p><a class="reference internal" href="#related-components" id="id20">Related Components</a></p></li>
+<li><p><a class="reference internal" href="#advantages" id="id21">Advantages</a></p></li>
+<li><p><a class="reference internal" href="#common-pitfalls" id="id22">Common Pitfalls</a></p>
 <ul>
-<li><p><a class="reference internal" href="#codebook-collapse" id="id24">Codebook collapse</a></p></li>
-<li><p><a class="reference internal" href="#transformer-memory" id="id25">Transformer memory</a></p></li>
-<li><p><a class="reference internal" href="#latent-action-disentanglement" id="id26">Latent action disentanglement</a></p></li>
+<li><p><a class="reference internal" href="#codebook-collapse" id="id23">Codebook collapse</a></p></li>
+<li><p><a class="reference internal" href="#transformer-memory" id="id24">Transformer memory</a></p></li>
+<li><p><a class="reference internal" href="#latent-action-disentanglement" id="id25">Latent action disentanglement</a></p></li>
 </ul>
 </li>
+<li><p><a class="reference internal" href="#see-also" id="id26">See Also</a></p></li>
 <li><p><a class="reference internal" href="#references" id="id27">References</a></p></li>
 </ul>
 </li>
@@ -1086,31 +1092,11 @@ refinement strategy that is faster than autoregressive decoding:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchwm<span class="w"> </span>train<span class="w"> </span>genie<span class="w"> </span>--config<span class="w"> </span>path/to/genie_config.yaml
 </pre></div>
 </div>
+<p>See <a class="reference internal" href="configs_reference.html"><span class="doc">Configs Reference</span></a> for the full GenieConfig field reference with defaults.</p>
 </section>
-</section>
-<section id="config-reference">
-<h2><a class="toc-backref" href="#id18" role="doc-backlink">Config Reference</a><a class="headerlink" href="#config-reference" title="Link to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenieConfig</span><span class="p">,</span> <span class="n">create_genie_small</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="p">()</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="mi">16</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">image_size</span> <span class="o">=</span> <span class="mi">64</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="mi">100</span>
-
-<span class="c1"># Create model</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">create_genie_small</span><span class="p">(</span><span class="n">num_frames</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">image_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
-
-<span class="c1"># Key hyperparameters</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">tokenizer_vocab_size</span> <span class="o">=</span> <span class="mi">1024</span>   <span class="c1"># Video token codebook</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">action_vocab_size</span> <span class="o">=</span> <span class="mi">8</span>         <span class="c1"># Latent action codebook</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dynamics_dim</span> <span class="o">=</span> <span class="mi">512</span>            <span class="c1"># Transformer hidden size</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">dynamics_depth</span> <span class="o">=</span> <span class="mi">8</span>            <span class="c1"># Transformer layers</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">maskgit_steps</span> <span class="o">=</span> <span class="mi">25</span>            <span class="c1"># MaskGIT refinement steps</span>
-</pre></div>
-</div>
 </section>
 <section id="model-variants">
-<h2><a class="toc-backref" href="#id19" role="doc-backlink">Model Variants</a><a class="headerlink" href="#model-variants" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id18" role="doc-backlink">Model Variants</a><a class="headerlink" href="#model-variants" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Variant</p></th>
@@ -1132,7 +1118,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </div>
 </section>
 <section id="comparison-iris-vs-genie">
-<h2><a class="toc-backref" href="#id20" role="doc-backlink">Comparison: IRIS vs Genie</a><a class="headerlink" href="#comparison-iris-vs-genie" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Comparison: IRIS vs Genie</a><a class="headerlink" href="#comparison-iris-vs-genie" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
@@ -1174,7 +1160,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </div>
 </section>
 <section id="related-components">
-<h2><a class="toc-backref" href="#id21" role="doc-backlink">Related Components</a><a class="headerlink" href="#related-components" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Related Components</a><a class="headerlink" href="#related-components" title="Link to this heading">#</a></h2>
 <p>Genie is built from several core components in this library:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="operators_guide.html#videotokenizer"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">VideoTokenizer</span></code></span></a>: Encodes video into discrete tokens</p></li>
@@ -1183,7 +1169,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </ul>
 </section>
 <section id="advantages">
-<h2><a class="toc-backref" href="#id22" role="doc-backlink">Advantages</a><a class="headerlink" href="#advantages" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id21" role="doc-backlink">Advantages</a><a class="headerlink" href="#advantages" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p><strong>Video-only training</strong>: No action labels required</p></li>
 <li><p><strong>Interactive</strong>: Can be used as a simulated environment</p></li>
@@ -1192,9 +1178,9 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </ol>
 </section>
 <section id="common-pitfalls">
-<h2><a class="toc-backref" href="#id23" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id22" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
 <section id="codebook-collapse">
-<h3><a class="toc-backref" href="#id24" role="doc-backlink">Codebook collapse</a><a class="headerlink" href="#codebook-collapse" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Codebook collapse</a><a class="headerlink" href="#codebook-collapse" title="Link to this heading">#</a></h3>
 <p>Most codebook entries go unused.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1204,7 +1190,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </ul>
 </section>
 <section id="transformer-memory">
-<h3><a class="toc-backref" href="#id25" role="doc-backlink">Transformer memory</a><a class="headerlink" href="#transformer-memory" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Transformer memory</a><a class="headerlink" href="#transformer-memory" title="Link to this heading">#</a></h3>
 <p>Sequence: 256 × 16 = 4096 tokens.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1213,7 +1199,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 </ul>
 </section>
 <section id="latent-action-disentanglement">
-<h3><a class="toc-backref" href="#id26" role="doc-backlink">Latent action disentanglement</a><a class="headerlink" href="#latent-action-disentanglement" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Latent action disentanglement</a><a class="headerlink" href="#latent-action-disentanglement" title="Link to this heading">#</a></h3>
 <p>The LAM might learn trivial actions.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1221,6 +1207,14 @@ refinement strategy that is faster than autoregressive decoding:</p>
 <li><p>Add entropy regularization on action distribution</p></li>
 </ul>
 </section>
+</section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id26" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="vision_guide.html"><span class="doc">Vision Components</span></a> — VideoTokenizer, VectorQuantizer, and ViT components</p></li>
+<li><p><a class="reference internal" href="datasets_guide.html"><span class="doc">Datasets</span></a> — TinyWorlds datasets for Genie training</p></li>
+<li><p><a class="reference internal" href="iris.html"><span class="doc">IRIS: Transformers for Sample-Efficient World Models</span></a> — predecessor with known actions instead of latent actions</p></li>
+</ul>
 </section>
 <section id="references">
 <h2><a class="toc-backref" href="#id27" role="doc-backlink">References</a><a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
@@ -1301,7 +1295,6 @@ refinement strategy that is faster than autoregressive decoding:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cli">CLI</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#config-reference">Config Reference</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-variants">Model Variants</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-iris-vs-genie">Comparison: IRIS vs Genie</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-components">Related Components</a></li>
@@ -1312,6 +1305,7 @@ refinement strategy that is faster than autoregressive decoding:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#latent-action-disentanglement">Latent action disentanglement</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See Also</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>

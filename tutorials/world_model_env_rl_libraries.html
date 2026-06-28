@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -63,7 +63,7 @@
     <link rel="canonical" href="https://paramthakkar123.github.io/torchwm/tutorials/world_model_env_rl_libraries.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Plug TorchWM world models into Stable-Baselines3, TorchRL, and CleanRL" href="world_model_env_rl_libraries_notebook.html" />
+    <link rel="next" title="Modular RSSM" href="../modular_rssm_guide.html" />
     <link rel="prev" title="World Models Study Guide" href="../world_models_guide.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,6 +270,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -278,6 +278,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +298,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -363,16 +369,14 @@
 </pre></div>
 </div>
 <p>Because <code class="docutils literal notranslate"><span class="pre">WorldModelEnv</span></code> implements that contract, you can hand it to Stable-Baselines3, wrap it with TorchRL’s <code class="docutils literal notranslate"><span class="pre">GymWrapper</span></code>, or use it inside a CleanRL-style training script. The world model itself does not need to implement a single TorchWM-specific interface: provide small adapter callables whenever the model uses custom method names, latent-state objects, reward heads, or action encodings.</p>
-<p>A notebook version of this tutorial is available at <a class="reference internal" href="world_model_env_rl_libraries_notebook.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">world_model_env_rl_libraries_notebook.ipynb</span></code></span></a>.</p>
-<div class="toctree-wrapper compound">
-</div>
+<p>A notebook version of this tutorial is also available (requires pandoc to build).</p>
 <section id="build-one-adapter-once">
 <h2>1. Build one adapter once<a class="headerlink" href="#build-one-adapter-once" title="Link to this heading">#</a></h2>
 <p>Start by writing the smallest glue layer between your trained model and the Gymnasium API. The example below uses placeholder model methods; replace them with your checkpoint loading, encoder/decoder, dynamics, reward, and terminal heads.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">world_models.envs</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorldModelEnv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorldModelEnv</span>
 
 
 <span class="n">trained_model</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># Load a TorchWM model, an exported module, or your own adapter object.</span>
@@ -548,11 +552,11 @@
       </div>
     </a>
     <a class="right-next"
-       href="world_model_env_rl_libraries_notebook.html"
+       href="../modular_rssm_guide.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Plug TorchWM world models into Stable-Baselines3, TorchRL, and CleanRL</p>
+        <p class="prev-next-title">Modular RSSM</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

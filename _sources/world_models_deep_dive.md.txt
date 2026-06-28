@@ -71,9 +71,11 @@ Encoder:                                                 Decoder:
 
 Key classes in `world_models.vision.VAE.ConvVAE`:
 
-- **`ConvVAEEncoder`**: Encodes images → `(mu, logsigma)`.
-- **`ConvVAEDecoder`**: Decodes latent → reconstructed image.
-- **`ConvVAE`**: Combines encoder + decoder, exposes `forward(x)` → `(recon, mu, logsigma)`.
+| Class | Purpose |
+|---|---|
+| `ConvVAEEncoder` | Encodes images → `(mu, logsigma)` |
+| `ConvVAEDecoder` | Decodes latent → reconstructed image |
+| `ConvVAE` | Combines encoder + decoder, exposes `forward(x)` → `(recon, mu, logsigma)` |
 
 ### Loss function
 
@@ -84,13 +86,11 @@ Defined in `world_models.losses.convae_loss`:
   - \frac{1}{2}\sum_{i=1}^{d}\left(1 + 2\log\sigma_i - \mu_i^2 - e^{2\log\sigma_i}\right)
 ```
 
-- **MSE term:** Measures pixel-level reconstruction quality.
-- **KL term:** Regularizes the latent distribution toward a standard normal prior.
-  When `μ=0` and `logσ=0`, the KL term is exactly zero, and the loss equals
-  the reconstruction loss alone.
-- The `size_average=False` flag on MSE means the loss is summed, not averaged
-  over pixels. This is intentional: the KL term is also summed over latent
-  dimensions. Both terms are on similar scales after summation.
+| Term | Description |
+|---|---|
+| **MSE term** | Measures pixel-level reconstruction quality |
+| **KL term** | Regularizes the latent distribution toward a standard normal prior. When `μ=0` and `logσ=0`, the KL term is exactly zero and the loss equals the reconstruction loss alone |
+| **`size_average=False`** | MSE is summed (not averaged) over pixels — intentional, since the KL term is also summed over latent dimensions, keeping both terms on similar scales |
 
 ### Data pipeline
 
@@ -116,21 +116,12 @@ Each rollout is saved as a `.npz` file containing:
 
 **Dataset classes** for VAE training:
 
-- **`ObservationDataset`**: Returns individual frames (not sequences). Used by
-  `train_convvae.py`. Extends `RolloutDataset` and overrides `_get_data()` to
-  return only the observation tensor.
-
-- **`RolloutDataset`**: Base class that loads `.npz` files, manages a circular
-  buffer of open files, and splits files into train/test sets. Each sample
-  returns a `dict(observation, action, reward, terminal)`.
-
-- **`SequenceDataset`**: Used for MDRNN training with raw images (when
-  precomputed latents are disabled). Returns sequences of observations, actions,
-  rewards, terminals, and next observations.
-
-- **`LatentSequenceDataset`**: Used for MDRNN training with precomputed latents.
-  Operates on pre-encoded numpy arrays rather than raw images, reducing memory
-  and avoiding repeated VAE encoding.
+| Dataset | Purpose |
+|---|---|
+| `ObservationDataset` | Returns individual frames (not sequences). Used by `train_convvae.py`. Extends `RolloutDataset`, overrides `_get_data()` to return only the observation tensor |
+| `RolloutDataset` | Base class that loads `.npz` files, manages a circular buffer of open files, and splits files into train/test sets. Each sample returns `dict(observation, action, reward, terminal)` |
+| `SequenceDataset` | Used for MDRNN training with raw images (when precomputed latents are disabled). Returns sequences of observations, actions, rewards, terminals, and next observations |
+| `LatentSequenceDataset` | Used for MDRNN training with precomputed latents. Operates on pre-encoded numpy arrays rather than raw images, reducing memory and avoiding repeated VAE encoding |
 
 ### Train/test split
 
@@ -254,20 +245,12 @@ Computed in `world_models.training.train_mdn_rnn.get_loss()`:
 \right)
 ```
 
-- **GMM loss** (`world_models.losses.gmm_loss`): Negative log-likelihood of the
-  observed next latent under the predicted Gaussian mixture. Uses numerically
-  stable log-sum-exp:
-  ```{math}
-  \mathcal{L}_{\text{GMM}} = -\log\sum_k \pi_k \cdot \mathcal{N}(z_{t+1} | \mu_k, \sigma_k)
-  ```
-
-- **BCE loss**: Binary cross-entropy for terminal flag prediction.
-
-- **MSE loss**: Mean squared error for reward prediction (only if
-  `include_reward=True`).
-
-- **Scaling factor**: The total loss is divided by `latent_size + 2` (or
-  `latent_size + 1` if reward is excluded) to balance the GMM loss scale.
+| Component | Description |
+|---|---|
+| **GMM loss** (`world_models.losses.gmm_loss`) | Negative log-likelihood of the observed next latent under the predicted Gaussian mixture. Uses numerically stable log-sum-exp: `\mathcal{L}_{\text{GMM}} = -\log\sum_k \pi_k \cdot \mathcal{N}(z_{t+1} \mid \mu_k, \sigma_k)` |
+| **BCE loss** | Binary cross-entropy for terminal flag prediction |
+| **MSE loss** | Mean squared error for reward prediction (only if `include_reward=True`) |
+| **Scaling factor** | Total loss divided by `latent_size + 2` (or `latent_size + 1` if reward excluded) to balance the GMM loss scale |
 
 ### Precomputed latents
 
@@ -336,12 +319,11 @@ The controller is trained with Covariance Matrix Adaptation Evolution Strategy
 
 `train_controller.py` uses `torch.multiprocessing` for parallel rollout:
 
-- **Master process:** Runs CMA-ES, dispatches parameter vectors to workers.
-- **Worker processes (`slave_routine`):** Each loads the trained VAE + MDRNNCell,
-   creates an environment, and runs rollouts with the received controller
-   parameters.
-- **Weight transfer in workers:** Each worker converts the batched `MDRNN`
-   checkpoint to an `MDRNNCell` for recurrent inference:
+| Role | Responsibility |
+|---|---|
+| **Master process** | Runs CMA-ES, dispatches parameter vectors to workers |
+| **Worker processes (`slave_routine`)** | Each loads the trained VAE + MDRNNCell, creates an environment, and runs rollouts with the received controller parameters |
+| **Weight transfer in workers** | Each worker converts the batched `MDRNN` checkpoint to an `MDRNNCell` for recurrent inference |
 
 ```python
 def _run_rollout(ctrl_params, logdir, env_name, action_size, time_limit, device):
@@ -749,3 +731,9 @@ scales poorly with parameter count: an MLP with 2 hidden layers of 64 units
 adds `(32+256)×64 + 64×64 + 64×3 ≈ 22,000` parameters vs. 867 for linear.
 Consider using a smaller population size or switching to backprop-based
 controller training for larger networks.
+
+## See Also
+
+- {doc}`modular_rssm_guide` — swappable components for custom world model architectures
+- {doc}`vision_guide` — encoders, decoders, and tokenizers used in the pipeline
+- {doc}`losses_guide` — conv_vae_loss_fn and gmm_loss used in VAE + MDNRNN training

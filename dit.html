@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -693,8 +693,7 @@ window.runMermaid = runMermaid;</script>
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -709,6 +708,7 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -716,6 +716,11 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -731,6 +736,7 @@ window.runMermaid = runMermaid;</script>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -845,22 +851,17 @@ in reinforcement learning.</p>
 <li><p><a class="reference internal" href="#diamond-training-loop" id="id27">DIAMOND Training Loop</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#config-reference" id="id28">Config Reference</a></p>
+<li><p><a class="reference internal" href="#sampling-methods" id="id28">Sampling Methods</a></p></li>
+<li><p><a class="reference internal" href="#comparison-dit-vs-cnn-based-diffusion" id="id29">Comparison: DiT vs CNN-Based Diffusion</a></p></li>
+<li><p><a class="reference internal" href="#common-pitfalls" id="id30">Common Pitfalls</a></p>
 <ul>
-<li><p><a class="reference internal" href="#ditconfig" id="id29">DiTConfig</a></p></li>
-<li><p><a class="reference internal" href="#diamondconfig" id="id30">DiamondConfig</a></p></li>
+<li><p><a class="reference internal" href="#slow-sampling" id="id31">Slow sampling</a></p></li>
+<li><p><a class="reference internal" href="#training-instability" id="id32">Training instability</a></p></li>
+<li><p><a class="reference internal" href="#blurry-generations" id="id33">Blurry generations</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#sampling-methods" id="id31">Sampling Methods</a></p></li>
-<li><p><a class="reference internal" href="#comparison-dit-vs-cnn-based-diffusion" id="id32">Comparison: DiT vs CNN-Based Diffusion</a></p></li>
-<li><p><a class="reference internal" href="#common-pitfalls" id="id33">Common Pitfalls</a></p>
-<ul>
-<li><p><a class="reference internal" href="#slow-sampling" id="id34">Slow sampling</a></p></li>
-<li><p><a class="reference internal" href="#training-instability" id="id35">Training instability</a></p></li>
-<li><p><a class="reference internal" href="#blurry-generations" id="id36">Blurry generations</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#references" id="id37">References</a></p></li>
+<li><p><a class="reference internal" href="#see-also" id="id34">See Also</a></p></li>
+<li><p><a class="reference internal" href="#references" id="id35">References</a></p></li>
 </ul>
 </li>
 </ul>
@@ -1137,7 +1138,7 @@ a scaled output that works well across all noise levels.</p>
 </section>
 <section id="diamond-quick-start">
 <h3><a class="toc-backref" href="#id25" role="doc-backlink">DIAMOND quick start</a><a class="headerlink" href="#diamond-quick-start" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">world_models.configs.diamond_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiamondConfig</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiamondConfig</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">DiamondConfig</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;small&quot;</span><span class="p">)</span>  <span class="c1"># small, medium, large</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">game</span> <span class="o">=</span> <span class="s2">&quot;Breakout-v5&quot;</span>
@@ -1182,117 +1183,11 @@ a scaled output that works well across all noise levels.</p>
     <span class="n">actor_loss</span><span class="p">,</span> <span class="n">critic_loss</span> <span class="o">=</span> <span class="n">compute_ac_loss</span><span class="p">(</span><span class="n">imagination_trajectory</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="config-reference">
-<h2><a class="toc-backref" href="#id28" role="doc-backlink">Config Reference</a><a class="headerlink" href="#config-reference" title="Link to this heading">#</a></h2>
-<section id="ditconfig">
-<h3><a class="toc-backref" href="#id29" role="doc-backlink">DiTConfig</a><a class="headerlink" href="#ditconfig" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IMG_SIZE</span></code></p></td>
-<td><p>32</p></td>
-<td><p>Image resolution</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PATCH</span></code></p></td>
-<td><p>4</p></td>
-<td><p>Patch size for tokenization</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">WIDTH</span></code></p></td>
-<td><p>384</p></td>
-<td><p>Transformer embedding dimension</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DEPTH</span></code></p></td>
-<td><p>6</p></td>
-<td><p>Number of DiT blocks</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HEADS</span></code></p></td>
-<td><p>6</p></td>
-<td><p>Number of attention heads</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BATCH</span></code></p></td>
-<td><p>128</p></td>
-<td><p>Training batch size</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EPOCHS</span></code></p></td>
-<td><p>100</p></td>
-<td><p>Training epochs</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TIMESTEPS</span></code></p></td>
-<td><p>1000</p></td>
-<td><p>Diffusion timesteps</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BETA_START</span></code></p></td>
-<td><p>1e-4</p></td>
-<td><p>Noise schedule start</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BETA_END</span></code></p></td>
-<td><p>0.02</p></td>
-<td><p>Noise schedule end</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="diamondconfig">
-<h3><a class="toc-backref" href="#id30" role="doc-backlink">DiamondConfig</a><a class="headerlink" href="#diamondconfig" title="Link to this heading">#</a></h3>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">game</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Breakout-v5</span></code></p></td>
-<td><p>Atari game name</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">obs_size</span></code></p></td>
-<td><p>64</p></td>
-<td><p>Frame resolution</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diffusion_channels</span></code></p></td>
-<td><p>[64,64,64,64]</p></td>
-<td><p>UNet channel multipliers</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diffusion_cond_dim</span></code></p></td>
-<td><p>256</p></td>
-<td><p>Conditioning embedding dim</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_sampling_steps</span></code></p></td>
-<td><p>3</p></td>
-<td><p>Euler sampling steps</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">imagination_horizon</span></code></p></td>
-<td><p>15</p></td>
-<td><p>Actor-critic rollout length</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">discount_factor</span></code></p></td>
-<td><p>0.985</p></td>
-<td><p>Discount factor γ</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code></p></td>
-<td><p>1e-4</p></td>
-<td><p>Learning rate</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">num_epochs</span></code></p></td>
-<td><p>1000</p></td>
-<td><p>Total training epochs</p></td>
-</tr>
-</tbody>
-</table>
-</div>
+<p>See <a class="reference internal" href="configs_reference.html"><span class="doc">Configs Reference</span></a> for the full DiTConfig and DiamondConfig field reference with defaults. |</p>
 </section>
 </section>
 <section id="sampling-methods">
-<h2><a class="toc-backref" href="#id31" role="doc-backlink">Sampling Methods</a><a class="headerlink" href="#sampling-methods" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id28" role="doc-backlink">Sampling Methods</a><a class="headerlink" href="#sampling-methods" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Method</p></th>
@@ -1327,7 +1222,7 @@ a scaled output that works well across all noise levels.</p>
 </div>
 </section>
 <section id="comparison-dit-vs-cnn-based-diffusion">
-<h2><a class="toc-backref" href="#id32" role="doc-backlink">Comparison: DiT vs CNN-Based Diffusion</a><a class="headerlink" href="#comparison-dit-vs-cnn-based-diffusion" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id29" role="doc-backlink">Comparison: DiT vs CNN-Based Diffusion</a><a class="headerlink" href="#comparison-dit-vs-cnn-based-diffusion" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
@@ -1361,9 +1256,9 @@ a scaled output that works well across all noise levels.</p>
 </div>
 </section>
 <section id="common-pitfalls">
-<h2><a class="toc-backref" href="#id33" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id30" role="doc-backlink">Common Pitfalls</a><a class="headerlink" href="#common-pitfalls" title="Link to this heading">#</a></h2>
 <section id="slow-sampling">
-<h3><a class="toc-backref" href="#id34" role="doc-backlink">Slow sampling</a><a class="headerlink" href="#slow-sampling" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id31" role="doc-backlink">Slow sampling</a><a class="headerlink" href="#slow-sampling" title="Link to this heading">#</a></h3>
 <p>DDPM with 1000 steps is too slow for RL training loops.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1372,7 +1267,7 @@ a scaled output that works well across all noise levels.</p>
 </ul>
 </section>
 <section id="training-instability">
-<h3><a class="toc-backref" href="#id35" role="doc-backlink">Training instability</a><a class="headerlink" href="#training-instability" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id32" role="doc-backlink">Training instability</a><a class="headerlink" href="#training-instability" title="Link to this heading">#</a></h3>
 <p>Diffusion UNets can produce NaN during training.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1381,7 +1276,7 @@ a scaled output that works well across all noise levels.</p>
 </ul>
 </section>
 <section id="blurry-generations">
-<h3><a class="toc-backref" href="#id36" role="doc-backlink">Blurry generations</a><a class="headerlink" href="#blurry-generations" title="Link to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id33" role="doc-backlink">Blurry generations</a><a class="headerlink" href="#blurry-generations" title="Link to this heading">#</a></h3>
 <p>Low sampling steps produce blurry results.</p>
 <p><strong>Fixes:</strong></p>
 <ul class="simple">
@@ -1391,8 +1286,16 @@ a scaled output that works well across all noise levels.</p>
 </ul>
 </section>
 </section>
+<section id="see-also">
+<h2><a class="toc-backref" href="#id34" role="doc-backlink">See Also</a><a class="headerlink" href="#see-also" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="dreamer.html"><span class="doc">Dreamer: Model-Based RL with Latent Dynamics</span></a> — continuous world model alternative using RSSM</p></li>
+<li><p><a class="reference internal" href="iris.html"><span class="doc">IRIS: Transformers for Sample-Efficient World Models</span></a> — discrete world model alternative using transformers</p></li>
+<li><p><a class="reference internal" href="vision_guide.html"><span class="doc">Vision Components</span></a> — diffusion model components (PatchEmbed, DDPM)</p></li>
+</ul>
+</section>
 <section id="references">
-<h2><a class="toc-backref" href="#id37" role="doc-backlink">References</a><a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id35" role="doc-backlink">References</a><a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Ho, J., Jain, A., &amp; Abbeel, P. (2020). Denoising Diffusion Probabilistic Models. <em>NeurIPS 2020.</em></p></li>
 <li><p>Peebles, W., &amp; Xie, S. (2023). Scalable Diffusion Models with Transformers. <em>ICCV 2023.</em></p></li>
@@ -1482,11 +1385,6 @@ a scaled output that works well across all noise levels.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diamond-training-loop">DIAMOND Training Loop</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#config-reference">Config Reference</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ditconfig">DiTConfig</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diamondconfig">DiamondConfig</a></li>
-</ul>
-</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-methods">Sampling Methods</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparison-dit-vs-cnn-based-diffusion">Comparison: DiT vs CNN-Based Diffusion</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-pitfalls">Common Pitfalls</a><ul class="nav section-nav flex-column">
@@ -1495,6 +1393,7 @@ a scaled output that works well across all noise levels.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#blurry-generations">Blurry generations</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-also">See Also</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
   </nav></div>

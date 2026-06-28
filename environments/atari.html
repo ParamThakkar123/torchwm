@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,13 +270,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../evaluation_guide.html">Evaluation Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
-<li class="toctree-l1 current active"><a class="reference internal" href="index.html">Environment Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory_guide.html">Memory &amp; Replay Buffers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environments_guide.html">Environments Guide</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Environment Backends</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dmc.html">DeepMind Control Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dmlab.html">DeepMind Lab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gym.html">Gym and Gymnasium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="brax.html">Brax</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procgen.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco.html">MuJoCo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robotics.html">Gymnasium Robotics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unity.html">Unity ML-Agents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectorized.html">Vectorized Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="world_model.html">World Model Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrappers.html">Wrappers</a></li>
+</ul>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../datasets/nuplan.html">NuPlan Dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cli.html">TorchWM CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../package_overview.html">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +312,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -364,14 +384,7 @@
   <section id="atari">
 <h1>Atari<a class="headerlink" href="#atari" title="Link to this heading">#</a></h1>
 <p>TorchWM exposes Atari 2600 environments through Gymnasium and the Arcade Learning Environment (ALE). Atari is the environment family; DIAMOND-style Atari support in TorchWM is an optional preprocessing wrapper/factory for Atari, not a separate environment backend.</p>
-<section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>ale-py
-pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o">[</span>gym<span class="o">]</span>
-</pre></div>
-</div>
-<p>If ROMs are not already available, install and run AutoROM according to your environment’s legal and operational requirements.</p>
-</section>
+<p>Install: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">ale-py</span> <span class="pre">torchwm[gym]</span></code> (ROMs required separately via AutoROM)</p>
 <section id="raw-atari-apis">
 <h2>Raw Atari APIs<a class="headerlink" href="#raw-atari-apis" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_atari_env</span><span class="p">,</span> <span class="n">list_available_atari_envs</span>
@@ -551,7 +564,6 @@ pip<span class="w"> </span>install<span class="w"> </span>torchwm<span class="o"
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raw-atari-apis">Raw Atari APIs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raw-atari-factory-options">Raw Atari factory options</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#atari-preprocessing-for-diamond-style-training">Atari preprocessing for DIAMOND-style training</a></li>

@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=43d664b6" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=ba059eef" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
@@ -255,8 +255,7 @@
   <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
   <span class="pst-expand-sidebar-label">Expand Sidebar</span>
 </button></div>
-        <div class="sidebar-primary-item">
-<nav class="bd-docs-nav bd-links"
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Get Started</span></p>
@@ -271,6 +270,7 @@
 <li class="toctree-l1"><a class="reference internal" href="training_guide.html">Training Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inference_guide.html">Inference Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation_guide.html">Evaluation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory_guide.html">Memory &amp; Replay Buffers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments_guide.html">Environments Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="environments/index.html">Environment Backends</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets/nuplan.html">NuPlan Dataset</a></li>
@@ -278,6 +278,11 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Package Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_guide.html">World Models Study Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/world_model_env_rl_libraries.html">Tutorial: Plug TorchWM world models into RL libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modular_rssm_guide.html">Modular RSSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision_guide.html">Vision Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets_guide.html">Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="losses_guide.html">Loss Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugin_registry.html">Plugin Registry</a></li>
 <li class="toctree-l1"><a class="reference internal" href="world_models_deep_dive.html">World Models Deep Dive (Ha &amp; Schmidhuber, 2018)</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Algorithms</span></p>
@@ -293,6 +298,7 @@
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configs_reference.html">Configs Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export_guide.html">Exporting Models for Deployment</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="nav bd-sidenav">
@@ -391,23 +397,59 @@ API without importing optional training backends until you use them.</p>
 <tr class="row-even"><td><p><strong>Friendly factories</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">create_config</span></code>, <code class="docutils literal notranslate"><span class="pre">create_model</span></code>, <code class="docutils literal notranslate"><span class="pre">make_env</span></code>, <code class="docutils literal notranslate"><span class="pre">list_models</span></code>, <code class="docutils literal notranslate"><span class="pre">list_env_backends</span></code>, <code class="docutils literal notranslate"><span class="pre">list_envs</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Models</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">Planet</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">Genie</span></code>, <code class="docutils literal notranslate"><span class="pre">VisionTransformer</span></code>, <code class="docutils literal notranslate"><span class="pre">ModularRSSM</span></code>, <code class="docutils literal notranslate"><span class="pre">create_modular_rssm</span></code></p></td>
+<tr class="row-odd"><td><p><strong>Models / Agents</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Dreamer</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerV1</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerV2</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerV3</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">Planet</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">Genie</span></code>, <code class="docutils literal notranslate"><span class="pre">create_genie</span></code>, <code class="docutils literal notranslate"><span class="pre">DiT</span></code>, <code class="docutils literal notranslate"><span class="pre">create_dit</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Configs</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiamondConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">GenieConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">GenieSmallConfig</span></code></p></td>
+<tr class="row-even"><td><p><strong>State-space models</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RSSM</span></code>, <code class="docutils literal notranslate"><span class="pre">RecurrentStateSpaceModel</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerRSSM</span></code>, <code class="docutils literal notranslate"><span class="pre">ModularRSSM</span></code>, <code class="docutils literal notranslate"><span class="pre">create_modular_rssm</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Environments</strong></p></td>
+<tr class="row-odd"><td><p><strong>Vision</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConvEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">CNNEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISEncoder</span></code>, <code class="docutils literal notranslate"><span class="pre">ConvDecoder</span></code>, <code class="docutils literal notranslate"><span class="pre">CNNDecoder</span></code>, <code class="docutils literal notranslate"><span class="pre">DenseDecoder</span></code>, <code class="docutils literal notranslate"><span class="pre">ActionDecoder</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISDecoder</span></code>, <code class="docutils literal notranslate"><span class="pre">VideoTokenizer</span></code>, <code class="docutils literal notranslate"><span class="pre">create_video_tokenizer</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Quantization</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VectorQuantizer</span></code>, <code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Configs</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DreamerConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiTConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DiamondConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">GenieConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">GenieSmallConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">STTransformerConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">VideoTokenizerConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">LatentActionModelConfig</span></code>, <code class="docutils literal notranslate"><span class="pre">DynamicsModelConfig</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Environments</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">make_atari_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_gym_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_mujoco_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_robotics_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_brax_env</span></code>, <code class="docutils literal notranslate"><span class="pre">make_procgen_env</span></code>, <code class="docutils literal notranslate"><span class="pre">GymImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">ProcgenImageEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">DeepMindControlEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">DMLabEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">make_dmlab_env</span></code>, <code class="docutils literal notranslate"><span class="pre">UnityMLAgentsEnv</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeLimit</span></code>, <code class="docutils literal notranslate"><span class="pre">ActionRepeat</span></code>, wrappers, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Memory</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ReplayBuffer</span></code>, <code class="docutils literal notranslate"><span class="pre">Memory</span></code>, <code class="docutils literal notranslate"><span class="pre">Episode</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISReplayBuffer</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISOnPolicyBuffer</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Operators</strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">get_operator</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">IrisOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">PlaNetOperator</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Reward</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">RewardModel</span></code>, <code class="docutils literal notranslate"><span class="pre">ValueModel</span></code></p></td>
+<tr class="row-odd"><td><p><strong>Inference</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DreamerOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">JEPAOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">IrisOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">PlaNetOperator</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Reward / Value</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RewardModel</span></code>, <code class="docutils literal notranslate"><span class="pre">ValueModel</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerRewardModel</span></code>, <code class="docutils literal notranslate"><span class="pre">DreamerValueModel</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Controllers</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RSSMPolicy</span></code>, <code class="docutils literal notranslate"><span class="pre">RolloutGenerator</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISPolicy</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISActor</span></code>, <code class="docutils literal notranslate"><span class="pre">IRISCritic</span></code>, <code class="docutils literal notranslate"><span class="pre">CNNFeatureExtractor</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Transformer blocks</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">STTransformer</span></code>, <code class="docutils literal notranslate"><span class="pre">MultiHeadSelfAttention</span></code>, <code class="docutils literal notranslate"><span class="pre">MultiHeadAttention</span></code>, <code class="docutils literal notranslate"><span class="pre">AdaLNNormalization</span></code>, <code class="docutils literal notranslate"><span class="pre">RMSNorm</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Diffusion</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DiT</span></code>, <code class="docutils literal notranslate"><span class="pre">DDPM</span></code>, <code class="docutils literal notranslate"><span class="pre">PatchEmbed</span></code>, <code class="docutils literal notranslate"><span class="pre">PatchUnEmbed</span></code>, <code class="docutils literal notranslate"><span class="pre">ActorCriticNetwork</span></code>, <code class="docutils literal notranslate"><span class="pre">RewardTerminationModel</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Genie subcomponents</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LatentActionModel</span></code>, <code class="docutils literal notranslate"><span class="pre">DynamicsModel</span></code>, <code class="docutils literal notranslate"><span class="pre">create_latent_action_model</span></code>, <code class="docutils literal notranslate"><span class="pre">create_dynamics_model</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Export</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">export_any</span></code>, <code class="docutils literal notranslate"><span class="pre">export_model</span></code>, <code class="docutils literal notranslate"><span class="pre">ExportableAgentMixin</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Registry / plugins</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">register_world_model</span></code>, <code class="docutils literal notranslate"><span class="pre">deregister_world_model</span></code>, <code class="docutils literal notranslate"><span class="pre">register_env_backend</span></code>, <code class="docutils literal notranslate"><span class="pre">deregister_env_backend</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Deprecation</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deprecated</span></code>, <code class="docutils literal notranslate"><span class="pre">deprecated_class</span></code>, <code class="docutils literal notranslate"><span class="pre">deprecated_function</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Utilities</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">__version__</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Logger</span></code>, <code class="docutils literal notranslate"><span class="pre">FreezeParameters</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_return</span></code>, <code class="docutils literal notranslate"><span class="pre">preprocess_obs</span></code>, <code class="docutils literal notranslate"><span class="pre">__version__</span></code></p></td>
 </tr>
 </tbody>
 </table>

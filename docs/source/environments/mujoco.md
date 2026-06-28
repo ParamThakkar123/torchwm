@@ -2,13 +2,7 @@
 
 TorchWM includes convenience factories for Gymnasium MuJoCo environments, currently focused on configurable Humanoid and HalfCheetah creation. These factories return standard Gymnasium environments; wrap them with `GymImageEnv` if a TorchWM model needs image observations.
 
-## Install
-
-```bash
-pip install "gymnasium[mujoco]"
-```
-
-MuJoCo tasks may require platform-specific dependencies. Verify that a simple `gymnasium.make("HalfCheetah-v4")` works before launching long training runs.
+Install: `pip install "gymnasium[mujoco]"`
 
 ## Humanoid factory
 

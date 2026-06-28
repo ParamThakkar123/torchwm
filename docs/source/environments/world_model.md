@@ -6,7 +6,7 @@
 - `step(action) -> (observation, reward, terminated, truncated, info)`
 - `observation_space`, `action_space`, `render()`, and `close()`
 
-The wrapper is model-agnostic. You can either expose common model methods (`env_step`, `step`, `predict_step`, `predict`, `imagine_step`, `transition`, or `__call__`) or provide explicit adapter callables. For end-to-end examples with Stable-Baselines3, TorchRL, and CleanRL, see the [RL library integration tutorial](../tutorials/world_model_env_rl_libraries.md) and its [notebook version](../tutorials/world_model_env_rl_libraries_notebook.ipynb).
+The wrapper is model-agnostic. You can either expose common model methods (`env_step`, `step`, `predict_step`, `predict`, `imagine_step`, `transition`, or `__call__`) or provide explicit adapter callables. For end-to-end examples with Stable-Baselines3, TorchRL, and CleanRL, see the [RL library integration tutorial](../tutorials/world_model_env_rl_libraries.md).
 
 ## Basic usage
 
@@ -14,7 +14,7 @@ The wrapper is model-agnostic. You can either expose common model methods (`env_
 import gymnasium as gym
 import numpy as np
 
-from world_models.envs import WorldModelEnv
+from torchwm import WorldModelEnv
 
 
 def transition(model, state, action):
@@ -68,7 +68,7 @@ env = WorldModelEnv(
 The direct factory is `make_world_model_env`:
 
 ```python
-from world_models.envs import make_world_model_env
+from torchwm import make_world_model_env
 
 env = make_world_model_env(
     trained_model,
@@ -98,18 +98,22 @@ Aliases include `world_model`, `model`, and `wm`.
 
 `reset_fn` may return:
 
-- `obs`
-- `(obs, info)`
-- `(state, obs)`
-- `(state, obs, info)`
-- a mapping with `state`, `observation`/`obs`/`image`, and optional `info`
+| Return form | Description |
+|---|---|
+| `obs` | Observation only |
+| `(obs, info)` | Observation with info dict |
+| `(state, obs)` | State and observation |
+| `(state, obs, info)` | State, observation, and info |
+| Mapping with `state`, `observation`/`obs`/`image`, optional `info` | Explicit dict return |
 
 `transition_fn` or model transition methods may return:
 
-- `(obs, reward, terminated, truncated, info)`
-- `(obs, reward, done, info)`
-- `(state, obs, reward)`
-- `(state, obs, reward, terminated, truncated, info)`
-- a mapping with `state`/`next_state`, `observation`/`obs`/`image`, `reward`, `terminated`/`done`, `truncated`, and optional `info`
+| Return form | Description |
+|---|---|
+| `(obs, reward, terminated, truncated, info)` | Full Gymnasium tuple |
+| `(obs, reward, done, info)` | Gym-style tuple |
+| `(state, obs, reward)` | Compact state-observation-reward |
+| `(state, obs, reward, terminated, truncated, info)` | Full tuple with state |
+| Mapping with `state`/`next_state`, `observation`/`obs`/`image`, `reward`, `terminated`/`done`, `truncated`, optional `info` | Explicit dict return |
 
 If a transition omits a reward or termination flag, pass `reward_fn` and `terminal_fn`. Missing rewards default to `0.0`; missing termination defaults to `False`. `max_episode_steps` sets `truncated=True` when the simulated rollout reaches the time limit.

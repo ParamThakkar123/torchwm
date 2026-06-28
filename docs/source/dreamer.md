@@ -562,8 +562,7 @@ Dreamer configs are serializable, so experiments can be reproduced from the
 YAML saved with each run or checkpoint:
 
 ```python
-from world_models.configs import DreamerConfig
-from world_models.models import DreamerAgent
+from torchwm import DreamerConfig, DreamerAgent
 
 cfg = DreamerConfig()
 cfg.env = "walker-walk"
@@ -618,53 +617,7 @@ cfg.unity_file_name = "env.exe"
 torchwm train dreamer --env dmc/walker-walk --device cuda
 ```
 
-## Config Reference
-
-All configuration is in `world_models.configs.dreamer_config.DreamerConfig`:
-
-```python
-from world_models.configs.dreamer_config import DreamerConfig
-
-config = DreamerConfig()
-
-# Dreamer version
-config.algo = "Dreamerv1"  # or "Dreamerv2" (default: "Dreamerv1")
-
-# Environment
-config.env_backend = "dmc"
-config.env = "walker-walk"
-config.image_size = (64, 64)
-
-# Model architecture
-config.stoch_size = 30
-config.deter_size = 200
-config.obs_embed_size = 1024
-
-# Training
-config.total_steps = 5_000_000
-config.batch_size = 50
-config.train_seq_len = 50
-config.imagine_horizon = 15
-config.model_learning_rate = 6e-4
-
-# Actor-critic
-config.actor_learning_rate = 8e-5
-config.value_learning_rate = 8e-5
-config.discount = 0.99
-config.td_lambda = 0.95
-
-# KL (V2)
-config.kl_alpha = 0.8
-config.free_nats = 3.0
-
-# Exploration
-config.action_noise = 0.3
-
-# Logging
-config.scalar_freq = 10_000
-config.checkpoint_interval = 100_000
-config.enable_wandb = False
-```
+See {doc}`configs_reference` for the full DreamerConfig field reference with defaults.
 
 ### Key Hyperparameters
 
@@ -734,6 +687,12 @@ The prior predicts states that drift from realistic latents over long horizons.
 - Increase `imagine_horizon` for delayed rewards
 - Increase exploration noise via `action_noise`
 - Verify critic loss is decreasing
+
+## See Also
+
+- {doc}`modular_rssm_guide` — swap Dreamer's encoder, backbone, or decoder for research
+- {doc}`iris` — discrete world model alternative to Dreamer
+- {doc}`diamond` — diffusion-based world model alternative
 
 ## References
 

@@ -129,10 +129,12 @@ Architecture:
 
 ### Actor-Critic
 
-- **CNN + LSTM**: Processes reconstructed frames
-- **λ-returns**: Balances bias and variance in value estimation
-- **REINFORCE**: Policy gradient with baseline
-- **Entropy bonus**: Maintains exploration
+| Component | Purpose |
+|---|---|
+| **CNN + LSTM** | Processes reconstructed frames |
+| **λ-returns** | Balances bias and variance in value estimation |
+| **REINFORCE** | Policy gradient with baseline |
+| **Entropy bonus** | Maintains exploration |
 
 ### Imagination Rollout
 
@@ -158,12 +160,14 @@ for h in range(imagination_horizon):
 
 ### Key Hyperparameters
 
-- **Frame size**: 64x64
-- **Tokens per frame**: 16 (from 512 vocabulary)
-- **Transformer sequence length**: 20 timesteps
-- **Imagination horizon**: 20 steps
-- **Discount (γ)**: 0.995
-- **λ for λ-return**: 0.95
+| Parameter | Value |
+|---|---|
+| **Frame size** | 64×64 |
+| **Tokens per frame** | 16 (from 512 vocabulary) |
+| **Transformer sequence length** | 20 timesteps |
+| **Imagination horizon** | 20 steps |
+| **Discount (γ)** | 0.995 |
+| **λ for λ-return** | 0.95 |
 
 ## Usage in TorchWM
 
@@ -213,36 +217,7 @@ For custom research code:
 python -m world_models.training.train_iris --game "ALE/Pong-v5"
 ```
 
-## Config Reference
-
-```python
-from world_models.configs.iris_config import IRISConfig
-
-config = IRISConfig()
-
-# Autoencoder
-config.vocab_size = 512               # Codebook size
-config.tokens_per_frame = 16          # Tokens per frame
-config.token_embedding_dim = 512
-config.encoder_channels = 64
-
-# Transformer
-config.transformer_layers = 10
-config.transformer_embed_dim = 256
-config.transformer_heads = 4
-config.transformer_timesteps = 20
-
-# Training schedule
-config.start_autoencoder_after = 5
-config.start_transformer_after = 15
-config.start_actor_critic_after = 35
-config.total_epochs = 600
-
-# Atari 100k
-config.atari_100k = True
-config.env = "ALE/Pong-v5"
-config.max_env_steps = 100000
-```
+See {doc}`configs_reference` for the full IRISConfig field reference with defaults.
 
 ## Benchmark Results
 
@@ -277,6 +252,11 @@ AR token generation is O(tokens) sequential.
 **Fixes:**
 - Use KV caching for transformer inference
 - Reduce the number of imagination steps
+
+## See Also
+
+- {doc}`genie` — extends IRIS with latent actions and video-only training
+- {doc}`dreamer` — continuous world model alternative to IRIS
 
 ## References
 

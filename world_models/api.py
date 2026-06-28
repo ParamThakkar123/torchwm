@@ -37,8 +37,29 @@ MODEL_SPECS: dict[str, ModelSpec] = {
         name="dreamer",
         import_path="world_models.models.dreamer:DreamerAgent",
         config_path="world_models.configs.dreamer_config:DreamerConfig",
-        description="High-level Dreamer agent with train/evaluate helpers.",
-        aliases=("dreamerv1", "dreamerv2", "dreamer_agent"),
+        description="High-level Dreamer agent (alias for dreamer-v1; prefer explicit versioned names).",
+        aliases=("dreamer_agent",),
+    ),
+    "dreamer-v1": ModelSpec(
+        name="dreamer-v1",
+        import_path="world_models.models.dreamer_v1:DreamerV1",
+        config_path="world_models.configs.dreamer_config:DreamerConfig",
+        description="DreamerV1 world model (normal Gaussian heads, standard KL).",
+        aliases=("dreamerv1",),
+    ),
+    "dreamer-v2": ModelSpec(
+        name="dreamer-v2",
+        import_path="world_models.models.dreamer_v2:DreamerV2",
+        config_path="world_models.configs.dreamer_config:DreamerConfig",
+        description="DreamerV2 world model (symlog two-hot heads, balanced KL).",
+        aliases=("dreamerv2",),
+    ),
+    "dreamer-v3": ModelSpec(
+        name="dreamer-v3",
+        import_path="world_models.models.dreamer:DreamerAgent",
+        config_path="world_models.configs.dreamer_config:DreamerConfig",
+        description="DreamerV3-style agent (currently mapped to DreamerAgent; update when dedicated V3 implementation lands).",
+        aliases=("dreamerv3",),
     ),
     "planet": ModelSpec(
         name="planet",
@@ -192,10 +213,14 @@ def _resolve_model_name(name: str) -> str:
     try:
         return aliases[_normalize(name)]
     except KeyError as exc:
-        available = ", ".join(list_models())
-        raise ValueError(
-            f"Unknown model {name!r}. Available models: {available}"
-        ) from exc
+        pass
+    from world_models.registry import get_registered_model_spec
+
+    registered = get_registered_model_spec(name)
+    if registered is not None:
+        return registered.name
+    available = ", ".join(list_models())
+    raise ValueError(f"Unknown model {name!r}. Available models: {available}") from None
 
 
 def _resolve_backend_name(name: str) -> str:
@@ -304,13 +329,23 @@ def _call_with_supported_kwargs(
 def list_models() -> list[str]:
     """Return canonical model names accepted by :func:`create_model`."""
 
-    return sorted(MODEL_SPECS)
+    from world_models.registry import list_registered_models
+
+    return sorted(set(MODEL_SPECS) | set(list_registered_models()))
 
 
 def get_model_spec(name: str) -> ModelSpec:
     """Return metadata for a model name or alias."""
 
-    return MODEL_SPECS[_resolve_model_name(name)]
+    resolved = _resolve_model_name(name)
+    if resolved in MODEL_SPECS:
+        return MODEL_SPECS[resolved]
+    from world_models.registry import get_registered_model_spec
+
+    spec = get_registered_model_spec(resolved)
+    if spec is not None:
+        return spec
+    raise ValueError(f"Model {name!r} resolved to {resolved!r} but no spec found.")
 
 
 def list_env_backends() -> list[str]:

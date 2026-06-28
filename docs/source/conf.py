@@ -31,7 +31,10 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = [
+    # Notebook requires pandoc binary; the .md version covers the same content.
+    "tutorials/world_model_env_rl_libraries_notebook.ipynb",
+]
 nbsphinx_execute = "never"
 
 autodoc_member_order = "bysource"
@@ -118,8 +121,8 @@ autodoc_mock_imports = [
 html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/paramthakkar123/torchwm",
-    "navigation_depth": 2,
-    "show_nav_level": 1,
+    "navigation_depth": 3,
+    "show_nav_level": 2,
     # Keep the top navbar intentionally minimal: project title/logo,
     # documentation search, and the GitHub redirect link only.
     "navbar_start": ["navbar-logo"],

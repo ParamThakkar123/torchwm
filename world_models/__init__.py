@@ -52,6 +52,7 @@ _LAZY_EXPORTS: dict[str, str] = {
     "Dreamer": "world_models.models",
     "DreamerV1": "world_models.models",
     "DreamerV2": "world_models.models",
+    "DreamerV3": "world_models.models",
     "DreamerAgent": "world_models.models",
     "Planet": "world_models.models",
     "JEPAAgent": "world_models.models",
@@ -180,6 +181,18 @@ _LAZY_EXPORTS: dict[str, str] = {
     "ValueModel": "world_models.reward",
     "DreamerRewardModel": "world_models.reward",
     "DreamerValueModel": "world_models.reward",
+    # Registry / plugin system.
+    "register_world_model": "world_models.registry",
+    "deregister_world_model": "world_models.registry",
+    "get_registered_model_spec": "world_models.registry",
+    "list_registered_models": "world_models.registry",
+    "register_env_backend": "world_models.registry",
+    "deregister_env_backend": "world_models.registry",
+    "list_registered_env_backends": "world_models.registry",
+    # Deprecation helpers.
+    "deprecated": "world_models.utils.deprecation",
+    "deprecated_class": "world_models.utils.deprecation",
+    "deprecated_function": "world_models.utils.deprecation",
     # Utilities.
     "Logger": "world_models.utils",
     "FreezeParameters": "world_models.utils",

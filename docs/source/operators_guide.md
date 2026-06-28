@@ -11,11 +11,14 @@ Operators provide a consistent interface for preprocessing inputs before feeding
 - Sequence tokenization and padding
 - Mask generation for self-supervised tasks
 
+```{contents} Contents
+```
+
 ## Base Operator Class
 
 All operators inherit from `OperatorABC`, which provides a `process()` pipeline composed of `preprocess()`, `forward()`, and `postprocess()`, plus `batch()`, `to(device)`, `train()`, `eval()`, and optional tensor shape/dtype validation via `TensorSpec`:
 
-```python :class: thebe
+```python
 from torchwm import OperatorABC
 
 class MyOperator(OperatorABC):
@@ -29,7 +32,7 @@ class MyOperator(OperatorABC):
 For Dreamer model's image and action processing, use the top-level operator
 factory in application code:
 
-```python :class: thebe
+```python
 import torch
 import torchwm
 from PIL import Image
@@ -53,7 +56,7 @@ result = op.process({'image': obs_tensor, 'action': torch.tensor(action)})
 
 For JEPA's self-supervised image processing with masking:
 
-```python :class: thebe
+```python
 from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
@@ -74,7 +77,7 @@ result = op.process({'images': images, 'mask': custom_mask})
 
 For IRIS's sequence processing:
 
-```python :class: thebe
+```python
 from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
@@ -95,7 +98,7 @@ result = op.process({'tokens': tokens, 'embeddings': embeddings})
 
 For PlaNet's environment state processing:
 
-```python :class: thebe
+```python
 from torchwm import PlaNetOperator
 
 op = PlaNetOperator(state_dim=32, action_dim=4)
@@ -120,7 +123,7 @@ print(result['done'].shape)   # torch.Size([1])
 Operators work seamlessly with config classes and the friendly `torchwm`
 factories:
 
-```python :class: thebe
+```python
 import torchwm
 
 # Dreamer: reuse matching environment/image fields and pass the action size
@@ -157,7 +160,7 @@ iris_op = torchwm.get_operator(
 For most applications, prefer the operator factory instead of importing
 preprocessing utilities directly:
 
-```python :class: thebe
+```python
 import torchwm
 
 op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
@@ -168,7 +171,7 @@ processed = op.process({"images": [pil_image]})
 
 Operators validate inputs and provide helpful error messages:
 
-```python :class: thebe
+```python
 try:
     result = op.process(invalid_inputs)
 except ValueError as e:

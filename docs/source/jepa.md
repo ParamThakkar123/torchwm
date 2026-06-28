@@ -109,9 +109,12 @@ The predictor `g_φ` is a smaller transformer (default 6 layers, 384 dim) that
 predicts target patch representations from context patch representations.
 
 Key design:
-- **Lighter than the encoder**: fewer layers, smaller hidden dim
-- **Positional embeddings for all patches**: the predictor knows which target patches to predict
-- **Mask tokens for target positions**: learnable embeddings substituted for masked patches
+
+| Property | Detail |
+|---|---|
+| **Lighter than the encoder** | Fewer layers, smaller hidden dim |
+| **Positional embeddings for all patches** | The predictor knows which target patches to predict |
+| **Mask tokens for target positions** | Learnable embeddings substituted for masked patches |
 
 ### Masking
 
@@ -221,26 +224,7 @@ core learning signal comes from the masking prediction task, not from image dist
 torchwm train jepa --dataset imagenet1k --epochs 100 --batch_size 64
 ```
 
-## Config Reference
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `image_size` | 224 | Input image size |
-| `patch_size` | 16 | ViT patch size |
-| `embed_dim` | 768 | Embedding dimension |
-| `num_layers` | 12 | Transformer layers |
-| `num_heads` | 12 | Attention heads |
-| `mask_ratio` | 0.75 | Fraction of patches to mask |
-| `predict_horizon` | 1 | Frames to predict ahead |
-| `batch_size` | 64 | Training batch size |
-| `lr` | 1.5e-4 | Peak learning rate |
-| `min_lr` | 1e-6 | Minimum learning rate |
-| `warmup_epochs` | 40 | Linear warmup from 0 to `lr` |
-| `weight_decay` | 0.05 | AdamW weight decay |
-| `clip_grad` | 1.0 | Gradient clipping norm |
-| `epochs` | 100 | Total training epochs |
-| `accum_iter` | 1 | Gradient accumulation steps |
-| `ema` | (0.996, 1.0) | EMA momentum range (cosine schedule) |
+See {doc}`configs_reference` for the full JEPAConfig field reference with defaults.
 
 ## Inference and Downstream Tasks
 
@@ -310,6 +294,11 @@ JEPA requires long warmup (40 epochs) and many total epochs (100–300).
 | MAE | Pixels | Masked modeling |
 | JEPA | Latents | Predictive coding |
 | IRIS | Tokens | Transformer dynamics |
+
+## See Also
+
+- {doc}`iris` — discrete world model using JEPA-style token prediction
+- {doc}`vision_guide` — ViT encoder and video tokenizer components
 
 ## References
 

@@ -2,15 +2,7 @@
 
 The Procgen backend adapts the `procgen.ProcgenEnv` vector API to TorchWM's single-environment image interface for procedurally generated benchmark games such as CoinRun, Maze, Heist, and StarPilot.
 
-## Install
-
-Procgen is an optional dependency:
-
-```bash
-pip install torchwm[procgen]
-```
-
-You can also install it directly with `pip install procgen` when working from a source checkout.
+Install: `pip install torchwm[procgen]`
 
 ## Main APIs
 
@@ -32,21 +24,7 @@ make_procgen_env("procgen:procgen-coinrun-v0")
 
 Use `list_procgen_envs()` to inspect the supported game names.
 
-## Dreamer configuration
-
-```python
-from world_models.configs import DreamerConfig
-
-cfg = DreamerConfig()
-cfg.env_backend = "procgen"
-cfg.env = "coinrun"
-cfg.image_size = 64
-cfg.procgen_distribution_mode = "easy"
-cfg.procgen_num_levels = 0      # 0 means unlimited levels in Procgen
-cfg.procgen_start_level = None  # defaults to cfg.seed
-```
-
-`env_backend` may be either `"procgen"` or `"coinrun"`. Dreamer applies the same `ActionRepeat`, `NormalizeActions`, and `TimeLimit` wrapper stack used by other online environment backends.
+Dreamer uses `cfg.env_backend = "procgen"` (or `"coinrun"`) to select this backend. See {doc}`../dreamer` for the full Dreamer config reference.
 
 ## Observations and actions
 

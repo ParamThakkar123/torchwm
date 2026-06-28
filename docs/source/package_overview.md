@@ -32,12 +32,24 @@ agent = DreamerAgent(cfg)
 | Category | Exports |
 |----------|--------|
 | **Friendly factories** | `create_config`, `create_model`, `make_env`, `list_models`, `list_env_backends`, `list_envs` |
-| **Models** | `Dreamer`, `Planet`, `DreamerAgent`, `JEPAAgent`, `IRISAgent`, `Genie`, `VisionTransformer`, `ModularRSSM`, `create_modular_rssm` |
-| **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig`, `GenieConfig`, `GenieSmallConfig` |
+| **Models / Agents** | `Dreamer`, `DreamerV1`, `DreamerV2`, `DreamerV3`, `DreamerAgent`, `Planet`, `JEPAAgent`, `IRISAgent`, `Genie`, `create_genie`, `DiT`, `create_dit` |
+| **State-space models** | `RSSM`, `RecurrentStateSpaceModel`, `DreamerRSSM`, `ModularRSSM`, `create_modular_rssm` |
+| **Vision** | `ConvEncoder`, `CNNEncoder`, `IRISEncoder`, `ConvDecoder`, `CNNDecoder`, `DenseDecoder`, `ActionDecoder`, `IRISDecoder`, `VideoTokenizer`, `create_video_tokenizer` |
+| **Quantization** | `VectorQuantizer`, `VectorQuantizerEMA` |
+| **Configs** | `DreamerConfig`, `JEPAConfig`, `DiTConfig`, `DiamondConfig`, `IRISConfig`, `GenieConfig`, `GenieSmallConfig`, `STTransformerConfig`, `VideoTokenizerConfig`, `LatentActionModelConfig`, `DynamicsModelConfig` |
 | **Environments** | `make_atari_env`, `make_gym_env`, `make_mujoco_env`, `make_robotics_env`, `make_brax_env`, `make_procgen_env`, `GymImageEnv`, `ProcgenImageEnv`, `DeepMindControlEnv`, `DMLabEnv`, `make_dmlab_env`, `UnityMLAgentsEnv`, `TimeLimit`, `ActionRepeat`, wrappers, etc. |
+| **Memory** | `ReplayBuffer`, `Memory`, `Episode`, `IRISReplayBuffer`, `IRISOnPolicyBuffer` |
 | **Operators** | `get_operator`, `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
-| **Reward** | `RewardModel`, `ValueModel` |
-| **Utilities** | `__version__` |
+| **Inference** | `DreamerOperator`, `JEPAOperator`, `IrisOperator`, `PlaNetOperator` |
+| **Reward / Value** | `RewardModel`, `ValueModel`, `DreamerRewardModel`, `DreamerValueModel` |
+| **Controllers** | `RSSMPolicy`, `RolloutGenerator`, `IRISPolicy`, `IRISActor`, `IRISCritic`, `CNNFeatureExtractor` |
+| **Transformer blocks** | `STTransformer`, `MultiHeadSelfAttention`, `MultiHeadAttention`, `AdaLNNormalization`, `RMSNorm` |
+| **Diffusion** | `DiT`, `DDPM`, `PatchEmbed`, `PatchUnEmbed`, `ActorCriticNetwork`, `RewardTerminationModel` |
+| **Genie subcomponents** | `LatentActionModel`, `DynamicsModel`, `create_latent_action_model`, `create_dynamics_model` |
+| **Export** | `export_any`, `export_model`, `ExportableAgentMixin` |
+| **Registry / plugins** | `register_world_model`, `deregister_world_model`, `register_env_backend`, `deregister_env_backend` |
+| **Deprecation** | `deprecated`, `deprecated_class`, `deprecated_function` |
+| **Utilities** | `Logger`, `FreezeParameters`, `compute_return`, `preprocess_obs`, `__version__` |
 
 Example usage:
 

@@ -30,7 +30,7 @@ TorchWM supports logging experiment results to Weights & Biases (WandB) and Tens
 
 To use WandB logging, set the `WANDB_API_KEY` environment variable (anonymous logins are no longer supported). You can get your key from [wandb.ai](https://wandb.ai/settings).
 
-```python :class: thebe
+```python
 cfg.enable_wandb = True
 cfg.wandb_project = "torchwm"
 cfg.wandb_entity = "your-entity"
@@ -40,7 +40,7 @@ cfg.wandb_entity = "your-entity"
 
 Enable TensorBoard logging:
 
-```python :class: thebe
+```python
 cfg.enable_tensorboard = True
 cfg.log_dir = "runs"
 ```
@@ -53,7 +53,7 @@ The recommended entrypoint for common workflows is `torchwm`. It mirrors the
 TorchWM implementation package, but gives users short factory helpers for
 discovery, model creation, environment creation, and operators.
 
-```python :class: thebe
+```python
 import torchwm
 
 print(torchwm.list_models())
@@ -67,7 +67,7 @@ op = torchwm.get_operator("dreamer", image_size=64, action_dim=6)
 You can still import direct research components from `torchwm` when you
 need lower-level control:
 
-```python :class: thebe
+```python
 from torchwm import DreamerAgent, DreamerConfig
 
 cfg = DreamerConfig()
@@ -96,7 +96,7 @@ Operators handle input preprocessing: normalizing images, encoding actions, toke
 
 ### Basic Usage
 
-```python :class: thebe
+```python
 import torchwm
 
 # Create operator with config parameters
@@ -128,7 +128,7 @@ processed = op.process(raw_inputs)
 
 ### JEPA Example (Self-Supervised)
 
-```python :class: thebe
+```python
 from torchwm import JEPAOperator
 
 op = JEPAOperator(image_size=224, patch_size=16, mask_ratio=0.75)
@@ -140,7 +140,7 @@ result = op(inputs)
 
 ### IRIS Example (Sequence Processing)
 
-```python :class: thebe
+```python
 from torchwm import IrisOperator
 
 op = IrisOperator(seq_length=512, vocab_size=32000)
@@ -155,7 +155,7 @@ result = op(inputs)
 Operators can reuse matching config fields, but operator-only parameters such as
 action dimensions should be supplied from the target environment:
 
-```python :class: thebe
+```python
 import torchwm
 
 cfg = torchwm.create_config("dreamer")
@@ -170,7 +170,7 @@ op = torchwm.get_operator(
 
 For most applications, use `torchwm.get_operator()` for preprocessing. Advanced utility functions remain available to package internals.
 
-```python :class: thebe
+```python
 import torchwm
 
 op = torchwm.get_operator("jepa", image_size=224, patch_size=16, mask_ratio=0.75)
@@ -197,14 +197,16 @@ Dreamer supports multiple backends through `DreamerConfig.env_backend`; the
 top-level `torchwm.make_env()` helper uses the same backend names for standalone
 environment creation:
 
-- `dmc`: DeepMind Control Suite tasks (for example `walker-walk`)
-- `dmlab`: DeepMind Lab 3D navigation tasks (for example `rooms_collect_good_objects_train`)
-- `gym`: Gym/Gymnasium environment IDs or an existing environment instance
-- `mujoco`: Gymnasium MuJoCo task ids or native MJCF/MJB models
-- `robotics`: any id registered by the installed Gymnasium Robotics package
-- `procgen`: Procgen benchmark games such as `coinrun` and `heist`
-- `brax`: JAX/Brax continuous-control environments
-- `unity_mlagents`: Unity ML-Agents executable environments
+| Backend | Description |
+|---|---|
+| `dmc` | DeepMind Control Suite tasks (e.g. `walker-walk`) |
+| `dmlab` | DeepMind Lab 3D navigation tasks (e.g. `rooms_collect_good_objects_train`) |
+| `gym` | Gym/Gymnasium environment IDs or an existing environment instance |
+| `mujoco` | Gymnasium MuJoCo task IDs or native MJCF/MJB models |
+| `robotics` | Any ID registered by the installed Gymnasium Robotics package |
+| `procgen` | Procgen benchmark games such as `coinrun` and `heist` |
+| `brax` | JAX/Brax continuous-control environments |
+| `unity_mlagents` | Unity ML-Agents executable environments |
 
 ## Typical Training Flow
 

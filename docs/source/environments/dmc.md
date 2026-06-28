@@ -2,13 +2,7 @@
 
 The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps `dm_control.suite` tasks with a Gym-like interface, keeps all native DMC state observations, and adds a rendered RGB image so image-based world models can train on a consistent observation contract.
 
-## Install
-
-```bash
-pip install dm-control
-```
-
-DMC is not part of TorchWM's minimal dependencies. Install it in the Python environment that runs training or evaluation.
+Install: `pip install dm-control`
 
 ## Main API
 
@@ -21,21 +15,7 @@ obs = env.reset()
 
 The environment name uses a `domain-task` string. TorchWM splits the string at the first hyphen. For example, `cheetah-run` maps to `domain="cheetah"` and `task="run"`. The special shorthand `cup-*` maps to DMC's `ball_in_cup` domain.
 
-## Dreamer configuration
-
-```python
-from torchwm import DreamerConfig
-
-cfg = DreamerConfig()
-cfg.env_backend = "dmc"
-cfg.env = "walker-walk"
-cfg.seed = 0
-cfg.image_size = 64
-cfg.action_repeat = 2
-cfg.time_limit = 1000
-```
-
-`torchwm.create_model("dreamer", ...)` and Dreamer's environment builder recognize `env_backend="dmc"`, creates `DeepMindControlEnv`, and then applies `ActionRepeat`, `NormalizeActions`, and `TimeLimit`.
+Dreamer uses `cfg.env_backend = "dmc"` to select this backend. See {doc}`../dreamer` for the full Dreamer config reference.
 
 ## Common task IDs
 

@@ -5,42 +5,14 @@ native `deepmind_lab` Python module. It converts Lab RGB observations into the
 channel-first image dictionary used by Dreamer and other pixel-based world-model
 code.
 
-## Installation
+Install: `pip install dmlab-gym && dmlab-gym build` (or install `deepmind_lab` directly)
 
-DeepMind Lab includes native game-engine components and is distributed separately from TorchWM. Install or build a package that exposes the `deepmind_lab` Python module before using this adapter. One option is the external `dmlab-gym` build helper:
-
-```bash
-pip install dmlab-gym
-dmlab-gym build
-```
-
-If you already have a working `deepmind_lab` installation, no additional runtime package is required by the adapter.
-
-## Dreamer configuration
-
-```python
-from world_models.configs.dreamer_config import DreamerConfig
-from world_models.models.dreamer import DreamerAgent
-
-cfg = DreamerConfig()
-cfg.env_backend = "dmlab"
-cfg.env = "rooms_collect_good_objects_train"
-cfg.image_size = (64, 64)
-cfg.dmlab_action_repeat = 4
-
-agent = DreamerAgent(cfg)
-agent.train()
-```
-
-`DMLabEnv` asks Lab for `RGB_INTERLEAVED` observations and returns them as
-`obs["image"]` with shape `(3, H, W)` and dtype `uint8`. Extra observation names
-can be requested with `cfg.dmlab_observations`; they are copied into the returned
-observation dictionary under their native DeepMind Lab names.
+Dreamer uses `cfg.env_backend = "dmlab"` to select this backend. DMLab-specific fields (`dmlab_action_repeat`, `dmlab_observations`, `dmlab_action_set`, `dmlab_config`, `dmlab_renderer`) are forwarded from `DreamerConfig` to `DMLabEnv`. See {doc}`../dreamer` for the full Dreamer config reference.
 
 ## Direct usage
 
 ```python
-from world_models.envs import make_dmlab_env
+from torchwm import make_dmlab_env
 
 env = make_dmlab_env("rooms_collect_good_objects_train", seed=0, size=(64, 64))
 obs = env.reset()

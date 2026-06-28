@@ -2,16 +2,7 @@
 
 The Gym/Gymnasium backend adapts standard Gym-like environments to TorchWM's image-first training interface. It accepts either an environment ID string or a pre-built environment instance and returns observations as `{"image": ...}`.
 
-## Install
-
-Gymnasium and Gym are included in TorchWM's base dependency set. Optional environment families may require extras:
-
-```bash
-pip install torchwm[gym]
-pip install "gymnasium[classic-control,box2d,atari]"
-```
-
-Install the extras needed by the specific Gymnasium environment ID you plan to use.
+Install: `pip install torchwm[gym]` for Gymnasium extras.
 
 ## Main APIs
 
@@ -32,19 +23,7 @@ base_env = gym.make("CartPole-v1", render_mode="rgb_array")
 env = GymImageEnv(base_env, seed=123, size=(64, 64))
 ```
 
-## Dreamer configuration
-
-```python
-from torchwm import DreamerConfig
-
-cfg = DreamerConfig()
-cfg.env_backend = "gym"
-cfg.env = "Pendulum-v1"
-cfg.gym_render_mode = "rgb_array"
-cfg.image_size = 64
-```
-
-`env_backend` can be `"gym"`, `"gymnasium"`, or `"generic"`. If `cfg.env_instance` is provided, Dreamer wraps that instance with `GymImageEnv` regardless of backend string.
+Dreamer uses `cfg.env_backend = "gym"` (or `"gymnasium"`, `"generic"`) to select this backend. Set `cfg.gym_render_mode = "rgb_array"` for image observations. See {doc}`../dreamer` for the full Dreamer config reference.
 
 ## Observation conversion
 

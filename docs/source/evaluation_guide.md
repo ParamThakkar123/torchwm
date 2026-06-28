@@ -259,14 +259,16 @@ evals/
 
 ### Common Parameters
 
-- `device`: `torch.device` — CPU or CUDA device for feature extraction.
-- `batch_size`: `int` — number of images/clips processed at once. Lower if GPU
-  memory is limited.
+| Parameter | Type | Description |
+|---|---|---|
+| `device` | `torch.device` | CPU or CUDA device for feature extraction |
+| `batch_size` | `int` | Number of images/clips processed at once. Lower if GPU memory is limited |
 
 #### FVD-specific
 
-- `clip_length`: `int` (default 16) — number of frames per video clip. R3D-18 was
-  trained on 16-frame clips.
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `clip_length` | `int` | 16 | Number of frames per video clip. R3D-18 was trained on 16-frame clips |
 
 ---
 

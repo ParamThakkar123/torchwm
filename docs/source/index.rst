@@ -40,6 +40,7 @@ agents with a unified API.
    vision_guide
    datasets_guide
    losses_guide
+   plugin_registry
    world_models_deep_dive
 
 .. toctree::

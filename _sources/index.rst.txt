@@ -34,6 +34,7 @@ agents with a unified API.
    datasets/nuplan
    cli
    package_overview
+   controllers_guide
    world_models_guide
    tutorials/world_model_env_rl_libraries
    modular_rssm_guide

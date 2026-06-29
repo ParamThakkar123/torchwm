@@ -17,7 +17,7 @@ except ImportError:
 def _runner() -> "CliRunner":
     if CliRunner is None:
         pytest.importorskip("click")
-    return _runner()  # type: ignore
+    return CliRunner()  # type: ignore
 
 
 def test_version_shows_package_version():

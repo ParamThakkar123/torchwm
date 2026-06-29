@@ -242,6 +242,7 @@ def datasets_convert(src: Path, dest_format: str, out_dir: Path | None) -> None:
     out = out_dir or (Path.cwd() / "converted_datasets")
     out.mkdir(parents=True, exist_ok=True)
 
+    dataset: HDF5Dataset | NumPyDataset
     if srcp.suffix in {".h5", ".hdf5"}:
         dataset = HDF5Dataset(str(srcp), num_frames=16, image_size=64)
     elif srcp.suffix in {".npz", ".npy"}:
@@ -259,9 +260,9 @@ def datasets_convert(src: Path, dest_format: str, out_dir: Path | None) -> None:
         if getattr(arr, "ndim", None) == 4 and arr.shape[1] in (1, 3, 4):
             arr = numpy.moveaxis(arr, 1, -1)
         if getattr(arr, "dtype", None) is not None and str(arr.dtype).endswith("uint8"):
-            arr = arr.astype("float32") / 255.0
+            arr = arr.astype("float32") / 255.0  # type: ignore[union-attr]
         elif hasattr(arr, "max") and float(arr.max()) > 1.0:
-            arr = arr.astype("float32") / 255.0
+            arr = arr.astype("float32") / 255.0  # type: ignore[union-attr]
         elif hasattr(arr, "astype"):
             arr = arr.astype("float32")
 

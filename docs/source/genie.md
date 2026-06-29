@@ -23,47 +23,19 @@ needing explicit action labels.
 
 ```{mermaid}
 graph TD
-    subgraph "Genie"
-        J["Video frames"] --> K["Video tokenizer"]
-        K --> L["Video tokens"]
-        M["Frame pairs (xₜ, xₜ₊₁)"] --> N["Latent action model"]
-        N --> O["Latent action âₜ"]
-        L --> P["Dynamics model"]
-        O --> P
-        P --> Q["Next video tokens"]
-        Q --> K --> R["Interactive generation"]
-    end
+    J["Video frames"] --> K["Video tokenizer"]
+    K --> L["Video tokens"]
+    M["Frame pairs (xₜ, xₜ₊₁)"] --> N["Latent action model"]
+    N --> O["Latent action âₜ"]
+    L --> P["Dynamics model"]
+    O --> P
+    P --> Q["Next video tokens"]
+    Q --> R["Interactive generation"]
 ```
 
 ## Architecture
 
-### High-level diagram
-
-<div class="architecture-diagram" aria-label="Genie architecture diagram">
-  <section class="diagram-section">
-    <h3>Genie Architecture</h3>
-    <div class="diagram-row">
-      <span class="diagram-node">Video frames</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node info">Video tokenizer</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node">Video tokens</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node success">Dynamics model</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node warning">Decoded frames</span>
-    </div>
-    <div class="diagram-row">
-      <span class="diagram-node">Consecutive frames</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node info">Latent action model</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node">Latent actions</span>
-      <span class="diagram-arrow">→</span>
-      <span class="diagram-node success">Dynamics model</span>
-    </div>
-  </div>
-</div>
+Genie consists of three main components trained end-to-end on video-only data:
 
 ### 1. Video Tokenizer
 

@@ -685,6 +685,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">gymnasium</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gym</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.utils.device</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_device_name</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.configs.wm_config</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">WMVAEConfig</span><span class="p">,</span>
@@ -890,11 +891,11 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Test the trained world model with controller in the environment."""</span>
 
-    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
-        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: CUDA not available, using CPU"</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.utils.device</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_device</span>
+
+    <span class="n">device</span> <span class="o">=</span> <span class="n">get_default_device</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"cpu"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: no GPU (CUDA or MPS) available, using CPU"</span><span class="p">)</span>
 
     <span class="n">vae_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s2">"vae"</span><span class="p">,</span> <span class="s2">"best.tar"</span><span class="p">)</span>
     <span class="n">rnn_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s2">"mdrnn"</span><span class="p">,</span> <span class="s2">"best.tar"</span><span class="p">)</span>
@@ -1009,7 +1010,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">"--device"</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="s2">"cuda"</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"cpu"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">default_device_name</span><span class="p">(),</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">"Device to use"</span><span class="p">,</span>
     <span class="p">)</span>
 

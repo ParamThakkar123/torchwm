@@ -394,7 +394,7 @@ not just DIAMOND.</p>
 <section id="python-api">
 <h3>Python API<a class="headerlink" href="#python-api" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FID</span><span class="p">,</span> <span class="n">FVD</span><span class="p">,</span> <span class="n">LPIPS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FID</span><span class="p">,</span> <span class="n">FVD</span><span class="p">,</span> <span class="n">LPIPS</span>
 
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"cpu"</span><span class="p">)</span>
 
@@ -498,7 +498,7 @@ for numerical stability.</p></li>
 </section>
 <section id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FID</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FID</span>
 
 <span class="n">fid</span> <span class="o">=</span> <span class="n">FID</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
 
@@ -564,7 +564,7 @@ statistics, and passed through R3D-18 truncated before the final FC layer, produ
 </section>
 <section id="id3">
 <h3>Usage<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FVD</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">FVD</span>
 
 <span class="n">fvd</span> <span class="o">=</span> <span class="n">FVD</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">clip_length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 
@@ -632,7 +632,7 @@ summed across channels. Layer scores are averaged to produce the final score.</p
 </section>
 <section id="id7">
 <h3>Usage<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">LPIPS</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.evals</span><span class="w"> </span><span class="kn">import</span> <span class="n">LPIPS</span>
 
 <span class="n">lpips</span> <span class="o">=</span> <span class="n">LPIPS</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
 
@@ -674,9 +674,9 @@ summed across channels. Layer scores are averaged to produce the final score.</p
 <hr class="docutils" />
 <section id="python-api-reference">
 <h2>Python API Reference<a class="headerlink" href="#python-api-reference" title="Link to this heading">#</a></h2>
-<section id="evals-package">
-<h3><code class="docutils literal notranslate"><span class="pre">evals</span></code> Package<a class="headerlink" href="#evals-package" title="Link to this heading">#</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">evals</span><span class="o">/</span>
+<section id="torchwm-evals-package">
+<h3><code class="docutils literal notranslate"><span class="pre">torchwm.evals</span></code> Package<a class="headerlink" href="#torchwm-evals-package" title="Link to this heading">#</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">torchwm</span><span class="o">/</span><span class="n">evals</span><span class="o">/</span>
   <span class="fm">__init__</span><span class="o">.</span><span class="n">py</span>     <span class="c1"># Exports FID, FVD, LPIPS</span>
   <span class="n">fid</span><span class="o">.</span><span class="n">py</span>          <span class="c1"># Fréchet Inception Distance</span>
   <span class="n">fvd</span><span class="o">.</span><span class="n">py</span>          <span class="c1"># Fréchet Video Distance</span>
@@ -765,8 +765,8 @@ summed across channels. Layer scores are averaged to produce the final score.</p
 <hr class="docutils" />
 <section id="model-specific-evaluation-scripts">
 <h2>Model-Specific Evaluation Scripts<a class="headerlink" href="#model-specific-evaluation-scripts" title="Link to this heading">#</a></h2>
-<section id="diamond-scripts-eval-diamond-py">
-<h3>DIAMOND (<code class="docutils literal notranslate"><span class="pre">scripts/eval_diamond.py</span></code>)<a class="headerlink" href="#diamond-scripts-eval-diamond-py" title="Link to this heading">#</a></h3>
+<section id="diamond-torchwm-inference-eval-diamond-py">
+<h3>DIAMOND (<code class="docutils literal notranslate"><span class="pre">torchwm/inference/eval_diamond.py</span></code>)<a class="headerlink" href="#diamond-torchwm-inference-eval-diamond-py" title="Link to this heading">#</a></h3>
 <p>The DIAMOND eval script provides a full evaluation pipeline:</p>
 <ol class="arabic simple">
 <li><p><strong>Load checkpoint</strong>: reconstructs the diffusion model, EDM preconditioner, and
@@ -782,14 +782,14 @@ diffusion model autoregressively generates future frames using the EDM sampler.<
 <h3>Extending to Other Models<a class="headerlink" href="#extending-to-other-models" title="Link to this heading">#</a></h3>
 <p>To add evaluation for a new model:</p>
 <ol class="arabic simple">
-<li><p>Create <code class="docutils literal notranslate"><span class="pre">scripts/eval_&lt;model&gt;.py</span></code> with a <code class="docutils literal notranslate"><span class="pre">run_eval()</span></code> function matching the
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">torchwm/inference/eval_&lt;model&gt;.py</span></code> with a <code class="docutils literal notranslate"><span class="pre">run_eval()</span></code> function matching the
 signature in <a class="reference internal" href="cli.html"><span class="doc">TorchWM CLI</span></a>.</p></li>
 <li><p>Register it in <code class="docutils literal notranslate"><span class="pre">EVAL_MODULES</span></code> in <code class="docutils literal notranslate"><span class="pre">torchwm/cli.py</span></code>:</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">EVAL_MODULES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"diamond"</span><span class="p">:</span> <span class="s2">"scripts.eval_diamond"</span><span class="p">,</span>
+    <span class="s2">"diamond"</span><span class="p">:</span> <span class="s2">"torchwm.inference.eval_diamond"</span><span class="p">,</span>
     <span class="s2">"jepa"</span><span class="p">:</span> <span class="s2">"torchwm.training.eval_jepa"</span><span class="p">,</span>
-    <span class="s2">"my_model"</span><span class="p">:</span> <span class="s2">"scripts.eval_my_model"</span><span class="p">,</span>
+    <span class="s2">"my_model"</span><span class="p">:</span> <span class="s2">"torchwm.inference.eval_my_model"</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -800,7 +800,7 @@ rather than a silent no-op.</p>
 </section>
 <section id="trajectory-collection-utilities">
 <h3>Trajectory Collection Utilities<a class="headerlink" href="#trajectory-collection-utilities" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">evals.diamond_utils</span></code> module provides helper functions for DIAMOND evaluation:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">torchwm.evals.diamond_utils</span></code> module provides helper functions for DIAMOND evaluation:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">generate_trajectories()</span></code> — autoregressively generates frames from a diffusion model
 conditioned on real trajectory data.</p></li>
@@ -972,7 +972,7 @@ all frames are blurry in the same way).</p></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-api-reference">Python API Reference</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#evals-package"><code class="docutils literal notranslate"><span class="pre">evals</span></code> Package</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#torchwm-evals-package"><code class="docutils literal notranslate"><span class="pre">torchwm.evals</span></code> Package</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#common-parameters">Common Parameters</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fvd-specific">FVD-specific</a></li>
@@ -981,7 +981,7 @@ all frames are blurry in the same way).</p></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#model-specific-evaluation-scripts">Model-Specific Evaluation Scripts</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diamond-scripts-eval-diamond-py">DIAMOND (<code class="docutils literal notranslate"><span class="pre">scripts/eval_diamond.py</span></code>)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#diamond-torchwm-inference-eval-diamond-py">DIAMOND (<code class="docutils literal notranslate"><span class="pre">torchwm/inference/eval_diamond.py</span></code>)</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extending-to-other-models">Extending to Other Models</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#trajectory-collection-utilities">Trajectory Collection Utilities</a></li>
 </ul>

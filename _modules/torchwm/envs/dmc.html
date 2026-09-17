@@ -707,6 +707,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
         <span class="n">camera</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"-"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"DeepMind Control task names use 'domain-task' form, e.g. "</span>
+                <span class="sa">f</span><span class="s2">"'cartpole-balance' or 'walker-walk'; got </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">."</span>
+            <span class="p">)</span>
         <span class="n">domain</span><span class="p">,</span> <span class="n">task</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">"cup"</span><span class="p">:</span>  <span class="c1"># Only domain with multiple words.</span>
             <span class="n">domain</span> <span class="o">=</span> <span class="s2">"ball_in_cup"</span>
@@ -813,6 +818,19 @@ window.runMermaid = runMermaid;</script>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Only render mode 'rgb_array' is supported."</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">physics</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">,</span> <span class="n">camera_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_camera</span><span class="p">)</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="make_dmc_env">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.make_dmc_env">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_dmc_env</span><span class="p">(</span>
+    <span class="n">env_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">camera</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DeepMindControlEnv</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Create a DeepMind Control Suite task, e.g. ``make_dmc_env("walker-walk")``."""</span>
+    <span class="k">return</span> <span class="n">DeepMindControlEnv</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="n">camera</span><span class="p">)</span></div>
 
 </pre></div>
 

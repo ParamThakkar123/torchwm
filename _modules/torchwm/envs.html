@@ -847,10 +847,12 @@ window.runMermaid = runMermaid;</script>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"DeepMindControlEnv"</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"DeepMindControlEnv"</span><span class="p">,</span> <span class="s2">"make_dmc_env"</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span><span class="p">,</span> <span class="n">make_dmc_env</span>
 
-        <span class="k">return</span> <span class="n">DeepMindControlEnv</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"DeepMindControlEnv"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">DeepMindControlEnv</span>
+        <span class="k">return</span> <span class="n">make_dmc_env</span>
 
     <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"module </span><span class="si">{</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s2"> has no attribute </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 
@@ -883,6 +885,10 @@ window.runMermaid = runMermaid;</script>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.procgen_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_procgen_env</span>
 
         <span class="k">return</span> <span class="n">make_procgen_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"dmc"</span><span class="p">,</span> <span class="s2">"dm_control"</span><span class="p">,</span> <span class="s2">"dm-control"</span><span class="p">,</span> <span class="s2">"deepmind_control"</span><span class="p">}:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.dmc</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_dmc_env</span>
+
+        <span class="k">return</span> <span class="n">make_dmc_env</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.gym_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_gym_env</span>
@@ -935,6 +941,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"DeepMindControlEnv"</span><span class="p">,</span>
+    <span class="s2">"make_dmc_env"</span><span class="p">,</span>
     <span class="s2">"make_atari_env"</span><span class="p">,</span>
     <span class="s2">"list_available_atari_envs"</span><span class="p">,</span>
     <span class="s2">"make_atari_vector_env"</span><span class="p">,</span>

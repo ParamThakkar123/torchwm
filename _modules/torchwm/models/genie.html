@@ -714,13 +714,15 @@ window.runMermaid = runMermaid;</script>
         <span class="n">action_decoder_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
         <span class="n">dynamics_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5120</span><span class="p">,</span>
         <span class="n">dynamics_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
-        <span class="n">dynamics_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">36</span><span class="p">,</span>
+        <span class="n">dynamics_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
         <span class="n">encoder_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
         <span class="n">decoder_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
         <span class="n">latent_action_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
         <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">,</span> <span class="s2">"windowed_attention"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"mean"</span><span class="p">,</span>
         <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">tokenizer_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">action_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span> <span class="o">=</span> <span class="n">num_frames</span>
@@ -738,10 +740,13 @@ window.runMermaid = runMermaid;</script>
             <span class="n">tokenizer_decoder_dim</span><span class="o">=</span><span class="n">tokenizer_decoder_dim</span><span class="p">,</span>
             <span class="n">tokenizer_encoder_depth</span><span class="o">=</span><span class="n">encoder_depth</span><span class="p">,</span>
             <span class="n">tokenizer_decoder_depth</span><span class="o">=</span><span class="n">decoder_depth</span><span class="p">,</span>
+            <span class="n">tokenizer_num_heads</span><span class="o">=</span><span class="n">tokenizer_num_heads</span><span class="p">,</span>
             <span class="n">action_vocab_size</span><span class="o">=</span><span class="n">action_vocab_size</span><span class="p">,</span>
             <span class="n">action_embedding_dim</span><span class="o">=</span><span class="n">action_embedding_dim</span><span class="p">,</span>
             <span class="n">action_encoder_dim</span><span class="o">=</span><span class="n">action_encoder_dim</span><span class="p">,</span>
+            <span class="n">action_decoder_dim</span><span class="o">=</span><span class="n">action_decoder_dim</span><span class="p">,</span>
             <span class="n">action_encoder_depth</span><span class="o">=</span><span class="n">latent_action_depth</span><span class="p">,</span>
+            <span class="n">action_num_heads</span><span class="o">=</span><span class="n">action_num_heads</span><span class="p">,</span>
             <span class="n">dynamics_dim</span><span class="o">=</span><span class="n">dynamics_dim</span><span class="p">,</span>
             <span class="n">dynamics_depth</span><span class="o">=</span><span class="n">dynamics_depth</span><span class="p">,</span>
             <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="n">dynamics_num_heads</span><span class="p">,</span>
@@ -758,7 +763,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">decoder_dim</span><span class="o">=</span><span class="n">tokenizer_decoder_dim</span><span class="p">,</span>
             <span class="n">encoder_depth</span><span class="o">=</span><span class="n">encoder_depth</span><span class="p">,</span>
             <span class="n">decoder_depth</span><span class="o">=</span><span class="n">decoder_depth</span><span class="p">,</span>
-            <span class="n">num_heads</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">num_heads</span><span class="o">=</span><span class="n">tokenizer_num_heads</span><span class="p">,</span>
             <span class="n">patch_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
             <span class="n">vocab_size</span><span class="o">=</span><span class="n">tokenizer_vocab_size</span><span class="p">,</span>
             <span class="n">embedding_dim</span><span class="o">=</span><span class="n">tokenizer_embedding_dim</span><span class="p">,</span>
@@ -774,7 +779,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">decoder_dim</span><span class="o">=</span><span class="n">action_decoder_dim</span><span class="p">,</span>
             <span class="n">encoder_depth</span><span class="o">=</span><span class="n">latent_action_depth</span><span class="p">,</span>
             <span class="n">decoder_depth</span><span class="o">=</span><span class="n">latent_action_depth</span><span class="p">,</span>
-            <span class="n">num_heads</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">num_heads</span><span class="o">=</span><span class="n">action_num_heads</span><span class="p">,</span>
             <span class="n">patch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
             <span class="n">vocab_size</span><span class="o">=</span><span class="n">action_vocab_size</span><span class="p">,</span>
             <span class="n">embedding_dim</span><span class="o">=</span><span class="n">action_embedding_dim</span><span class="p">,</span>
@@ -818,26 +823,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">overrides</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">=</span> <span class="n">apply_config_overrides</span><span class="p">(</span><span class="n">coerce_config</span><span class="p">(</span><span class="n">GenieConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">),</span> <span class="n">overrides</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">num_frames</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">num_frames</span><span class="p">,</span>
-            <span class="n">image_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
-            <span class="n">in_channels</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">in_channels</span><span class="p">,</span>
-            <span class="n">tokenizer_vocab_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_vocab_size</span><span class="p">,</span>
-            <span class="n">tokenizer_embedding_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_embedding_dim</span><span class="p">,</span>
-            <span class="n">tokenizer_encoder_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_encoder_dim</span><span class="p">,</span>
-            <span class="n">tokenizer_decoder_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_decoder_dim</span><span class="p">,</span>
-            <span class="n">action_vocab_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">action_vocab_size</span><span class="p">,</span>
-            <span class="n">action_embedding_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">action_embedding_dim</span><span class="p">,</span>
-            <span class="n">action_encoder_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">action_encoder_dim</span><span class="p">,</span>
-            <span class="n">encoder_depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_encoder_depth</span><span class="p">,</span>
-            <span class="n">decoder_depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tokenizer_decoder_depth</span><span class="p">,</span>
-            <span class="n">latent_action_depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">action_encoder_depth</span><span class="p">,</span>
-            <span class="n">dynamics_dim</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">dynamics_dim</span><span class="p">,</span>
-            <span class="n">dynamics_depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">dynamics_depth</span><span class="p">,</span>
-            <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">dynamics_num_heads</span><span class="p">,</span>
-            <span class="n">action_pooling</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">action_pooling</span><span class="p">,</span>
-            <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">window_attention_heads</span><span class="p">,</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">genie_kwargs_from_config</span><span class="p">(</span><span class="n">args</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Genie.from_pretrained">
@@ -1303,6 +1289,46 @@ window.runMermaid = runMermaid;</script>
 
 
 
+
+<div class="viewcode-block" id="genie_kwargs_from_config">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.genie_kwargs_from_config">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">genie_kwargs_from_config</span><span class="p">(</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">GenieConfig</span> <span class="o">|</span> <span class="n">GenieSmallConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Map a Genie config onto :class:`Genie` constructor keyword arguments.</span>
+
+<span class="sd">    The config and constructor name several fields differently (for example</span>
+<span class="sd">    ``tokenizer_encoder_depth`` -&gt; ``encoder_depth``), so filtering the config</span>
+<span class="sd">    by parameter name silently drops them and builds those components at the</span>
+<span class="sd">    constructor defaults. Every construction path goes through this mapping.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="p">(</span><span class="n">GenieConfig</span><span class="p">,</span> <span class="n">GenieSmallConfig</span><span class="p">)):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">coerce_config</span><span class="p">(</span><span class="n">GenieConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">num_frames</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">num_frames</span><span class="p">,</span>
+        <span class="n">image_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
+        <span class="n">in_channels</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">in_channels</span><span class="p">,</span>
+        <span class="n">tokenizer_vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_vocab_size</span><span class="p">,</span>
+        <span class="n">tokenizer_embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_embedding_dim</span><span class="p">,</span>
+        <span class="n">tokenizer_encoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_encoder_dim</span><span class="p">,</span>
+        <span class="n">tokenizer_decoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_decoder_dim</span><span class="p">,</span>
+        <span class="n">action_vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_vocab_size</span><span class="p">,</span>
+        <span class="n">action_embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_embedding_dim</span><span class="p">,</span>
+        <span class="n">action_encoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_encoder_dim</span><span class="p">,</span>
+        <span class="n">action_decoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_decoder_dim</span><span class="p">,</span>
+        <span class="n">encoder_depth</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_encoder_depth</span><span class="p">,</span>
+        <span class="n">decoder_depth</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_decoder_depth</span><span class="p">,</span>
+        <span class="n">latent_action_depth</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_encoder_depth</span><span class="p">,</span>
+        <span class="n">dynamics_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_dim</span><span class="p">,</span>
+        <span class="n">dynamics_depth</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_depth</span><span class="p">,</span>
+        <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_num_heads</span><span class="p">,</span>
+        <span class="n">action_pooling</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_pooling</span><span class="p">,</span>
+        <span class="n">window_attention_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">window_attention_heads</span><span class="p">,</span>
+        <span class="n">tokenizer_num_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_num_heads</span><span class="p">,</span>
+        <span class="n">action_num_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_num_heads</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="create_genie">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.create_genie">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">create_genie</span><span class="p">(</span>
@@ -1315,7 +1341,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">action_embedding_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
     <span class="n">dynamics_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5120</span><span class="p">,</span>
     <span class="n">dynamics_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">48</span><span class="p">,</span>
-    <span class="n">dynamics_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">36</span><span class="p">,</span>
+    <span class="n">dynamics_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
     <span class="n">use_bfloat16</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">,</span> <span class="s2">"windowed_attention"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"mean"</span><span class="p">,</span>
     <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -1396,7 +1422,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">action_decoder_dim</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
         <span class="n">dynamics_dim</span><span class="o">=</span><span class="mi">5120</span><span class="p">,</span>
         <span class="n">dynamics_depth</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span>
-        <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+        <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
         <span class="n">encoder_depth</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
         <span class="n">decoder_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">latent_action_depth</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>

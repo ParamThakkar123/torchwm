@@ -1401,6 +1401,15 @@ window.runMermaid = runMermaid;</script>
         <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">nonterm</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Encode ``obs`` and advance one step.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``(prior, posterior)``. Note the order: the core Dreamer</span>
+<span class="sd">            :meth:`torchwm.models.dreamer_rssm.RSSM.observe_step` returns</span>
+<span class="sd">            ``(posterior, prior)``. Both states have identical keys, so mixing</span>
+<span class="sd">            them up raises no error; the posterior is the one that has seen</span>
+<span class="sd">            ``obs`` and is what should be acted on and carried forward.</span>
+<span class="sd">        """</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
         <span class="n">prior</span><span class="p">,</span> <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
             <span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">,</span> <span class="n">nonterm</span>

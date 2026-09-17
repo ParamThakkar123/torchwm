@@ -793,6 +793,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">description</span><span class="o">=</span><span class="s2">"Try TorchWM env factories and fall back to Gym."</span><span class="p">,</span>
         <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"default"</span><span class="p">,),</span>
     <span class="p">),</span>
+    <span class="s2">"dmc"</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"dmc"</span><span class="p">,</span>
+        <span class="n">factory_path</span><span class="o">=</span><span class="s2">"torchwm.envs:make_dmc_env"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"DeepMind Control Suite tasks (e.g. walker-walk); Dreamer's default."</span><span class="p">,</span>
+        <span class="n">aliases</span><span class="o">=</span><span class="p">(</span><span class="s2">"dm_control"</span><span class="p">,</span> <span class="s2">"deepmind_control"</span><span class="p">),</span>
+    <span class="p">),</span>
     <span class="s2">"gym"</span><span class="p">:</span> <span class="n">EnvBackendSpec</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"gym"</span><span class="p">,</span>
         <span class="n">factory_path</span><span class="o">=</span><span class="s2">"torchwm.envs:make_gym_env"</span><span class="p">,</span>
@@ -890,11 +896,17 @@ window.runMermaid = runMermaid;</script>
     <span class="n">aliases</span> <span class="o">=</span> <span class="n">_alias_map</span><span class="p">(</span><span class="n">ENV_BACKEND_SPECS</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">aliases</span><span class="p">[</span><span class="n">_normalize</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span>
-    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-        <span class="n">available</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_env_backends</span><span class="p">())</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"Unknown environment backend </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_registered_env_backend_spec</span>
+
+    <span class="n">registered</span> <span class="o">=</span> <span class="n">get_registered_env_backend_spec</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">registered</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">available</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_env_backends</span><span class="p">())</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"Unknown environment backend </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">. Available: </span><span class="si">{</span><span class="n">available</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_load_object</span><span class="p">(</span><span class="n">import_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -960,16 +972,6 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">config</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_supported_kwargs</span><span class="p">(</span>
-    <span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">factory</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
-    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">VAR_KEYWORD</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="n">supported</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">params</span> <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">"self"</span><span class="p">}</span>
-    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">supported</span><span class="p">}</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_call_with_supported_kwargs</span><span class="p">(</span>
     <span class="n">factory</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
@@ -1022,7 +1024,9 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">list_env_backends</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Return canonical backend names accepted by :func:`make_env`."""</span>
 
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ENV_BACKEND_SPECS</span><span class="p">)</span></div>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_registered_env_backends</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ENV_BACKEND_SPECS</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_registered_env_backends</span><span class="p">()))</span></div>
 
 
 
@@ -1031,7 +1035,14 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_env_backend_spec</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EnvBackendSpec</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return metadata for an environment backend name or alias."""</span>
 
-    <span class="k">return</span> <span class="n">ENV_BACKEND_SPECS</span><span class="p">[</span><span class="n">_resolve_backend_name</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
+    <span class="n">canonical</span> <span class="o">=</span> <span class="n">_resolve_backend_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">canonical</span> <span class="ow">in</span> <span class="n">ENV_BACKEND_SPECS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ENV_BACKEND_SPECS</span><span class="p">[</span><span class="n">canonical</span><span class="p">]</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_registered_env_backend_spec</span>
+
+    <span class="n">registered</span> <span class="o">=</span> <span class="n">get_registered_env_backend_spec</span><span class="p">(</span><span class="n">canonical</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">registered</span></div>
 
 
 
@@ -1084,9 +1095,14 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">_apply_overrides</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">config_overrides</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"genie"</span><span class="p">,</span> <span class="s2">"genie-small"</span><span class="p">,</span> <span class="s2">"genie-large"</span><span class="p">}:</span>
-            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_supported_kwargs</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">_config_to_dict</span><span class="p">(</span><span class="n">config</span><span class="p">))</span>
+            <span class="c1"># Build Genie directly from the full config mapping: filtering the</span>
+            <span class="c1"># config through the factory's signature dropped the tokenizer and</span>
+            <span class="c1"># latent-action widths/depths, which then fell back to defaults.</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.models.genie</span><span class="w"> </span><span class="kn">import</span> <span class="n">Genie</span><span class="p">,</span> <span class="n">genie_kwargs_from_config</span>
+
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">genie_kwargs_from_config</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">constructor_overrides</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">_call_with_supported_kwargs</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">_call_with_supported_kwargs</span><span class="p">(</span><span class="n">Genie</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">factory</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">constructor_overrides</span><span class="p">)</span>
 
     <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_config_to_dict</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>

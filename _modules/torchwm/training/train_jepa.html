@@ -699,9 +699,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">parse_experiment_args</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="c1"># Imported on first use by `_require_wandb`, not at module load: a W&amp;B install</span>
+<span class="c1"># that is present but broken would otherwise make this whole module (and every</span>
+<span class="c1"># test that imports it) unusable even with W&amp;B logging turned off.</span>
 <span class="n">_wandb</span><span class="p">:</span> <span class="n">ModuleType</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"wandb"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">_wandb</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"wandb"</span><span class="p">)</span>
 
 <span class="n">log_timings</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">log_freq</span> <span class="o">=</span> <span class="mi">10</span>
@@ -759,11 +760,14 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_require_wandb</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Return the wandb module, or explain how to install the ``ml`` extra."""</span>
+    <span class="k">global</span> <span class="n">_wandb</span>
     <span class="k">if</span> <span class="n">_wandb</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="s2">"Weights &amp; Biases is required for JEPA sweeps. "</span>
-            <span class="s2">"Install it with `pip install torchwm[ml]`."</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="s2">"wandb"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">"Weights &amp; Biases is required for JEPA sweeps. "</span>
+                <span class="s2">"Install it with `pip install torchwm[ml]`."</span>
+            <span class="p">)</span>
+        <span class="n">_wandb</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"wandb"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_wandb</span>
 
 
@@ -804,12 +808,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">pred_depth</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">][</span><span class="s2">"pred_depth"</span><span class="p">]</span>
     <span class="n">pred_emb_dim</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">][</span><span class="s2">"pred_emb_dim"</span><span class="p">]</span>
     <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">build_loss_fn</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"loss_type"</span><span class="p">,</span> <span class="s2">"l2"</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.utils.device</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_device</span>
+
+    <span class="n">device</span> <span class="o">=</span> <span class="n">get_default_device</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"cuda"</span><span class="p">:</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda:0"</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: CUDA not available, using CPU"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"cpu"</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: no GPU (CUDA or MPS) available, using CPU"</span><span class="p">)</span>
 
     <span class="c1"># -- DATA</span>
     <span class="n">use_gaussian_blur</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"data"</span><span class="p">][</span><span class="s2">"use_gaussian_blur"</span><span class="p">]</span>

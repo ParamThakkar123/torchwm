@@ -694,10 +694,10 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_package_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="c1"># Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value</span>
-<span class="c1"># causes mujoco to raise a RuntimeError during import. Respect an existing</span>
-<span class="c1"># environment value if present.</span>
-<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"nt"</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MUJOCO_GL"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="c1"># Default MuJoCo to headless EGL rendering on Linux only. Windows raises a</span>
+<span class="c1"># RuntimeError on import with 'egl', and macOS has no EGL at all, so both keep</span>
+<span class="c1"># MuJoCo's own default. An existing environment value is always respected.</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"linux"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"MUJOCO_GL"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"MUJOCO_GL"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"egl"</span>
 
 
@@ -924,9 +924,9 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_default_device</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">DreamerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">no_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.utils.device</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_default_device</span>
+
+    <span class="k">return</span> <span class="n">get_default_device</span><span class="p">(</span><span class="n">allow_gpu</span><span class="o">=</span><span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">no_gpu</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_local_pretrained_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -984,6 +984,23 @@ window.runMermaid = runMermaid;</script>
     <span class="n">config</span><span class="o">.</span><span class="n">to_yaml</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"config.yaml"</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_true_termination</span><span class="p">(</span><span class="n">done</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a step ended the episode for real, not by a time limit.</span>
+
+<span class="sd">    Wrappers such as :class:`torchwm.envs.wrappers.TimeLimit` report ``done``</span>
+<span class="sd">    for truncations too, and describe which it was via ``terminated`` /</span>
+<span class="sd">    ``truncated`` in ``info``. Without that information ``done`` is used.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">"terminated"</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">"terminated"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"truncated"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"TimeLimit.truncated"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
 <div class="viewcode-block" id="preprocess_obs">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.preprocess_obs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
@@ -1018,7 +1035,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_size</span> <span class="o">=</span> <span class="n">action_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">restore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">restore</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">restore_path</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">checkpoint_path</span>
 
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"perf_defaults"</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
@@ -1347,7 +1364,16 @@ window.runMermaid = runMermaid;</script>
         <span class="n">acs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">rews</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">nonterms</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">continues</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""World-model loss.</span>
+
+<span class="sd">        ``nonterms`` masks recurrent state at every episode boundary.</span>
+<span class="sd">        ``continues`` is the discount-head target, which is 0 only on true</span>
+<span class="sd">        terminations; it defaults to ``nonterms`` when not supplied.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">continues</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">continues</span> <span class="o">=</span> <span class="n">nonterms</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="n">init_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">init_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -1372,7 +1398,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">model_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">kl_loss_coeff</span> <span class="o">*</span> <span class="n">kl_loss</span> <span class="o">+</span> <span class="n">obs_loss</span> <span class="o">+</span> <span class="n">rew_loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span> <span class="ow">and</span> <span class="n">disc_dist</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">disc_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">disc_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">nonterms</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">disc_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">disc_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">continues</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
             <span class="n">model_loss</span> <span class="o">=</span> <span class="n">model_loss</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">disc_loss_coeff</span> <span class="o">*</span> <span class="n">disc_loss</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">disc_loss</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1426,7 +1452,13 @@ window.runMermaid = runMermaid;</script>
             <span class="n">imag_vals</span> <span class="o">=</span> <span class="n">imag_val_dist</span><span class="o">.</span><span class="n">mean</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">use_disc_model</span><span class="p">:</span>
                 <span class="n">imag_disc_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discount_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imag_feat</span><span class="p">)</span>
-                <span class="n">discounts</span> <span class="o">=</span> <span class="n">imag_disc_dist</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                <span class="c1"># ``mean`` is a property on torch distributions. The head is</span>
+                <span class="c1"># trained on continuation flags, so its mean is P(continue);</span>
+                <span class="c1"># scale by gamma as in the Dreamer reference</span>
+                <span class="c1"># (pcont_target = discount * data["discount"]).</span>
+                <span class="n">discounts</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">discount</span> <span class="o">*</span> <span class="n">imag_disc_dist</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">discounts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">discount</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">imag_rews</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
 
@@ -1472,7 +1504,9 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="Dreamer.train_one_batch">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.Dreamer.train_one_batch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_one_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-        <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">terms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">acs</span><span class="p">,</span> <span class="n">rews</span><span class="p">,</span> <span class="n">terms</span><span class="p">,</span> <span class="n">terminated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+            <span class="n">include_terminated</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
         <span class="c1"># Stays uint8 across the bus; `preprocess_obs` casts and normalises on</span>
         <span class="c1"># the device, so the result is bit-identical to casting up front.</span>
         <span class="n">obs_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_device</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
@@ -1491,12 +1525,17 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># ``1.0 - terms`` runs on the device now; it used to allocate a second</span>
         <span class="c1"># host array before the transfer.</span>
         <span class="n">nonterms</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_device</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">continues</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_device</span><span class="p">(</span><span class="n">terminated</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span>
             <span class="n">device_type</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)),</span>
             <span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_amp</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="n">model_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_model_loss</span><span class="p">(</span><span class="n">obs_t</span><span class="p">,</span> <span class="n">acs_t</span><span class="p">,</span> <span class="n">rews_t</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">)</span>
+            <span class="n">model_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">world_model_loss</span><span class="p">(</span>
+                <span class="n">obs_t</span><span class="p">,</span> <span class="n">acs_t</span><span class="p">,</span> <span class="n">rews_t</span><span class="p">,</span> <span class="n">nonterms</span><span class="p">,</span> <span class="n">continues</span>
+            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">world_model_opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">world_model_scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">model_loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">world_model_scaler</span><span class="o">.</span><span class="n">unscale_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">world_model_opt</span><span class="p">)</span>
@@ -1572,7 +1611,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="s2">"image"</span><span class="p">]</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">obs_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">preprocess_obs</span><span class="p">(</span><span class="n">obs</span><span class="p">))</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">)</span>
+        <span class="c1"># DreamerRSSM.observe_step returns (posterior, prior). Acting on the</span>
+        <span class="c1"># prior would discard the frame just encoded and roll the agent's belief</span>
+        <span class="c1"># forward blind; the posterior is the state that has seen ``obs``.</span>
+        <span class="n">posterior</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">observe_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">obs_embed</span><span class="p">)</span>
         <span class="n">features</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">posterior</span><span class="p">[</span><span class="s2">"stoch"</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">"deter"</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">deter</span><span class="o">=</span><span class="ow">not</span> <span class="n">explore</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">explore</span><span class="p">:</span>
@@ -1603,7 +1645,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s2">"action"</span> <span class="ow">in</span> <span class="n">info</span><span class="p">)</span>
                 <span class="k">else</span> <span class="n">action</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">executed_action</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">obs</span><span class="p">,</span> <span class="n">executed_action</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">_true_termination</span><span class="p">(</span><span class="n">done</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+            <span class="p">)</span>
 
             <span class="n">episode_rewards</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rew</span>
 
@@ -1664,7 +1708,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">video_images</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s2">"image"</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
                     <span class="k">if</span> <span class="n">latents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">latents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                            <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">posterior</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">posterior</span><span class="p">[</span><span class="s2">"stoch"</span><span class="p">],</span> <span class="n">posterior</span><span class="p">[</span><span class="s2">"deter"</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
                             <span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
                             <span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
                         <span class="p">)</span>
@@ -1695,7 +1739,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">else</span> <span class="n">action</span>
             <span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">executed_action</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">obs</span><span class="p">,</span> <span class="n">executed_action</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">_true_termination</span><span class="p">(</span><span class="n">done</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">seed_episode_rews</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rew</span>
             <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
@@ -1719,6 +1765,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"action_size"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_size</span><span class="p">),</span>
                 <span class="s2">"rssm"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
                 <span class="s2">"actor"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+                <span class="s2">"value_model"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
                 <span class="s2">"reward_model"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
                 <span class="s2">"obs_encoder"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
                 <span class="s2">"obs_decoder"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_decoder</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
@@ -1743,6 +1790,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">map_location</span><span class="p">,</span> <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rssm</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"rssm"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"actor"</span><span class="p">])</span>
+        <span class="c1"># Checkpoints written before the critic was saved lack this key. They</span>
+        <span class="c1"># still load, but the critic keeps its fresh initialisation, so its</span>
+        <span class="c1"># optimizer state (built for other weights) is skipped below too.</span>
+        <span class="n">has_critic</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value_model"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">has_critic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"value_model"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"reward_model"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"obs_encoder"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_decoder</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"obs_decoder"</span><span class="p">])</span>
@@ -1751,7 +1804,8 @@ window.runMermaid = runMermaid;</script>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">world_model_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"world_model_optimizer"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"actor_optimizer"</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"value_optimizer"</span><span class="p">])</span></div>
+        <span class="k">if</span> <span class="n">has_critic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value_opt</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">"value_optimizer"</span><span class="p">])</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_head_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
@@ -1871,12 +1925,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">no_gpu</span><span class="p">:</span>
-            <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">)</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">_default_device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"cuda"</span><span class="p">:</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: CUDA not available, using CPU"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">device</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"cpu"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"WARNING: no GPU (CUDA or MPS) available, using CPU"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">train_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">test_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
@@ -2027,6 +2080,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">min_delta</span><span class="p">,</span>
             <span class="p">)</span>
 
+        <span class="n">last_saved_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">while</span> <span class="n">global_step</span> <span class="o">&lt;=</span> <span class="n">total_steps</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"At global step </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
 
@@ -2116,6 +2170,7 @@ window.runMermaid = runMermaid;</script>
                         <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
                             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">_ckpt.pt"</span><span class="p">)</span>
                         <span class="p">)</span>
+                        <span class="n">last_saved_step</span> <span class="o">=</span> <span class="n">global_step</span>
                         <span class="k">break</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">log_scalars</span><span class="p">(</span><span class="n">logs</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
@@ -2134,9 +2189,17 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)):</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">_ckpt.pt"</span><span class="p">))</span>
+                <span class="n">last_saved_step</span> <span class="o">=</span> <span class="n">global_step</span>
 
             <span class="n">global_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">data_buffer</span><span class="o">.</span><span class="n">steps</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">action_repeat</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+        <span class="c1"># Always leave a checkpoint of the finished run. Short runs never reach</span>
+        <span class="c1"># `checkpoint_interval`, and without this they trained and saved nothing.</span>
+        <span class="k">if</span> <span class="n">last_saved_step</span> <span class="o">!=</span> <span class="n">global_step</span><span class="p">:</span>
+            <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logdir</span><span class="p">,</span> <span class="s2">"ckpts/"</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dreamer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">global_step</span><span class="si">}</span><span class="s2">_ckpt.pt"</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="DreamerAgent.evaluate">

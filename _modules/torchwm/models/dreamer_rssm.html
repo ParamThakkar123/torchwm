@@ -718,7 +718,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        )</span>
 
 <span class="sd">        # Observe with actual observation</span>
-<span class="sd">        posterior = rssm.observe_step(prev_state, prev_action, obs_embed)</span>
+<span class="sd">        posterior, prior = rssm.observe_step(prev_state, prev_action, obs_embed)</span>
 
 <span class="sd">        # Imagine future without observation</span>
 <span class="sd">        prior = rssm.imagine_step(current_state, action)</span>
@@ -851,6 +851,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">            incorporates observation information; the prior is the transition</span>
 <span class="sd">            prediction before observation. Both share the same deterministic</span>
 <span class="sd">            state because the GRU is only advanced once per timestep.</span>
+
+<span class="sd">            The order differs from :meth:`observe_rollout` and from</span>
+<span class="sd">            ``ModularRSSM.observe_step``, which both return</span>
+<span class="sd">            ``(prior, posterior)``. The dictionaries have identical keys, so a</span>
+<span class="sd">            swapped unpacking fails silently: acting on the prior discards the</span>
+<span class="sd">            current observation. It is kept for backward compatibility.</span>
 <span class="sd">        """</span>
         <span class="n">prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imagine_step</span><span class="p">(</span><span class="n">prev_state</span><span class="p">,</span> <span class="n">prev_action</span><span class="p">,</span> <span class="n">nonterm</span><span class="p">)</span>
         <span class="n">posterior_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_fn</span><span class="p">(</span>

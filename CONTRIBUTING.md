@@ -37,7 +37,7 @@ pre-commit install
 
 - Follow PEP 8 style guidelines.
 - Use type hints where possible.
-- Format code with Black: `uv run black .`
+- Format code with Ruff: `uv run ruff format .`
 - Lint code with Ruff: `uv run ruff check .`
 - Type-check code with MyPy where practical: `uv run mypy .`
 - Run all configured hooks with: `uv run pre-commit run --all-files`

@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 
-gym = pytest.importorskip("gym")
+gym = pytest.importorskip("gymnasium")
 
 from torchwm.envs.dmc import DeepMindControlEnv  # noqa: E402
 from torchwm.envs.gym_env import GymImageEnv  # noqa: E402

@@ -31,6 +31,7 @@ import sys
 from typing import Any, Iterable, Sequence
 
 import torch
+from torchwm.utils.device import default_device_name
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
@@ -309,7 +310,7 @@ def jepa_linear_probe(
     to average-pool and concatenate -- the paper tries 1 and 4.
     """
     torch_device = torch.device(
-        device or ("cuda:0" if torch.cuda.is_available() else "cpu")
+        device or default_device_name()
     )
     encoder = load_jepa_encoder(
         checkpoint=checkpoint,

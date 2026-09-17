@@ -7,7 +7,7 @@ Provides:
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 # OpenCV arrow key codes (platform-independent via unmasked waitKey)
 _ARROW_UP = 0x26
@@ -69,7 +69,9 @@ def resolve_checkpoint_path(path: str, model_dir: str = "checkpoints/diamond") -
     raise FileNotFoundError(f"Checkpoint not found at {path} or {alt}")
 
 
-def init_video_recorder(record_path: Optional[str], fps: int = 20, frame_shape=None):
+def init_video_recorder(
+    record_path: Optional[str], fps: int = 20, frame_shape: Any = None
+) -> Any:
     """Create a StreamingVideoWriter if *record_path* is provided.
 
     Returns the writer or None.

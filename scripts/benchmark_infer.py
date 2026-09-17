@@ -294,7 +294,7 @@ def record_dreamer_dream(args: argparse.Namespace, player: "Any", out_dir: Path)
     import numpy as np
     import torch
 
-    from scripts.play_dreamer import _observation_frame
+    from torchwm.inference.play_dreamer import _observation_frame
     from torchwm.utils.utils import StreamingVideoWriter
 
     context = max(1, args.dream_context)
@@ -310,7 +310,7 @@ def record_dreamer_dream(args: argparse.Namespace, player: "Any", out_dir: Path)
         with torch.no_grad():
             if grounded:
                 # Closed loop: the posterior still sees the real observation.
-                _, state = player.rssm.observe_step(
+                state, _ = player.rssm.observe_step(
                     state, prev_action, player.encode(obs)
                 )
             else:
@@ -361,7 +361,7 @@ def record_dreamer(args: argparse.Namespace, model: str) -> int:
     import numpy as np
     import torch
 
-    from scripts.play_dreamer import DreamerPlayer, _observation_frame
+    from torchwm.inference.play_dreamer import DreamerPlayer, _observation_frame
     from torchwm.utils.utils import StreamingVideoWriter
 
     game = args.game or DEFAULT_GAMES["dreamer"]
@@ -382,7 +382,7 @@ def record_dreamer(args: argparse.Namespace, model: str) -> int:
         # in a gallery instead of one being a 64px thumbnail.
         writer.write_frame(_label_frame(_observation_frame(obs), "REAL"))
         with torch.no_grad():
-            _, state = player.rssm.observe_step(
+            state, _ = player.rssm.observe_step(
                 state, prev_action, player.encode(obs)
             )
             action = player.actor(
@@ -417,7 +417,7 @@ def record_dreamer(args: argparse.Namespace, model: str) -> int:
 
 
 def play_diamond(args: argparse.Namespace, control: str) -> int:
-    from scripts.play_diamond import run_play
+    from torchwm.inference.play_diamond import run_play
 
     run_play(
         checkpoint=str(args.checkpoint),
@@ -433,7 +433,7 @@ def play_diamond(args: argparse.Namespace, control: str) -> int:
 
 
 def play_dreamer(args: argparse.Namespace, control: str) -> int:
-    from scripts.play_dreamer import run_play
+    from torchwm.inference.play_dreamer import run_play
 
     run_play(
         checkpoint=str(args.checkpoint),
@@ -459,8 +459,8 @@ def play_iris(args: argparse.Namespace, control: str) -> int:
     load_policy = iris_demo.load_policy
     preprocess = iris_demo.preprocess
     read_checkpoint = iris_demo.read_checkpoint
-    from scripts.play_base import get_action_from_key, init_video_recorder
-    from scripts.play_diamond import ACTION_NAMES
+    from torchwm.inference.play_base import get_action_from_key, init_video_recorder
+    from torchwm.inference.play_diamond import ACTION_NAMES
     from torchwm.configs.iris_config import IRISConfig
     from torchwm.envs.ale_atari_env import make_atari_env
     from torchwm.models.iris_agent import IRISAgent
@@ -489,6 +489,10 @@ def play_iris(args: argparse.Namespace, control: str) -> int:
     obs, _ = env.reset()
     episode_reward = 0.0
     step_count = 0
+    # The IRIS policy is recurrent: carry its LSTM state across steps and reset
+    # it with the episode, as the trainer does. Calling act() without it made
+    # the policy memoryless in play.
+    hidden = None
     running = True
     print("IRIS play: arrows/WASD drive, Q quits. --versus shows the policy's action.")
 
@@ -501,12 +505,19 @@ def play_iris(args: argparse.Namespace, control: str) -> int:
             obs, _ = env.reset()
             episode_reward = 0.0
             step_count = 0
+            hidden = None
 
         frame = preprocess(obs, config.frame_height)
         tensor = torch.from_numpy(frame).unsqueeze(0).to(device)
-        agent_action = int(
-            agent.act(tensor, epsilon=0.0, temperature=0.01).item()
-        )
+        with torch.no_grad():
+            action_tensor, hidden = agent.act(
+                tensor,
+                epsilon=0.0,
+                temperature=0.01,
+                hidden=hidden,
+                return_hidden=True,
+            )
+        agent_action = int(action_tensor.item())
         human_action = get_action_from_key(key)
         if control == "assist":
             action = agent_action if human_action is None else human_action
@@ -552,6 +563,7 @@ def play_iris(args: argparse.Namespace, control: str) -> int:
             obs, _ = env.reset()
             episode_reward = 0.0
             step_count = 0
+            hidden = None
 
     if video_recorder is not None:
         video_recorder.close()
@@ -569,7 +581,7 @@ def play_genie(args: argparse.Namespace, control: str) -> int:
     genie_demo = _load_demo("record_genie")
     build_model = genie_demo.build_model
     tensor_to_uint8_img = genie_demo.tensor_to_uint8_img
-    from scripts.play_base import init_video_recorder
+    from torchwm.inference.play_base import init_video_recorder
 
     class _Args:
         checkpoint = args.checkpoint

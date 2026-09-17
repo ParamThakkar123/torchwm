@@ -95,7 +95,7 @@ def build_model(args: argparse.Namespace) -> tuple[DiT, DiTConfig]:
         print("--random-init: sampling from an UNTRAINED model (noise in, noise out).")
         return set_eval(DiT.from_config(config)), config
 
-    checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+    checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
     state_dict = checkpoint
     if isinstance(checkpoint, dict):
         state_dict = checkpoint.get(

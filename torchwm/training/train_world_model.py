@@ -28,6 +28,7 @@ import uuid
 
 import gymnasium as gym
 import torch
+from torchwm.utils.device import default_device_name
 
 from torchwm.configs.wm_config import (
     WMVAEConfig,
@@ -225,11 +226,11 @@ def test_trained_model(
 ) -> None:
     """Test the trained world model with controller in the environment."""
 
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-        print("WARNING: CUDA not available, using CPU")
+    from torchwm.utils.device import get_default_device
+
+    device = get_default_device()
+    if device.type == "cpu":
+        print("WARNING: no GPU (CUDA or MPS) available, using CPU")
 
     vae_file = os.path.join(logdir, "vae", "best.tar")
     rnn_file = os.path.join(logdir, "mdrnn", "best.tar")
@@ -341,7 +342,7 @@ def main() -> None:
     parser.add_argument(
         "--device",
         type=str,
-        default="cuda" if torch.cuda.is_available() else "cpu",
+        default=default_device_name(),
         help="Device to use",
     )
 

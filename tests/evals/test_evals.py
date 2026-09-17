@@ -5,10 +5,10 @@ import pytest
 import torch
 import numpy as np
 
-from evals.fid import FID, _frechet_distance, _compute_statistics
-from evals.fvd import FVD, _sample_clips
-from evals.lpips import LPIPS, VGGFeatureExtractor
-from evals.psnr import PSNR
+from torchwm.evals.fid import FID, _frechet_distance, _compute_statistics
+from torchwm.evals.fvd import FVD, _sample_clips
+from torchwm.evals.lpips import LPIPS, VGGFeatureExtractor
+from torchwm.evals.psnr import PSNR
 
 
 class TestFIDInternals:
@@ -190,13 +190,13 @@ class TestPSNR:
 class TestEvalUtils:
     def test_generate_trajectories_imports(self):
         """Tests that evals.diamond_utils imports correctly."""
-        from evals.diamond_utils import generate_trajectories
+        from torchwm.evals.diamond_utils import generate_trajectories
 
         assert callable(generate_trajectories)
 
     def test_evals_package_imports(self):
         """Tests that the evals package exposes named exports."""
-        from evals import FID, FVD, LPIPS, PSNR
+        from torchwm.evals import FID, FVD, LPIPS, PSNR
 
         assert FID is not None
         assert FVD is not None

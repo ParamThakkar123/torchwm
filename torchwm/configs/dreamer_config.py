@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from torchwm.configs.serialization import SerializableConfigMixin
@@ -26,7 +26,9 @@ class DreamerConfig(SerializableConfigMixin):
     # brax: JAX/Brax continuous-control environments
     env_backend: str = "dmc"
     env: str = "walker-walk"
-    env_instance: Any = None
+    # A prebuilt environment object. Runtime-only: it is not written to the
+    # config YAML or checkpoint, so a restored run must pass it again.
+    env_instance: Any = field(default=None, metadata={"serialize": False})
     image_size: tuple[int, int] = (64, 64)
     gym_render_mode: str = "rgb_array"
     frame_stack: int = 1

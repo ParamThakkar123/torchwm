@@ -1,5 +1,5 @@
 import numpy as np
-import torch
+from torchwm.utils.device import default_device_name
 from typing import Dict, List, Optional, Any
 from tqdm import tqdm
 
@@ -33,7 +33,7 @@ def evaluate_atari_100k(
         config = DiamondConfig(
             game=game,
             seed=seed,
-            device="cuda" if torch.cuda.is_available() else "cpu",
+            device=default_device_name(),
         )
 
         agent = DiamondAgent(config)

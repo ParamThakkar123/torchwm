@@ -7,7 +7,6 @@ from dataclasses import dataclass
 import logging
 import cv2
 from PIL import Image
-import h5py
 
 logger = logging.getLogger(__name__)
 
@@ -421,6 +420,8 @@ class HDF5Dataset(VideoDatasetBase):
         if not data_path.exists():
             raise FileNotFoundError(f"HDF5 file not found: {data_path}")
 
+        import h5py
+
         with h5py.File(data_path, "r") as f:
             if key not in f:
                 available_keys = list(f.keys())
@@ -453,6 +454,8 @@ class HDF5Dataset(VideoDatasetBase):
 
     def _open_h5(self) -> Any:
         if self._h5_file is None:
+            import h5py
+
             self._h5_file = h5py.File(self.data_source, "r" if self.memmap else "r")
         return self._h5_file
 

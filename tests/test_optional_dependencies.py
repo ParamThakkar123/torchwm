@@ -87,10 +87,24 @@ def test_ml_agents_extra_matches_real_supported_sdk_series():
     assert "protobuf>=5.29.6" in project["optional-dependencies"]["ml-agents"]
 
 
-def test_procgen_extra_declares_python_support_boundary():
+def test_no_extra_is_unsatisfiable_on_supported_pythons():
     project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
 
-    assert (
-        "procgen>=0.10.7; python_version < '3.11'"
-        in project["optional-dependencies"]["procgen"]
-    )
+    for name, requirements in project["optional-dependencies"].items():
+        for requirement in requirements:
+            assert "python_version < '3.11'" not in requirement, (name, requirement)
+    assert "procgen" not in project["optional-dependencies"]
+
+
+def test_repository_tools_are_not_installed_as_a_package():
+    project = tomllib.loads(Path("pyproject.toml").read_text())
+    included = project["tool"]["setuptools"]["packages"]["find"]["include"]
+
+    assert "tools" not in included
+    assert "tools.*" not in included
+
+
+def test_dev_extra_installs_the_linter_the_makefile_runs():
+    project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
+
+    assert "ruff" in _dependency_names(project["optional-dependencies"]["dev"])

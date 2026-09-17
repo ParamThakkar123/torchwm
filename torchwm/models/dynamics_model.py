@@ -123,7 +123,7 @@ class DynamicsModel(nn.Module):
         action_vocab_size: int = 8,
         dim: int = 5120,
         depth: int = 48,
-        num_heads: int = 36,
+        num_heads: int = 40,
         patch_size: int = 4,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
@@ -377,7 +377,7 @@ def create_dynamics_model(
     action_vocab_size: int = 8,
     dim: int = 5120,
     depth: int = 48,
-    num_heads: int = 36,
+    num_heads: int = 40,
     patch_size: int = 4,
 ) -> DynamicsModel:
     """Factory function to create a Dynamics Model."""

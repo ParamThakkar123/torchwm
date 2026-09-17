@@ -37,7 +37,14 @@ def config_to_dict(config: Any) -> dict[str, Any]:
     """Return a YAML/JSON-serializable dictionary of config fields."""
 
     if is_dataclass(config) and not isinstance(config, type):
-        raw = asdict(config)
+        # Fields marked ``metadata={"serialize": False}`` hold runtime objects
+        # (for example a live environment) that have no YAML form. They are
+        # skipped here rather than via ``asdict``, which would deep-copy them.
+        raw = {
+            field.name: getattr(config, field.name)
+            for field in fields(config)
+            if field.metadata.get("serialize", True)
+        }
     else:
         raw = {
             key: value

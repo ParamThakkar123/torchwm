@@ -18,7 +18,9 @@ class GenieConfig(SerializableConfigMixin):
     tokenizer_decoder_dim: int = 512
     tokenizer_encoder_depth: int = 4
     tokenizer_decoder_depth: int = 8
-    tokenizer_num_heads: int = 8
+    # 16 is what Genie has always built; these fields used to be ignored, and
+    # their former default of 8 never reached the model.
+    tokenizer_num_heads: int = 16
 
     action_vocab_size: int = 8
     action_embedding_dim: int = 32
@@ -27,7 +29,7 @@ class GenieConfig(SerializableConfigMixin):
     # decided inside the constructor where no config could reach it.
     action_decoder_dim: int = 1024
     action_encoder_depth: int = 4
-    action_num_heads: int = 8
+    action_num_heads: int = 16
     action_pooling: Literal["mean", "windowed_attention"] = "mean"
     window_attention_heads: int = 1
 
@@ -76,14 +78,16 @@ class GenieSmallConfig(SerializableConfigMixin):
     tokenizer_decoder_dim: int = 512
     tokenizer_encoder_depth: int = 4
     tokenizer_decoder_depth: int = 8
-    tokenizer_num_heads: int = 8
+    # 16 is what Genie has always built; these fields used to be ignored, and
+    # their former default of 8 never reached the model.
+    tokenizer_num_heads: int = 16
 
     action_vocab_size: int = 8
     action_embedding_dim: int = 32
     action_encoder_dim: int = 512
     action_decoder_dim: int = 1024
     action_encoder_depth: int = 8
-    action_num_heads: int = 8
+    action_num_heads: int = 16
     action_pooling: Literal["mean", "windowed_attention"] = "mean"
     window_attention_heads: int = 1
 
@@ -183,7 +187,8 @@ class DynamicsModelConfig(SerializableConfigMixin):
     action_vocab_size: int = 8
     dim: int = 5120
     depth: int = 48
-    num_heads: int = 36
+    # 5120 / 40 = 128 per head; the former 36 did not divide 5120.
+    num_heads: int = 40
     patch_size: int = 4
     mlp_ratio: float = 4.0
     qkv_bias: bool = True

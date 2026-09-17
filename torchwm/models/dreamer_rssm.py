@@ -59,7 +59,7 @@ class RSSM(nn.Module):
         )
 
         # Observe with actual observation
-        posterior = rssm.observe_step(prev_state, prev_action, obs_embed)
+        posterior, prior = rssm.observe_step(prev_state, prev_action, obs_embed)
 
         # Imagine future without observation
         prior = rssm.imagine_step(current_state, action)
@@ -184,6 +184,12 @@ class RSSM(nn.Module):
             incorporates observation information; the prior is the transition
             prediction before observation. Both share the same deterministic
             state because the GRU is only advanced once per timestep.
+
+            The order differs from :meth:`observe_rollout` and from
+            ``ModularRSSM.observe_step``, which both return
+            ``(prior, posterior)``. The dictionaries have identical keys, so a
+            swapped unpacking fails silently: acting on the prior discards the
+            current observation. It is kept for backward compatibility.
         """
         prior = self.imagine_step(prev_state, prev_action, nonterm)
         posterior_embed = self.act_fn(

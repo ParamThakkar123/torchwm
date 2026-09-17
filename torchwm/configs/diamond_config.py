@@ -1,14 +1,15 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-import torch
 
 from torchwm.configs.serialization import SerializableConfigMixin
 
 
 def get_default_device() -> str:
     try:
-        return "cuda" if torch.cuda.is_available() else "cpu"
+        from torchwm.utils.device import default_device_name
+
+        return default_device_name()
     except AttributeError:
         return "cpu"
 

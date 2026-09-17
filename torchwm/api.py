@@ -130,6 +130,12 @@ ENV_BACKEND_SPECS: dict[str, EnvBackendSpec] = {
         description="Try TorchWM env factories and fall back to Gym.",
         aliases=("default",),
     ),
+    "dmc": EnvBackendSpec(
+        name="dmc",
+        factory_path="torchwm.envs:make_dmc_env",
+        description="DeepMind Control Suite tasks (e.g. walker-walk); Dreamer's default.",
+        aliases=("dm_control", "deepmind_control"),
+    ),
     "gym": EnvBackendSpec(
         name="gym",
         factory_path="torchwm.envs:make_gym_env",
@@ -227,11 +233,17 @@ def _resolve_backend_name(name: str) -> str:
     aliases = _alias_map(ENV_BACKEND_SPECS)
     try:
         return aliases[_normalize(name)]
-    except KeyError as exc:
-        available = ", ".join(list_env_backends())
-        raise ValueError(
-            f"Unknown environment backend {name!r}. Available: {available}"
-        ) from exc
+    except KeyError:
+        pass
+    from torchwm.registry import get_registered_env_backend_spec
+
+    registered = get_registered_env_backend_spec(name)
+    if registered is not None:
+        return registered.name
+    available = ", ".join(list_env_backends())
+    raise ValueError(
+        f"Unknown environment backend {name!r}. Available: {available}"
+    ) from None
 
 
 def _load_object(import_path: str) -> Any:
@@ -297,16 +309,6 @@ def _apply_overrides(config: Any, overrides: dict[str, Any]) -> Any:
     return config
 
 
-def _supported_kwargs(
-    factory: Callable[..., Any], kwargs: dict[str, Any]
-) -> dict[str, Any]:
-    params = signature(factory).parameters
-    if any(param.kind == param.VAR_KEYWORD for param in params.values()):
-        return dict(kwargs)
-    supported = {name for name in params if name != "self"}
-    return {key: value for key, value in kwargs.items() if key in supported}
-
-
 def _call_with_supported_kwargs(
     factory: Callable[..., Any], kwargs: dict[str, Any]
 ) -> Any:
@@ -351,13 +353,22 @@ def get_model_spec(name: str) -> ModelSpec:
 def list_env_backends() -> list[str]:
     """Return canonical backend names accepted by :func:`make_env`."""
 
-    return sorted(ENV_BACKEND_SPECS)
+    from torchwm.registry import list_registered_env_backends
+
+    return sorted(set(ENV_BACKEND_SPECS) | set(list_registered_env_backends()))
 
 
 def get_env_backend_spec(name: str) -> EnvBackendSpec:
     """Return metadata for an environment backend name or alias."""
 
-    return ENV_BACKEND_SPECS[_resolve_backend_name(name)]
+    canonical = _resolve_backend_name(name)
+    if canonical in ENV_BACKEND_SPECS:
+        return ENV_BACKEND_SPECS[canonical]
+    from torchwm.registry import get_registered_env_backend_spec
+
+    registered = get_registered_env_backend_spec(canonical)
+    assert registered is not None
+    return registered
 
 
 def create_config(model: str, **overrides: Any) -> Any:
@@ -404,9 +415,14 @@ def create_model(model: str, config: Any | None = None, **overrides: Any) -> Any
         )
         config = _apply_overrides(config, config_overrides)
         if spec.name in {"genie", "genie-small", "genie-large"}:
-            kwargs = _supported_kwargs(factory, _config_to_dict(config))
+            # Build Genie directly from the full config mapping: filtering the
+            # config through the factory's signature dropped the tokenizer and
+            # latent-action widths/depths, which then fell back to defaults.
+            from torchwm.models.genie import Genie, genie_kwargs_from_config
+
+            kwargs = genie_kwargs_from_config(config)
             kwargs.update(constructor_overrides)
-            return _call_with_supported_kwargs(factory, kwargs)
+            return _call_with_supported_kwargs(Genie, kwargs)
         return factory(config, **constructor_overrides)
 
     kwargs = _config_to_dict(config)

@@ -2,7 +2,7 @@
 
 The Procgen backend adapts the `procgen.ProcgenEnv` vector API to TorchWM's single-environment image interface for procedurally generated benchmark games such as CoinRun, Maze, Heist, and StarPilot.
 
-Install: `pip install torchwm[procgen]`
+Install: `pip install procgen` manually. Upstream Procgen wheels only support Python <= 3.10, while TorchWM requires Python >= 3.11, so there is no `torchwm[procgen]` extra.
 
 ## Main APIs
 

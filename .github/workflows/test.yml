@@ -34,7 +34,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        pip install -e .
+        # box2d-py (pulled in by gymnasium[box2d]) builds from source and needs SWIG.
+        pip install swig
+        # Install the extras the unit tests import. A base-only install made 14
+        # test files (Dreamer, env adapters, datasets, controller) skip at
+        # import, so CI never ran them.
+        pip install -e '.[gym,viz,worldmodels,genie,dev]'
         pip install pytest pytest-randomly pytest-mock pytest-timeout
 
     - name: Run tests
@@ -64,7 +69,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        pip install -e .
+        # box2d-py (pulled in by gymnasium[box2d]) builds from source and needs SWIG.
+        pip install swig
+        # Install the extras the unit tests import. A base-only install made 14
+        # test files (Dreamer, env adapters, datasets, controller) skip at
+        # import, so CI never ran them.
+        pip install -e '.[gym,viz,worldmodels,genie,dev]'
         pip install pytest pytest-randomly pytest-mock pytest-timeout
 
     - name: Run integration tests
@@ -103,9 +113,9 @@ jobs:
       run: |
         pytest tests/test_optional_backends_real.py -q --tb=short --timeout=240
 
-  # The main `test` job installs only the base package, so the heavy optional
-  # backends skip; `optional-backends-real` installs them but runs a single
-  # file. Neither exercises what a contributor following CONTRIBUTING.md gets:
+  # The main `test` job installs only the extras the unit tests import, so the
+  # heavy simulator backends skip; `optional-backends-real` installs them but
+  # runs a single file. Neither exercises what a contributor following CONTRIBUTING.md gets:
   # the full suite with every extra installed, which is where torch + jax +
   # brax + ml-agents accumulate until the process dies. Run that combination.
   full-suite-all-extras:
@@ -137,7 +147,8 @@ jobs:
         # Omit ``dmc``: dm-control pulls labmaze, which has no cp313 wheel and
         # tries to compile with Bazel (needs bazel_skylib). Contributors who
         # can install the extra still get it via ``pip install torchwm[dmc]``.
-        pip install -e '.[gym,viz,ml,ml-agents,mujoco,robotics,brax,procgen,bsuite,dev]'
+        pip install swig
+        pip install -e '.[gym,viz,worldmodels,ml,ml-agents,mujoco,robotics,brax,bsuite,dev]'
 
     - name: Report memory before the run
       run: free -m

@@ -49,11 +49,12 @@ class Planet(ExportableAgentMixin):
 
         if device:
             self.device = device
-        elif torch.cuda.is_available():
-            self.device = torch.device("cuda")
         else:
-            self.device = torch.device("cpu")
-            print("WARNING: CUDA not available, using CPU")
+            from torchwm.utils.device import get_default_device
+
+            self.device = get_default_device()
+            if self.device.type == "cpu":
+                print("WARNING: no GPU (CUDA or MPS) available, using CPU")
         self.bit_depth = bit_depth
 
         if isinstance(env, str):

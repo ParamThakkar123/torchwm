@@ -88,10 +88,10 @@ brax = [
     "brax>=0.13.0",
     "jax>=0.10.1",
 ]
-# Upstream Procgen wheels currently publish support through Python 3.10.
-procgen = [
-    "procgen>=0.10.7; python_version < '3.11'",
-]
+# No `procgen` extra: upstream Procgen wheels stop at Python 3.10, and TorchWM
+# requires >= 3.11, so the extra could only ever resolve to nothing. The
+# `torchwm.envs.procgen_env` adapter still works with a manual install on an
+# interpreter procgen supports.
 bsuite = [
     "bsuite>=0.3.5",
 ]
@@ -106,9 +106,22 @@ viz = [
     "umap-learn>=0.5.11",
     "scikit-learn>=1.8.0",
     "plotly>=6.5.0",
+    # torchwm.datasets.video_datasets reads HDF5 clips.
+    "h5py>=3.11.0",
+]
+# Classic World Models (Ha & Schmidhuber): ConvVAE augmentations and the CMA-ES
+# controller search.
+worldmodels = [
+    "albumentations>=2.0.0",
+    "cma>=4.0.0",
+    "opencv-python>=4.12.0.88",
 ]
 ml = [
     "torchaudio>=0.13.0",
+    # `python -m torchwm.benchmarks.cli` and the example scripts parse configs
+    # with Hydra/OmegaConf.
+    "hydra-core>=1.3.2",
+    "omegaconf>=2.3.0",
     "wandb>=0.16.0",
     "tensorboard>=2.20.0",
     "tensorboardx>=2.6.4",
@@ -121,9 +134,10 @@ dev = [
     "pre-commit>=4.5.0",
     "mypy>=1.19.1",
     "gitpython>=3.1.58",
+    "ruff>=0.14.6",
 ]
 all = [
-    "torchwm[gym,dmc,viz,ml,ml-agents,mujoco,robotics,brax,procgen,bsuite,dev,docs]",
+    "torchwm[gym,dmc,viz,worldmodels,ml,ml-agents,mujoco,robotics,brax,bsuite,dev,docs]",
 ]
 docs = [
     "sphinx>=8.0.0,<9.0.0",
@@ -142,7 +156,9 @@ docs = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["torchwm", "torchwm.*", "tools", "tools.*"]
+# `tools/` is repository tooling (stub generation, docs checks). Shipping it
+# installed a top-level package literally named `tools` into site-packages.
+include = ["torchwm", "torchwm.*"]
 
 [tool.setuptools.package-data]
 # PEP 561: ship the marker and the explicit stub for the lazy public surface.

@@ -1,0 +1,234 @@
+"""Regression tests for smaller issues found in the September 2026 code audit."""
+
+import ast
+import re
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+import torch
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+# -- Dreamer config / replay -------------------------------------------------
+
+
+def test_dreamer_config_with_env_instance_serialises():
+    from torchwm.configs.dreamer_config import DreamerConfig
+
+    config = DreamerConfig(env_instance=object())
+    text = config.to_yaml()
+    assert "env_instance" not in text
+    assert "env_instance" not in config.to_dict()
+    assert DreamerConfig.from_yaml(text).env_instance is None
+
+
+def test_replay_buffer_separates_truncation_from_termination():
+    from torchwm.memory.dreamer_memory import ReplayBuffer
+
+    buffer = ReplayBuffer(8, (1, 2, 2), 1, seq_len=2, batch_size=1)
+    obs = {"image": np.zeros((1, 2, 2), dtype=np.uint8)}
+    buffer.add(obs, np.zeros(1), 0.0, done=True, terminated=False)  # time limit
+    buffer.add(obs, np.zeros(1), 0.0, done=True, terminated=True)
+    buffer.add(obs, np.zeros(1), 0.0, done=False)
+    assert buffer.terminals[:3].tolist() == [1.0, 1.0, 0.0]
+    assert buffer.terminated[:3].tolist() == [0.0, 1.0, 0.0]
+    assert len(buffer.sample()) == 4
+    assert len(buffer.sample(include_terminated=True)) == 5
+
+
+@pytest.mark.parametrize(
+    "done, info, expected",
+    [
+        (False, {}, False),
+        (True, {}, True),
+        (True, {"terminated": False, "truncated": True}, False),
+        (True, {"terminated": True, "truncated": False}, True),
+        (True, {"TimeLimit.truncated": True}, False),
+        (True, None, True),
+    ],
+)
+def test_true_termination(done, info, expected):
+    from torchwm.models.dreamer import _true_termination
+
+    assert _true_termination(done, info) is expected
+
+
+def test_time_limit_wrapper_truncation_is_not_stored_as_terminal():
+    from torchwm.envs.wrappers import TimeLimit
+    from torchwm.models.dreamer import _true_termination
+
+    class Endless:
+        def reset(self):
+            return {"image": np.zeros((3, 4, 4), dtype=np.uint8)}
+
+        def step(self, action):
+            return self.reset(), 0.0, False, {}
+
+    env = TimeLimit(Endless(), duration=2)
+    env.reset()
+    env.step(None)
+    _, _, done, info = env.step(None)
+    assert done
+    assert _true_termination(done, info) is False
+
+
+# -- CLI -----------------------------------------------------------------------
+
+
+def test_inproc_training_errors_propagate_without_rerun(monkeypatch):
+    from click.testing import CliRunner
+
+    from torchwm import cli
+
+    calls = []
+
+    def failing_main(argv):
+        calls.append(argv)
+        raise TypeError("bug inside training")
+
+    module = type(sys)("fake_train_module")
+    module.main = failing_main
+    monkeypatch.setitem(sys.modules, "fake_train_module", module)
+    monkeypatch.setitem(cli.TRAINING_MODULES, "fake", "fake_train_module")
+    ran_subprocess = []
+    monkeypatch.setattr(cli.subprocess, "run", lambda *a, **k: ran_subprocess.append(a))
+
+    result = CliRunner().invoke(cli.app, ["train", "fake", "--inproc", "lr=1"])
+
+    assert result.exit_code != 0
+    assert calls == [["lr=1"]]
+    assert ran_subprocess == []
+
+
+def test_inproc_argv_less_main_reads_sys_argv():
+    from torchwm import cli
+
+    seen = []
+    cli._call_training_main(lambda: seen.append(list(sys.argv)), "mod", ["--env", "x"])
+    assert seen == [["mod", "--env", "x"]]
+
+
+def test_eval_and_play_entry_points_live_in_the_package():
+    from torchwm import cli
+
+    for module in (*cli.EVAL_MODULES.values(), *cli.PLAY_MODULES.values()):
+        assert module.startswith("torchwm."), module
+
+
+def test_benchmark_cli_does_not_import_hydra_at_module_level():
+    tree = ast.parse((REPO / "torchwm/benchmarks/cli.py").read_text(encoding="utf-8"))
+    top_level = set()
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            top_level.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            top_level.add(node.module.split(".")[0])
+    assert "hydra" not in top_level
+    assert "omegaconf" not in top_level
+
+
+# -- Environment backends ------------------------------------------------------
+
+
+def test_registered_env_backend_is_used_by_make_env(monkeypatch):
+    import torchwm
+    from torchwm.registry import deregister_env_backend, register_env_backend
+
+    module = type(sys)("fake_env_backend")
+    module.make = lambda env_id, **kwargs: ("made", env_id, kwargs)
+    monkeypatch.setitem(sys.modules, "fake_env_backend", module)
+
+    register_env_backend("fake-backend", factory_path="fake_env_backend:make")
+    try:
+        assert "fake-backend" in torchwm.list_env_backends()
+        assert torchwm.get_env_backend_spec("fake_backend").name == "fake-backend"
+        assert torchwm.make_env("x", backend="fake-backend", k=1) == (
+            "made",
+            "x",
+            {"k": 1},
+        )
+    finally:
+        deregister_env_backend("fake-backend")
+
+
+def test_dmc_backend_is_available():
+    import torchwm
+
+    assert "dmc" in torchwm.list_env_backends()
+    assert torchwm.get_env_backend_spec("dm_control").factory_path.endswith(
+        "make_dmc_env"
+    )
+
+
+def test_dmc_rejects_underscore_task_names_clearly():
+    from torchwm.envs.dmc import DeepMindControlEnv
+
+    with pytest.raises(ValueError, match="cartpole-balance"):
+        DeepMindControlEnv("cartpole_balance", seed=0)
+
+
+# -- Devices -------------------------------------------------------------------
+
+
+def test_resolve_device_falls_back_when_unavailable(monkeypatch):
+    from torchwm.utils import device as device_utils
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(device_utils, "mps_is_available", lambda: True)
+    assert device_utils.get_default_device().type == "mps"
+    assert device_utils.resolve_device("cuda").type == "mps"
+    assert device_utils.get_default_device(allow_gpu=False).type == "cpu"
+
+    monkeypatch.setattr(device_utils, "mps_is_available", lambda: False)
+    assert device_utils.resolve_device("mps").type == "cpu"
+    assert device_utils.resolve_device(None).type == "cpu"
+
+
+def test_mujoco_gl_egl_default_is_linux_only():
+    source = (REPO / "torchwm/models/dreamer.py").read_text(encoding="utf-8")
+    assert 'sys.platform.startswith("linux") and os.environ.get("MUJOCO_GL")' in source
+
+
+# -- Security ------------------------------------------------------------------
+
+
+def test_no_unsafe_torch_load():
+    offenders = []
+    for folder in ("torchwm", "scripts", "demos", "tools", "examples"):
+        for path in (REPO / folder).rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            if re.search(r"weights_only\s*=\s*False", text):
+                offenders.append(str(path.relative_to(REPO)))
+    assert offenders == []
+
+
+# -- Genie / packaging ---------------------------------------------------------
+
+
+def test_no_top_level_evals_package_outside_torchwm():
+    assert not (REPO / "evals").exists()
+    from torchwm.evals import PSNR  # noqa: F401
+
+
+# -- Video logging -------------------------------------------------------------
+
+
+def test_video_frames_are_not_wrapped_and_gif_needs_no_moviepy(tmp_path, monkeypatch):
+    from PIL import Image
+
+    from torchwm.utils.dreamer_utils import _video_to_uint8, _write_gif
+
+    uint8_video = np.full((3, 4, 4, 3), 200, dtype=np.uint8)
+    assert _video_to_uint8(uint8_video).max() == 200
+    assert _video_to_uint8(uint8_video.astype(np.float32) / 255).max() == 200
+
+    monkeypatch.setitem(sys.modules, "moviepy", None)
+    # Distinct frames: Pillow merges identical consecutive GIF frames.
+    moving = np.stack([np.full((4, 4, 3), v, dtype=np.uint8) for v in (0, 120, 240)])
+    path = tmp_path / "clip.gif"
+    _write_gif(moving, str(path), fps=10)
+    with Image.open(path) as gif:
+        assert gif.n_frames == 3

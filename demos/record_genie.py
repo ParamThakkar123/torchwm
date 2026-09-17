@@ -106,7 +106,7 @@ def build_model(args: argparse.Namespace) -> torch.nn.Module:
             num_frames=args.num_frames, image_size=args.image_size
         ).eval()
 
-    checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+    checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
     state_dict = checkpoint.get("model_state_dict", checkpoint)
     config = checkpoint.get("config")
 

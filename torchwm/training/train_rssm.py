@@ -132,11 +132,11 @@ def main() -> None:
     Initializes environment/policy/memory, trains over episodes, logs metrics,
     and periodically evaluates and checkpoints the model.
     """
-    if torch.cuda.is_available():
-        device = torch.device("cuda:0")
-    else:
-        device = torch.device("cpu")
-        print("WARNING: CUDA not available, using CPU")
+    from torchwm.utils.device import get_default_device
+
+    device = get_default_device()
+    if device.type == "cpu":
+        print("WARNING: no GPU (CUDA or MPS) available, using CPU")
     rssm = RecurrentStateSpaceModel(1, STATE_SIZE, LATENT_SIZE, EMBEDDING_SIZE).to(
         device
     )

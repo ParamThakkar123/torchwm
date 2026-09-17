@@ -176,7 +176,7 @@ def test_dmlab_backend_specs_are_public_api():
 
 def test_play_supports_dreamer_as_well_as_diamond():
     assert set(cli.PLAY_MODULES) == {"diamond", "dreamer"}
-    assert cli.PLAY_MODULES["dreamer"] == "scripts.play_dreamer"
+    assert cli.PLAY_MODULES["dreamer"] == "torchwm.inference.play_dreamer"
     assert set(cli.PLAY_DEFAULT_GAMES) == set(cli.PLAY_MODULES)
 
 

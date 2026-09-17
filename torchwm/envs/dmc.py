@@ -45,6 +45,11 @@ class DeepMindControlEnv:
         size: tuple[int, int] = (64, 64),
         camera: int | None = None,
     ) -> None:
+        if "-" not in name:
+            raise ValueError(
+                f"DeepMind Control task names use 'domain-task' form, e.g. "
+                f"'cartpole-balance' or 'walker-walk'; got {name!r}."
+            )
         domain, task = name.split("-", 1)
         if domain == "cup":  # Only domain with multiple words.
             domain = "ball_in_cup"
@@ -142,3 +147,13 @@ class DeepMindControlEnv:
         if kwargs.get("mode", "rgb_array") != "rgb_array":
             raise ValueError("Only render mode 'rgb_array' is supported.")
         return self._env.physics.render(*self._size, camera_id=self._camera)
+
+
+def make_dmc_env(
+    env_id: str,
+    seed: int = 0,
+    size: tuple[int, int] = (64, 64),
+    camera: int | None = None,
+) -> DeepMindControlEnv:
+    """Create a DeepMind Control Suite task, e.g. ``make_dmc_env("walker-walk")``."""
+    return DeepMindControlEnv(env_id, seed=seed, size=size, camera=camera)

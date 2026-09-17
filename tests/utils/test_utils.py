@@ -30,7 +30,7 @@ class TestUtils:
         if request.function.__name__ in self._needs_plotly:
             pytest.importorskip("plotly")
         if request.function.__name__ in self._needs_gym:
-            pytest.importorskip("gym")
+            pytest.importorskip("gymnasium")
 
     def test_to_tensor_obs(self):
         from torchwm.utils.utils import to_tensor_obs
@@ -293,7 +293,7 @@ class TestUtils:
     def test_TorchImageEnvWrapper_init_with_string(self):
         from torchwm.utils.utils import TorchImageEnvWrapper
 
-        with patch("gym.make") as mock_make:
+        with patch("gymnasium.make") as mock_make:
             mock_env = Mock()
             mock_env.reset.return_value = np.zeros(100)
             mock_env.action_space = Mock()

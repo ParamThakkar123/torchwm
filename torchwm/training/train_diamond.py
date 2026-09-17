@@ -69,9 +69,9 @@ class DiamondAgent:
     def __init__(self, config: DiamondConfig) -> None:
         self.config = coerce_config(DiamondConfig, config)
         config = self.config
-        self.device = torch.device(
-            config.device if torch.cuda.is_available() else "cpu"
-        )
+        from torchwm.utils.device import resolve_device
+
+        self.device = resolve_device(config.device)
 
         self.env = make_diamond_atari_env(
             game=config.game,
@@ -594,6 +594,14 @@ class DiamondAgent:
             self.obs_history.append(next_obs)
             self.obs_history_raw.append(next_obs_raw)
             self.action_history.append(action)
+            # Only the last `num_conditioning_frames` are ever read. Without
+            # trimming, these lists held every frame of the current episode.
+            keep = self.config.num_conditioning_frames
+            if len(self.obs_history) > keep:
+                del self.obs_history[:-keep]
+                del self.obs_history_raw[:-keep]
+            if len(self.action_history) > keep:
+                del self.action_history[:-keep]
 
             if done:
                 raw_obs, _ = self.env.reset()

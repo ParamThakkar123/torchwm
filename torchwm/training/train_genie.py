@@ -2,6 +2,7 @@ import argparse
 import os
 
 import torch
+from torchwm.utils.device import default_device_name
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from typing import Any, Optional, Dict, Tuple, Literal
@@ -204,7 +205,7 @@ class GenieTrainer:
         self.config = config
 
         if device is None:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device(default_device_name())
         else:
             self.device = device
 

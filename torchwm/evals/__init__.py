@@ -3,19 +3,19 @@ from typing import Any
 
 def __getattr__(name: str) -> Any:
     if name == "FID":
-        from evals.fid import FID
+        from torchwm.evals.fid import FID
 
         return FID
     if name == "FVD":
-        from evals.fvd import FVD
+        from torchwm.evals.fvd import FVD
 
         return FVD
     if name == "LPIPS":
-        from evals.lpips import LPIPS
+        from torchwm.evals.lpips import LPIPS
 
         return LPIPS
     if name == "PSNR":
-        from evals.psnr import PSNR
+        from torchwm.evals.psnr import PSNR
 
         return PSNR
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

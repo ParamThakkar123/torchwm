@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 import torch
 
-pytest.importorskip("gym")
-from gym import spaces
+pytest.importorskip("gymnasium")
+from gymnasium import spaces
 
 from torchwm.envs.vector_env import SimWorker, TorchVectorizedEnv
 from torchwm.training.rl_harness import PPOTrainer

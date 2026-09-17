@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Fixes from the September 2026 code audit.
+
+### Fixed
+- Dreamer acted on the RSSM prior instead of the posterior, so the current
+  observation was encoded and then ignored during collection and evaluation
+  (also in `play dreamer` and `scripts/benchmark_infer.py`)
+- Dreamer checkpoints omitted the critic (`value_model`); older checkpoints
+  still load, keeping a fresh critic and skipping its optimizer state
+- `Dreamer.evaluate(render=True)` raised `KeyError: 0`
+- `use_disc_model=True` raised `TypeError` in the actor loss; the discount head
+  output is now also scaled by `discount`, as in the reference implementation
+- Time-limit truncations were stored as terminal transitions; the replay buffer
+  now keeps episode boundaries and true terminations separately
+- `DreamerConfig.env_instance` made startup crash while writing `config.yaml`
+- `Dreamer(restore=...)` ignored its argument
+- `DreamerAgent.train()` now always writes a final checkpoint
+- PlaNet sampled latents with uniform instead of Gaussian noise; `rollout_prior`
+  returned tuples; `get_init_state` conditioned the posterior on the stale
+  deterministic state
+- Genie's default 5120-wide dynamics model used 36 heads, which do not divide
+  the width (now 40); attention layers validate `dim % num_heads`
+- `create_model("genie"/"genie-small")` silently dropped tokenizer and
+  latent-action widths/depths from the config; `tokenizer_num_heads` and
+  `action_num_heads` are now honoured (default 16, which is what was always
+  built)
+- DIAMOND collection kept every frame of the current episode in memory
+- `torchwm train --inproc` re-ran training without arguments on `TypeError`
+  and in a subprocess on any other error
+- `torchwm eval` / `torchwm play` imported modules that are not in the wheel;
+  they now live in `torchwm.inference`, and the metrics package moved from the
+  top-level `evals` to `torchwm.evals`
+- `register_env_backend` backends were never used by `make_env`; a `dmc`
+  backend was added
+- Every `torch.load` in scripts and demos now uses `weights_only=True`
+- IRIS play in `scripts/benchmark_infer.py` reset the policy LSTM every step
+- MP4 video logging wrapped uint8 frames around; GIFs are written with Pillow
+  instead of the undeclared moviepy
+- `MUJOCO_GL=egl` is only defaulted on Linux (macOS has no EGL)
+- A broken W&B install no longer breaks importing JEPA training
+
+### Added
+- CUDA, then Apple MPS, then CPU device selection
+  (`torchwm.utils.device`)
+- `worldmodels` extra (albumentations, cma); `hydra-core`/`omegaconf` in `ml`;
+  `h5py` in `viz`; `ruff` in `dev`
+
+### Removed
+- The `procgen` extra, which could never install on Python >= 3.11
+- `tools` is no longer installed as a top-level package
+- `nginx.conf`, which proxied a frontend that no longer exists
+
 ## [1.0.0] — 2026-08-19
 
 First stable release. The public API surface documented in

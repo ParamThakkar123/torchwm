@@ -37,10 +37,10 @@ from torchwm.utils.logging_utils import (
 
 logger = get_package_logger(__name__)
 
-# Only set MUJOCO_GL for non-Windows platforms. On Windows the 'egl' value
-# causes mujoco to raise a RuntimeError during import. Respect an existing
-# environment value if present.
-if os.name != "nt" and os.environ.get("MUJOCO_GL") is None:
+# Default MuJoCo to headless EGL rendering on Linux only. Windows raises a
+# RuntimeError on import with 'egl', and macOS has no EGL at all, so both keep
+# MuJoCo's own default. An existing environment value is always respected.
+if sys.platform.startswith("linux") and os.environ.get("MUJOCO_GL") is None:
     os.environ["MUJOCO_GL"] = "egl"
 
 
@@ -261,9 +261,9 @@ def _apply_config_overrides(
 
 
 def _default_device(config: DreamerConfig) -> torch.device:
-    if torch.cuda.is_available() and not config.no_gpu:
-        return torch.device("cuda")
-    return torch.device("cpu")
+    from torchwm.utils.device import get_default_device
+
+    return get_default_device(allow_gpu=not config.no_gpu)
 
 
 def _find_local_pretrained_file(path: Path, candidates: tuple[str, ...]) -> Path | None:
@@ -321,6 +321,23 @@ def _save_config_next_to_checkpoint(
     config.to_yaml(checkpoint.parent / "config.yaml")
 
 
+def _true_termination(done: bool, info: Any) -> bool:
+    """Whether a step ended the episode for real, not by a time limit.
+
+    Wrappers such as :class:`torchwm.envs.wrappers.TimeLimit` report ``done``
+    for truncations too, and describe which it was via ``terminated`` /
+    ``truncated`` in ``info``. Without that information ``done`` is used.
+    """
+    if not done:
+        return False
+    if isinstance(info, dict):
+        if "terminated" in info:
+            return bool(info["terminated"])
+        if info.get("truncated") or info.get("TimeLimit.truncated"):
+            return False
+    return True
+
+
 def preprocess_obs(obs: torch.Tensor) -> torch.Tensor:
     """Convert raw uint8 image observations to Dreamer float input space.
 
@@ -350,7 +367,7 @@ class Dreamer:
         self.obs_shape = obs_shape
         self.action_size = action_size
         self.device = torch.device(device)
-        self.restore = args.restore
+        self.restore = bool(restore)
         self.restore_path = args.checkpoint_path
 
         if getattr(args, "perf_defaults", True):
@@ -665,7 +682,16 @@ class Dreamer:
         acs: torch.Tensor,
         rews: torch.Tensor,
         nonterms: torch.Tensor,
+        continues: torch.Tensor | None = None,
     ) -> torch.Tensor:
+        """World-model loss.
+
+        ``nonterms`` masks recurrent state at every episode boundary.
+        ``continues`` is the discount-head target, which is 0 only on true
+        terminations; it defaults to ``nonterms`` when not supplied.
+        """
+        if continues is None:
+            continues = nonterms
         obs = preprocess_obs(obs)
         obs_embed = self.obs_encoder(obs[1:])
         init_state = self.rssm.init_state(self.args.batch_size, self.device)
@@ -690,7 +716,7 @@ class Dreamer:
 
         model_loss = self.args.kl_loss_coeff * kl_loss + obs_loss + rew_loss
         if self.args.use_disc_model and disc_dist is not None:
-            disc_loss = -torch.mean(disc_dist.log_prob(nonterms[:-1]))
+            disc_loss = -torch.mean(disc_dist.log_prob(continues[:-1]))
             model_loss = model_loss + self.args.disc_loss_coeff * disc_loss
         else:
             disc_loss = None
@@ -741,7 +767,13 @@ class Dreamer:
             imag_vals = imag_val_dist.mean
             if self.args.use_disc_model:
                 imag_disc_dist = self.discount_model(self.imag_feat)
-                discounts = imag_disc_dist.mean().detach()
+                # ``mean`` is a property on torch distributions. The head is
+                # trained on continuation flags, so its mean is P(continue);
+                # scale by gamma as in the Dreamer reference
+                # (pcont_target = discount * data["discount"]).
+                discounts = (
+                    self.args.discount * imag_disc_dist.mean.detach()
+                )
             else:
                 discounts = self.args.discount * torch.ones_like(imag_rews).detach()
 
@@ -781,7 +813,9 @@ class Dreamer:
         return tensor.to(self.device)
 
     def train_one_batch(self) -> list[float]:
-        obs, acs, rews, terms = self.data_buffer.sample()
+        obs, acs, rews, terms, terminated = self.data_buffer.sample(
+            include_terminated=True
+        )
         # Stays uint8 across the bus; `preprocess_obs` casts and normalises on
         # the device, so the result is bit-identical to casting up front.
         obs_t = self._to_device(obs)
@@ -800,12 +834,17 @@ class Dreamer:
         # ``1.0 - terms`` runs on the device now; it used to allocate a second
         # host array before the transfer.
         nonterms = (1.0 - self._to_device(terms).to(torch.float32)).unsqueeze(-1)
+        continues = (
+            1.0 - self._to_device(terminated).to(torch.float32)
+        ).unsqueeze(-1)
 
         with torch.amp.autocast(
             device_type=getattr(self.device, "type", str(self.device)),
             enabled=self.use_amp,
         ):
-            model_loss = self.world_model_loss(obs_t, acs_t, rews_t, nonterms)
+            model_loss = self.world_model_loss(
+                obs_t, acs_t, rews_t, nonterms, continues
+            )
         self.world_model_opt.zero_grad(set_to_none=True)
         self.world_model_scaler.scale(model_loss).backward()
         self.world_model_scaler.unscale_(self.world_model_opt)
@@ -878,7 +917,10 @@ class Dreamer:
         obs = obs["image"]
         obs = torch.tensor(obs.copy(), dtype=torch.float32).to(self.device).unsqueeze(0)
         obs_embed = self.obs_encoder(preprocess_obs(obs))
-        _, posterior = self.rssm.observe_step(prev_state, prev_action, obs_embed)
+        # DreamerRSSM.observe_step returns (posterior, prior). Acting on the
+        # prior would discard the frame just encoded and roll the agent's belief
+        # forward blind; the posterior is the state that has seen ``obs``.
+        posterior, _ = self.rssm.observe_step(prev_state, prev_action, obs_embed)
         features = torch.cat([posterior["stoch"], posterior["deter"]], dim=-1)
         action = self.actor(features, deter=not explore)
         if explore:
@@ -906,7 +948,9 @@ class Dreamer:
                 if isinstance(info, dict) and ("action" in info)
                 else action
             )
-            self.data_buffer.add(obs, executed_action, rew, done)
+            self.data_buffer.add(
+                obs, executed_action, rew, done, _true_termination(done, info)
+            )
 
             episode_rewards[-1] += rew
 
@@ -964,7 +1008,7 @@ class Dreamer:
                     video_images[i].append(obs["image"].transpose(1, 2, 0).copy())
                     if latents is not None:
                         latents.append(
-                            torch.cat([posterior[0], posterior[1]], dim=-1)
+                            torch.cat([posterior["stoch"], posterior["deter"]], dim=-1)
                             .cpu()
                             .numpy()
                         )
@@ -992,7 +1036,9 @@ class Dreamer:
                 else action
             )
 
-            self.data_buffer.add(obs, executed_action, rew, done)
+            self.data_buffer.add(
+                obs, executed_action, rew, done, _true_termination(done, info)
+            )
             seed_episode_rews[-1] += rew
             if done:
                 obs = env.reset()
@@ -1013,6 +1059,7 @@ class Dreamer:
                 "action_size": int(self.action_size),
                 "rssm": self.rssm.state_dict(),
                 "actor": self.actor.state_dict(),
+                "value_model": self.value_model.state_dict(),
                 "reward_model": self.reward_model.state_dict(),
                 "obs_encoder": self.obs_encoder.state_dict(),
                 "obs_decoder": self.obs_decoder.state_dict(),
@@ -1034,6 +1081,12 @@ class Dreamer:
         checkpoint = torch.load(ckpt_path, map_location=map_location, weights_only=True)
         self.rssm.load_state_dict(checkpoint["rssm"])
         self.actor.load_state_dict(checkpoint["actor"])
+        # Checkpoints written before the critic was saved lack this key. They
+        # still load, but the critic keeps its fresh initialisation, so its
+        # optimizer state (built for other weights) is skipped below too.
+        has_critic = checkpoint.get("value_model") is not None
+        if has_critic:
+            self.value_model.load_state_dict(checkpoint["value_model"])
         self.reward_model.load_state_dict(checkpoint["reward_model"])
         self.obs_encoder.load_state_dict(checkpoint["obs_encoder"])
         self.obs_decoder.load_state_dict(checkpoint["obs_decoder"])
@@ -1042,7 +1095,8 @@ class Dreamer:
 
         self.world_model_opt.load_state_dict(checkpoint["world_model_optimizer"])
         self.actor_opt.load_state_dict(checkpoint["actor_optimizer"])
-        self.value_opt.load_state_dict(checkpoint["value_optimizer"])
+        if has_critic:
+            self.value_opt.load_state_dict(checkpoint["value_optimizer"])
 
     def _get_head_config(self) -> tuple[str, dict]:
         return "normal", {}
@@ -1158,12 +1212,11 @@ class DreamerAgent(ExportableAgentMixin):
         random.seed(self.args.seed)
         np.random.seed(self.args.seed)
         torch.manual_seed(self.args.seed)
-        if torch.cuda.is_available() and not self.args.no_gpu:
-            device = torch.device("cuda")
+        device = _default_device(self.args)
+        if device.type == "cuda":
             torch.cuda.manual_seed(self.args.seed)
-        else:
-            device = torch.device("cpu")
-            print("WARNING: CUDA not available, using CPU")
+        elif device.type == "cpu":
+            print("WARNING: no GPU (CUDA or MPS) available, using CPU")
 
         self.train_env = make_env(self.args)
         self.test_env = make_env(self.args)
@@ -1300,6 +1353,7 @@ class DreamerAgent(ExportableAgentMixin):
                 threshold=self.args.min_delta,
             )
 
+        last_saved_step: int | None = None
         while global_step <= total_steps:
             logger.info("At global step %s", global_step)
 
@@ -1389,6 +1443,7 @@ class DreamerAgent(ExportableAgentMixin):
                         self.dreamer.save(
                             os.path.join(ckpt_dir, f"{global_step}_ckpt.pt")
                         )
+                        last_saved_step = global_step
                         break
 
             self.logger.log_scalars(logs, global_step)
@@ -1407,9 +1462,17 @@ class DreamerAgent(ExportableAgentMixin):
                 if not (os.path.exists(ckpt_dir)):
                     os.makedirs(ckpt_dir)
                 self.dreamer.save(os.path.join(ckpt_dir, f"{global_step}_ckpt.pt"))
+                last_saved_step = global_step
 
             global_step = self.dreamer.data_buffer.steps * self.args.action_repeat
             self.logger.flush()
+
+        # Always leave a checkpoint of the finished run. Short runs never reach
+        # `checkpoint_interval`, and without this they trained and saved nothing.
+        if last_saved_step != global_step:
+            ckpt_dir = os.path.join(self.logdir, "ckpts/")
+            os.makedirs(ckpt_dir, exist_ok=True)
+            self.dreamer.save(os.path.join(ckpt_dir, f"{global_step}_ckpt.pt"))
 
     def evaluate(self) -> tuple:
         logs = OrderedDict()

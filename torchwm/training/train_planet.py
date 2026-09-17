@@ -159,13 +159,11 @@ def main(argv: list[str] | None = None) -> None:
     from torchwm.utils.utils import TorchImageEnvWrapper
 
     env = TorchImageEnvWrapper(args.env, bit_depth=args.bit_depth)
-    if args.device:
-        device = torch.device(args.device)
-    elif torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-        print("WARNING: CUDA not available, using CPU")
+    from torchwm.utils.device import resolve_device
+
+    device = resolve_device(args.device or None)
+    if device.type == "cpu":
+        print("WARNING: no GPU (CUDA or MPS) available, using CPU")
     rssm_model = RecurrentStateSpaceModel(env.action_size).to(device)
     optimizer = torch.optim.Adam(rssm_model.parameters(), lr=1e-3, eps=1e-4)
 

@@ -67,11 +67,13 @@ def load_policy(agent: IRISAgent, ckpt: dict[str, Any]) -> dict[str, Any]:
 
 
 def read_checkpoint(checkpoint_path: str) -> dict[str, Any]:
-    """Load a checkpoint, tolerating older files that embed a pickled config."""
-    try:
-        return torch.load(checkpoint_path, map_location="cpu", weights_only=True)
-    except Exception:
-        return torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    """Load a checkpoint with ``weights_only=True``.
+
+    Unpickling arbitrary objects can execute code, so an older file that embeds
+    a pickled config is rejected rather than silently loaded unsafely. Re-save
+    it from a trusted environment with a plain-dict config.
+    """
+    return torch.load(checkpoint_path, map_location="cpu", weights_only=True)
 
 
 def infer_architecture(ckpt: dict[str, Any]) -> dict[str, int]:

@@ -4,7 +4,7 @@ import json
 import os
 import csv
 from typing import Any, Callable, Dict, List, Optional
-import torch
+from torchwm.utils.device import default_device_name
 
 import numpy as np
 
@@ -204,7 +204,7 @@ class MultiAgentBenchmarkRunner:
 
         checkpoints = {}
         device = extra_kwargs.get(
-            "device", "cuda" if torch.cuda.is_available() else "cpu"
+            "device", default_device_name()
         )
         preset = extra_kwargs.get("preset", None)
 

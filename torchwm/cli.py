@@ -35,7 +35,7 @@ TRAINING_MODULES = {
 }
 
 EVAL_MODULES = {
-    "diamond": "scripts.eval_diamond",
+    "diamond": "torchwm.inference.eval_diamond",
     "jepa": "torchwm.training.eval_jepa",
 }
 
@@ -61,8 +61,8 @@ EVAL_MODEL_OPTIONS = {
 }
 
 PLAY_MODULES = {
-    "diamond": "scripts.play_diamond",
-    "dreamer": "scripts.play_dreamer",
+    "diamond": "torchwm.inference.play_diamond",
+    "dreamer": "torchwm.inference.play_dreamer",
 }
 
 # `--game` means an Atari ROM for DIAMOND and a control task for Dreamer, so
@@ -478,7 +478,10 @@ def benchmark(
                 raise click.exceptions.Exit(1)
 
         agents, runner_cls, multi_runner_cls, torch = _load_benchmark_runtime()
-        device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        if not device:
+            from torchwm.utils.device import default_device_name
+
+            device = default_device_name()
         extra_kwargs = {"device": device, "preset": preset}
         env_spec = {"game": game}
         if env_backend:
@@ -848,25 +851,27 @@ def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
 
     module = TRAINING_MODULES[key]
     if inproc:
+        # Failures inside training propagate as a non-zero exit. The previous
+        # version retried `main()` without the user's arguments on any
+        # TypeError and re-ran the whole job in a subprocess on any other
+        # exception, so a crash silently started a second, different run.
         try:
             mod = importlib.import_module(module)
-            main_fn = getattr(mod, "main", None)
-            if callable(main_fn):
-                click.echo(f"Running in-process: {module}.main()")
-                try:
-                    main_fn(list(extra_args))
-                except TypeError:
-                    main_fn()
-                return
-            click.echo(
-                f"Module {module} has no callable main(); falling back to subprocess"
-            )
-        except KeyboardInterrupt:
-            _echo_error("Training interrupted by user")
+        except ImportError as exc:
+            _echo_error(f"Could not import {module}: {exc}")
             raise click.exceptions.Exit(1)
-        except Exception as exc:
-            logger.debug("In-process training failed: %s", exc, exc_info=True)
-            click.echo("Falling back to subprocess execution")
+        main_fn = getattr(mod, "main", None)
+        if callable(main_fn):
+            click.echo(f"Running in-process: {module}.main()")
+            try:
+                _call_training_main(main_fn, module, list(extra_args))
+            except KeyboardInterrupt:
+                _echo_error("Training interrupted by user")
+                raise click.exceptions.Exit(1)
+            return
+        click.echo(
+            f"Module {module} has no callable main(); falling back to subprocess"
+        )
 
     cmd = [sys.executable, "-m", module, *extra_args]
     click.echo(f"Running: {' '.join(cmd)}")
@@ -878,6 +883,35 @@ def train(model: str, extra_args: tuple[str, ...], inproc: bool) -> None:
         _echo_error("Training interrupted by user")
         raise click.exceptions.Exit(1)
     raise click.exceptions.Exit(proc.returncode)
+
+
+def _call_training_main(main_fn: Any, module: str, argv: list[str]) -> Any:
+    """Call a training ``main`` with ``argv``, whichever way it accepts it.
+
+    Entry points either take ``argv`` as their first positional parameter or
+    read ``sys.argv`` themselves via argparse. The choice is made from the
+    signature up front, never by catching errors raised during training.
+    """
+    import inspect
+
+    positional = [
+        param
+        for param in inspect.signature(main_fn).parameters.values()
+        if param.kind
+        in (
+            param.POSITIONAL_ONLY,
+            param.POSITIONAL_OR_KEYWORD,
+            param.VAR_POSITIONAL,
+        )
+    ]
+    if positional:
+        return main_fn(argv)
+    saved_argv = sys.argv
+    sys.argv = [module, *argv]
+    try:
+        return main_fn()
+    finally:
+        sys.argv = saved_argv
 
 
 def main(*args: Any, **kwargs: Any) -> Any:

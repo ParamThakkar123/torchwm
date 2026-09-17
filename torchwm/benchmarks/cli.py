@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import List
-import torch
-from omegaconf import DictConfig
-import hydra
+from typing import TYPE_CHECKING, List
+from torchwm.utils.device import default_device_name
 
 from torchwm.benchmarks.runner import BenchmarkRunner, MultiAgentBenchmarkRunner
 from torchwm.benchmarks import adapters
+
+if TYPE_CHECKING:
+    from omegaconf import DictConfig
 
 AGENTS = {
     "diamond": adapters.DiamondAdapter,
@@ -24,8 +25,7 @@ def parse_seeds(s: str) -> List[int]:
     return [int(s)]
 
 
-@hydra.main(version_base=None, config_path=None, config_name=None)
-def main(cfg: DictConfig) -> None:
+def main(cfg: "DictConfig") -> None:
     """Run benchmark for an agent on an environment."""
 
     if not cfg.get("all_agents", False) and not cfg.get("agent"):
@@ -41,7 +41,7 @@ def main(cfg: DictConfig) -> None:
 
     game = cfg.game
     env_backend = cfg.get("env_backend", None)
-    device = cfg.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+    device = cfg.get("device", default_device_name())
     seeds = parse_seeds(str(cfg.get("seeds", "1")))
     episodes = int(cfg.get("episodes", 5))
     checkpoint = cfg.get("checkpoint", None)
@@ -86,3 +86,16 @@ def main(cfg: DictConfig) -> None:
         )
 
         print("Benchmark finished. Results written to:", out_dir)
+
+
+def run() -> None:
+    """Hydra entry point. Hydra and OmegaConf are imported only here so that
+    ``torchwm benchmark`` (which just needs :data:`AGENTS`) works without them.
+    """
+    import hydra
+
+    hydra.main(version_base=None, config_path=None, config_name=None)(main)()
+
+
+if __name__ == "__main__":
+    run()

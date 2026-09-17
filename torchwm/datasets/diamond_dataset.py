@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Dict, Tuple
 import torch
+from torchwm.utils.device import default_device_name
 
 
 def to_model_domain(frames: torch.Tensor) -> torch.Tensor:
@@ -33,7 +34,7 @@ class ReplayBuffer:
         capacity: int = 1000,
         obs_shape: Tuple[int, int, int] = (64, 64, 3),
         action_dim: int = 1,
-        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        device: str = default_device_name(),
     ):
         self.capacity = capacity
         self.obs_shape = obs_shape

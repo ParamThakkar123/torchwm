@@ -55,13 +55,15 @@ class Genie(nn.Module):
         action_decoder_dim: int = 1024,
         dynamics_dim: int = 5120,
         dynamics_depth: int = 48,
-        dynamics_num_heads: int = 36,
+        dynamics_num_heads: int = 40,
         encoder_depth: int = 12,
         decoder_depth: int = 20,
         latent_action_depth: int = 20,
         use_bfloat16: bool = False,
         action_pooling: Literal["mean", "windowed_attention"] = "mean",
         window_attention_heads: int = 1,
+        tokenizer_num_heads: int = 16,
+        action_num_heads: int = 16,
     ):
         super().__init__()
         self.num_frames = num_frames
@@ -79,10 +81,13 @@ class Genie(nn.Module):
             tokenizer_decoder_dim=tokenizer_decoder_dim,
             tokenizer_encoder_depth=encoder_depth,
             tokenizer_decoder_depth=decoder_depth,
+            tokenizer_num_heads=tokenizer_num_heads,
             action_vocab_size=action_vocab_size,
             action_embedding_dim=action_embedding_dim,
             action_encoder_dim=action_encoder_dim,
+            action_decoder_dim=action_decoder_dim,
             action_encoder_depth=latent_action_depth,
+            action_num_heads=action_num_heads,
             dynamics_dim=dynamics_dim,
             dynamics_depth=dynamics_depth,
             dynamics_num_heads=dynamics_num_heads,
@@ -99,7 +104,7 @@ class Genie(nn.Module):
             decoder_dim=tokenizer_decoder_dim,
             encoder_depth=encoder_depth,
             decoder_depth=decoder_depth,
-            num_heads=16,
+            num_heads=tokenizer_num_heads,
             patch_size=4,
             vocab_size=tokenizer_vocab_size,
             embedding_dim=tokenizer_embedding_dim,
@@ -115,7 +120,7 @@ class Genie(nn.Module):
             decoder_dim=action_decoder_dim,
             encoder_depth=latent_action_depth,
             decoder_depth=latent_action_depth,
-            num_heads=16,
+            num_heads=action_num_heads,
             patch_size=16,
             vocab_size=action_vocab_size,
             embedding_dim=action_embedding_dim,
@@ -157,26 +162,7 @@ class Genie(nn.Module):
             args = apply_config_overrides(config, overrides)
         else:
             args = apply_config_overrides(coerce_config(GenieConfig, config), overrides)
-        return cls(
-            num_frames=args.num_frames,
-            image_size=args.image_size,
-            in_channels=args.in_channels,
-            tokenizer_vocab_size=args.tokenizer_vocab_size,
-            tokenizer_embedding_dim=args.tokenizer_embedding_dim,
-            tokenizer_encoder_dim=args.tokenizer_encoder_dim,
-            tokenizer_decoder_dim=args.tokenizer_decoder_dim,
-            action_vocab_size=args.action_vocab_size,
-            action_embedding_dim=args.action_embedding_dim,
-            action_encoder_dim=args.action_encoder_dim,
-            encoder_depth=args.tokenizer_encoder_depth,
-            decoder_depth=args.tokenizer_decoder_depth,
-            latent_action_depth=args.action_encoder_depth,
-            dynamics_dim=args.dynamics_dim,
-            dynamics_depth=args.dynamics_depth,
-            dynamics_num_heads=args.dynamics_num_heads,
-            action_pooling=args.action_pooling,
-            window_attention_heads=args.window_attention_heads,
-        )
+        return cls(**genie_kwargs_from_config(args))
 
     @classmethod
     def from_pretrained(
@@ -607,6 +593,43 @@ class Genie(nn.Module):
         return sum(p.numel() for p in self.parameters())
 
 
+
+def genie_kwargs_from_config(
+    config: GenieConfig | GenieSmallConfig | dict[str, Any],
+) -> dict[str, Any]:
+    """Map a Genie config onto :class:`Genie` constructor keyword arguments.
+
+    The config and constructor name several fields differently (for example
+    ``tokenizer_encoder_depth`` -> ``encoder_depth``), so filtering the config
+    by parameter name silently drops them and builds those components at the
+    constructor defaults. Every construction path goes through this mapping.
+    """
+    if not isinstance(config, (GenieConfig, GenieSmallConfig)):
+        config = coerce_config(GenieConfig, config)
+    return dict(
+        num_frames=config.num_frames,
+        image_size=config.image_size,
+        in_channels=config.in_channels,
+        tokenizer_vocab_size=config.tokenizer_vocab_size,
+        tokenizer_embedding_dim=config.tokenizer_embedding_dim,
+        tokenizer_encoder_dim=config.tokenizer_encoder_dim,
+        tokenizer_decoder_dim=config.tokenizer_decoder_dim,
+        action_vocab_size=config.action_vocab_size,
+        action_embedding_dim=config.action_embedding_dim,
+        action_encoder_dim=config.action_encoder_dim,
+        action_decoder_dim=config.action_decoder_dim,
+        encoder_depth=config.tokenizer_encoder_depth,
+        decoder_depth=config.tokenizer_decoder_depth,
+        latent_action_depth=config.action_encoder_depth,
+        dynamics_dim=config.dynamics_dim,
+        dynamics_depth=config.dynamics_depth,
+        dynamics_num_heads=config.dynamics_num_heads,
+        action_pooling=config.action_pooling,
+        window_attention_heads=config.window_attention_heads,
+        tokenizer_num_heads=config.tokenizer_num_heads,
+        action_num_heads=config.action_num_heads,
+    )
+
 def create_genie(
     num_frames: int = 16,
     image_size: int = 64,
@@ -617,7 +640,7 @@ def create_genie(
     action_embedding_dim: int = 32,
     dynamics_dim: int = 5120,
     dynamics_depth: int = 48,
-    dynamics_num_heads: int = 36,
+    dynamics_num_heads: int = 40,
     use_bfloat16: bool = False,
     action_pooling: Literal["mean", "windowed_attention"] = "mean",
     window_attention_heads: int = 1,
@@ -692,7 +715,7 @@ def create_genie_large(
         action_decoder_dim=1024,
         dynamics_dim=5120,
         dynamics_depth=48,
-        dynamics_num_heads=36,
+        dynamics_num_heads=40,
         encoder_depth=12,
         decoder_depth=20,
         latent_action_depth=20,

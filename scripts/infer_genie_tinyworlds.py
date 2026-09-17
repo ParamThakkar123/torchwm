@@ -68,7 +68,7 @@ def main():
         trainer.load_checkpoint(str(ckpt_path))
         print(f"Loaded full trainer checkpoint from {ckpt_path}")
     except Exception:
-        state = torch.load(str(ckpt_path), map_location=device)
+        state = torch.load(str(ckpt_path), map_location=device, weights_only=True)
         if "model_state_dict" in state:
             model.load_state_dict(state["model_state_dict"])
             print(f"Loaded model_state_dict from checkpoint {ckpt_path}")

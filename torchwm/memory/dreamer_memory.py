@@ -85,21 +85,37 @@ class ReplayBuffer:
         self.actions = np.empty((size, action_size), dtype=np.float32)
         self.rewards = np.empty((size,), dtype=np.float32)
         self.terminals = np.empty((size,), dtype=np.float32)
+        # `terminals` marks every episode boundary (used to reset recurrent
+        # state); `terminated` marks only true environment terminations. A
+        # time-limit truncation is a boundary but not a termination, so it must
+        # not teach the discount head that the episode ended.
+        self.terminated = np.empty((size,), dtype=np.float32)
         self.steps, self.episodes = 0, 0
 
-    def add(self, obs: dict, ac: np.ndarray, rew: float, done: float) -> None:
+    def add(
+        self,
+        obs: dict,
+        ac: np.ndarray,
+        rew: float,
+        done: float,
+        terminated: float | None = None,
+    ) -> None:
         """Add a transition to the buffer.
 
         Args:
             obs: Observation dict with 'image' key containing the observation
             ac: Action taken, shape (action_size,)
             rew: Reward received, scalar
-            done: Terminal flag, 1.0 if episode ended, 0.0 otherwise
+            done: Episode-boundary flag, 1.0 if the episode ended for any
+                reason (termination or truncation), 0.0 otherwise
+            terminated: 1.0 only if the environment genuinely terminated.
+                Defaults to ``done`` when the caller cannot tell the two apart.
         """
         self.observations[self.idx] = obs["image"]
         self.actions[self.idx] = ac
         self.rewards[self.idx] = rew
         self.terminals[self.idx] = done
+        self.terminated[self.idx] = done if terminated is None else terminated
         self.idx = (self.idx + 1) % self.size
         self.full = self.full or self.idx == 0
         self.steps += 1
@@ -166,21 +182,28 @@ class ReplayBuffer:
             self.terminals[vec_idxs].reshape(L, n),
         )
 
-    def sample(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def sample(self, include_terminated: bool = False) -> tuple[np.ndarray, ...]:
         """Sample a batch of sequences for training.
 
+        Args:
+            include_terminated: Also return the true-termination flags as a
+                fifth element.
+
         Returns:
-            tuple: (observations, actions, rewards, terminals)
+            tuple: (observations, actions, rewards, terminals[, terminated])
                 - observations: (seq_len, batch, C, H, W)
                 - actions: (seq_len, batch, action_dim)
                 - rewards: (seq_len, batch)
-                - terminals: (seq_len, batch)
+                - terminals: (seq_len, batch) episode boundaries
+                - terminated: (seq_len, batch) true terminations only
         """
         n = self.batch_size
         L = self.seq_len
-        obs, acs, rews, terms = self._retrieve_batch(
-            np.asarray([self._sample_idx(L) for _ in range(n)]), n, L
-        )
+        idxs = np.asarray([self._sample_idx(L) for _ in range(n)])
+        obs, acs, rews, terms = self._retrieve_batch(idxs, n, L)
+        if include_terminated:
+            vec_idxs = idxs.transpose().reshape(-1)
+            return obs, acs, rews, terms, self.terminated[vec_idxs].reshape(L, n)
         return obs, acs, rews, terms
 
 

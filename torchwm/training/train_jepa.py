@@ -42,9 +42,10 @@ from torchwm.experiments import (
     parse_experiment_args,
 )
 
+# Imported on first use by `_require_wandb`, not at module load: a W&B install
+# that is present but broken would otherwise make this whole module (and every
+# test that imports it) unusable even with W&B logging turned off.
 _wandb: ModuleType | None = None
-if importlib.util.find_spec("wandb") is not None:
-    _wandb = importlib.import_module("wandb")
 
 log_timings = True
 log_freq = 10
@@ -99,11 +100,14 @@ def build_loss_fn(loss_type: str) -> Any:
 
 def _require_wandb() -> Any:
     """Return the wandb module, or explain how to install the ``ml`` extra."""
+    global _wandb
     if _wandb is None:
-        raise ImportError(
-            "Weights & Biases is required for JEPA sweeps. "
-            "Install it with `pip install torchwm[ml]`."
-        )
+        if importlib.util.find_spec("wandb") is None:
+            raise ImportError(
+                "Weights & Biases is required for JEPA sweeps. "
+                "Install it with `pip install torchwm[ml]`."
+            )
+        _wandb = importlib.import_module("wandb")
     return _wandb
 
 
@@ -142,12 +146,14 @@ def main(args: Any = None, resume_preempt: bool = False) -> Any:
     pred_depth = args["meta"]["pred_depth"]
     pred_emb_dim = args["meta"]["pred_emb_dim"]
     loss_fn = build_loss_fn(args["meta"].get("loss_type", "l2"))
-    if torch.cuda.is_available():
+    from torchwm.utils.device import get_default_device
+
+    device = get_default_device()
+    if device.type == "cuda":
         device = torch.device("cuda:0")
         torch.cuda.set_device(device)
-    else:
-        device = torch.device("cpu")
-        print("WARNING: CUDA not available, using CPU")
+    elif device.type == "cpu":
+        print("WARNING: no GPU (CUDA or MPS) available, using CPU")
 
     # -- DATA
     use_gaussian_blur = args["data"]["use_gaussian_blur"]

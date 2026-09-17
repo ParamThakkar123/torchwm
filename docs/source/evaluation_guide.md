@@ -19,7 +19,7 @@ not just DIAMOND.
 
 ```python
 import torch
-from evals import FID, FVD, LPIPS
+from torchwm.evals import FID, FVD, LPIPS
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -124,7 +124,7 @@ where:
 ### Usage
 
 ```python
-from evals import FID
+from torchwm.evals import FID
 
 fid = FID(device=device, batch_size=64)
 
@@ -174,7 +174,7 @@ that processes spatiotemporal volumes.
 ### Usage
 
 ```python
-from evals import FVD
+from torchwm.evals import FVD
 
 fvd = FVD(device=device, batch_size=16, clip_length=16)
 
@@ -227,7 +227,7 @@ learned per-channel weights (uniform in our implementation).
 ### Usage
 
 ```python
-from evals import LPIPS
+from torchwm.evals import LPIPS
 
 lpips = LPIPS(device=device, batch_size=64)
 
@@ -250,10 +250,10 @@ score = lpips(images_a, images_b)
 
 ## Python API Reference
 
-### ``evals`` Package
+### ``torchwm.evals`` Package
 
 ```
-evals/
+torchwm/evals/
   __init__.py     # Exports FID, FVD, LPIPS
   fid.py          # Fréchet Inception Distance
   fvd.py          # Fréchet Video Distance
@@ -286,7 +286,7 @@ evals/
 
 ## Model-Specific Evaluation Scripts
 
-### DIAMOND (`scripts/eval_diamond.py`)
+### DIAMOND (`torchwm/inference/eval_diamond.py`)
 
 The DIAMOND eval script provides a full evaluation pipeline:
 
@@ -302,15 +302,15 @@ The DIAMOND eval script provides a full evaluation pipeline:
 
 To add evaluation for a new model:
 
-1. Create `scripts/eval_<model>.py` with a `run_eval()` function matching the
+1. Create `torchwm/inference/eval_<model>.py` with a `run_eval()` function matching the
    signature in {doc}`cli`.
 2. Register it in `EVAL_MODULES` in `torchwm/cli.py`:
 
 ```python
 EVAL_MODULES = {
-    "diamond": "scripts.eval_diamond",
+    "diamond": "torchwm.inference.eval_diamond",
     "jepa": "torchwm.training.eval_jepa",
-    "my_model": "scripts.eval_my_model",
+    "my_model": "torchwm.inference.eval_my_model",
 }
 ```
 
@@ -322,7 +322,7 @@ The `torchwm eval` command will then accept `--model my_model`.
 
 ### Trajectory Collection Utilities
 
-The `evals.diamond_utils` module provides helper functions for DIAMOND evaluation:
+The `torchwm.evals.diamond_utils` module provides helper functions for DIAMOND evaluation:
 
 - `generate_trajectories()` — autoregressively generates frames from a diffusion model
   conditioned on real trajectory data.

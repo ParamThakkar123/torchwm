@@ -1,4 +1,5 @@
 import torch
+from torchwm.utils.device import default_device_name
 import numpy as np
 from collections import defaultdict
 import os
@@ -94,7 +95,9 @@ class IRISTrainer:
                 using the config's action-repeat and sticky-action settings.
         """
         self.game = game
-        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
+        from torchwm.utils.device import resolve_device
+
+        self.device = resolve_device(device)
         self.seed = seed
 
         # Set seeds
@@ -655,7 +658,7 @@ def main(argv: list[str] | None = None) -> IRISConfig:
     config = update_config_object(config, values)
 
     game = runtime.get("game", config.env)
-    device = runtime.get("device") or ("cuda" if torch.cuda.is_available() else "cpu")
+    device = runtime.get("device") or default_device_name()
     seed = int(runtime.get("seed", 42))
     total_epochs = int(runtime.get("epochs", config.total_epochs))
     save_dir = runtime.get("save_dir", "checkpoints/iris")

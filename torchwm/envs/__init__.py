@@ -190,10 +190,12 @@ def __getattr__(name: str) -> Any:
         }
         return _map[name]
 
-    if name == "DeepMindControlEnv":
-        from .dmc import DeepMindControlEnv
+    if name in ("DeepMindControlEnv", "make_dmc_env"):
+        from .dmc import DeepMindControlEnv, make_dmc_env
 
-        return DeepMindControlEnv
+        if name == "DeepMindControlEnv":
+            return DeepMindControlEnv
+        return make_dmc_env
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -224,6 +226,10 @@ def make_env(env_id: str, **kwargs: Any) -> Any:
         from .procgen_env import make_procgen_env
 
         return make_procgen_env(env_id, **kwargs)
+    if backend in {"dmc", "dm_control", "dm-control", "deepmind_control"}:
+        from .dmc import make_dmc_env
+
+        return make_dmc_env(env_id, **kwargs)
 
     try:
         from .gym_env import make_gym_env
@@ -275,6 +281,8 @@ def make_env(env_id: str, **kwargs: Any) -> Any:
 
 
 __all__ = [
+    "DeepMindControlEnv",
+    "make_dmc_env",
     "make_atari_env",
     "list_available_atari_envs",
     "make_atari_vector_env",

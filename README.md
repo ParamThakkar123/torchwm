@@ -23,7 +23,7 @@ pip install torchwm
 # With extras
 pip install torchwm[gym]       # Gym/Gymnasium environments (runnable quick start)
 pip install torchwm[dmc]       # DeepMind Control Suite (walker-walk, cheetah-run, ...)
-pip install torchwm[procgen]   # Procgen benchmark environments
+pip install torchwm[worldmodels] # Classic World Models (ConvVAE + CMA-ES controller)
 pip install torchwm[ml-agents] # Unity ML-Agents
 pip install torchwm[ml]        # TensorBoard, W&B logging
 pip install torchwm[viz]       # Latent-space visualization (plotly, UMAP)
@@ -47,11 +47,14 @@ base `pip install torchwm[gym]` — no simulator downloads required:
 import torchwm
 
 # Trains a Dreamer agent on a Gymnasium task. Bump `total_steps` for real runs.
+# `seed_steps` of random play come first and count towards `total_steps`; the
+# final checkpoint is written to `<logdir>/ckpts/` when training finishes.
 agent = torchwm.create_model(
     "dreamer",
     env="Pendulum-v1",
     env_backend="gym",
-    total_steps=5_000,
+    seed_steps=1_000,
+    total_steps=10_000,
 )
 agent.train()
 ```

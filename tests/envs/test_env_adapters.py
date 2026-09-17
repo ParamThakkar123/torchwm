@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import torch
 
-gym = pytest.importorskip("gym")
+gym = pytest.importorskip("gymnasium")
 
 from torchwm.configs.dreamer_config import DreamerConfig  # noqa: E402
 from torchwm.envs.gym_env import GymImageEnv  # noqa: E402

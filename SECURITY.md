@@ -23,7 +23,7 @@ Please do **not** report security vulnerabilities through public GitHub issues, 
 
 ## Scope
 
-TorchWM uses `torch.load(weights_only=True)` by default and `subprocess.run(shell=False)` throughout the codebase. However, if you find any code path that deviates from these patterns, please report it.
+Every `torch.load` in TorchWM, including the `torchwm eval` / `torchwm play` entry points, the scripts in `scripts/` and the demos in `demos/`, passes `weights_only=True`, and subprocesses run with `subprocess.run(shell=False)`. Only open checkpoints from sources you trust all the same. If you find any code path that deviates from these patterns, please report it.
 
 ## Supported Versions
 

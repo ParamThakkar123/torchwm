@@ -647,6 +647,15 @@ class ModularRSSM(nn.Module):
         obs: torch.Tensor,
         nonterm: Any = 1.0,
     ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
+        """Encode ``obs`` and advance one step.
+
+        Returns:
+            ``(prior, posterior)``. Note the order: the core Dreamer
+            :meth:`torchwm.models.dreamer_rssm.RSSM.observe_step` returns
+            ``(posterior, prior)``. Both states have identical keys, so mixing
+            them up raises no error; the posterior is the one that has seen
+            ``obs`` and is what should be acted on and carried forward.
+        """
         obs_embed = self.encoder(obs)
         prior, posterior = self.backbone.forward(
             prev_state, prev_action, obs_embed, nonterm

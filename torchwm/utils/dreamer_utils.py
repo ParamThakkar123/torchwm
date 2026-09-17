@@ -231,28 +231,25 @@ class Logger:
                 )
                 videos[i] = np.concatenate([videos[i], padding], 0)
 
+            video_u8 = _video_to_uint8(videos[i])
             if format.lower() == "mp4":
                 import cv2
 
-                # Convert to uint8 HWC BGR for OpenCV
-                video_u8 = (videos[i] * 255).astype(np.uint8)
-                if video_u8.shape[-1] == 3:  # RGB to BGR
+                # OpenCV writes BGR
+                if video_u8.shape[-1] == 3:
                     video_u8 = video_u8[..., ::-1]
                 new_video_title = video_title + "{}_{}".format(step, i) + ".mp4"
                 filename = os.path.join(self._log_dir, new_video_title)
                 height, width = video_u8.shape[1], video_u8.shape[2]
                 fourcc = getattr(cv2, "VideoWriter_fourcc")(*"mp4v")
                 out = cv2.VideoWriter(filename, fourcc, fps, (width, height))
-                for frame in video_u8:
+                for frame in np.ascontiguousarray(video_u8):
                     out.write(frame)
                 out.release()
             else:  # gif
-                import moviepy as mpy
-
-                clip = mpy.ImageSequenceClip(list(videos[i]), fps=fps)
                 new_video_title = video_title + "{}_{}".format(step, i) + ".gif"
                 filename = os.path.join(self._log_dir, new_video_title)
-                clip.write_gif(filename, fps=fps)
+                _write_gif(video_u8, filename, fps)
 
             # Log to WandB
             if self.enable_wandb and self._wandb_run:
@@ -270,6 +267,42 @@ class Logger:
 
     def flush(self) -> None:
         self.metrics.flush()
+
+
+def _video_to_uint8(video: Any) -> np.ndarray:
+    """Return ``(T, H, W, C)`` uint8 frames from uint8 or [0, 1] float input.
+
+    Dreamer passes uint8 frames. Scaling those by 255 as if they were floats
+    wrapped every pixel around, so only float input is rescaled.
+    """
+    video = np.asarray(video)
+    if np.issubdtype(video.dtype, np.floating):
+        return (np.clip(video, 0.0, 1.0) * 255).round().astype(np.uint8)
+    return video.astype(np.uint8)
+
+
+def _write_gif(video_u8: np.ndarray, filename: str, fps: int) -> None:
+    """Write ``(T, H, W, C)`` uint8 frames to an animated GIF with Pillow.
+
+    Pillow is already a torchvision dependency. The previous moviepy writer was
+    an undeclared dependency, and moviepy's Pillow cap conflicts with the
+    patched Pillow release TorchWM requires.
+    """
+    from PIL import Image
+
+    frames = [
+        Image.fromarray(frame[..., 0] if frame.shape[-1] == 1 else frame)
+        for frame in video_u8
+    ]
+    if not frames:
+        return
+    frames[0].save(
+        filename,
+        save_all=True,
+        append_images=frames[1:],
+        duration=max(1, int(round(1000 / max(1, fps)))),
+        loop=0,
+    )
 
 
 def compute_return(

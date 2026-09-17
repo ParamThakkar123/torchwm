@@ -44,18 +44,30 @@ class RecurrentStateSpaceModel(nn.Module):
         h_t: torch.Tensor | None = None,
         s_t: torch.Tensor | None = None,
         a_t: torch.Tensor | None = None,
-        mean: bool = False,
+        mean: bool | None = None,
+        *,
+        sample: bool | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Returns the initial posterior given the observation."""
+        """Returns the next deterministic state and the posterior latent.
+
+        By default the latent is the posterior *mean*. Pass ``sample=True`` to
+        draw it from the posterior instead. ``mean`` is the old, inverted name
+        for that flag (``mean=True`` used to *sample*); it is still accepted
+        with its old meaning so existing callers keep their behaviour.
+        """
+        if sample is None:
+            sample = bool(mean)
         N, dev = enc.size(0), enc.device
         h_t = torch.zeros(N, self.state_size).to(dev) if h_t is None else h_t
         s_t = torch.zeros(N, self.latent_size).to(dev) if s_t is None else s_t
         a_t = torch.zeros(N, self.action_size).to(dev) if a_t is None else a_t
         h_tp1 = self.deterministic_state_fwd(h_t, s_t, a_t)
-        if mean:
-            s_tp1 = self.state_posterior(h_t, enc, sample=True)
+        # Condition the posterior on the updated deterministic state, exactly as
+        # training does; using h_t paired s_tp1 with a stale hidden state.
+        if sample:
+            s_tp1 = self.state_posterior(h_tp1, enc, sample=True)
         else:
-            s_tp1, _ = self.state_posterior(h_t, enc)
+            s_tp1, _ = self.state_posterior(h_tp1, enc)
         return h_tp1, s_tp1  # type: ignore[return-value]
 
     def deterministic_state_fwd(
@@ -107,7 +119,7 @@ class RecurrentStateSpaceModel(nn.Module):
         s = F.softplus(self.fc_prior_s(z)) + 0.1
         s = torch.clamp(s, min=1e-6, max=10.0)
         if sample:
-            return m + torch.rand_like(m) * s
+            return m + torch.randn_like(m) * s
         return m, s
 
     def state_posterior(
@@ -120,7 +132,7 @@ class RecurrentStateSpaceModel(nn.Module):
         s = F.softplus(self.fc_posterior_s(z)) + 0.1
         s = torch.clamp(s, min=1e-6, max=10.0)
         if sample:
-            return m + torch.rand_like(m) * s
+            return m + torch.randn_like(m) * s
         return m, s
 
     def pred_reward(self, h_t: torch.Tensor, s_t: torch.Tensor) -> torch.Tensor:
@@ -135,7 +147,7 @@ class RecurrentStateSpaceModel(nn.Module):
         states, latents = [], []
         for a_t in torch.unbind(act, dim=0):
             h_t = self.deterministic_state_fwd(h_t, s_t, a_t)
-            s_t = self.state_prior(h_t)  # type: ignore[assignment]
+            s_t = self.state_prior(h_t, sample=True)  # type: ignore[assignment]
             states.append(h_t)
             latents.append(s_t)
         return torch.stack(states), torch.stack(latents)

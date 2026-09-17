@@ -716,6 +716,7 @@ class DiT(nn.Module):
         early_stopping: bool = False,
         patience: int = 10,
         min_delta: float = 1e-4,
+        checkpoint_every: int = 0,
     ) -> None:
         if torch.cuda.is_available():
             device = torch.device("cuda")
@@ -1014,6 +1015,16 @@ class DiT(nn.Module):
                         f"improved by {min_delta} for {patience} epochs."
                     )
                     break
+
+            # Until this existed, weights were written only after the whole
+            # epoch loop returned, so a run stopped at epoch 399 of 400 -- by a
+            # timeout, an OOM or Ctrl+C -- left nothing on disk at all.
+            if checkpoint_every > 0 and (epoch + 1) % checkpoint_every == 0:
+                os.makedirs(workdir, exist_ok=True)
+                periodic = ema_model if ema_model is not None else model
+                periodic_path = Path(workdir) / f"dit_model_epoch{epoch + 1}.pth"
+                torch.save(periodic.state_dict(), periodic_path)
+                print(f"Wrote {periodic_path}")
         print("Training Complete.")
 
         os.makedirs(workdir, exist_ok=True)

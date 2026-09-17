@@ -119,6 +119,8 @@ Training length (override the preset, for real runs):
 Run control:
   --device NAME        cpu / cuda / cuda:0. Passed to every model that takes one.
   --steps N            Inference frames to record per model (default: 120).
+                       For diamond and dreamer it also sets the length of the
+                       imagined clip; for iris it is the per-episode cap.
   --seed N             Seed for training and inference (default: 0).
   --timeout SECONDS    Kill any stage that runs longer (0 = no limit). Needs
                        coreutils timeout. Useful for planet/rssm, which have no
@@ -143,6 +145,10 @@ DiT trains on CIFAR-10, which also downloads itself; it needs no data flag.
 Output:
   --ckpt-root PATH     Where checkpoints are written (default: ./checkpoints).
   --out-dir PATH       Where videos and logs land (default: ./results/model_runs).
+                       An index.html gallery of every recorded clip is written
+                       here at the end of the sweep. An inference stage that
+                       exits 0 without writing anything is reported as NO-DEMO
+                       and counts as a failure.
 
 Environment:
   --no-sync            Skip uv sync; use the environment as-is.
@@ -400,14 +406,20 @@ build_train_cmd() {
 
     case "${model}" in
         diamond)
-            CMD=("${RUNNER[@]}" -m torchwm.training.train_diamond "seed=${SEED}")
+            CMD=("${RUNNER[@]}" -m torchwm.training.train_diamond "seed=${SEED}"
+                 "checkpoint_dir=${CKPT_ROOT}/diamond")
             case "${PRESET}" in
                 tiny)
+                    # max_episode_steps caps the *evaluation* rollout. Left at
+                    # its Atari default of 27000 an untrained policy that has
+                    # not learnt to fire the ball never terminates the episode,
+                    # so a preset advertised as "minutes" spent all of its time
+                    # in evaluate() and never reached the first checkpoint.
                     CMD+=(preset=small num_epochs=2 training_steps_per_epoch=2
                           environment_steps_per_epoch=64 batch_size=2
                           num_sampling_steps=1 use_amp=false
                           data_loader_num_workers=0 pin_memory=false
-                          persistent_workers=false
+                          persistent_workers=false max_episode_steps=200
                           save_interval=1 eval_interval=1 log_interval=1)
                     ;;
                 small)
@@ -455,6 +467,11 @@ build_train_cmd() {
                 tiny)
                     # Scale levers only. tokens_per_frame, imagination_horizon,
                     # burn_in_length and every loss weight stay at paper values.
+                    # max_episode_steps caps the evaluation rollout. At the
+                    # Atari default of 27000 a single untrained Pong episode
+                    # runs longer than the entire rest of this preset, and IRIS
+                    # evaluates three times (epoch 0, epoch 1, and the final
+                    # benchmark pass).
                     CMD+=(epochs=2 collection_epochs=1 env_steps_per_epoch=64
                           training_steps_per_epoch=2 transformer_steps_per_epoch=2
                           actor_critic_steps_per_epoch=2
@@ -463,6 +480,7 @@ build_train_cmd() {
                           start_autoencoder_after=0 start_transformer_after=0
                           start_actor_critic_after=0
                           checkpoint_interval=1 eval_episodes=1
+                          max_episode_steps=200
                           max_env_steps=128 use_amp=false)
                     ;;
                 small)
@@ -482,11 +500,28 @@ build_train_cmd() {
                      "checkpoint_dir=${CKPT_ROOT}/genie")
                 case "${PRESET}" in
                     tiny)
+                        # GenieSmallConfig is 462M parameters, and batch_size=1
+                        # does not change that -- the tiny preset OOMed on a 4GB
+                        # card before the architecture came down too. These are
+                        # width/depth only; the method (MaskGIT schedule, latent
+                        # action vocabulary, mask probabilities) is untouched.
                         CMD+=(max_steps=20 batch_size=1 num_frames=8
-                              num_workers=0 log_interval=5 val_interval=1000000)
+                              num_workers=0 log_interval=5 val_interval=1000000
+                              image_size=32
+                              tokenizer_encoder_dim=64 tokenizer_decoder_dim=64
+                              tokenizer_encoder_depth=1 tokenizer_decoder_depth=1
+                              tokenizer_num_heads=2
+                              action_encoder_dim=64 action_decoder_dim=64
+                              action_encoder_depth=1 action_num_heads=2
+                              dynamics_dim=64 dynamics_depth=1
+                              dynamics_num_heads=2
+                              checkpoint_interval=10)
                         ;;
-                    small) CMD+=(max_steps=5000 batch_size=2 log_interval=100) ;;
-                    paper) CMD+=(max_steps=50000) ;;
+                    small)
+                        CMD+=(max_steps=5000 batch_size=2 log_interval=100
+                              checkpoint_interval=500)
+                        ;;
+                    paper) CMD+=(max_steps=50000 checkpoint_interval=5000) ;;
                 esac
                 if [ -n "${GENIE_DATA_FILE}" ]; then
                     CMD+=("data_file=${GENIE_DATA_FILE}")
@@ -508,10 +543,19 @@ build_train_cmd() {
             CMD=("${RUNNER[@]}" -m torchwm.training.train_jepa)
             case "${PRESET}" in
                 tiny)
+                    # batch_size is the only lever on run length here: I-JEPA
+                    # has no per-epoch step cap, so "one epoch" is the whole
+                    # dataset. At batch 2 that is 25000 iterations over
+                    # CIFAR-10 -- about an hour, for a preset meant to take
+                    # minutes -- and since weights are only written at the end
+                    # of an epoch, a --timeout mid-epoch leaves nothing behind.
+                    # The per-step overhead (mask collation, an EMA pass over
+                    # every parameter) dominates at this size, so a larger
+                    # batch cuts wall-clock roughly proportionally.
                     CMD+=(meta.model_name=vit_tiny meta.use_bfloat16=false
-                          data.batch_size=2 data.num_workers=0
+                          data.batch_size=64 data.num_workers=0
                           optimization.epochs=1 optimization.warmup=0)
-                    NOTE="one epoch over ${JEPA_DATA:-the dataset}; bound it with --timeout"
+                    NOTE="one epoch over ${JEPA_DATA:-the dataset}"
                     ;;
                 small) CMD+=(--config "${EXP_DIR}/jepa_small_gpu.yaml") ;;
                 paper) CMD+=(--config "${EXP_DIR}/jepa.yaml") ;;
@@ -538,8 +582,21 @@ build_train_cmd() {
             fi
             ;;
 
-        planet|rssm)
-            CMD=("${RUNNER[@]}" -m "torchwm.training.train_${model}")
+        planet)
+            CMD=("${RUNNER[@]}" -m torchwm.training.train_planet
+                 --outdir "${CKPT_ROOT}/planet")
+            case "${PRESET}" in
+                # Episode length is left alone: the trainer samples 50-step
+                # traces, so anything under that leaves nothing to sample.
+                tiny)  CMD+=(--epochs 1 --iters 5) ;;
+                small) CMD+=(--epochs 10 --iters 50) ;;
+                paper) ;;
+            esac
+            [ -n "${DEVICE}" ] && CMD+=(--device "${DEVICE}")
+            ;;
+
+        rssm)
+            CMD=("${RUNNER[@]}" -m torchwm.training.train_rssm)
             NOTE="no CLI knobs; length is fixed in the module -- use --timeout"
             ;;
 
@@ -573,8 +630,10 @@ build_train_cmd() {
                  "ROOT_PATH=${REPO_ROOT}/data")
             case "${PRESET}" in
                 tiny)  CMD+=(EPOCHS=1 BATCH=32 WIDTH=128 DEPTH=4 HEADS=4 EMA=false) ;;
-                small) CMD+=(EPOCHS=50 BATCH=128) ;;
-                paper) CMD+=(EPOCHS=400) ;;
+                small) CMD+=(EPOCHS=50 BATCH=128 CHECKPOINT_EVERY=10) ;;
+                # 400 epochs is days of GPU time; without an interval the only
+                # write is after the last one.
+                paper) CMD+=(EPOCHS=400 CHECKPOINT_EVERY=25) ;;
             esac
             [ -n "${DEVICE}" ] && NOTE="DiT.fit selects its own device; --device ignored"
             ;;
@@ -657,7 +716,12 @@ build_infer_cmd() {
             fi
             CMD+=(--checkpoint "${checkpoint}")
             [ "${model}" = "iris" ] && CMD+=(--episodes 1)
-            [ "${model}" = "diamond" ] && CMD+=(--dream-steps "${STEPS}")
+            # Both of these can imagine forward as well as act, and the
+            # imagined clip is the one that shows the world model rather than
+            # the policy. Recorded next to the real rollout, and stitched.
+            case "${model}" in
+                diamond|dreamer) CMD+=(--dream-steps "${STEPS}") ;;
+            esac
             ;;
         genie|dit|jepa)
             # These demos run without weights, so an untrained sweep still
@@ -704,7 +768,7 @@ if [ "${LIST_ONLY}" -eq 1 ]; then
                     notes="TinyWorlds ${GENIE_DATASET} (downloads)"
                 fi
                 ;;
-            planet|rssm) notes="fixed length; use --timeout" ;;
+            rssm)   notes="fixed length; use --timeout" ;;
         esac
         printf '%-14s %-7s %-7s %s\n' "${model}" "${trainable}" "${inferable}" "${notes}"
     done
@@ -783,12 +847,36 @@ fi
 # ------------------------------------------------------------------- execution
 
 ROWS=()
+ARTIFACTS=()
 FAILURES=0
 ABORTED=0
 
 record_row() {
     # model | stage | status | duration | detail
     ROWS+=("$1|$2|$3|$4|$5")
+}
+
+# Demo files an inference stage wrote. Recorded as "model|path" so the gallery
+# at the end can group them, and counted so a stage that exits 0 without
+# producing anything is reported rather than passing silently -- a recorder
+# whose writer fails on the last frame still returns 0.
+#
+# Detection is by mtime against a marker touched immediately before the stage,
+# not by comparing directory listings: a re-run overwrites the same filenames,
+# so a listing diff would call every repeat run empty.
+STAGE_MARKER="${LOG_DIR:-.}/.stage_marker"
+VIDEO_DIR="${OUT_DIR}/videos"
+
+mark_stage_start() {
+    [ "${DRY_RUN}" -eq 1 ] && return 0
+    : > "${STAGE_MARKER}"
+}
+
+# Echoes one path per line; empty when the stage wrote nothing.
+stage_artifacts() {
+    [ -d "${VIDEO_DIR}" ] || return 0
+    [ -f "${STAGE_MARKER}" ] || return 0
+    find "${VIDEO_DIR}" -type f -newer "${STAGE_MARKER}" 2>/dev/null | LC_ALL=C sort
 }
 
 # Ctrl+C must end the sweep, not just the stage it lands on. Without this,
@@ -838,6 +926,7 @@ run_stage() {
         return 0
     fi
 
+    mark_stage_start
     local start=${SECONDS} status=0
     set +e
     "${launch[@]}" 2>&1 | tee "${log}"
@@ -846,7 +935,33 @@ run_stage() {
     local elapsed=$((SECONDS - start))
 
     if [ "${status}" -eq 0 ]; then
-        record_row "${model}" "${stage}" "OK" "${elapsed}s" "${NOTE}"
+        if [ "${stage}" != "infer" ]; then
+            record_row "${model}" "${stage}" "OK" "${elapsed}s" "${NOTE}"
+            return 0
+        fi
+
+        # A recorder that exits 0 having written nothing is a failure of the
+        # demo, not a pass. Catching it here is the whole point of running the
+        # sweep rather than just the trainers.
+        local written count=0 file
+        written="$(stage_artifacts)"
+        if [ -n "${written}" ]; then
+            while IFS= read -r file; do
+                [ -n "${file}" ] || continue
+                ARTIFACTS+=("${model}|${file}")
+                count=$((count + 1))
+            done <<<"${written}"
+        fi
+
+        if [ "${count}" -eq 0 ]; then
+            FAILURES=$((FAILURES + 1))
+            record_row "${model}" "${stage}" "NO-DEMO" "${elapsed}s"                 "exited 0 but wrote nothing to ${VIDEO_DIR}"
+            echo ">> ${model} / ${stage}: exited 0 but produced no demo file" >&2
+            [ "${FAIL_FAST}" -eq 1 ] && return 1
+            return 0
+        fi
+
+        record_row "${model}" "${stage}" "OK" "${elapsed}s"             "${count} file(s)${NOTE:+; ${NOTE}}"
         return 0
     fi
 
@@ -911,10 +1026,121 @@ for row in ${ROWS[@]+"${ROWS[@]}"}; do
 done
 echo "===================================================================="
 
+# A gallery over everything the inference stages wrote, so the sweep ends with
+# something you can look at rather than a directory of loose files. Paths are
+# relative to the page, so the whole out-dir can be copied or served as-is.
+# Which model a demo file belongs to, by longest matching name prefix.
+model_for_file() {
+    local name="$1" candidate best=""
+    for candidate in ${ALL_MODELS} ${EXTRA_MODELS}; do
+        case "${name}" in
+            "${candidate}"*)
+                [ "${#candidate}" -gt "${#best}" ] && best="${candidate}"
+                ;;
+        esac
+    done
+    echo "${best:-other}"
+}
+
+# Demo files, ordered so each model's files stay together and the models come
+# out in the order the sweep runs them.
+gallery_files() {
+    local candidate file
+    [ -d "${VIDEO_DIR}" ] || return 0
+    for candidate in ${ALL_MODELS} ${EXTRA_MODELS} ""; do
+        for file in $(find "${VIDEO_DIR}" -maxdepth 1 -type f 2>/dev/null                       | LC_ALL=C sort); do
+            if [ "$(model_for_file "$(basename "${file}")")" = "${candidate:-other}" ]
+            then
+                echo "${file}"
+            fi
+        done
+    done
+}
+
+write_gallery() {
+    local page="${OUT_DIR}/index.html" model path rel size current=""
+
+    {
+        cat <<'HTML_HEAD'
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TorchWM model runs</title>
+<style>
+  :root { color-scheme: light dark; --fg: #16181d; --bg: #fbfbfa; --muted: #6b7280; --line: #e3e3e0; --card: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e8e8e6; --bg: #16181d; --muted: #9aa0aa; --line: #2c2f36; --card: #1d2027; }
+  }
+  body { margin: 0; padding: 2rem 1.25rem 4rem; background: var(--bg); color: var(--fg);
+         font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 2.5rem; }
+  h2 { font-size: 1.05rem; margin: 2.5rem 0 .9rem; padding-bottom: .4rem;
+       border-bottom: 1px solid var(--line); text-transform: lowercase; letter-spacing: .02em; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line);
+           border-radius: 10px; overflow: hidden; }
+  figure video, figure img { display: block; width: 100%; background: #000;
+                             image-rendering: pixelated; }
+  figcaption { padding: .55rem .7rem; font-size: 12.5px; color: var(--muted);
+               word-break: break-all; }
+  figcaption b { color: var(--fg); font-weight: 600; }
+</style>
+<main>
+HTML_HEAD
+        printf '<h1>TorchWM model runs</h1>
+'
+        printf '<p class="sub">preset <b>%s</b> &middot; device %s &middot; %s</p>
+'             "${PRESET}" "${DEVICE:-auto}" "$(date '+%Y-%m-%d %H:%M')"
+
+        # Everything in the video directory, not just what this invocation
+        # produced: re-running one model (--models jepa) would otherwise
+        # republish a gallery containing only that model and drop the rest.
+        # Files are attributed by filename prefix, which is why every recorder
+        # names its output after its model.
+        for path in $(gallery_files); do
+            model="$(model_for_file "$(basename "${path}")")"
+            rel="${path#"${OUT_DIR}/"}"
+            size="$(du -h "${path}" 2>/dev/null | cut -f1)"
+
+            if [ "${model}" != "${current}" ]; then
+                [ -n "${current}" ] && printf '</div>
+'
+                printf '<h2>%s</h2>
+<div class="grid">
+' "${model}"
+                current="${model}"
+            fi
+
+            case "${rel}" in
+                *.mp4|*.webm)
+                    printf '<figure><video src="%s" controls loop muted playsinline></video>' "${rel}" ;;
+                *.png|*.jpg|*.jpeg|*.gif)
+                    printf '<figure><img src="%s" alt="%s">' "${rel}" "${rel}" ;;
+                *)
+                    printf '<figure>' ;;
+            esac
+            printf '<figcaption><b>%s</b><br>%s</figcaption></figure>
+'                 "$(basename "${rel}")" "${size:-?}"
+        done
+        [ -n "${current}" ] && printf '</div>
+'
+        printf '</main>
+'
+    } > "${page}"
+
+    echo "gallery:     ${page}"
+}
+
 if [ "${DRY_RUN}" -eq 0 ]; then
     echo "logs:        ${LOG_DIR}"
-    echo "videos:      ${OUT_DIR}/videos"
+    echo "videos:      ${VIDEO_DIR}"
     echo "checkpoints: ${CKPT_ROOT}"
+    if [ -n "$(gallery_files)" ]; then
+        write_gallery
+    fi
+    rm -f "${STAGE_MARKER}"
 fi
 
 if [ "${ABORTED}" -eq 1 ]; then

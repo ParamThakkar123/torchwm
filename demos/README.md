@@ -126,7 +126,8 @@ python demos/record_diamond.py \
     --out-dir demos/out
 ```
 
-Outputs `real.mp4`, `dream.mp4` and `side_by_side.mp4` (real | dream). The
+Outputs `diamond_real.mp4`, `diamond_dream.mp4` and
+`diamond_side_by_side.mp4` (real | dream). The
 side-by-side clip is the single most demo-legible artifact: the same policy,
 acting in the real emulator on the left and inside the learned diffusion world
 model on the right.

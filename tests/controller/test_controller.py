@@ -191,8 +191,13 @@ class TestRolloutGenerator:
             max_episode_steps=5,
         )
 
+        # Four values, matching the real rollout_eval: (episode, frames,
+        # metrics, latents). The mock previously returned three, so this test
+        # passed while every real caller raised ValueError.
         with patch.object(
-            gen, "rollout_eval", return_value=(Mock(), np.zeros((5, 3, 64, 64)), {})
+            gen,
+            "rollout_eval",
+            return_value=(Mock(), np.zeros((5, 3, 64, 64)), {}, None),
         ):
             episodes, frames, metrics = gen.rollout_eval_n(n=2)
 

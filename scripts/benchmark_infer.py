@@ -54,6 +54,11 @@ def _python() -> str:
 
 def _run(argv: list[str]) -> int:
     print("running:", " ".join(str(part) for part in argv))
+    # -u after the interpreter: these demos are launched with their stdout on a
+    # pipe (the sweep tees every stage to a log), where Python block-buffers by
+    # default and a long sampling loop looks like a hang until it exits.
+    if argv and argv[0] == _python():
+        argv = [argv[0], "-u", *argv[1:]]
     return subprocess.call(argv, cwd=str(REPO_ROOT))
 
 
@@ -98,7 +103,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--dream-steps",
         type=int,
         default=100,
-        help="[diamond record] imagination frames. 0 skips the dream clip.",
+        help="[diamond/dreamer record] imagination frames. 0 skips the dream clip.",
+    )
+    parser.add_argument(
+        "--dream-context",
+        type=int,
+        default=5,
+        help="[dreamer record] real frames the RSSM sees before the open-loop "
+        "rollout begins.",
     )
     parser.add_argument("--episodes", type=int, default=2, help="[iris record]")
     parser.add_argument("--fps", type=int, default=20)
@@ -191,6 +203,13 @@ def record_iris(args: argparse.Namespace, model: str) -> int:
         str(out),
         "--fps",
         str(args.fps),
+        "--seed",
+        str(args.seed),
+        # --steps means "frames to record" everywhere else in this front-end;
+        # for IRIS it is the per-episode cap, so an episode that never ends
+        # cannot run the sweep past its budget.
+        "--max-steps",
+        str(args.steps),
     ]
     if args.device:
         argv += ["--device", args.device]
@@ -234,7 +253,7 @@ def record_genie(args: argparse.Namespace, model: str) -> int:
 
 def record_jepa(args: argparse.Namespace, model: str) -> int:
     script = REPO_ROOT / "demos" / "record_jepa.py"
-    argv = [_python(), str(script), "--out-dir", args.out_dir]
+    argv = [_python(), str(script), "--out-dir", args.out_dir, "--seed", str(args.seed)]
     if args.random_init or not args.checkpoint:
         argv.append("--random-init")
     else:
@@ -242,6 +261,99 @@ def record_jepa(args: argparse.Namespace, model: str) -> int:
     if args.device:
         argv += ["--device", args.device]
     return _run(argv)
+
+
+def _label_frame(frame: "Any", text: str, scale: int = 4) -> "Any":
+    """Upscale a small world-model frame and caption it, for legibility."""
+    import cv2
+    import numpy as np
+
+    img = (np.clip(frame, 0.0, 1.0) * 255).astype(np.uint8)
+    img = cv2.resize(
+        img,
+        (img.shape[1] * scale, img.shape[0] * scale),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    cv2.rectangle(img, (0, 0), (img.shape[1], 22), (0, 0, 0), -1)
+    cv2.putText(
+        img, text, (6, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1,
+        cv2.LINE_AA,
+    )
+    return img
+
+
+def record_dreamer_dream(args: argparse.Namespace, player: "Any", out_dir: Path) -> list:
+    """Open-loop imagination beside the real env, the Dreamer paper's figure.
+
+    The model sees ``--dream-context`` real frames, then its observations are cut
+    off and the RSSM rolls forward on its own predictions while the real
+    environment keeps running on the *same* actions. The two clips therefore
+    diverge exactly as much as the world model is wrong, which is the thing
+    worth looking at -- a real-only recording shows the policy, not the model.
+    """
+    import numpy as np
+    import torch
+
+    from scripts.play_dreamer import _observation_frame
+    from torchwm.utils.utils import StreamingVideoWriter
+
+    context = max(1, args.dream_context)
+    obs = player.env.reset()
+    state = player.rssm.init_state(1, player.device)
+    prev_action = torch.zeros(1, player.action_size, device=player.device)
+
+    real_frames: list = []
+    dream_frames: list = []
+
+    for step in range(context + args.dream_steps):
+        grounded = step < context
+        with torch.no_grad():
+            if grounded:
+                # Closed loop: the posterior still sees the real observation.
+                _, state = player.rssm.observe_step(
+                    state, prev_action, player.encode(obs)
+                )
+            else:
+                # Open loop: prior only, from here the model is on its own.
+                state = player.rssm.imagine_step(state, prev_action)
+            action = player.actor(player.features(state), deter=not args.stochastic)
+            decoded = player.decode(state)
+
+        tag = "DREAM (context)" if grounded else f"DREAM (+{step - context + 1})"
+        real_frames.append(_label_frame(_observation_frame(obs), "REAL"))
+        dream_frames.append(_label_frame(decoded, tag))
+
+        action_np = action[0].cpu().numpy()
+        obs, _, done, info = player.env.step(action_np)
+        executed = (
+            info["action"] if isinstance(info, dict) and "action" in info else action_np
+        )
+        prev_action = torch.tensor(
+            np.asarray(executed, dtype=np.float32), device=player.device
+        ).unsqueeze(0)
+        if done:
+            break
+
+    written = []
+    dream_path = out_dir / "dreamer_dream.mp4"
+    writer = StreamingVideoWriter(str(dream_path), fps=args.fps)
+    for frame in dream_frames:
+        writer.write_frame(frame)
+    writer.close()
+    written.append(dream_path)
+
+    side_path = out_dir / "dreamer_side_by_side.mp4"
+    writer = StreamingVideoWriter(str(side_path), fps=args.fps)
+    for real, dream in zip(real_frames, dream_frames):
+        writer.write_frame(np.concatenate([real, dream], axis=1))
+    writer.close()
+    written.append(side_path)
+
+    print(
+        f"Wrote {dream_path} and {side_path} "
+        f"({context} context + {len(dream_frames) - context} imagined frames)"
+    )
+    return written
 
 
 def record_dreamer(args: argparse.Namespace, model: str) -> int:
@@ -266,8 +378,9 @@ def record_dreamer(args: argparse.Namespace, model: str) -> int:
     prev_action = torch.zeros(1, player.action_size, device=player.device)
     reward_sum = 0.0
     for step in range(args.steps):
-        frame = _observation_frame(obs)
-        writer.write_frame((np.clip(frame, 0, 1) * 255).astype(np.uint8))
+        # Same upscale and caption as the dream clip, so the two sit together
+        # in a gallery instead of one being a 64px thumbnail.
+        writer.write_frame(_label_frame(_observation_frame(obs), "REAL"))
         with torch.no_grad():
             _, state = player.rssm.observe_step(
                 state, prev_action, player.encode(obs)
@@ -294,8 +407,12 @@ def record_dreamer(args: argparse.Namespace, model: str) -> int:
             print(f"  real: {step + 1}/{args.steps}")
 
     writer.close()
-    player.env.close()
     print(f"Wrote {path}  (return across clip: {reward_sum:.1f})")
+
+    if args.dream_steps > 0:
+        record_dreamer_dream(args, player, out_dir)
+
+    player.env.close()
     return 0
 
 

@@ -84,6 +84,10 @@ class DiTConfig(SerializableConfigMixin):
     EMA_DECAY: float = 0.9999  # paper 4
     WORKDIR: str = "./dit_demo"
     ROOT_PATH: str = "./data"
+    # Epochs between intermediate checkpoints. 0 writes nothing until training
+    # finishes, which is the original behaviour and loses everything if the run
+    # is cut short.
+    CHECKPOINT_EVERY: int = 0
     # Stop once held-out loss stops improving, instead of at a fixed EPOCHS.
     # Off by default so existing runs keep their exact length; EPOCHS then acts
     # as the ceiling rather than the target.

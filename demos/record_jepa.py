@@ -90,22 +90,40 @@ def infer_architecture(checkpoint: dict) -> dict:
     return arch
 
 
-def load_image(path: str | None, crop_size: int) -> torch.Tensor:
-    """Load an image from ``path`` (or a random noise tensor) as (1, 3, H, W)."""
-    if path and Path(path).exists():
+def load_image(
+    path: str | None, crop_size: int, dataset_root: str | None = None
+) -> torch.Tensor:
+    """Pick the demo image and return it as (1, 3, H, W).
+
+    In order: an explicit ``--image``; a sample from a CIFAR-10 copy already on
+    disk; failing both, random noise. The last case is a real fallback, not a
+    default worth having -- a cosine-similarity heatmap over noise looks like a
+    working demo and tells you nothing, so it announces itself.
+    """
+    from torchvision.transforms import CenterCrop, Compose, Resize, ToTensor
+
+    transform = Compose([Resize(crop_size), CenterCrop(crop_size), ToTensor()])
+
+    if path:
+        # A mistyped path used to fall through to noise and still "succeed".
+        if not Path(path).exists():
+            raise SystemExit(f"--image {path} does not exist")
         from PIL import Image
-        from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop
 
-        transform = Compose(
-            [
-                Resize(crop_size),
-                CenterCrop(crop_size),
-                ToTensor(),
-            ]
-        )
-        img = Image.open(path).convert("RGB")
-        return transform(img).unsqueeze(0)  # (1, 3, H, W)
+        return transform(Image.open(path).convert("RGB")).unsqueeze(0)
 
+    if dataset_root and Path(dataset_root, "cifar-10-batches-py").exists():
+        from torchvision.datasets import CIFAR10
+
+        dataset = CIFAR10(root=dataset_root, train=False, download=False)
+        image, _ = dataset[0]
+        print(f"Using a CIFAR-10 test image from {dataset_root}")
+        return transform(image.convert("RGB")).unsqueeze(0)
+
+    print(
+        "No --image and no CIFAR-10 under --dataset-root: running on random "
+        "noise. The heatmap below is a pipeline check, not a result."
+    )
     return torch.rand(1, 3, crop_size, crop_size)
 
 
@@ -128,7 +146,14 @@ def main() -> int:
     parser.add_argument(
         "--image",
         default=None,
-        help="Path to an input image (random noise if omitted).",
+        help="Path to an input image. Without it, a CIFAR-10 test image from "
+        "--dataset-root, or random noise if that is not on disk either.",
+    )
+    parser.add_argument(
+        "--dataset-root",
+        default=str(Path(__file__).resolve().parent.parent / "data"),
+        help="Where to look for CIFAR-10 when --image is omitted. Never "
+        "downloads; the training runs populate this.",
     )
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--patch-size", type=int, default=16)
@@ -201,7 +226,7 @@ def main() -> int:
     encoder.eval()
     predictor.eval()
 
-    img = load_image(args.image, image_size).to(device)
+    img = load_image(args.image, image_size, args.dataset_root).to(device)
     n_h, n_w = patch_grid(image_size, patch_size)
 
     mask_collator = MBMaskCollator(

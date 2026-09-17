@@ -7,10 +7,10 @@ awkward for producing a reproducible clip. This script drives the same agent
 non-interactively for a set number of steps and writes the videos to disk.
 
 It produces up to three files:
-  real.mp4        - the policy acting in the real environment
-  dream.mp4       - the diffusion world model imagining forward from the same
+  diamond_real.mp4         - the policy acting in the real environment
+  diamond_dream.mp4        - the diffusion world model imagining forward from the same
                     conditioning frames, driven by the same policy
-  side_by_side.mp4 - both of the above stitched horizontally (real | dream)
+  diamond_side_by_side.mp4 - both of the above stitched horizontally (real | dream)
 
 Usage:
     python demos/record_diamond.py -c checkpoints/diamond/checkpoint_0.pt
@@ -199,7 +199,7 @@ def main() -> int:
         )
         print(f"  episode reward across clip: {reward:.1f}")
         path = write_video(
-            out_dir / "real.mp4", [label(f, "REAL") for f in real_frames], args.fps
+            out_dir / "diamond_real.mp4", [label(f, "REAL") for f in real_frames], args.fps
         )
         if path:
             written.append(path)
@@ -211,7 +211,7 @@ def main() -> int:
             agent, args.dream_steps, True, deterministic, args.scale
         )
         path = write_video(
-            out_dir / "dream.mp4", [label(f, "DREAM") for f in dream_frames], args.fps
+            out_dir / "diamond_dream.mp4", [label(f, "DREAM") for f in dream_frames], args.fps
         )
         if path:
             written.append(path)
@@ -224,7 +224,7 @@ def main() -> int:
             )
             for i in range(pairs)
         ]
-        path = write_video(out_dir / "side_by_side.mp4", combined, args.fps)
+        path = write_video(out_dir / "diamond_side_by_side.mp4", combined, args.fps)
         if path:
             written.append(path)
 

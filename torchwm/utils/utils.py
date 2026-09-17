@@ -606,7 +606,15 @@ class TorchImageEnvWrapper:
     ) -> None:
         self.env: Any
         if isinstance(env, str):
-            import gym
+            # gymnasium first. The legacy `gym` package is what this used to
+            # import unconditionally, and its passive env checker still reads
+            # np.bool8, which NumPy 2.0 removed -- so PlaNet and RSSM died with
+            # "module 'numpy' has no attribute 'bool8'" on their first env step.
+            # step() below already accepts both the 4- and 5-tuple returns.
+            try:
+                import gymnasium as gym
+            except ImportError:
+                import gym  # type: ignore[no-redef]
 
             try:
                 self.env = gym.make(env, render_mode="rgb_array")

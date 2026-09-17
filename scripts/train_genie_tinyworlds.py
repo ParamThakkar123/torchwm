@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Training script for Genie on TinyWorlds HDF5 dataset."""
 
+import dataclasses
 import os
 import torch
 from omegaconf import OmegaConf
@@ -40,6 +41,8 @@ def main():
     min_delta = float(cli_cfg.get("min_delta", 1e-4))
     val_split = float(cli_cfg.get("val_split", 0.1 if early_stopping else 0.0))
 
+    checkpoint_interval = int(cli_cfg.get("checkpoint_interval", 0))
+
     config = GenieSmallConfig()
     config.num_frames = num_frames
     config.image_size = image_size
@@ -50,6 +53,37 @@ def main():
     config.patience = patience
     config.min_delta = min_delta
     config.val_split = val_split
+
+    # Every remaining GenieSmallConfig field is settable from the CLI, so the
+    # architecture can be shrunk as well as the schedule. Without this the
+    # smallest run possible was still the full 462M-parameter model, which does
+    # not fit on a small GPU no matter how low batch_size goes.
+    handled = {
+        "dataset", "num_frames", "image_size", "batch_size", "num_workers",
+        "max_steps", "log_interval", "val_interval", "learning_rate",
+        "cache_dir", "data_file", "checkpoint_dir", "checkpoint_interval",
+        "device", "early_stopping", "patience", "min_delta", "val_split",
+    }
+    fields = {f.name: f.type for f in dataclasses.fields(config)}
+    for key, value in cli_cfg.items():
+        if key in handled:
+            continue
+        if key not in fields:
+            raise SystemExit(
+                f"unknown option '{key}'. GenieSmallConfig fields: "
+                + ", ".join(sorted(fields))
+            )
+        current = getattr(config, key)
+        # OmegaConf hands back str for everything on the CLI; coerce to the
+        # type the field already holds so the dataclass stays well typed.
+        if isinstance(current, bool):
+            value = str(value).lower() in ("1", "true", "yes")
+        elif isinstance(current, int):
+            value = int(value)
+        elif isinstance(current, float):
+            value = float(value)
+        setattr(config, key, value)
+        print(f"  config override: {key}={value}")
 
     print(f"Loading {dataset} dataset...")
     loader_kwargs = dict(
@@ -88,6 +122,8 @@ def main():
         num_steps=max_steps,
         log_interval=log_interval,
         val_interval=val_interval,
+        checkpoint_dir=checkpoint_dir,
+        checkpoint_interval=checkpoint_interval,
     )
 
     os.makedirs(checkpoint_dir, exist_ok=True)

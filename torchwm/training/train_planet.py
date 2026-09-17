@@ -1,4 +1,5 @@
 from typing import Any
+import argparse
 import pdb
 import torch
 import numpy as np
@@ -113,23 +114,54 @@ def train(
     return metrics
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
+    """CLI for the PlaNet trainer.
+
+    Every default below is the value this script previously hard-coded, so a
+    bare `python -m torchwm.training.train_planet` behaves as before. They are
+    flags because nothing else could reach them: sweeps had no way to shorten a
+    run or redirect its output.
+    """
+    parser = argparse.ArgumentParser(description="Train PlaNet/RSSM on pixels")
+    parser.add_argument("--env", default="Pendulum-v1")
+    parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument(
+        "--iters", type=int, default=150, help="Gradient steps per epoch."
+    )
+    parser.add_argument(
+        "--max-episode-steps",
+        type=int,
+        default=100,
+        help="Must stay at or above the 50-step training trace, or the replay "
+        "buffer has nothing long enough to sample and training raises.",
+    )
+    parser.add_argument("--bit-depth", type=int, default=5)
+    parser.add_argument("--outdir", default="results/")
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=1,
+        help="Epochs between checkpoints. This used to be a fixed 25 while the "
+        "loop only ran 2 epochs, so no checkpoint was ever written.",
+    )
+    parser.add_argument("--device", default=None)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> None:
     """Example PlaNet/RSSM training script with rollout collection and evaluation.
 
     Builds environment/model/policy objects, iteratively trains on replayed
     episodes, and periodically saves videos and checkpoints.
     """
-    env: Any = None
-    try:
-        env = RolloutGenerator
-    except Exception:
-        pass
+    args = build_parser().parse_args(argv)
 
-    env = RolloutGenerator
-    env = __import__(
-        "torchwm.utils.utils", fromlist=["TorchImageEnvWrapper"]
-    ).TorchImageEnvWrapper("Pendulum-v1", bit_depth=5)
-    if torch.cuda.is_available():
+    from torchwm.utils.utils import TorchImageEnvWrapper
+
+    env = TorchImageEnvWrapper(args.env, bit_depth=args.bit_depth)
+    if args.device:
+        device = torch.device(args.device)
+    elif torch.cuda.is_available():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
@@ -150,18 +182,19 @@ def main() -> None:
         env,
         device,
         policy=policy,
-        episode_gen=lambda: Episode(partial(postprocess_img, depth=5)),
-        max_episode_steps=100,
+        episode_gen=lambda: Episode(partial(postprocess_img, depth=args.bit_depth)),
+        max_episode_steps=args.max_episode_steps,
     )
 
     mem = Memory(100)
     mem.append(rollout_gen.rollout_n(1, random_policy=True))
-    res_dir = "results/"
+    res_dir = args.outdir
+    os.makedirs(res_dir, exist_ok=True)
     summary = TensorBoardMetrics(f"{res_dir}/")
 
-    for i in trange(2, desc="Epoch", leave=False):
+    for i in trange(args.epochs, desc="Epoch", leave=False):
         metrics: dict[str, Any] = {}
-        for _ in trange(150, desc="Iter ", leave=False):
+        for _ in trange(args.iters, desc="Iter ", leave=False):
             train_metrics = train(mem, rssm_model.train(), optimizer, device)
             for k, v in flatten_dict(train_metrics).items():
                 if k not in metrics:
@@ -171,15 +204,23 @@ def main() -> None:
 
         summary.update(metrics)
         mem.append([rollout_gen.rollout_once(explore=True)])
-        eval_episode, eval_frames, eval_metrics = rollout_gen.rollout_eval()
+        # rollout_eval returns (episode, frames, metrics, latents); unpacking
+        # three raised ValueError at the end of the first epoch, so this loop
+        # had never run to completion.
+        eval_episode, eval_frames, eval_metrics, _ = rollout_gen.rollout_eval()
         mem.append([eval_episode])
         # normalize frames to (T,H,W,3) float in [0,1] before saving
         safe_frames = normalize_frames_for_saving(eval_frames)
         save_video(safe_frames, res_dir, f"vid_{i + 1}")
         summary.update(eval_metrics)
 
-        if (i + 1) % 25 == 0:
-            torch.save(rssm_model.state_dict(), f"{res_dir}/ckpt_{i + 1}.pth")
+        if (
+            args.checkpoint_interval > 0
+            and (i + 1) % args.checkpoint_interval == 0
+        ):
+            path = os.path.join(res_dir, f"ckpt_{i + 1}.pth")
+            torch.save(rssm_model.state_dict(), path)
+            print(f"Wrote {path}")
 
     if os.getenv("TRAIN_RSSM_DEBUG", "0") == "1":
         pdb.set_trace()

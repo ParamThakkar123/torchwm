@@ -150,6 +150,13 @@ class DiamondConfig(SerializableConfigMixin):
     eval_interval: int = 50
     save_interval: int = 100
 
+    # Where save_checkpoint writes when it is handed a bare filename such as
+    # "checkpoint_3.pt". Sweeps that redirect their output (see
+    # scripts/run_all_models.sh --ckpt-root) need this; without it the trainer
+    # always wrote under ./checkpoints/diamond relative to the working
+    # directory, and the caller had no way to find what it had just written.
+    checkpoint_dir: str = "checkpoints/diamond"
+
     # Stop once evaluation return stops improving, rather than running the full
     # epoch budget. Off by default: the published configuration is a fixed-length
     # run, and stopping early would change what the numbers mean. When on, the

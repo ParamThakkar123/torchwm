@@ -139,7 +139,9 @@ class RolloutGenerator:
         metrics = defaultdict(list)
         episodes, frames = [], []
         for _ in range(n):
-            e, f, m = self.rollout_eval()
+            # rollout_eval returns four values; the trailing latents are None
+            # unless collect_latents was asked for, and are not aggregated here.
+            e, f, m, _ = self.rollout_eval()
             episodes.append(e)
             frames.append(f)
             for k, v in m.items():

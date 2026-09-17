@@ -98,6 +98,7 @@ def train_dit(config: DiTConfig | None = None, **kwargs: Any) -> DiTConfig:
         early_stopping=config.EARLY_STOPPING,
         patience=config.PATIENCE,
         min_delta=config.MIN_DELTA,
+        checkpoint_every=config.CHECKPOINT_EVERY,
     )
     return config
 

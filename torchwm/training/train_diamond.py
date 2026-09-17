@@ -889,15 +889,15 @@ class DiamondAgent:
         Args:
             path: Optional path where to write the checkpoint. If `path` is None
                 or a bare filename, the file is written into
-                `checkpoints/diamond/<filename>`. If `path` contains a directory
-                component or is an absolute/relative path, it is used directly.
-                When `path` is None, the legacy behavior is preserved and the
-                checkpoint is written to `checkpoints/diamond/checkpoint.pt`.
+                `config.checkpoint_dir/<filename>`. If `path` contains a
+                directory component or is an absolute/relative path, it is used
+                directly. When `path` is None the checkpoint is written to
+                `config.checkpoint_dir/checkpoint.pt`.
         """
-        # Determine output path. Preserve existing behaviour when path is None
-        # or a bare filename by writing into checkpoints/diamond.
+        # Determine output path. A bare filename or None lands in the
+        # configured checkpoint directory (checkpoints/diamond by default).
 
-        default_dir = Path("checkpoints/diamond")
+        default_dir = Path(self.config.checkpoint_dir)
         if path is None:
             default_dir.mkdir(parents=True, exist_ok=True)
             out_path = default_dir / "checkpoint.pt"
@@ -988,14 +988,14 @@ class DiamondAgent:
         """Load model checkpoint.
 
         Args:
-            path: Optional path to checkpoint. If None, the default
-                `checkpoints/diamond/checkpoint.pt` is loaded. If a bare
-                filename is provided, we try `checkpoints/diamond/<filename>`;
-                if a path with directory components is provided we use it
-                directly.
+            path: Optional path to checkpoint. If None,
+                `config.checkpoint_dir/checkpoint.pt` is loaded. If a bare
+                filename is provided, we try
+                `config.checkpoint_dir/<filename>`; if a path with directory
+                components is provided we use it directly.
         """
         # Resolve path similarly to save_checkpoint behaviour
-        default_dir = "checkpoints/diamond"
+        default_dir = str(self.config.checkpoint_dir)
         if path is None:
             fpath = os.path.join(default_dir, "checkpoint.pt")
         else:

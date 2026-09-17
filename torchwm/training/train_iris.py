@@ -121,7 +121,7 @@ class IRISTrainer:
                 obs_type="rgb",
                 frameskip=self.config.action_repeat,
                 repeat_action_probability=self.config.repeat_action_probability,
-                max_episode_steps=27000,  # Standard Atari limit
+                max_episode_steps=self.config.max_episode_steps,
             )
 
         # Discrete spaces expose ``n``; Box-like spaces expose ``shape``.

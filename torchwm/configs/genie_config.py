@@ -23,6 +23,9 @@ class GenieConfig(SerializableConfigMixin):
     action_vocab_size: int = 8
     action_embedding_dim: int = 32
     action_encoder_dim: int = 256
+    # Genie's own default, kept explicit so the field exists rather than being
+    # decided inside the constructor where no config could reach it.
+    action_decoder_dim: int = 1024
     action_encoder_depth: int = 4
     action_num_heads: int = 8
     action_pooling: Literal["mean", "windowed_attention"] = "mean"
@@ -78,6 +81,7 @@ class GenieSmallConfig(SerializableConfigMixin):
     action_vocab_size: int = 8
     action_embedding_dim: int = 32
     action_encoder_dim: int = 512
+    action_decoder_dim: int = 1024
     action_encoder_depth: int = 8
     action_num_heads: int = 8
     action_pooling: Literal["mean", "windowed_attention"] = "mean"

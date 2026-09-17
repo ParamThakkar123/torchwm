@@ -128,6 +128,11 @@ class IRISConfig(SerializableConfigMixin):
     # actions. make_atari_env defaults to 0.25, which makes the task materially
     # harder and is not comparable to the published numbers.
     repeat_action_probability: float = 0.0
+    # Per-episode agent-step cap, applied by the environment's TimeLimit. 27000
+    # is the standard Atari limit and what the paper's numbers assume; it is a
+    # field rather than a literal so short smoke runs can bound collection and
+    # evaluation, which otherwise play out full episodes.
+    max_episode_steps: int = 27000
 
     # === Logging ===
     log_interval: int = 1000

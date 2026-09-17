@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import torch
 import torch.nn as nn
@@ -33,6 +34,7 @@ class GenieConfig(SerializableConfigMixin):
     action_vocab_size: int = 8
     action_embedding_dim: int = 32
     action_encoder_dim: int = 1024
+    action_decoder_dim: int = 1024
     action_encoder_depth: int = 20
     action_pooling: Literal["mean", "windowed_attention"] = "mean"
     window_attention_heads: int = 1
@@ -364,6 +366,8 @@ class GenieTrainer:
         num_steps: Optional[int] = None,
         log_interval: int = 100,
         val_interval: int = 1000,
+        checkpoint_dir: Optional[str] = None,
+        checkpoint_interval: int = 0,
     ) -> None:
         """Full training loop.
 
@@ -373,9 +377,19 @@ class GenieTrainer:
             num_steps: Number of training steps (uses config.max_steps if None)
             log_interval: Logging frequency
             val_interval: Validation frequency
+            checkpoint_dir: Where periodic checkpoints go. Without it nothing is
+                written until the caller saves, so a run killed by a timeout, an
+                OOM or Ctrl+C leaves nothing behind.
+            checkpoint_interval: Steps between checkpoints. 0 disables them,
+                which is the previous behaviour.
         """
         if num_steps is None:
             num_steps = self.config.max_steps
+
+        periodic = checkpoint_dir is not None and checkpoint_interval > 0
+        if periodic:
+            assert checkpoint_dir is not None  # narrowed for the type checker
+            os.makedirs(checkpoint_dir, exist_ok=True)
 
         stopper = None
         best_val = float("inf")
@@ -414,6 +428,13 @@ class GenieTrainer:
                     f"LR: {losses['learning_rate']:.6f}"
                 )
 
+            if periodic and self.global_step % checkpoint_interval == 0:
+                self.save_checkpoint(
+                    os.path.join(
+                        str(checkpoint_dir), f"genie_step_{self.global_step}.pt"
+                    )
+                )
+
             if val_dataloader is not None and self.global_step % val_interval == 0:
                 val_loss = self.validate_epoch(val_dataloader)
                 message = f"Validation: val_recon_loss={val_loss:.4f}"
@@ -433,6 +454,11 @@ class GenieTrainer:
                         break
                 else:
                     print(message)
+
+        if periodic:
+            self.save_checkpoint(
+                os.path.join(str(checkpoint_dir), f"genie_step_{self.global_step}.pt")
+            )
 
         print("Training complete!")
 
@@ -471,14 +497,23 @@ def create_genie_trainer(
     if config is None:
         config = GenieConfig()
 
+    # tokenizer_encoder_dim, tokenizer_decoder_dim and action_encoder_dim used
+    # to be left off this call, so Genie fell back to its own much wider
+    # defaults (512/1024/1024) and those three config fields did nothing at all
+    # -- a config that said 256 built a 512-wide tokenizer, and the checkpoint
+    # then recorded the width it did not have.
     model = Genie(
         num_frames=config.num_frames,
         image_size=config.image_size,
         in_channels=config.in_channels,
         tokenizer_vocab_size=config.tokenizer_vocab_size,
         tokenizer_embedding_dim=config.tokenizer_embedding_dim,
+        tokenizer_encoder_dim=config.tokenizer_encoder_dim,
+        tokenizer_decoder_dim=config.tokenizer_decoder_dim,
         action_vocab_size=config.action_vocab_size,
         action_embedding_dim=config.action_embedding_dim,
+        action_encoder_dim=config.action_encoder_dim,
+        action_decoder_dim=config.action_decoder_dim,
         dynamics_dim=config.dynamics_dim,
         dynamics_depth=config.dynamics_depth,
         dynamics_num_heads=config.dynamics_num_heads,

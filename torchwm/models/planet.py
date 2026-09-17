@@ -316,7 +316,14 @@ class Planet(ExportableAgentMixin):
                 )
 
             self.memory.append([self.rollout_gen.rollout_once(explore=True)])
-            eval_episode, eval_frames, eval_metrics = self.rollout_gen.rollout_eval()
+            # Four values, not three -- the trailing element is the optional
+            # latents list. See RolloutGenerator.rollout_eval.
+            (
+                eval_episode,
+                eval_frames,
+                eval_metrics,
+                _,
+            ) = self.rollout_gen.rollout_eval()
             self.memory.append([eval_episode])
             save_video(eval_frames, self.results_dir, f"vid_{ep + 1}")
             self.summary.update(eval_metrics)

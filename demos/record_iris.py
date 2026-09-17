@@ -119,12 +119,33 @@ def main() -> int:
     parser.add_argument("--epsilon", type=float, default=0.0)
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--device", default=None)
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument(
+        "--sticky-actions",
+        type=float,
+        default=IRISConfig.repeat_action_probability,
+        help="Probability of repeating the previous action. Defaults to the "
+        "value IRIS trains under (0.0, the Atari 100k protocol); make_atari_env "
+        "itself defaults to 0.25, which is a different task.",
+    )
     args = parser.parse_args()
 
     device = torch.device(
         args.device or ("cuda" if torch.cuda.is_available() else "cpu")
     )
-    env = make_atari_env(args.game, obs_type="rgb", frameskip=4)
+    if args.seed is not None:
+        torch.manual_seed(args.seed)
+        np.random.seed(args.seed)
+    # frameskip and sticky actions have to match training. make_atari_env
+    # defaults to repeat_action_probability=0.25; IRIS trains at 0.0, and
+    # recording under sticky actions shows the policy losing to dynamics it
+    # never saw rather than to its own limits.
+    env = make_atari_env(
+        args.game,
+        obs_type="rgb",
+        frameskip=IRISConfig.action_repeat,
+        repeat_action_probability=args.sticky_actions,
+    )
     n_actions = int(env.action_space.n)
 
     ckpt = read_checkpoint(args.checkpoint)
@@ -171,8 +192,14 @@ def main() -> int:
     rewards: list[float] = []
 
     for episode in range(args.episodes):
-        obs, _ = env.reset()
+        # Seed the first reset only; later episodes continue the same stream, so
+        # --episodes 3 gives three different games rather than three identical ones.
+        reset_kwargs = (
+            {"seed": args.seed} if args.seed is not None and episode == 0 else {}
+        )
+        obs, _ = env.reset(**reset_kwargs)
         episode_reward = 0.0
+        terminated = truncated = False
         for step in range(args.max_steps):
             # Record the full-resolution frame; the model sees the downscaled one.
             writer.write_frame(obs.astype(np.uint8))
@@ -190,7 +217,14 @@ def main() -> int:
                 break
 
         rewards.append(episode_reward)
-        print(f"  episode {episode + 1}/{args.episodes}: reward={episode_reward:.1f}")
+        # Distinguish a finished game from one --max-steps cut short: the
+        # reward of a truncated episode is not the policy's score.
+        truncated_by_cap = not (terminated or truncated)
+        suffix = f" (cut at --max-steps {args.max_steps})" if truncated_by_cap else ""
+        print(
+            f"  episode {episode + 1}/{args.episodes}: "
+            f"reward={episode_reward:.1f}{suffix}"
+        )
 
     writer.close()
     env.close()

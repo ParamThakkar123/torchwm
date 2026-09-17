@@ -26,18 +26,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=549e9d87" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
     <script src="../../../_static/documentation_options.js?v=8d563738"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
@@ -46,6 +46,8 @@
     <script src="../../../_static/copybutton.js?v=3a14cefc"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
 
 
 
@@ -654,6 +656,7 @@ window.runMermaid = runMermaid;</script>
                   
   <h1>Source code for torchwm.training.train_genie</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
@@ -690,6 +693,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">action_vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
     <span class="n">action_embedding_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
     <span class="n">action_encoder_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span>
+    <span class="n">action_decoder_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span>
     <span class="n">action_encoder_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span>
     <span class="n">action_pooling</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">,</span> <span class="s2">"windowed_attention"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"mean"</span>
     <span class="n">window_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1038,6 +1042,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">num_steps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">log_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
         <span class="n">val_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">checkpoint_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">checkpoint_interval</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Full training loop.</span>
 
@@ -1047,9 +1053,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">            num_steps: Number of training steps (uses config.max_steps if None)</span>
 <span class="sd">            log_interval: Logging frequency</span>
 <span class="sd">            val_interval: Validation frequency</span>
+<span class="sd">            checkpoint_dir: Where periodic checkpoints go. Without it nothing is</span>
+<span class="sd">                written until the caller saves, so a run killed by a timeout, an</span>
+<span class="sd">                OOM or Ctrl+C leaves nothing behind.</span>
+<span class="sd">            checkpoint_interval: Steps between checkpoints. 0 disables them,</span>
+<span class="sd">                which is the previous behaviour.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">num_steps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">num_steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_steps</span>
+
+        <span class="n">periodic</span> <span class="o">=</span> <span class="n">checkpoint_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">checkpoint_interval</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">checkpoint_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>  <span class="c1"># narrowed for the type checker</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">stopper</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">best_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
@@ -1088,6 +1104,13 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"LR: </span><span class="si">{</span><span class="n">losses</span><span class="p">[</span><span class="s1">'learning_rate'</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
 
+            <span class="k">if</span> <span class="n">periodic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">%</span> <span class="n">checkpoint_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"genie_step_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="si">}</span><span class="s2">.pt"</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
             <span class="k">if</span> <span class="n">val_dataloader</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">%</span> <span class="n">val_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">val_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_epoch</span><span class="p">(</span><span class="n">val_dataloader</span><span class="p">)</span>
                 <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Validation: val_recon_loss=</span><span class="si">{</span><span class="n">val_loss</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span>
@@ -1107,6 +1130,11 @@ window.runMermaid = runMermaid;</script>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">periodic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"genie_step_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">global_step</span><span class="si">}</span><span class="s2">.pt"</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s2">"Training complete!"</span><span class="p">)</span></div>
 
@@ -1155,14 +1183,23 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">GenieConfig</span><span class="p">()</span>
 
+    <span class="c1"># tokenizer_encoder_dim, tokenizer_decoder_dim and action_encoder_dim used</span>
+    <span class="c1"># to be left off this call, so Genie fell back to its own much wider</span>
+    <span class="c1"># defaults (512/1024/1024) and those three config fields did nothing at all</span>
+    <span class="c1"># -- a config that said 256 built a 512-wide tokenizer, and the checkpoint</span>
+    <span class="c1"># then recorded the width it did not have.</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">Genie</span><span class="p">(</span>
         <span class="n">num_frames</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">num_frames</span><span class="p">,</span>
         <span class="n">image_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">image_size</span><span class="p">,</span>
         <span class="n">in_channels</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">in_channels</span><span class="p">,</span>
         <span class="n">tokenizer_vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_vocab_size</span><span class="p">,</span>
         <span class="n">tokenizer_embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_embedding_dim</span><span class="p">,</span>
+        <span class="n">tokenizer_encoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_encoder_dim</span><span class="p">,</span>
+        <span class="n">tokenizer_decoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">tokenizer_decoder_dim</span><span class="p">,</span>
         <span class="n">action_vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_vocab_size</span><span class="p">,</span>
         <span class="n">action_embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_embedding_dim</span><span class="p">,</span>
+        <span class="n">action_encoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_encoder_dim</span><span class="p">,</span>
+        <span class="n">action_decoder_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">action_decoder_dim</span><span class="p">,</span>
         <span class="n">dynamics_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_dim</span><span class="p">,</span>
         <span class="n">dynamics_depth</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_depth</span><span class="p">,</span>
         <span class="n">dynamics_num_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dynamics_num_heads</span><span class="p">,</span>
@@ -1260,8 +1297,8 @@ window.runMermaid = runMermaid;</script>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1295,7 +1332,7 @@ window.runMermaid = runMermaid;</script>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

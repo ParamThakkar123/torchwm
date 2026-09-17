@@ -26,18 +26,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=549e9d87" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
     <script src="../../../_static/documentation_options.js?v=8d563738"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
@@ -46,6 +46,8 @@
     <script src="../../../_static/copybutton.js?v=3a14cefc"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
 
 
 
@@ -654,6 +656,7 @@ window.runMermaid = runMermaid;</script>
                   
   <h1>Source code for torchwm.training.train_planet</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pdb</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -771,25 +774,59 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="build_parser">
+<a class="viewcode-back" href="../../../api_reference.html#torchwm.training.train_planet.build_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_parser</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""CLI for the PlaNet trainer.</span>
+
+<span class="sd">    Every default below is the value this script previously hard-coded, so a</span>
+<span class="sd">    bare `python -m torchwm.training.train_planet` behaves as before. They are</span>
+<span class="sd">    flags because nothing else could reach them: sweeps had no way to shorten a</span>
+<span class="sd">    run or redirect its output.</span>
+<span class="sd">    """</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">"Train PlaNet/RSSM on pixels"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--env"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"Pendulum-v1"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--epochs"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--iters"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Gradient steps per epoch."</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--max-episode-steps"</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Must stay at or above the 50-step training trace, or the replay "</span>
+        <span class="s2">"buffer has nothing long enough to sample and training raises."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--bit-depth"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--outdir"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"results/"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--checkpoint-interval"</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Epochs between checkpoints. This used to be a fixed 25 while the "</span>
+        <span class="s2">"loop only ran 2 epochs, so no checkpoint was ever written."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--device"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span></div>
+
+
+
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.training.train_planet.main">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Example PlaNet/RSSM training script with rollout collection and evaluation.</span>
 
 <span class="sd">    Builds environment/model/policy objects, iteratively trains on replayed</span>
 <span class="sd">    episodes, and periodically saves videos and checkpoints.</span>
 <span class="sd">    """</span>
-    <span class="n">env</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">env</span> <span class="o">=</span> <span class="n">RolloutGenerator</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">pass</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">build_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
 
-    <span class="n">env</span> <span class="o">=</span> <span class="n">RolloutGenerator</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span>
-        <span class="s2">"torchwm.utils.utils"</span><span class="p">,</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="s2">"TorchImageEnvWrapper"</span><span class="p">]</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">TorchImageEnvWrapper</span><span class="p">(</span><span class="s2">"Pendulum-v1"</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.utils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TorchImageEnvWrapper</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">TorchImageEnvWrapper</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">bit_depth</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
@@ -810,18 +847,19 @@ window.runMermaid = runMermaid;</script>
         <span class="n">env</span><span class="p">,</span>
         <span class="n">device</span><span class="p">,</span>
         <span class="n">policy</span><span class="o">=</span><span class="n">policy</span><span class="p">,</span>
-        <span class="n">episode_gen</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Episode</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">postprocess_img</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">5</span><span class="p">)),</span>
-        <span class="n">max_episode_steps</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">episode_gen</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Episode</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">postprocess_img</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">bit_depth</span><span class="p">)),</span>
+        <span class="n">max_episode_steps</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">max_episode_steps</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">mem</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">mem</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rollout_gen</span><span class="o">.</span><span class="n">rollout_n</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-    <span class="n">res_dir</span> <span class="o">=</span> <span class="s2">"results/"</span>
+    <span class="n">res_dir</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outdir</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">res_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">TensorBoardMetrics</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">res_dir</span><span class="si">}</span><span class="s2">/"</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Epoch"</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Epoch"</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Iter "</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">iters</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Iter "</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="n">train_metrics</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">mem</span><span class="p">,</span> <span class="n">rssm_model</span><span class="o">.</span><span class="n">train</span><span class="p">(),</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">train_metrics</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">:</span>
@@ -831,15 +869,23 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">summary</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">rollout_gen</span><span class="o">.</span><span class="n">rollout_once</span><span class="p">(</span><span class="n">explore</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
-        <span class="n">eval_episode</span><span class="p">,</span> <span class="n">eval_frames</span><span class="p">,</span> <span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">rollout_gen</span><span class="o">.</span><span class="n">rollout_eval</span><span class="p">()</span>
+        <span class="c1"># rollout_eval returns (episode, frames, metrics, latents); unpacking</span>
+        <span class="c1"># three raised ValueError at the end of the first epoch, so this loop</span>
+        <span class="c1"># had never run to completion.</span>
+        <span class="n">eval_episode</span><span class="p">,</span> <span class="n">eval_frames</span><span class="p">,</span> <span class="n">eval_metrics</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rollout_gen</span><span class="o">.</span><span class="n">rollout_eval</span><span class="p">()</span>
         <span class="n">mem</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">eval_episode</span><span class="p">])</span>
         <span class="c1"># normalize frames to (T,H,W,3) float in [0,1] before saving</span>
         <span class="n">safe_frames</span> <span class="o">=</span> <span class="n">normalize_frames_for_saving</span><span class="p">(</span><span class="n">eval_frames</span><span class="p">)</span>
         <span class="n">save_video</span><span class="p">(</span><span class="n">safe_frames</span><span class="p">,</span> <span class="n">res_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"vid_</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">summary</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">eval_metrics</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">25</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">rssm_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">res_dir</span><span class="si">}</span><span class="s2">/ckpt_</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">.pth"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">args</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">res_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ckpt_</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">.pth"</span><span class="p">)</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">rssm_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Wrote </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"TRAIN_RSSM_DEBUG"</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"1"</span><span class="p">:</span>
         <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span></div>
@@ -877,8 +923,8 @@ window.runMermaid = runMermaid;</script>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -912,7 +958,7 @@ window.runMermaid = runMermaid;</script>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

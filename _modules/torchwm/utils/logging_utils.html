@@ -901,6 +901,17 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># GPU utilization needs NVML. Warn once rather than on every logging interval.</span>
+<span class="n">_NVML_WARNED</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_mark_nvml_warned</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">global</span> <span class="n">_NVML_WARNED</span>
+    <span class="n">_NVML_WARNED</span> <span class="o">=</span> <span class="kc">True</span>
+
+
 <div class="viewcode-block" id="collect_system_stats">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.utils.logging_utils.collect_system_stats">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">collect_system_stats</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
@@ -941,10 +952,24 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">),</span>
             <span class="p">}</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="p">,</span> <span class="s2">"utilization"</span><span class="p">):</span>
+        <span class="c1"># `torch.cuda.utilization` always exists, so `hasattr` guarded nothing:</span>
+        <span class="c1"># calling it needs NVML (`nvidia-ml-py`), and without that torch raises</span>
+        <span class="c1"># ModuleNotFoundError from inside. That killed training runs on GPU</span>
+        <span class="c1"># machines whenever `log_system_stats_freq` was set. Metrics are</span>
+        <span class="c1"># optional, so a missing counter is skipped, never fatal.</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">stats</span><span class="p">[</span><span class="s2">"system/gpu_utilization_percent"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
                 <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">utilization</span><span class="p">(</span><span class="n">cuda_index</span><span class="p">)</span>
             <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># NVML missing, or a driver that cannot report</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">_NVML_WARNED</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">"GPU utilization is unavailable (</span><span class="si">%s</span><span class="s2">); logging the other "</span>
+                    <span class="s2">"system metrics without it. Install `nvidia-ml-py` (or "</span>
+                    <span class="s2">"`torchwm[ml]`) to record it."</span><span class="p">,</span>
+                    <span class="n">exc</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">_mark_nvml_warned</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">stats</span></div>
 

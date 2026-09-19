@@ -295,3 +295,44 @@ def test_uv_constraints_keep_brax_and_dmc_compatible():
     constraints = config["tool"]["uv"]["constraint-dependencies"]
 
     assert "mujoco<3.13" in constraints
+
+
+# -- System metrics ------------------------------------------------------------
+
+
+def test_missing_nvml_does_not_kill_training(monkeypatch, caplog):
+    """A logging metric must never raise: torch.cuda.utilization needs NVML."""
+    from torchwm.utils import logging_utils
+
+    def no_nvml(index):
+        raise ModuleNotFoundError("nvidia-ml-py does not seem to be installed")
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "memory_allocated", lambda index: 1024)
+    monkeypatch.setattr(torch.cuda, "memory_reserved", lambda index: 2048)
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", lambda index: 4096)
+    monkeypatch.setattr(torch.cuda, "utilization", no_nvml)
+    monkeypatch.setattr(logging_utils, "_NVML_WARNED", False)
+
+    with caplog.at_level("WARNING", logger=logging_utils.__name__):
+        stats = logging_utils.collect_system_stats("cuda")
+
+    assert stats["system/gpu_memory_allocated_mb"] == 1024 / (1024**2)
+    assert "system/gpu_utilization_percent" not in stats
+    assert any("GPU utilization is unavailable" in r.message for r in caplog.records)
+
+
+def test_gpu_utilization_is_reported_when_nvml_works(monkeypatch):
+    from torchwm.utils import logging_utils
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "current_device", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "memory_allocated", lambda index: 0)
+    monkeypatch.setattr(torch.cuda, "memory_reserved", lambda index: 0)
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", lambda index: 0)
+    monkeypatch.setattr(torch.cuda, "utilization", lambda index: 42)
+
+    stats = logging_utils.collect_system_stats("cuda")
+
+    assert stats["system/gpu_utilization_percent"] == 42.0

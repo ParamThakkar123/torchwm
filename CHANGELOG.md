@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 Fixes from the September 2026 code audit.
 
 ### Fixed
+- System-metrics logging crashed training on GPU machines: `collect_system_stats`
+  guarded `torch.cuda.utilization` with `hasattr`, which is always true, while
+  calling it raises `ModuleNotFoundError` without NVML (`nvidia-ml-py`). The
+  counter is now skipped with a single warning, and `nvidia-ml-py` is part of the
+  `ml` extra
 - Dreamer acted on the RSSM prior instead of the posterior, so the current
   observation was encoded and then ignored during collection and evaluation
   (also in `play dreamer` and `scripts/benchmark_infer.py`)

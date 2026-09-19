@@ -223,6 +223,17 @@ class MetricsLogger:
             self._tb_writer = None
 
 
+logger = logging.getLogger(__name__)
+
+# GPU utilization needs NVML. Warn once rather than on every logging interval.
+_NVML_WARNED = False
+
+
+def _mark_nvml_warned() -> None:
+    global _NVML_WARNED
+    _NVML_WARNED = True
+
+
 def collect_system_stats(device: torch.device | str | None = None) -> dict[str, float]:
     """Collect CPU/GPU memory and CUDA utilization counters when available."""
     stats: dict[str, float] = {}
@@ -261,10 +272,24 @@ def collect_system_stats(device: torch.device | str | None = None) -> dict[str, 
                 ),
             }
         )
-        if hasattr(torch.cuda, "utilization"):
+        # `torch.cuda.utilization` always exists, so `hasattr` guarded nothing:
+        # calling it needs NVML (`nvidia-ml-py`), and without that torch raises
+        # ModuleNotFoundError from inside. That killed training runs on GPU
+        # machines whenever `log_system_stats_freq` was set. Metrics are
+        # optional, so a missing counter is skipped, never fatal.
+        try:
             stats["system/gpu_utilization_percent"] = float(
                 torch.cuda.utilization(cuda_index)
             )
+        except Exception as exc:  # NVML missing, or a driver that cannot report
+            if not _NVML_WARNED:
+                logger.warning(
+                    "GPU utilization is unavailable (%s); logging the other "
+                    "system metrics without it. Install `nvidia-ml-py` (or "
+                    "`torchwm[ml]`) to record it.",
+                    exc,
+                )
+                _mark_nvml_warned()
 
     return stats
 

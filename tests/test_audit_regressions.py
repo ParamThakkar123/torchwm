@@ -187,6 +187,29 @@ def test_resolve_device_falls_back_when_unavailable(monkeypatch):
     assert device_utils.resolve_device(None).type == "cpu"
 
 
+def test_cuda_fallback_is_logged_not_silent(monkeypatch, caplog):
+    from torchwm.utils import device as device_utils
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(device_utils, "mps_is_available", lambda: False)
+
+    with caplog.at_level("WARNING", logger=device_utils.__name__):
+        assert device_utils.resolve_device("cuda").type == "cpu"
+    # A run that asked for cuda and trained on CPU must say so.
+    assert any("CUDA is not available" in record.message for record in caplog.records)
+
+    caplog.clear()
+    with caplog.at_level("WARNING", logger=device_utils.__name__):
+        assert device_utils.resolve_device("mps").type == "cpu"
+    assert any("MPS is not available" in record.message for record in caplog.records)
+
+    # An honoured request logs nothing.
+    caplog.clear()
+    with caplog.at_level("WARNING", logger=device_utils.__name__):
+        assert device_utils.resolve_device("cpu").type == "cpu"
+    assert caplog.records == []
+
+
 def test_mujoco_gl_egl_default_is_linux_only():
     source = (REPO / "torchwm/models/dreamer.py").read_text(encoding="utf-8")
     assert 'sys.platform.startswith("linux") and os.environ.get("MUJOCO_GL")' in source

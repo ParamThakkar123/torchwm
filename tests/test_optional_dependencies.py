@@ -108,3 +108,32 @@ def test_dev_extra_installs_the_linter_the_makefile_runs():
     project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
 
     assert "ruff" in _dependency_names(project["optional-dependencies"]["dev"])
+
+
+def test_dmc_extra_installs_cleanly_on_every_supported_python():
+    project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
+    dmc = project["optional-dependencies"]["dmc"]
+
+    # dm-control pins `labmaze`, which has no CPython 3.13 wheel and builds with
+    # Bazel, so an unconditional dm-control here fails the whole install on 3.13.
+    dm_control = [item for item in dmc if item.startswith("dm-control")]
+    assert dm_control == ["dm-control>=1.0.0; python_version < '3.13'"]
+    assert any(
+        item.startswith("labmaze-new") and "python_version >= '3.13'" in item
+        for item in dmc
+    )
+    assert not any(item.split(";")[0].strip() == "labmaze" for item in dmc)
+
+
+def test_uv_overrides_drop_labmaze_where_it_cannot_build():
+    config = tomllib.loads(Path("pyproject.toml").read_text())["tool"]["uv"]
+
+    assert "labmaze ; python_version < '3.13'" in config["override-dependencies"]
+
+
+def test_dmc_uv_extra_keeps_dm_control_unconditional():
+    project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
+    dmc_uv = project["optional-dependencies"]["dmc-uv"]
+
+    assert "dm-control>=1.0.0" in dmc_uv
+    assert not any(item.split(";")[0].strip() == "labmaze" for item in dmc_uv)

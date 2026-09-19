@@ -81,7 +81,11 @@ class DeepMindControlEnv:
             raise ModuleNotFoundError(
                 "The DeepMind Control backend requires the 'dm_control' package, "
                 "which is not installed. Install it with:\n\n"
-                "    pip install torchwm[dmc]\n\n"
+                "    pip install torchwm[dmc]          # Python <= 3.12\n"
+                "    python -m torchwm.install_dmc     # any version, incl. 3.13\n\n"
+                "On CPython 3.13 the extra alone is not enough: dm-control pins "
+                "`labmaze`, which has no 3.13 wheel and builds with Bazel. The "
+                "installer above uses the pure-Python `labmaze-new` instead.\n\n"
                 "or pick a backend that is already available (for example a "
                 "Gymnasium task via env_backend='gym', such as 'Pendulum-v1')."
             ) from exc

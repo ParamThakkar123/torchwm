@@ -48,6 +48,14 @@ Fixes from the September 2026 code audit.
 - A broken W&B install no longer breaks importing JEPA training
 
 ### Added
+- `python -m torchwm.install_dmc` (also `make install-dmc`) installs the
+  DeepMind Control backend on CPython 3.13, where dm-control's `labmaze`
+  dependency has no wheel and builds with Bazel. It uses the pure-Python
+  `labmaze-new` and installs dm-control with `--no-deps`. `--check` verifies an
+  environment, `--dry-run` prints the commands. It keeps the installed mujoco and
+  matches dm-control to it, because mujoco 3.13 removed an enum mujoco-mjx still
+  uses and upgrading would break the `brax` extra; `--upgrade-mujoco` opts out.
+  `[tool.uv] constraint-dependencies` caps `mujoco<3.13` for the same reason
 - CUDA, then Apple MPS, then CPU device selection
   (`torchwm.utils.device`)
 - `worldmodels` extra (albumentations, cma); `hydra-core`/`omegaconf` in `ml`;
@@ -55,6 +63,10 @@ Fixes from the September 2026 code audit.
 
 ### Removed
 - The `procgen` extra, which could never install on Python >= 3.11
+- `dm-control` from the `dmc` extra on CPython 3.13 only, so
+  `pip install torchwm[dmc]` no longer fails there. New `dmc-uv` extra keeps it
+  unconditional for uv, which drops the `labmaze` pin through
+  `[tool.uv] override-dependencies`
 - `tools` is no longer installed as a top-level package
 - `nginx.conf`, which proxied a frontend that no longer exists
 
@@ -72,8 +84,9 @@ last release on PyPI — also brings in every 0.5.0 change.
   DreamerV3 implementation
 - Shared step-budget `train()` covers the Dreamer family; other models use
   their own trainers or `torchwm train`
-- The `dmc` extra depends on `labmaze` wheels; CI does not install it on
-  Python 3.13 because labmaze currently tries to compile with Bazel
+- On CPython 3.13 the `dmc` extra installs everything except `dm_control`
+  itself; run `python -m torchwm.install_dmc` to add it (see the Unreleased
+  section)
 
 ### Added
 - Throughput instrumentation: `torchwm.ThroughputMeter`, `torchwm.measure_steps`

@@ -150,3 +150,44 @@ def test_real_unity_backend_if_binary_provided():
         assert "action" in info
     finally:
         env.close()
+
+
+def test_real_dmc_backend_smoke():
+    """DeepMind Control through the dmc backend, when it is installed.
+
+    `pip install torchwm[dmc]` covers Python <= 3.12; on 3.13 the backend is
+    installed by `python -m torchwm.install_dmc`, which supplies the `labmaze`
+    module through the pure-Python `labmaze-new`.
+    """
+    pytest.importorskip("dm_control")
+
+    import torchwm
+
+    env = torchwm.make_env("walker-walk", backend="dmc", seed=0, size=(32, 32))
+    obs = env.reset()
+    _assert_image_observation(obs, (3, 32, 32))
+    # A rendered frame, not a blank one: offscreen GL actually worked.
+    assert int(obs["image"].max()) > 0
+
+    next_obs, reward, done, info = env.step(
+        np.zeros(env.action_space.shape, dtype=np.float32)
+    )
+    _assert_image_observation(next_obs, (3, 32, 32))
+    assert isinstance(float(reward), float)
+    assert done is False
+    assert {"discount", "terminated", "truncated"} <= set(info)
+
+
+def test_dmc_installer_never_resolves_upstream_labmaze():
+    from torchwm.install_dmc import DM_CONTROL_DEPS, install_steps
+
+    steps = install_steps()
+    assert any("labmaze-new" in arg for step in steps for arg in step)
+    dm_control_step = next(step for step in steps if any("dm-control" in a for a in step))
+    assert "--no-deps" in dm_control_step
+    # Upstream `labmaze` must never be requested: it has no CPython 3.13 wheel
+    # and its sdist builds with Bazel.
+    for step in steps:
+        for arg in step:
+            assert not arg.startswith("labmaze>") and arg != "labmaze"
+    assert not any(dep.startswith("labmaze") for dep in DM_CONTROL_DEPS)

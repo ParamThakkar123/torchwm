@@ -1,7 +1,7 @@
 PYTHON ?= python
 export PYTHONPYCACHEPREFIX ?= build/__pycache__
 
-.PHONY: test lint format bench bench-all bench-infer bench-play run-all run-all-train run-all-infer
+.PHONY: test lint format install-dmc bench bench-all bench-infer bench-play run-all run-all-train run-all-infer
 
 test:
 	$(PYTHON) -m pytest
@@ -11,6 +11,11 @@ lint:
 
 format:
 	$(PYTHON) -m ruff format .
+
+# DeepMind Control, including on CPython 3.13 where dm-control's `labmaze`
+# dependency has no wheel and would build with Bazel. See torchwm/install_dmc.py.
+install-dmc:
+	$(PYTHON) -m torchwm.install_dmc
 
 # Compute benchmark (params, latency, throughput, memory) over every model.
 # The shell driver installs everything with uv and runs the sweep with uv run.

@@ -23,6 +23,7 @@ pip install torchwm
 # With extras
 pip install torchwm[gym]       # Gym/Gymnasium environments (runnable quick start)
 pip install torchwm[dmc]       # DeepMind Control Suite (walker-walk, cheetah-run, ...)
+                               # On CPython 3.13 also run: python -m torchwm.install_dmc
 pip install torchwm[worldmodels] # Classic World Models (ConvVAE + CMA-ES controller)
 pip install torchwm[ml-agents] # Unity ML-Agents
 pip install torchwm[ml]        # TensorBoard, W&B logging

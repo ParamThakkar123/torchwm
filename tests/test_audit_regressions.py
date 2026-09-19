@@ -232,3 +232,43 @@ def test_video_frames_are_not_wrapped_and_gif_needs_no_moviepy(tmp_path, monkeyp
     _write_gif(moving, str(path), fps=10)
     with Image.open(path) as gif:
         assert gif.n_frames == 3
+
+
+# -- DeepMind Control installer ------------------------------------------------
+
+
+def test_installer_matches_dm_control_to_the_installed_mujoco():
+    from torchwm.install_dmc import (
+        NEWEST_DM_CONTROL,
+        dm_control_requirement,
+        install_steps,
+    )
+
+    # mujoco 3.13 removed an enum mujoco-mjx still uses, so the installed mujoco
+    # is kept and dm-control is matched to it rather than the other way round.
+    assert dm_control_requirement((3, 5, 0)) == "dm-control==1.0.37"
+    assert dm_control_requirement((3, 11, 2)) == "dm-control==1.0.44"
+    assert dm_control_requirement((3, 13, 0)) == "dm-control==1.0.46"
+    assert dm_control_requirement(None) == NEWEST_DM_CONTROL
+    assert dm_control_requirement((3, 5, 0), upgrade_mujoco=True) == NEWEST_DM_CONTROL
+
+    # mujoco is only installed when it is missing, or on --upgrade-mujoco.
+    steps = install_steps()
+    if __import__("torchwm.install_dmc", fromlist=["x"]).installed_mujoco_version():
+        assert not any(arg.startswith("mujoco") for step in steps for arg in step)
+
+
+def test_installer_rejects_a_mujoco_older_than_any_known_dm_control():
+    from torchwm.install_dmc import dm_control_requirement
+
+    with pytest.raises(SystemExit, match="older than"):
+        dm_control_requirement((3, 1, 0))
+
+
+def test_uv_constraints_keep_brax_and_dmc_compatible():
+    import tomllib
+
+    config = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    constraints = config["tool"]["uv"]["constraint-dependencies"]
+
+    assert "mujoco<3.13" in constraints

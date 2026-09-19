@@ -64,8 +64,34 @@ ml-agents = [
     "mlagents-envs>=0.28.0,<0.29.0",
     "protobuf>=5.29.6",
 ]
+# dm-control requires the `labmaze` distribution, whose newest release (1.0.6)
+# publishes wheels only up to CPython 3.12. On 3.13 pip therefore builds it from
+# source, which needs Bazel and a C++ toolchain. `labmaze-new` is the same
+# package with the Bazel extension made opt-in (LABMAZE_BUILD_BAZEL_EXTENSIONS=1),
+# so it installs as pure Python and provides the `labmaze` module that
+# `dm_control` imports. `dm_control.suite` -- everything TorchWM's dmc backend
+# uses -- does not need the compiled extension; only `dm_control.locomotion`
+# maze generation does.
+#
+# pip cannot tell that `labmaze-new` satisfies dm-control's `labmaze`
+# requirement, so on 3.13 install with `make install-dmc` (see the Makefile) or
+# with uv, which honours the override below. See docs/source/environments/dmc.md.
 dmc = [
+    # Scoped below 3.13: declaring dm-control there makes pip resolve its
+    # `labmaze` pin and fail the whole install on the Bazel build. On 3.13 this
+    # extra installs the pure-Python `labmaze-new` instead, and dm-control is
+    # added with --no-deps by `make install-dmc` / `python -m torchwm.install_dmc`.
+    "dm-control>=1.0.0; python_version < '3.13'",
+    "labmaze-new>=0.0.2; python_version >= '3.13'",
+    "gymnasium>=1.2.2",
+]
+# uv-only variant: dm-control unconditionally, relying on the
+# `override-dependencies` entry below to drop its unbuildable `labmaze` pin on
+# 3.13. pip has no equivalent to that override, so pip users on 3.13 use
+# `python -m torchwm.install_dmc` instead.
+dmc-uv = [
     "dm-control>=1.0.0",
+    "labmaze-new>=0.0.2; python_version >= '3.13'",
     "gymnasium>=1.2.2",
 ]
 # Genie's TinyWorlds clips are HDF5 files pulled from HuggingFace. Without
@@ -181,7 +207,19 @@ torchwm = ["py.typed", "__init__.pyi"]
 # release. Each entry is the first patched version for the advisories GitHub
 # reports against `uv.lock`; raise an entry when a new advisory lands, and drop
 # one only once no dependency can select a vulnerable version any more.
+# dm-control pins `labmaze`, which has no wheel for CPython 3.13 and builds with
+# Bazel. Drop that requirement on 3.13 and let the `dmc` extra's `labmaze-new`
+# provide the module instead; on 3.12 and below the real wheel still installs.
+override-dependencies = [
+    "labmaze ; python_version < '3.13'",
+]
+
 constraint-dependencies = [
+    # mujoco 3.13 removed `mjtEnableBit.mjENBL_MULTICCD`, which mujoco-mjx (and
+    # therefore brax) still references, so importing brax against it raises
+    # AttributeError. Cap mujoco below 3.13 so the `brax` and `dmc` extras can
+    # live in one environment; dm-control then resolves to 1.0.45.
+    "mujoco<3.13",
     "bleach>=6.4.0",
     "gitpython>=3.1.58",
     "mistune>=3.3.0",

@@ -743,7 +743,11 @@ window.runMermaid = runMermaid;</script>
             <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
                 <span class="s2">"The DeepMind Control backend requires the 'dm_control' package, "</span>
                 <span class="s2">"which is not installed. Install it with:</span><span class="se">\n\n</span><span class="s2">"</span>
-                <span class="s2">"    pip install torchwm[dmc]</span><span class="se">\n\n</span><span class="s2">"</span>
+                <span class="s2">"    pip install torchwm[dmc]          # Python &lt;= 3.12</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="s2">"    python -m torchwm.install_dmc     # any version, incl. 3.13</span><span class="se">\n\n</span><span class="s2">"</span>
+                <span class="s2">"On CPython 3.13 the extra alone is not enough: dm-control pins "</span>
+                <span class="s2">"`labmaze`, which has no 3.13 wheel and builds with Bazel. The "</span>
+                <span class="s2">"installer above uses the pure-Python `labmaze-new` instead.</span><span class="se">\n\n</span><span class="s2">"</span>
                 <span class="s2">"or pick a backend that is already available (for example a "</span>
                 <span class="s2">"Gymnasium task via env_backend='gym', such as 'Pendulum-v1')."</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>

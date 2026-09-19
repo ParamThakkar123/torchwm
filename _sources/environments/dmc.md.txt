@@ -2,7 +2,53 @@
 
 The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps `dm_control.suite` tasks with a Gym-like interface, keeps all native DMC state observations, and adds a rendered RGB image so image-based world models can train on a consistent observation contract.
 
-Install: `pip install dm-control`
+## Install
+
+```bash
+pip install "torchwm[dmc]"          # pip, Python 3.12 and below
+python -m torchwm.install_dmc       # pip or uv, any version, including 3.13
+uv sync --extra dmc-uv              # uv, any version
+```
+
+On CPython 3.13 the extra alone is not enough. dm-control requires the `labmaze`
+distribution, whose newest release (1.0.6) publishes wheels only through CPython
+3.12, so resolving it on 3.13 builds labmaze from source with Bazel and the
+install fails. TorchWM therefore leaves dm-control out of the `dmc` extra on 3.13
+— so the extra always installs cleanly — and `python -m torchwm.install_dmc`
+finishes the job:
+
+1. installs [`labmaze-new`](https://pypi.org/project/labmaze-new/), the same
+   package with the Bazel extension made opt-in via
+   `LABMAZE_BUILD_BAZEL_EXTENSIONS=1`, so it installs as pure Python and provides
+   the `labmaze` module `dm_control` imports;
+2. installs `dm-control` with `--no-deps`, so pip never resolves that pin;
+3. installs dm-control's remaining dependencies explicitly.
+
+`python -m torchwm.install_dmc --check` verifies an existing environment, and
+`--dry-run` prints the commands; it uses `uv pip` automatically inside a
+uv-managed virtualenv.
+
+With uv, prefer the `dmc-uv` extra: it lists dm-control unconditionally and uv
+drops the `labmaze` pin through the `override-dependencies` entry in
+`pyproject.toml`, which pip has no equivalent for. `uv sync --extra dmc` installs
+everything except dm-control on 3.13, the same as pip.
+
+The installer keeps whatever mujoco is already installed and picks the newest
+dm-control that works with it, because dm-control raises its mujoco floor with
+almost every release and mujoco 3.13 removed `mjtEnableBit.mjENBL_MULTICCD`,
+which mujoco-mjx (and therefore the `brax` extra) still uses. Upgrading mujoco
+for dm-control's sake breaks brax in the same environment. Pass
+`--upgrade-mujoco` to install the newest mujoco and dm-control together instead.
+For the same reason `[tool.uv] constraint-dependencies` caps `mujoco<3.13`.
+
+pip will warn that `dm-control ... requires labmaze, which is not installed`.
+That is cosmetic: `labmaze-new` provides the module under a different
+distribution name, which pip cannot match to the requirement.
+
+Only `dm_control.locomotion` maze generation needs labmaze's compiled extension.
+`dm_control.suite`, which is all this backend uses, does not. If you need the
+locomotion mazes, install with `LABMAZE_BUILD_BAZEL_EXTENSIONS=1` and Bazel
+available, or use a Python 3.12 environment.
 
 ## Main API
 

@@ -399,7 +399,49 @@
   <section id="deepmind-control-suite">
 <h1>DeepMind Control Suite<a class="headerlink" href="#deepmind-control-suite" title="Link to this heading">#</a></h1>
 <p>The DeepMind Control Suite (DMC) backend is the default Dreamer environment path in TorchWM. It wraps <code class="docutils literal notranslate"><span class="pre">dm_control.suite</span></code> tasks with a Gym-like interface, keeps all native DMC state observations, and adds a rendered RGB image so image-based world models can train on a consistent observation contract.</p>
-<p>Install: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">dm-control</span></code></p>
+<section id="install">
+<h2>Install<a class="headerlink" href="#install" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"torchwm[dmc]"</span><span class="w">          </span><span class="c1"># pip, Python 3.12 and below</span>
+python<span class="w"> </span>-m<span class="w"> </span>torchwm.install_dmc<span class="w">       </span><span class="c1"># pip or uv, any version, including 3.13</span>
+uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dmc-uv<span class="w">              </span><span class="c1"># uv, any version</span>
+</pre></div>
+</div>
+<p>On CPython 3.13 the extra alone is not enough. dm-control requires the <code class="docutils literal notranslate"><span class="pre">labmaze</span></code>
+distribution, whose newest release (1.0.6) publishes wheels only through CPython
+3.12, so resolving it on 3.13 builds labmaze from source with Bazel and the
+install fails. TorchWM therefore leaves dm-control out of the <code class="docutils literal notranslate"><span class="pre">dmc</span></code> extra on 3.13
+— so the extra always installs cleanly — and <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">torchwm.install_dmc</span></code>
+finishes the job:</p>
+<ol class="arabic simple">
+<li><p>installs <a class="reference external" href="https://pypi.org/project/labmaze-new/"><code class="docutils literal notranslate"><span class="pre">labmaze-new</span></code></a>, the same
+package with the Bazel extension made opt-in via
+<code class="docutils literal notranslate"><span class="pre">LABMAZE_BUILD_BAZEL_EXTENSIONS=1</span></code>, so it installs as pure Python and provides
+the <code class="docutils literal notranslate"><span class="pre">labmaze</span></code> module <code class="docutils literal notranslate"><span class="pre">dm_control</span></code> imports;</p></li>
+<li><p>installs <code class="docutils literal notranslate"><span class="pre">dm-control</span></code> with <code class="docutils literal notranslate"><span class="pre">--no-deps</span></code>, so pip never resolves that pin;</p></li>
+<li><p>installs dm-control’s remaining dependencies explicitly.</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">torchwm.install_dmc</span> <span class="pre">--check</span></code> verifies an existing environment, and
+<code class="docutils literal notranslate"><span class="pre">--dry-run</span></code> prints the commands; it uses <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span></code> automatically inside a
+uv-managed virtualenv.</p>
+<p>With uv, prefer the <code class="docutils literal notranslate"><span class="pre">dmc-uv</span></code> extra: it lists dm-control unconditionally and uv
+drops the <code class="docutils literal notranslate"><span class="pre">labmaze</span></code> pin through the <code class="docutils literal notranslate"><span class="pre">override-dependencies</span></code> entry in
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, which pip has no equivalent for. <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span> <span class="pre">--extra</span> <span class="pre">dmc</span></code> installs
+everything except dm-control on 3.13, the same as pip.</p>
+<p>The installer keeps whatever mujoco is already installed and picks the newest
+dm-control that works with it, because dm-control raises its mujoco floor with
+almost every release and mujoco 3.13 removed <code class="docutils literal notranslate"><span class="pre">mjtEnableBit.mjENBL_MULTICCD</span></code>,
+which mujoco-mjx (and therefore the <code class="docutils literal notranslate"><span class="pre">brax</span></code> extra) still uses. Upgrading mujoco
+for dm-control’s sake breaks brax in the same environment. Pass
+<code class="docutils literal notranslate"><span class="pre">--upgrade-mujoco</span></code> to install the newest mujoco and dm-control together instead.
+For the same reason <code class="docutils literal notranslate"><span class="pre">[tool.uv]</span> <span class="pre">constraint-dependencies</span></code> caps <code class="docutils literal notranslate"><span class="pre">mujoco&lt;3.13</span></code>.</p>
+<p>pip will warn that <code class="docutils literal notranslate"><span class="pre">dm-control</span> <span class="pre">...</span> <span class="pre">requires</span> <span class="pre">labmaze,</span> <span class="pre">which</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">installed</span></code>.
+That is cosmetic: <code class="docutils literal notranslate"><span class="pre">labmaze-new</span></code> provides the module under a different
+distribution name, which pip cannot match to the requirement.</p>
+<p>Only <code class="docutils literal notranslate"><span class="pre">dm_control.locomotion</span></code> maze generation needs labmaze’s compiled extension.
+<code class="docutils literal notranslate"><span class="pre">dm_control.suite</span></code>, which is all this backend uses, does not. If you need the
+locomotion mazes, install with <code class="docutils literal notranslate"><span class="pre">LABMAZE_BUILD_BAZEL_EXTENSIONS=1</span></code> and Bazel
+available, or use a Python 3.12 environment.</p>
+</section>
 <section id="main-api">
 <h2>Main API<a class="headerlink" href="#main-api" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchwm</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepMindControlEnv</span>
@@ -523,6 +565,7 @@
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#install">Install</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#main-api">Main API</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#common-task-ids">Common task IDs</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observation-contract">Observation contract</a></li>

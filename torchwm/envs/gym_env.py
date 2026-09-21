@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import warnings
 
 from torchwm.envs._actions import clip_box_action, encode_discrete_action
 from torchwm.envs._contract import finalize_step_info
@@ -42,7 +43,8 @@ class GymImageEnv:
 
     Features:
         - Supports environment IDs (string) and pre-built environment objects.
-        - Synthesizes RGB images from vector observations for pixel-based training.
+        - For vector observations, uses the environment's own ``render()`` frame,
+          and only synthesizes band images from the vector when rendering fails.
         - Exposes continuous action spaces mapped to [-1, 1] range.
         - Converts discrete actions to one-hot vectors.
         - Returns observations as dicts with required key ``"image"`` and optional
@@ -86,6 +88,7 @@ class GymImageEnv:
 
         self._last_obs: Any = None
         self._last_image: Any = None
+        self._warned_band_fallback = False
 
         action_space = getattr(self._env, "action_space", None)
         if action_space is None:
@@ -278,8 +281,45 @@ class GymImageEnv:
             return self._obs_to_hwc_image(last_obs)
         return None
 
+    @staticmethod
+    def _is_vector_observation(obs: Any) -> bool:
+        """True when ``obs`` carries no pixels, only low-dimensional numbers."""
+        if isinstance(obs, tuple):
+            obs = obs[0]
+        values = obs.values() if isinstance(obs, dict) else (obs,)
+        for value in values:
+            try:
+                if np.asarray(value).ndim >= 2:
+                    return False
+            except Exception:
+                continue
+        return True
+
+    def _rendered_frame(self) -> np.ndarray | None:
+        frame = self._render_hwc_image()
+        if not isinstance(frame, np.ndarray) or frame.ndim not in (2, 3):
+            return None
+        return self._obs_to_hwc_image(frame)
+
     def _to_chw_uint8_image(self, obs: Any) -> np.ndarray:
-        image = self._obs_to_hwc_image(obs)
+        image = None
+        if self._is_vector_observation(obs):
+            # A state vector has no pixels of its own. The env's renderer draws
+            # the actual scene (Pendulum's pole, CartPole's cart); painting the
+            # numbers as grey bands is a last resort, and a world model trained
+            # on bands learns nothing a person can look at.
+            image = self._rendered_frame()
+            if image is None and not self._warned_band_fallback:
+                warnings.warn(
+                    "GymImageEnv: the environment returns vector observations and "
+                    "render() produced no RGB frame, so observations are synthesized "
+                    "as grey bands (one per state value). Create the env with "
+                    "render_mode='rgb_array' to train on real pixels.",
+                    stacklevel=3,
+                )
+                self._warned_band_fallback = True
+        if image is None:
+            image = self._obs_to_hwc_image(obs)
         if image is None:
             image = self._render_hwc_image(last_obs=obs)
         if image is None:

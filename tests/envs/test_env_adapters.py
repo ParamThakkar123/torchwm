@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 import numpy as np
 from unittest.mock import Mock, patch
@@ -312,6 +314,54 @@ def test_gym_image_env_discrete_action_mapping():
     assert info["action"].shape == (3,)
     assert np.array_equal(info["action"], np.array([-1.0, 1.0, -1.0], dtype=np.float32))
     assert info["executed_action"] == 1
+
+
+class _FakeRenderingVectorEnv(_FakeDiscreteEnv):
+    """Vector observations, but render() draws a real scene."""
+
+    def render(self):
+        frame = np.zeros((32, 32, 3), dtype=np.uint8)
+        frame[8:24, 14:18] = (200, 30, 30)  # a "pole"
+        return frame
+
+
+def test_gym_image_env_prefers_render_frame_over_vector_bands():
+    wrapped = GymImageEnv(_FakeRenderingVectorEnv(), seed=1, size=(32, 32))
+    obs = wrapped.reset()
+    expected = _FakeRenderingVectorEnv().render().transpose(2, 0, 1)
+    assert np.array_equal(obs["image"], expected)
+
+    next_obs, _, _, _ = wrapped.step(np.array([1.0, -1.0, -1.0], dtype=np.float32))
+    assert np.array_equal(next_obs["image"], expected)
+
+
+class _FakeNonRenderingVectorEnv(_FakeDiscreteEnv):
+    """Like a gymnasium env made without render_mode: render() gives None."""
+
+    def render(self, *args, **kwargs) -> Any:
+        return None
+
+
+def test_gym_image_env_warns_once_when_falling_back_to_bands():
+    wrapped = GymImageEnv(_FakeNonRenderingVectorEnv(), seed=1, size=(8, 8))
+    with pytest.warns(UserWarning, match="grey bands"):
+        obs = wrapped.reset()
+    assert obs["image"].shape == (3, 8, 8)
+
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        wrapped.step(np.array([1.0, -1.0, -1.0], dtype=np.float32))
+
+
+def test_gym_image_env_renders_pendulum_pixels():
+    env = GymImageEnv("Pendulum-v1", seed=0, size=(64, 64))
+    image = env.reset()["image"]
+    env.close()
+    # Pendulum draws a red pole on a white background; bands would be grey.
+    red = image[0].astype(int) - image[1].astype(int)
+    assert red.max() > 100
 
 
 def test_normalize_actions_wrapper_reports_model_and_executed_actions():

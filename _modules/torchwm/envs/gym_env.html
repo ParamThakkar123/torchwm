@@ -661,6 +661,7 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.envs._actions</span><span class="w"> </span><span class="kn">import</span> <span class="n">clip_box_action</span><span class="p">,</span> <span class="n">encode_discrete_action</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchwm.envs._contract</span><span class="w"> </span><span class="kn">import</span> <span class="n">finalize_step_info</span>
@@ -707,7 +708,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    Features:</span>
 <span class="sd">        - Supports environment IDs (string) and pre-built environment objects.</span>
-<span class="sd">        - Synthesizes RGB images from vector observations for pixel-based training.</span>
+<span class="sd">        - For vector observations, uses the environment's own ``render()`` frame,</span>
+<span class="sd">          and only synthesizes band images from the vector when rendering fails.</span>
 <span class="sd">        - Exposes continuous action spaces mapped to [-1, 1] range.</span>
 <span class="sd">        - Converts discrete actions to one-hot vectors.</span>
 <span class="sd">        - Returns observations as dicts with required key ``"image"`` and optional</span>
@@ -751,6 +753,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_obs</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_image</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warned_band_fallback</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="n">action_space</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">,</span> <span class="s2">"action_space"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">action_space</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -943,8 +946,45 @@ window.runMermaid = runMermaid;</script>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_to_hwc_image</span><span class="p">(</span><span class="n">last_obs</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_vector_observation</span><span class="p">(</span><span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""True when ``obs`` carries no pixels, only low-dimensional numbers."""</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="n">obs</span><span class="p">,)</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_rendered_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_hwc_image</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="n">frame</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_to_hwc_image</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_to_chw_uint8_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_to_hwc_image</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_vector_observation</span><span class="p">(</span><span class="n">obs</span><span class="p">):</span>
+            <span class="c1"># A state vector has no pixels of its own. The env's renderer draws</span>
+            <span class="c1"># the actual scene (Pendulum's pole, CartPole's cart); painting the</span>
+            <span class="c1"># numbers as grey bands is a last resort, and a world model trained</span>
+            <span class="c1"># on bands learns nothing a person can look at.</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rendered_frame</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warned_band_fallback</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">"GymImageEnv: the environment returns vector observations and "</span>
+                    <span class="s2">"render() produced no RGB frame, so observations are synthesized "</span>
+                    <span class="s2">"as grey bands (one per state value). Create the env with "</span>
+                    <span class="s2">"render_mode='rgb_array' to train on real pixels."</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_warned_band_fallback</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_to_hwc_image</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_render_hwc_image</span><span class="p">(</span><span class="n">last_obs</span><span class="o">=</span><span class="n">obs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

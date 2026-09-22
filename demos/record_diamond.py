@@ -26,15 +26,15 @@ import time
 from pathlib import Path
 from typing import Optional
 
-# Running this file directly puts demos/ on sys.path, not the repo root, so the
-# `scripts` and `torchwm` packages would not resolve.
+# Running this file directly puts demos/ on sys.path, not the repo root, so
+# `torchwm` would not resolve from a checkout that has not been installed.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import cv2
 import numpy as np
 import torch
 
-from scripts.play_diamond import make_agent
+from torchwm.inference.play_diamond import make_agent
 from torchwm.utils.utils import StreamingVideoWriter
 
 

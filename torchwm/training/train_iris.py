@@ -5,7 +5,7 @@ from collections import defaultdict
 import os
 from tqdm import tqdm
 import random
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any, Optional, cast
 
 from types import ModuleType
@@ -116,16 +116,25 @@ class IRISTrainer:
         # this trainer defaults to. Everything downstream only relies on the
         # Gymnasium step/reset API and a discrete action space, so IRIS can be
         # trained on any image-observation environment by passing `env`.
+        self._env_factory: Optional[Callable[[], Any]] = None
         if env is not None:
             self.env = env
         else:
-            self.env = make_atari_env(
-                game,
-                obs_type="rgb",
-                frameskip=self.config.action_repeat,
-                repeat_action_probability=self.config.repeat_action_probability,
-                max_episode_steps=self.config.max_episode_steps,
-            )
+
+            def _build_env() -> Any:
+                return make_atari_env(
+                    game,
+                    obs_type="rgb",
+                    frameskip=self.config.action_repeat,
+                    repeat_action_probability=self.config.repeat_action_probability,
+                    max_episode_steps=self.config.max_episode_steps,
+                )
+
+            self._env_factory = _build_env
+            self.env = _build_env()
+
+        # Built on first evaluation; see _evaluation_env.
+        self._eval_env: Optional[Any] = None
 
         # Discrete spaces expose ``n``; Box-like spaces expose ``shape``.
         # Duck-type both so importing this module does not require gym/gymnasium.
@@ -401,6 +410,33 @@ class IRISTrainer:
         del epoch  # fixed schedule; kept for signature compatibility
         return self.config.collect_epsilon
 
+    def _evaluation_env(self) -> tuple[Any, bool]:
+        """Return ``(env, shares_collection_env)`` for evaluation.
+
+        Evaluation plays whole episodes, while ``collect_experience`` keeps a
+        partial one alive across calls (its last observation, the policy's
+        recurrent state and the running return). Both used ``self.env``, so an
+        evaluation reset the environment out from under that state: the next
+        collection step fed the stale pre-eval observation to the policy, then
+        stepped an environment sitting wherever the evaluation had left it, and
+        wrote the resulting mismatched transition into the replay buffer.
+
+        A second environment keeps the two apart. When the caller supplied the
+        environment there is nothing to build one from, so evaluation borrows it
+        and the collection state is dropped afterwards instead.
+        """
+        if self._env_factory is None:
+            return self.env, True
+        if self._eval_env is None:
+            self._eval_env = self._env_factory()
+        return self._eval_env, False
+
+    def _reset_collection_state(self) -> None:
+        """Drop the in-flight collection episode; the next call starts a new one."""
+        self._collect_obs = None
+        self._collect_hidden = None
+        self._collect_return = 0.0
+
     def evaluate(self, num_episodes: int = 100, render: bool = False) -> dict | tuple:
         """Evaluate agent performance.
 
@@ -416,8 +452,10 @@ class IRISTrainer:
         videos: list[list[np.ndarray]] = []
         latents_all: list[np.ndarray] = []
 
+        env, shares_collection_env = self._evaluation_env()
+
         for _ in range(num_episodes):
-            raw_obs, _ = self.env.reset()
+            raw_obs, _ = env.reset()
             obs = self.preprocess_frame(raw_obs)
 
             episode_return: float = 0.0
@@ -442,46 +480,60 @@ class IRISTrainer:
                 action_tensor, hidden = act_out
                 action = int(action_tensor.item())
 
-                next_raw, reward, terminated, truncated, _ = self.env.step(action)
+                next_raw, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
 
-                # Store raw frame for video (as HWC uint8 if possible)
-                try:
-                    frames.append(np.asarray(next_raw))
-                except Exception:
-                    # Fallback: convert processed obs back to HWC
-                    proc = np.asarray(obs)
-                    if proc.ndim == 3:
-                        # CHW -> HWC
-                        frames.append(proc.transpose(1, 2, 0))
+                # Only when the caller asked for them: a raw Atari frame is
+                # ~100 KB, so at the default eval_episodes=100 and the 27000-step
+                # episode cap, collecting them unconditionally could hold tens of
+                # GB until the eval returned -- enough for the OS to kill the
+                # process, with no Python error to show for it.
+                if render:
+                    try:
+                        frames.append(np.asarray(next_raw))
+                    except Exception:
+                        # Fallback: convert processed obs back to HWC
+                        proc = np.asarray(obs)
+                        if proc.ndim == 3:
+                            # CHW -> HWC
+                            frames.append(proc.transpose(1, 2, 0))
 
                 next_obs = self.preprocess_frame(next_raw)
 
-                # Compute latent embedding via encoder (quantized embeddings)
-                try:
-                    proc_frame = next_obs if not done else obs
-                    with torch.no_grad():
-                        ft = self.to_float_tensor(proc_frame).unsqueeze(0)
-                        # eval mode: the quantizer's dead-code revival must not
-                        # fire while merely reading out a latent for logging.
-                        was_training = self.agent.encoder.training
-                        self.agent.encoder.eval()
-                        try:
-                            z_q, _, _ = self.agent.encoder(ft)
-                        finally:
-                            self.agent.encoder.train(was_training)
-                        # z_q: (B, C, H', W') -> reduce spatial dims and take mean over channels
-                        latent = z_q.mean(dim=(2, 3)).squeeze(0).cpu().numpy()
-                        latents_all.append(latent.astype(np.float32))
-                except Exception:
-                    # If encoder fails, skip latent for this step
-                    pass
+                # Compute latent embedding via encoder (quantized embeddings).
+                # Also render-only: it is a per-step forward pass whose result
+                # is returned alongside the video and dropped otherwise.
+                if render:
+                    try:
+                        proc_frame = next_obs if not done else obs
+                        with torch.no_grad():
+                            ft = self.to_float_tensor(proc_frame).unsqueeze(0)
+                            # eval mode: the quantizer's dead-code revival must not
+                            # fire while merely reading out a latent for logging.
+                            was_training = self.agent.encoder.training
+                            self.agent.encoder.eval()
+                            try:
+                                z_q, _, _ = self.agent.encoder(ft)
+                            finally:
+                                self.agent.encoder.train(was_training)
+                            # z_q: (B, C, H', W') -> reduce spatial dims and take mean over channels
+                            latent = z_q.mean(dim=(2, 3)).squeeze(0).cpu().numpy()
+                            latents_all.append(latent.astype(np.float32))
+                    except Exception:
+                        # If encoder fails, skip latent for this step
+                        pass
 
                 episode_return += float(reward)
                 obs = next_obs if not done else obs
 
             episode_returns.append(episode_return)
-            videos.append(frames)
+            if render:
+                videos.append(frames)
+
+        if shares_collection_env:
+            # The evaluation left this environment mid-episode somewhere else;
+            # the half-finished collection episode that referred to it is gone.
+            self._reset_collection_state()
 
         if render:
             # Stack latents into (N, D) array if any

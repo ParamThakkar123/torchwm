@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 Fixes from the September 2026 code audit.
 
 ### Fixed
+- IRIS evaluation collected every raw frame and a per-step latent even with
+  `render=False`, the default during training, and then discarded them. At the
+  default `eval_episodes=100` and the 27000-step episode cap that is tens of GB
+  held until the evaluation returns, so the OS could kill the process outright
+  (in a notebook, the kernel just restarts). Both are now render-only
+- IRIS evaluation reset the same environment `collect_experience` keeps a
+  partial episode on, so the next collection step paired the stale pre-eval
+  observation with the post-eval environment and wrote a transition that never
+  happened into the replay buffer. Evaluation now runs on its own environment;
+  when the caller supplied the environment, the in-flight collection episode is
+  dropped instead
 - Genie training on TinyWorlds could kill the process with no traceback (a
   notebook kernel just restarts) whenever `num_workers > 0`, the default:
   `TinyWorldsDataset` kept one HDF5 handle open from `__init__`, and forked

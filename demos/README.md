@@ -13,10 +13,19 @@ driver before training, or every run silently falls back to CPU:
 # Check what you actually have
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 
-# CUDA 12.6 wheels (pick your own index from pytorch.org/get-started/locally)
+# CUDA 12.8 wheels (pick your own index from pytorch.org/get-started/locally)
 uv pip install --reinstall-package torch --reinstall-package torchvision \
-    torch torchvision --index-url https://download.pytorch.org/whl/cu126
+    torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+# Confirm the build has kernels for your GPU: its sm_XY must be in this list
+python -c "import torch; print(torch.cuda.get_device_capability(), torch.cuda.get_arch_list())"
 ```
+
+Blackwell GPUs (RTX 50-series, RTX PRO 6000 Blackwell: `sm_120`; B200:
+`sm_100`) need **cu128 or newer**. The cu126 wheels stop at `sm_90`, yet
+`torch.cuda.is_available()` still returns `True` on those cards — only a
+warning is printed, and the run fails at its first kernel with
+`no kernel image is available for execution on the device`.
 
 The `torch` wheel is ~2.4 GB. If `uv` reports a network timeout, raise it:
 `UV_HTTP_TIMEOUT=900`.

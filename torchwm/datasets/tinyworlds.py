@@ -113,6 +113,8 @@ class TinyWorldsDataset(Dataset):
         self.data_file = data_file
 
         self._data_file: Optional[Any] = None
+        self._data_file_pid: Optional[int] = None
+        self._data_path: Optional[Path] = None
         self.num_samples = 0
         self.video_length = 0
 
@@ -183,21 +185,27 @@ class TinyWorldsDataset(Dataset):
         if not local_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {local_path}")
 
-        f = h5py.File(local_path, "r")
-        self._data_file = f
+        # Only the metadata is read here, and the file is closed again. HDF5 is
+        # not fork-safe: a handle opened in this process and inherited by forked
+        # DataLoader workers corrupts HDF5's state once several of them read
+        # through it, which segfaults -- in a notebook the kernel just dies with
+        # no traceback. Each process opens its own handle on first read instead.
+        with h5py.File(local_path, "r") as f:
+            if "videos" in f:
+                self._data_key = "videos"
+            elif "frames" in f:
+                self._data_key = "frames"
+            else:
+                available_keys = list(f.keys())
+                raise KeyError(
+                    f"No 'videos' or 'frames' key found. Available: {available_keys}"
+                )
+            # h5py dataset objects are dynamically typed; access shape via getattr
+            shape = getattr(f[self._data_key], "shape", None)
 
-        if "videos" in f:
-            data = f["videos"]
-        elif "frames" in f:
-            data = f["frames"]
-        else:
-            available_keys = list(f.keys())
-            raise KeyError(
-                f"No 'videos' or 'frames' key found. Available: {available_keys}"
-            )
+        self._data_path = local_path
+        self._close_data_file()
 
-        # h5py dataset objects are dynamically typed; access shape via getattr
-        shape = getattr(data, "shape", None)
         if not isinstance(shape, tuple):
             raise ValueError(
                 f"Unable to determine data shape for dataset: {self.dataset_name}"
@@ -228,11 +236,39 @@ class TinyWorldsDataset(Dataset):
     def __len__(self) -> int:
         return self.num_samples
 
+    def _open_data_file(self) -> Any:
+        """Return this process's HDF5 handle, opening it on first use.
+
+        The handle is tagged with the pid that opened it, so a forked DataLoader
+        worker that inherited the parent's handle opens a fresh one of its own
+        rather than reading through the shared one.
+        """
+        if self._data_file is None or self._data_file_pid != os.getpid():
+            path = getattr(self, "_data_path", None)
+            assert path is not None and h5py is not None, "Data file is not loaded"
+            # A handle inherited across fork is dropped, never closed: closing it
+            # would act on HDF5 state that still belongs to the parent.
+            self._data_file = h5py.File(path, "r")
+            self._data_file_pid = os.getpid()
+        return self._data_file
+
+    def _close_data_file(self) -> None:
+        f = getattr(self, "_data_file", None)
+        if f is not None and getattr(self, "_data_file_pid", None) == os.getpid():
+            f.close()
+        self._data_file = None
+        self._data_file_pid = None
+
+    def __getstate__(self) -> Dict[str, Any]:
+        # Spawned workers (Windows, macOS) receive the dataset by pickling, and
+        # an h5py handle cannot be pickled; each worker opens its own on first read.
+        state = self.__dict__.copy()
+        state["_data_file"] = None
+        state["_data_file_pid"] = None
+        return state
+
     def __getitem__(self, idx: int) -> torch.Tensor:
-        f = self._data_file
-        assert f is not None, "Data file is not loaded"
-        data = f["videos" if "videos" in f else "frames"]
-        video = data[idx][:]
+        video = self._open_data_file()[self._data_key][idx][:]
 
         if not isinstance(video, np.ndarray):
             video = np.array(video)
@@ -278,8 +314,7 @@ class TinyWorldsDataset(Dataset):
         return video
 
     def __del__(self) -> None:
-        if self._data_file is not None:
-            self._data_file.close()
+        self._close_data_file()
 
     def get_info(self) -> Dict[str, Any]:
         """Return dataset information."""

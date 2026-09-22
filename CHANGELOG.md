@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 Fixes from the September 2026 code audit.
 
 ### Fixed
+- Genie training on TinyWorlds could kill the process with no traceback (a
+  notebook kernel just restarts) whenever `num_workers > 0`, the default:
+  `TinyWorldsDataset` kept one HDF5 handle open from `__init__`, and forked
+  DataLoader workers all read through that inherited handle, which HDF5 does
+  not support. Each process now opens its own handle on first read. The same
+  handle made spawned workers (Windows, macOS) fail with
+  `TypeError: h5py objects cannot be pickled`
 - System-metrics logging crashed training on GPU machines: `collect_system_stats`
   guarded `torch.cuda.utilization` with `hasattr`, which is always true, while
   calling it raises `ModuleNotFoundError` without NVML (`nvidia-ml-py`). The

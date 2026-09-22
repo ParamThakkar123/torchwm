@@ -662,7 +662,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModuleType</span>
@@ -778,16 +778,25 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># this trainer defaults to. Everything downstream only relies on the</span>
         <span class="c1"># Gymnasium step/reset API and a discrete action space, so IRIS can be</span>
         <span class="c1"># trained on any image-observation environment by passing `env`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_factory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">make_atari_env</span><span class="p">(</span>
-                <span class="n">game</span><span class="p">,</span>
-                <span class="n">obs_type</span><span class="o">=</span><span class="s2">"rgb"</span><span class="p">,</span>
-                <span class="n">frameskip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">,</span>
-                <span class="n">repeat_action_probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">repeat_action_probability</span><span class="p">,</span>
-                <span class="n">max_episode_steps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_episode_steps</span><span class="p">,</span>
-            <span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_build_env</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">make_atari_env</span><span class="p">(</span>
+                    <span class="n">game</span><span class="p">,</span>
+                    <span class="n">obs_type</span><span class="o">=</span><span class="s2">"rgb"</span><span class="p">,</span>
+                    <span class="n">frameskip</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">action_repeat</span><span class="p">,</span>
+                    <span class="n">repeat_action_probability</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">repeat_action_probability</span><span class="p">,</span>
+                    <span class="n">max_episode_steps</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_episode_steps</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_factory</span> <span class="o">=</span> <span class="n">_build_env</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">_build_env</span><span class="p">()</span>
+
+        <span class="c1"># Built on first evaluation; see _evaluation_env.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Discrete spaces expose ``n``; Box-like spaces expose ``shape``.</span>
         <span class="c1"># Duck-type both so importing this module does not require gym/gymnasium.</span>
@@ -1078,6 +1087,33 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">collect_epsilon</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluation_env</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return ``(env, shares_collection_env)`` for evaluation.</span>
+
+<span class="sd">        Evaluation plays whole episodes, while ``collect_experience`` keeps a</span>
+<span class="sd">        partial one alive across calls (its last observation, the policy's</span>
+<span class="sd">        recurrent state and the running return). Both used ``self.env``, so an</span>
+<span class="sd">        evaluation reset the environment out from under that state: the next</span>
+<span class="sd">        collection step fed the stale pre-eval observation to the policy, then</span>
+<span class="sd">        stepped an environment sitting wherever the evaluation had left it, and</span>
+<span class="sd">        wrote the resulting mismatched transition into the replay buffer.</span>
+
+<span class="sd">        A second environment keeps the two apart. When the caller supplied the</span>
+<span class="sd">        environment there is nothing to build one from, so evaluation borrows it</span>
+<span class="sd">        and the collection state is dropped afterwards instead.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_factory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_env</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_factory</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_env</span><span class="p">,</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reset_collection_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Drop the in-flight collection episode; the next call starts a new one."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_obs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_hidden</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_return</span> <span class="o">=</span> <span class="mf">0.0</span>
+
 <div class="viewcode-block" id="IRISTrainer.evaluate">
 <a class="viewcode-back" href="../../../api_reference.html#torchwm.training.train_iris.IRISTrainer.evaluate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_episodes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">:</span>
@@ -1095,8 +1131,10 @@ window.runMermaid = runMermaid;</script>
         <span class="n">videos</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">latents_all</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="n">env</span><span class="p">,</span> <span class="n">shares_collection_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluation_env</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_episodes</span><span class="p">):</span>
-            <span class="n">raw_obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="n">raw_obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_frame</span><span class="p">(</span><span class="n">raw_obs</span><span class="p">)</span>
 
             <span class="n">episode_return</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -1121,46 +1159,60 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">action_tensor</span><span class="p">,</span> <span class="n">hidden</span> <span class="o">=</span> <span class="n">act_out</span>
                 <span class="n">action</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">action_tensor</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
 
-                <span class="n">next_raw</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+                <span class="n">next_raw</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
                 <span class="n">done</span> <span class="o">=</span> <span class="n">terminated</span> <span class="ow">or</span> <span class="n">truncated</span>
 
-                <span class="c1"># Store raw frame for video (as HWC uint8 if possible)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">next_raw</span><span class="p">))</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="c1"># Fallback: convert processed obs back to HWC</span>
-                    <span class="n">proc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                        <span class="c1"># CHW -&gt; HWC</span>
-                        <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="c1"># Only when the caller asked for them: a raw Atari frame is</span>
+                <span class="c1"># ~100 KB, so at the default eval_episodes=100 and the 27000-step</span>
+                <span class="c1"># episode cap, collecting them unconditionally could hold tens of</span>
+                <span class="c1"># GB until the eval returned -- enough for the OS to kill the</span>
+                <span class="c1"># process, with no Python error to show for it.</span>
+                <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">next_raw</span><span class="p">))</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="c1"># Fallback: convert processed obs back to HWC</span>
+                        <span class="n">proc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="c1"># CHW -&gt; HWC</span>
+                            <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
                 <span class="n">next_obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_frame</span><span class="p">(</span><span class="n">next_raw</span><span class="p">)</span>
 
-                <span class="c1"># Compute latent embedding via encoder (quantized embeddings)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">proc_frame</span> <span class="o">=</span> <span class="n">next_obs</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span> <span class="k">else</span> <span class="n">obs</span>
-                    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                        <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_float_tensor</span><span class="p">(</span><span class="n">proc_frame</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                        <span class="c1"># eval mode: the quantizer's dead-code revival must not</span>
-                        <span class="c1"># fire while merely reading out a latent for logging.</span>
-                        <span class="n">was_training</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">training</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">z_q</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">ft</span><span class="p">)</span>
-                        <span class="k">finally</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">was_training</span><span class="p">)</span>
-                        <span class="c1"># z_q: (B, C, H', W') -&gt; reduce spatial dims and take mean over channels</span>
-                        <span class="n">latent</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-                        <span class="n">latents_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">latent</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="c1"># If encoder fails, skip latent for this step</span>
-                    <span class="k">pass</span>
+                <span class="c1"># Compute latent embedding via encoder (quantized embeddings).</span>
+                <span class="c1"># Also render-only: it is a per-step forward pass whose result</span>
+                <span class="c1"># is returned alongside the video and dropped otherwise.</span>
+                <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">proc_frame</span> <span class="o">=</span> <span class="n">next_obs</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span> <span class="k">else</span> <span class="n">obs</span>
+                        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                            <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_float_tensor</span><span class="p">(</span><span class="n">proc_frame</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                            <span class="c1"># eval mode: the quantizer's dead-code revival must not</span>
+                            <span class="c1"># fire while merely reading out a latent for logging.</span>
+                            <span class="n">was_training</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">training</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">z_q</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">ft</span><span class="p">)</span>
+                            <span class="k">finally</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">was_training</span><span class="p">)</span>
+                            <span class="c1"># z_q: (B, C, H', W') -&gt; reduce spatial dims and take mean over channels</span>
+                            <span class="n">latent</span> <span class="o">=</span> <span class="n">z_q</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                            <span class="n">latents_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">latent</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="c1"># If encoder fails, skip latent for this step</span>
+                        <span class="k">pass</span>
 
                 <span class="n">episode_return</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="n">next_obs</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span> <span class="k">else</span> <span class="n">obs</span>
 
             <span class="n">episode_returns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">episode_return</span><span class="p">)</span>
-            <span class="n">videos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
+                <span class="n">videos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">shares_collection_env</span><span class="p">:</span>
+            <span class="c1"># The evaluation left this environment mid-episode somewhere else;</span>
+            <span class="c1"># the half-finished collection episode that referred to it is gone.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_collection_state</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
             <span class="c1"># Stack latents into (N, D) array if any</span>

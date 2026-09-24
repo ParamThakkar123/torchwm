@@ -31,7 +31,7 @@ import cv2
 from typing import Any, Optional
 
 from torchwm.configs.diamond_config import DiamondConfig
-from torchwm.training.train_diamond import DiamondAgent
+from torchwm.training.train_diamond import DiamondAgent, _normalize_frame
 from torchwm.inference.play_base import (
     get_action_from_key,
     resolve_checkpoint_path,
@@ -66,12 +66,54 @@ def _as_int(value: Any) -> int:
     return int(value)
 
 
+def to_display_frame(frame: np.ndarray) -> np.ndarray:
+    """Model-domain frame in [-1, 1] -> float RGB in [0, 1] for display/recording."""
+    return np.clip((frame + 1.0) * 0.5, 0.0, 1.0)
+
+
+def imagine_next_frame(
+    agent: DiamondAgent, obs_history: list[np.ndarray], action_history: list[int]
+) -> np.ndarray:
+    """Sample the world model's next frame, in the model's [-1, 1] domain.
+
+    ``obs_history`` holds HWC frames in [-1, 1], the domain the diffusion model
+    and policy are trained in (``_normalize_frame``). ``action_history[-1]``
+    must be the action taken at ``obs_history[-1]``: training conditions on
+    ``actions[t-L+1..t]`` to predict ``obs[t+1]`` (``SequenceDataset``), so
+    leaving the current action out conditions on a window one step stale.
+    """
+    cfg = agent.config
+    n = cfg.num_conditioning_frames
+    obs_np = np.stack(obs_history[-n:]).transpose(0, 3, 1, 2)
+    obs_tensor = torch.from_numpy(obs_np).unsqueeze(0).to(agent.device)
+
+    act_hist = [_as_int(a) for a in action_history[-n:]]
+    act_hist = [0] * (n - len(act_hist)) + act_hist
+    act_tensor = torch.tensor(act_hist, device=agent.device).unsqueeze(0)
+
+    with torch.no_grad():
+        generated = agent.sampler.sample(
+            model=agent.diffusion_model,
+            shape=(1, obs_np.shape[1], cfg.obs_size, cfg.obs_size),
+            device=agent.device,
+            obs_history=obs_tensor,
+            actions=act_tensor,
+        )
+    return generated.squeeze(0).permute(1, 2, 0).cpu().numpy()
+
+
 def make_agent(
     checkpoint: str,
     game: str,
     device: Optional[str] = None,
     seed: int = 42,
+    sampling_steps: Optional[int] = None,
 ) -> DiamondAgent:
+    """Build a DIAMOND agent from a checkpoint for inference.
+
+    ``sampling_steps`` overrides the checkpoint's ``num_sampling_steps``, the
+    number of Euler denoising steps per imagined frame (the paper uses 3).
+    """
     ckpt_path = resolve_checkpoint_path(checkpoint)
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=True)
     cfg_dict = ckpt.get("config", {})
@@ -86,6 +128,8 @@ def make_agent(
         config.device = device
     config.device = config.device or default_device_name()
     config.terminate_on_life_loss = False
+    if sampling_steps is not None:
+        config.num_sampling_steps = sampling_steps
 
     agent = DiamondAgent(config)
     agent.load_checkpoint(ckpt_path)
@@ -105,13 +149,14 @@ def run_play(
     record: Optional[str] = None,
     record_fps: int = 20,
     control: str = "assist",
+    sampling_steps: Optional[int] = None,
 ) -> None:
-    agent = make_agent(checkpoint, game, device, seed)
+    agent = make_agent(checkpoint, game, device, seed, sampling_steps)
     device_obj = agent.device
     cfg = agent.config
 
     raw_obs, _ = agent.env.reset()
-    norm_obs = raw_obs.astype(np.float32) / 255.0
+    norm_obs = _normalize_frame(raw_obs)
     obs_history = [norm_obs] * cfg.num_conditioning_frames
     action_history: list[int] = []
 
@@ -135,17 +180,11 @@ def run_play(
         obs_np = obs_np.transpose(0, 3, 1, 2)
         return torch.from_numpy(obs_np).unsqueeze(0).to(device_obj)
 
-    def build_action_tensor() -> torch.Tensor:
-        act_hist = action_history[-cfg.num_conditioning_frames :]
-        if len(act_hist) < cfg.num_conditioning_frames:
-            act_hist = [0] * (cfg.num_conditioning_frames - len(act_hist)) + act_hist
-        return torch.tensor(act_hist, device=device_obj).unsqueeze(0)
-
     def reset_episode() -> None:
         nonlocal raw_obs, norm_obs, obs_history, action_history
         nonlocal policy_hidden, episode_reward, step_count
         raw_obs, _ = agent.env.reset()
-        norm_obs = raw_obs.astype(np.float32) / 255.0
+        norm_obs = _normalize_frame(raw_obs)
         obs_history = [norm_obs] * cfg.num_conditioning_frames
         action_history = []
         policy_hidden = agent.actor_critic.init_hidden(1, device_obj)
@@ -188,29 +227,21 @@ def run_play(
             control_mode = "AGENT"
             action = agent_action
 
-        act_tensor = build_action_tensor()
+        # Record the action before sampling: the world model conditions on the
+        # action taken at the latest frame (see imagine_next_frame).
+        action_history.append(action)
 
         if dream_mode:
-            with torch.no_grad():
-                generated = agent.sampler.sample(
-                    model=agent.diffusion_model,
-                    shape=(1, 3, cfg.obs_size, cfg.obs_size),
-                    device=device_obj,
-                    obs_history=obs_tensor,
-                    actions=act_tensor,
-                )
-
-            gen_np = generated.squeeze(0).permute(1, 2, 0).cpu().numpy()
-            gen_np = np.clip(gen_np, 0.0, 1.0)
-            display_rgb = gen_np
-            gen_u8 = (gen_np * 255).astype(np.uint8)
+            gen_np = imagine_next_frame(agent, obs_history, action_history)
+            display_rgb = to_display_frame(gen_np)
+            gen_u8 = (display_rgb * 255).astype(np.uint8)
             display_bgr = cv2.cvtColor(gen_u8, cv2.COLOR_RGB2BGR)
 
             obs_history.append(gen_np)
 
         else:
             next_raw, reward, done, _ = agent.env.step(action)
-            next_norm = next_raw.astype(np.float32) / 255.0
+            next_norm = _normalize_frame(next_raw)
 
             display_rgb = next_raw.astype(np.float32) / 255.0
             display_bgr = next_raw
@@ -226,7 +257,6 @@ def run_play(
                 )
                 reset_episode()
 
-        action_history.append(action)
         step_count += 1
 
         fps_counter += 1
@@ -298,6 +328,12 @@ def main() -> None:
         "versus: you drive, the policy's action is shown as the opponent.",
     )
     parser.add_argument(
+        "--sampling-steps",
+        type=int,
+        default=None,
+        help="Euler denoising steps per dream frame (default: the checkpoint's).",
+    )
+    parser.add_argument(
         "--versus",
         action="store_true",
         help="Shortcut for --control versus.",
@@ -312,6 +348,7 @@ def main() -> None:
         record=args.record,
         record_fps=args.record_fps,
         control="versus" if args.versus else args.control,
+        sampling_steps=args.sampling_steps,
     )
 
 

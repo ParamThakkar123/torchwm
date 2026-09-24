@@ -34,7 +34,12 @@ import cv2
 import numpy as np
 import torch
 
-from torchwm.inference.play_diamond import make_agent
+from torchwm.inference.play_diamond import (
+    imagine_next_frame,
+    make_agent,
+    to_display_frame,
+)
+from torchwm.training.train_diamond import _normalize_frame
 from torchwm.utils.utils import StreamingVideoWriter
 
 
@@ -88,8 +93,10 @@ def rollout(
     cfg = agent.config
     device = agent.device
 
+    # Frames stay in the model's [-1, 1] domain, which both the policy and the
+    # diffusion model are trained on; they are mapped to [0, 1] only for video.
     raw_obs, _ = agent.env.reset()
-    obs_history = [raw_obs.astype(np.float32) / 255.0] * cfg.num_conditioning_frames
+    obs_history = [_normalize_frame(raw_obs)] * cfg.num_conditioning_frames
     action_history: list[int] = []
     policy_hidden = agent.actor_critic.init_hidden(1, device)
 
@@ -108,42 +115,28 @@ def rollout(
                 obs_tensor[:, -1], policy_hidden, deterministic=deterministic
             )
 
-        if dream:
-            act_hist = action_history[-cfg.num_conditioning_frames :]
-            if len(act_hist) < cfg.num_conditioning_frames:
-                act_hist = [0] * (
-                    cfg.num_conditioning_frames - len(act_hist)
-                ) + act_hist
-            act_tensor = torch.tensor(act_hist, device=device).unsqueeze(0)
+        # The world model conditions on the action taken at the latest frame,
+        # so it goes into the history before sampling.
+        action_history.append(int(action))
 
-            with torch.no_grad():
-                generated = agent.sampler.sample(
-                    model=agent.diffusion_model,
-                    shape=(1, 3, cfg.obs_size, cfg.obs_size),
-                    device=device,
-                    obs_history=obs_tensor,
-                    actions=act_tensor,
-                )
-            next_frame = np.clip(
-                generated.squeeze(0).permute(1, 2, 0).cpu().numpy(), 0.0, 1.0
-            )
+        if dream:
+            next_frame = imagine_next_frame(agent, obs_history, action_history)
             obs_history.append(next_frame)
         else:
             next_raw, reward, done, _ = agent.env.step(action)
-            next_frame = next_raw.astype(np.float32) / 255.0
+            next_frame = _normalize_frame(next_raw)
             episode_reward += float(reward)
             obs_history.append(next_frame)
             if done:
                 # Keep recording across episode boundaries so the clip stays the
                 # requested length rather than ending early.
                 raw_obs, _ = agent.env.reset()
-                reset_frame = raw_obs.astype(np.float32) / 255.0
+                reset_frame = _normalize_frame(raw_obs)
                 obs_history = [reset_frame] * cfg.num_conditioning_frames
                 action_history = []
                 policy_hidden = agent.actor_critic.init_hidden(1, device)
 
-        action_history.append(int(action))
-        frames.append(upscale(to_uint8(next_frame), scale))
+        frames.append(upscale(to_uint8(to_display_frame(next_frame)), scale))
 
         if (step + 1) % 50 == 0:
             rate = (step + 1) / max(1e-6, time.time() - started)
@@ -175,6 +168,13 @@ def main() -> int:
         "--scale", type=int, default=4, help="Nearest-neighbour upscale factor."
     )
     parser.add_argument(
+        "--sampling-steps",
+        type=int,
+        default=None,
+        help="Euler denoising steps per dream frame (default: the checkpoint's; "
+        "the paper uses 3).",
+    )
+    parser.add_argument(
         "--stochastic",
         action="store_true",
         help="Sample policy actions instead of taking the argmax.",
@@ -185,8 +185,13 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading checkpoint: {args.checkpoint}")
-    agent = make_agent(args.checkpoint, args.game, args.device, args.seed)
-    print(f"Device: {agent.device}  preset: {agent.config.preset}  game: {args.game}")
+    agent = make_agent(
+        args.checkpoint, args.game, args.device, args.seed, args.sampling_steps
+    )
+    print(
+        f"Device: {agent.device}  preset: {agent.config.preset}  game: {args.game}  "
+        f"sampling steps: {agent.config.num_sampling_steps}"
+    )
 
     deterministic = not args.stochastic
     written: list[Path] = []
